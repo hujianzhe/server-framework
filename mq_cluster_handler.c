@@ -1,6 +1,93 @@
 #include "global.h"
 #include <stdio.h>
 
+int reqReconnectCluster(MQRecvMsg_t* ctrl) {
+	cJSON* cjson_req_root, *cjson_ret_root;
+	MQSendMsg_t ret_msg;
+	char* ret_data;
+	int ok;
+
+	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
+	if (!cjson_req_root) {
+		fputs("cJSON_Parse", stderr);
+		return 0;
+	}
+	printf("req: %s\n", (char*)(ctrl->data));
+
+	ok = 0;
+	do {
+		cJSON* cjson_name, *cjson_ip, *cjson_port, *cjson_session_id;
+		Session_t* session;
+		MQCluster_t* cluster;
+
+		cjson_name = cJSON_Field(cjson_req_root, "name");
+		if (!cjson_name) {
+			break;
+		}
+		cjson_ip = cJSON_Field(cjson_req_root, "ip");
+		if (!cjson_ip) {
+			break;
+		}
+		cjson_port = cJSON_Field(cjson_req_root, "port");
+		if (!cjson_port) {
+			break;
+		}
+		cjson_session_id = cJSON_Field(cjson_req_root, "session_id");
+		if (!cjson_session_id) {
+			break;
+		}
+
+		session = getSession(cjson_session_id->valueint);
+		if (!session) {
+			break;
+		}
+		cluster = session->cluster;
+		if (!cluster) {
+			break;
+		}
+		else if (strcmp(cluster->name, cjson_name->valuestring)) {
+			break;
+		}
+		else if (strcmp(cluster->ip, cjson_ip->valuestring)) {
+			break;
+		}
+		else if (cluster->port != cjson_port->valueint) {
+			break;
+		}
+
+		if (session->channel != ctrl->channel) {
+			Channel_t* channel = sessionUnbindChannel(session);
+			if (channel) {
+				channelSendv(channel, NULL, 0, NETPACKET_FIN);
+			}
+			sessionBindChannel(session, ctrl->channel);
+		}
+		else {
+			ReactorCmd_t* cmd = reactorNewReuseCmd(&session->channel->_, &ctrl->peer_addr);
+			if (!cmd) {
+				break;
+			}
+			reactorCommitCmd(NULL, cmd);
+		}
+		ok = 1;
+	} while (0);
+	cJSON_Delete(cjson_req_root);
+
+	cjson_ret_root = cJSON_NewObject(NULL);
+	cJSON_AddNewNumber(cjson_ret_root, "success", ok);
+	ret_data = cJSON_Print(cjson_ret_root);
+	cJSON_Delete(cjson_ret_root);
+
+	makeMQSendMsg(&ret_msg, CMD_RET_RECONNECT, ret_data, strlen(ret_data));
+	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_SYN_ACK);
+	free(ret_data);
+	return 0;
+}
+
+int retReconnect(MQRecvMsg_t* ctrl) {
+	return 0;
+}
+
 int reqUploadCluster(MQRecvMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	cJSON *cjson_ret_root, *cjson_ret_array_cluster;

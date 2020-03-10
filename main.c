@@ -7,6 +7,8 @@
 unsigned int THREAD_CALL reactorThreadEntry(void* arg);
 unsigned int THREAD_CALL taskThreadEntry(void* arg);
 
+extern int reqReconnectCluster(MQRecvMsg_t*);
+extern int retReconnect(MQRecvMsg_t*);
 extern int reqUploadCluster(MQRecvMsg_t*);
 extern int retUploadCluster(MQRecvMsg_t*);
 extern int notifyNewCluster(MQRecvMsg_t*);
@@ -107,6 +109,8 @@ int main(int argc, char** argv) {
 	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR)
 		goto err;
 
+	regDispatchCallback(CMD_REQ_RECONNECT, reqReconnectCluster);
+	regDispatchCallback(CMD_RET_RECONNECT, retReconnect);
 	regDispatchCallback(CMD_REQ_UPLOAD_CLUSTER, reqUploadCluster);
 	regDispatchCallback(CMD_RET_UPLOAD_CLUSTER, retUploadCluster);
 	regDispatchCallback(CMD_NOTIFY_NEW_CLUSTER, notifyNewCluster);

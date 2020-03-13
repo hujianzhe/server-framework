@@ -85,6 +85,22 @@ int reqReconnectCluster(MQRecvMsg_t* ctrl) {
 }
 
 int retReconnect(MQRecvMsg_t* ctrl) {
+	ReactorCmd_t* cmd;
+	Channel_t* channel = ctrl->channel;
+	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
+		unsigned int bodylen = field_sizeof(MQSendMsg_t, htonl_cmd);
+		unsigned int hdrlen = channel->on_hdrsize(channel, bodylen);
+		ReactorPacket_t* pkg = reactorpacketMake(NETPACKET_FRAGMENT, hdrlen, bodylen);
+		if (!pkg) {
+			return 1;
+		}
+		*(unsigned int*)(pkg->_.buf + hdrlen) = htonl(CMD_RET_RECONNECT);
+		cmd = reactorNewReuseFinishCmd(&channel->_, pkg);
+	}
+	else if (channel->_.flag & CHANNEL_FLAG_SERVER) {
+		cmd = reactorNewReuseFinishCmd(&channel->_, NULL);
+	}
+	reactorCommitCmd(NULL, cmd);
 	return 0;
 }
 

@@ -4,7 +4,7 @@
 MQSendMsg_t* makeMQSendMsg(MQSendMsg_t* msg, int cmd, const void* data, unsigned int len) {
 	msg->htonl_cmd = htonl(cmd);
 	iobufPtr(msg->iov + 0) = (char*)&msg->htonl_cmd;
-	iobufLen(msg->iov + 0) = sizeof(cmd);
+	iobufLen(msg->iov + 0) = sizeof(msg->htonl_cmd);
 	iobufPtr(msg->iov + 1) = len ? (char*)data : NULL;
 	iobufLen(msg->iov + 1) = data ? len : 0;
 	return msg;

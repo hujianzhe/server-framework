@@ -34,7 +34,13 @@ static int centerChannelHeartbeat(Channel_t* c, int heartbeat_times) {
 		return 1;
 	}
 	else {
+		ReactorCmd_t* cmd;
 		printf("channel(%p) zombie...\n", c);
+		cmd = reactorNewReuseCmd(&c->_, NULL);
+		if (cmd) {
+			reactorCommitCmd(NULL, cmd);
+			printf("channel(%p) reconnect start...\n", c);
+		}
 		return 0;
 	}
 }

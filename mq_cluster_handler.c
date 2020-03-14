@@ -2,9 +2,8 @@
 #include <stdio.h>
 
 int reqReconnectCluster(MQRecvMsg_t* ctrl) {
-	cJSON* cjson_req_root, *cjson_ret_root;
+	cJSON* cjson_req_root;
 	MQSendMsg_t ret_msg;
-	char* ret_data;
 	int ok;
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
@@ -72,35 +71,35 @@ int reqReconnectCluster(MQRecvMsg_t* ctrl) {
 		ok = 1;
 	} while (0);
 	cJSON_Delete(cjson_req_root);
+	if (!ok) {
+		channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+		puts("reconnect failure");
+		return 1;
+	}
 
-	cjson_ret_root = cJSON_NewObject(NULL);
-	cJSON_AddNewNumber(cjson_ret_root, "success", ok);
-	ret_data = cJSON_Print(cjson_ret_root);
-	cJSON_Delete(cjson_ret_root);
-
-	makeMQSendMsg(&ret_msg, CMD_RET_RECONNECT, ret_data, strlen(ret_data));
+	makeMQSendMsg(&ret_msg, CMD_RET_RECONNECT, NULL, 0);
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_SYN_ACK);
-	free(ret_data);
+	puts("reconnect start");
 	return 0;
 }
 
 int retReconnect(MQRecvMsg_t* ctrl) {
 	ReactorCmd_t* cmd;
+	ReactorPacket_t* pkg = NULL;
 	Channel_t* channel = ctrl->channel;
 	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
-		unsigned int bodylen = field_sizeof(MQSendMsg_t, htonl_cmd);
-		unsigned int hdrlen = channel->on_hdrsize(channel, bodylen);
-		ReactorPacket_t* pkg = reactorpacketMake(NETPACKET_FRAGMENT, hdrlen, bodylen);
+		unsigned int hdrlen, bodylen;
+		bodylen = field_sizeof(MQSendMsg_t, htonl_cmd);
+		hdrlen = channel->on_hdrsize(channel, bodylen);
+		pkg = reactorpacketMake(NETPACKET_FRAGMENT, hdrlen, bodylen);
 		if (!pkg) {
 			return 1;
 		}
 		*(unsigned int*)(pkg->_.buf + hdrlen) = htonl(CMD_RET_RECONNECT);
-		cmd = reactorNewReuseFinishCmd(&channel->_, pkg);
 	}
-	else if (channel->_.flag & CHANNEL_FLAG_SERVER) {
-		cmd = reactorNewReuseFinishCmd(&channel->_, NULL);
-	}
+	cmd = reactorNewReuseFinishCmd(&channel->_, pkg);
 	reactorCommitCmd(NULL, cmd);
+	puts("reconnect finish");
 	return 0;
 }
 

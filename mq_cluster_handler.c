@@ -98,7 +98,7 @@ int retReconnect(MQRecvMsg_t* ctrl) {
 		unsigned int hdrlen, bodylen;
 		bodylen = field_sizeof(MQSendMsg_t, htonl_cmd);
 		hdrlen = channel->on_hdrsize(channel, bodylen);
-		pkg = reactorpacketMake(NETPACKET_FRAGMENT, hdrlen, bodylen);
+		pkg = reactorpacketMake(NETPACKET_FRAGMENT_EOF, hdrlen, bodylen);
 		if (!pkg) {
 			return 1;
 		}

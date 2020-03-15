@@ -57,12 +57,14 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 	sockaddrDecode(&c->to_addr.st, peer_ip, &peer_port);
 	printf("channel(%p) connect success, ip:%s, port:%hu\n", c, peer_ip, peer_port);
 
-	sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", g_Config.cluster_name, g_Config.outer_ip, g_Config.port ? g_Config.port[0] : 0);
 	if (c->connected_times > 1) {
+		Session_t* session = (Session_t*)channel->userdata;
+		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"session_id\":%u}", g_Config.cluster_name, g_Config.outer_ip, g_Config.port ? g_Config.port[0] : 0, 1);
 		makeMQSendMsg(&msg, CMD_REQ_RECONNECT, buffer, strlen(buffer));
-		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN_ACK);
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN);
 	}
 	else {
+		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", g_Config.cluster_name, g_Config.outer_ip, g_Config.port ? g_Config.port[0] : 0);
 		makeMQSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	}

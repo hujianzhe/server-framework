@@ -62,7 +62,14 @@ int reqReconnectCluster(MQRecvMsg_t* ctrl) {
 			sessionBindChannel(session, ctrl->channel);
 		}
 		else {
-			ReactorCmd_t* cmd = reactorNewReuseCmd(&session->channel->_, &ctrl->peer_addr);
+			ReactorCmd_t* cmd;
+			IPString_t ip = { 0 };
+			unsigned short port = 0;
+			if (!sockaddrDecode(&ctrl->peer_addr.st, ip, &port)) {
+				break;
+			}
+			printf("recv client reconnect (%s:%hu)\n", ip, port);
+			cmd = reactorNewReuseCmd(&session->channel->_, &ctrl->peer_addr);
 			if (!cmd) {
 				break;
 			}

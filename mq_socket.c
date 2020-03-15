@@ -93,10 +93,13 @@ static void channel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResul
 		dataqueuePush(&g_DataQueue, &message->internal._);
 	}
 	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
+		/*
 		MQSendMsg_t packet;
 		makeMQSendMsgEmpty(&packet);
 		channelSendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 		puts("reply a empty packet");
+		*/
+		puts("not reply empty packet");
 	}
 }
 
@@ -146,7 +149,7 @@ Channel_t* mqsocketOpenChannel(ReactorObject_t* o, int flag, const void* saddr) 
 	c->on_recv = channel_recv;
 	if (flag & CHANNEL_FLAG_CLIENT) {
 		c->heartbeat_timeout_sec = 10;
-		c->heartbeat_maxtimes = 5;
+		c->heartbeat_maxtimes = 3;
 	}
 	else if (flag & CHANNEL_FLAG_SERVER)
 		c->heartbeat_timeout_sec = 20;

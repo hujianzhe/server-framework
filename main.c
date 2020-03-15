@@ -30,19 +30,19 @@ static int centerChannelHeartbeat(Channel_t* c, int heartbeat_times) {
 		MQSendMsg_t msg;
 		makeMQSendMsgEmpty(&msg);
 		channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
-		printf("channel(%p) send heartbeat...\n", c);
-		return 1;
+		printf("channel(%p) send heartbeat, times %d...\n", c, heartbeat_times);
 	}
 	else {
 		ReactorCmd_t* cmd;
 		printf("channel(%p) zombie...\n", c);
 		cmd = reactorNewReuseCmd(&c->_, NULL);
-		if (cmd) {
-			reactorCommitCmd(NULL, cmd);
-			printf("channel(%p) reconnect start...\n", c);
+		if (!cmd) {
+			return 0;
 		}
-		return 0;
+		reactorCommitCmd(NULL, cmd);
+		printf("channel(%p) reconnect start...\n", c);
 	}
+	return 1;
 }
 
 static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
@@ -58,8 +58,14 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 	printf("channel(%p) connect success, ip:%s, port:%hu\n", c, peer_ip, peer_port);
 
 	sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", g_Config.cluster_name, g_Config.outer_ip, g_Config.port ? g_Config.port[0] : 0);
-	makeMQSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
-	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	if (c->connected_times > 1) {
+		makeMQSendMsg(&msg, CMD_REQ_RECONNECT, buffer, strlen(buffer));
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN_ACK);
+	}
+	else {
+		makeMQSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	}
 }
 
 int main(int argc, char** argv) {

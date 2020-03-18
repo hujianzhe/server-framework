@@ -115,6 +115,7 @@ static void channel_reg_handler(ChannelBase_t* c, long long timestamp_msec) {
 	const char* socktype_str;
 	if (!sockaddrDecode(&c->to_addr.st, ip, &port)) {
 		puts("reg parse sockaddr error");
+		return;
 	}
 
 	channel = pod_container_of(c, Channel_t, _);

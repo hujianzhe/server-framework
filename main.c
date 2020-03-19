@@ -67,6 +67,13 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", g_Config.cluster_name, g_Config.outer_ip, g_Config.port ? g_Config.port[0] : 0);
 		makeMQSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		/*
+		int i = 0;
+		for (i = 0; i < sizeof(buffer); ++i) {
+			buffer[i] = i % 255;
+		}
+		channelSend(channel, buffer, sizeof(buffer), NETPACKET_FRAGMENT);
+		*/
 	}
 }
 

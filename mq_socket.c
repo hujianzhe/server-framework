@@ -71,6 +71,16 @@ static void channel_lengthfieldfram_reply_ack(Channel_t* c, unsigned int seq, co
 }
 
 static void channel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResult_t* decode_result) {
+	/*
+	int i;
+	for (i = 0; i < decode_result->bodylen; ++i) {
+		if (decode_result->bodyptr[i] != i % 255) {
+			puts("ERROR !!!!!!! ERROR /1==///////////");
+			break;
+		}
+	}
+	printf("bodylen = %d, %d\n", decode_result->bodylen, i);
+	*/
 	if (decode_result->bodylen >= sizeof(int)) {
 		MQRecvMsg_t* message = (MQRecvMsg_t*)malloc(sizeof(MQRecvMsg_t) + decode_result->bodylen - sizeof(int));
 		if (!message) {
@@ -140,6 +150,7 @@ Channel_t* mqsocketOpenChannel(ReactorObject_t* o, int flag, const void* saddr) 
 	Channel_t* c = reactorobjectOpenChannel(o, flag, 0, saddr);
 	if (!c)
 		return NULL;
+	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
 	c->maxhdrsize = lengthfieldframe_hdrsize(c, 0);

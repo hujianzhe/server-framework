@@ -3,16 +3,34 @@
 
 typedef struct DispatchItem_t {
 	HashtableNode_t m_hashnode;
-	MQDispatchCallback_t func;
+	union {
+		MQDispatchCallback_t func;
+		Fiber_t* fiber;
+	};
 } DispatchItem_t;
 
 Hashtable_t g_DispatchTable;
 static HashtableNode_t* s_DispatchBulk[1024];
+Hashtable_t g_DispatchRpcCtxTable;
+static HashtableNode_t* s_DispatchRpcCtxBulk[1024];
 static int __keycmp(const void* node_key, const void* key) { return node_key != key; }
 static unsigned int __keyhash(const void* key) { return (ptrlen_t)key; }
 
-int initDispatchCallback(void) {
-	hashtableInit(&g_DispatchTable, s_DispatchBulk, sizeof(s_DispatchBulk) / sizeof(s_DispatchBulk[0]), __keycmp, __keyhash);
+int initDispatch(void) {
+	hashtableInit(
+		&g_DispatchTable,
+		s_DispatchBulk,
+		sizeof(s_DispatchBulk) / sizeof(s_DispatchBulk[0]),
+		__keycmp,
+		__keyhash
+	);
+	hashtableInit(
+		&g_DispatchRpcCtxTable,
+		s_DispatchRpcCtxBulk,
+		sizeof(s_DispatchRpcCtxBulk) / sizeof(s_DispatchRpcCtxBulk[0]),
+		__keycmp,
+		__keyhash
+	);
 	return 1;
 }
 
@@ -48,4 +66,27 @@ void freeDispatchCallback(void) {
 		cur = next;
 	}
 	hashtableInit(&g_DispatchTable, s_DispatchBulk, sizeof(s_DispatchBulk) / sizeof(s_DispatchBulk[0]), NULL, NULL);
+}
+
+int regDispatchRpcContext(int cmd, Fiber_t* fiber) {
+	DispatchItem_t* item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
+	if (item) {
+		HashtableNode_t* exist_node;
+		item->m_hashnode.key = (void*)(size_t)cmd;
+		item->fiber = fiber;
+		exist_node = hashtableInsertNode(&g_DispatchRpcCtxTable, &item->m_hashnode);
+		if (exist_node == &item->m_hashnode) {
+			return 1;
+		}
+		free(item);
+	}
+	return 0;
+}
+
+Fiber_t* getDispatchRpcContext(int cmd) {
+	HashtableNode_t* node = hashtableSearchKey(&g_DispatchRpcCtxTable, (void*)(size_t)cmd);
+	if (node) {
+		return pod_container_of(node, DispatchItem_t, m_hashnode)->fiber;
+	}
+	return NULL;
 }

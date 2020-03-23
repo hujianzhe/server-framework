@@ -16,6 +16,11 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	int wait_msec = g_Config.timer_interval_msec;
 	long long cur_msec, timer_min_msec;
 	long long frame_next_msec = gmtimeMillisecond() + g_Config.timer_interval_msec;
+	g_DataFiber = fiberFromThread();
+	if (!g_DataFiber) {
+		fputs("fiberFromThread error", stderr);
+		return 1;
+	}
 	while (g_Valid) {
 		ListNode_t* cur, *next;
 		for (cur = dataqueuePop(&g_DataQueue, wait_msec, ~0); cur; cur = next) {
@@ -23,12 +28,20 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			next = cur->next;
 			if (REACTOR_USER_CMD == internal->type) {
 				MQRecvMsg_t* ctrl = pod_container_of(internal , MQRecvMsg_t, internal);
-				MQDispatchCallback_t callback_func = getDispatchCallback(ctrl->cmd);
-				if (!callback_func) {
-					continue;
+				if (ctrl->cmd < RPC_CMD_START) {
+					MQDispatchCallback_t callback_func = getDispatchCallback(ctrl->cmd);
+					if (!callback_func) {
+						continue;
+					}
+					callback_func(ctrl);
+					free(ctrl);
 				}
-				callback_func(ctrl);
-				free(ctrl);
+				else {
+					Fiber_t* rpc_fiber = getDispatchRpcContext(ctrl->cmd);
+					if (rpc_fiber) {
+						fiberSwitch(g_DataFiber, rpc_fiber);
+					}
+				}
 			}
 			else if (REACTOR_CHANNEL_FREE_CMD == internal->type) {
 				Channel_t* channel = pod_container_of(internal, Channel_t, _.freecmd);
@@ -65,6 +78,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	}
 	rbtimerClean(&g_Timer, freeTimerEvent);
 	dataqueueClean(&g_DataQueue, freeMQSocketMsg);
+	fiberFree(g_DataFiber);
 	return 0;
 }
 

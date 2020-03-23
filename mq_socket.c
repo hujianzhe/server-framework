@@ -103,13 +103,11 @@ static void channel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResul
 		dataqueuePush(&g_DataQueue, &message->internal._);
 	}
 	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
-		/*
 		MQSendMsg_t packet;
 		makeMQSendMsgEmpty(&packet);
 		channelSendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 		puts("reply a empty packet");
-		*/
-		puts("not reply empty packet");
+		//puts("not reply empty packet");
 	}
 }
 

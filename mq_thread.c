@@ -41,10 +41,17 @@ static void sessionFiberProc(Fiber_t* fiber) {
 					MQSendMsg_t msg;
 					makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
 					channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-					regDispatchRpcContext(CMD_RET_TEST, fiber);
+					regSessionRpc(session, CMD_RET_TEST);
+					session->fiber_wait_timestamp_msec = gmtimeMillisecond();
+					session->fiber_wait_timeout_msec = 1000;
 					fiberSwitch(fiber, g_DataFiber);
-					printf("say hello world ... %s\n", session->fiber_return_data);
-					freeSessionReturnData(session);
+					if (gmtimeMillisecond() - session->fiber_wait_timestamp_msec >= session->fiber_wait_timeout_msec) {
+						fputs("rpc timeout", stderr);
+					}
+					else {
+						printf("say hello world ... %s\n", session->fiber_return_data);
+						freeSessionReturnData(session);
+					}
 				}
 			}
 		}
@@ -96,14 +103,13 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					}
 				}
 				else if (session->fiber_busy) {
-					Fiber_t* rpc_fiber = getDispatchRpcContext(ctrl->cmd);
-					if (rpc_fiber) {
+					if (existAndDeleteSessionRpc(session, ctrl->cmd)) {
 						if (!saveSessionReturnData(session, ctrl->data, ctrl->datalen)) {
 							free(ctrl);
 							continue;
 						}
 						free(ctrl);
-						fiberSwitch(g_DataFiber, rpc_fiber);
+						fiberSwitch(g_DataFiber, session->fiber);
 					}
 					else {
 						free(ctrl);

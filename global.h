@@ -8,7 +8,6 @@
 #include "mq_socket.h"
 #include "mq_msg.h"
 #include "mq_session.h"
-#include "mq_queue.h"
 #include <stdlib.h>
 
 extern volatile int g_Valid;
@@ -25,7 +24,6 @@ extern Hashtable_t g_DispatchTable;
 extern List_t g_ClusterList;
 extern Hashtable_t g_ClusterTable;
 extern Hashtable_t g_SessionTable;
-extern Hashtable_t g_QueueTable;
 
 int initGlobalResource(void);
 void freeGlobalResource(void);

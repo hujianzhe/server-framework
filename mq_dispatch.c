@@ -68,7 +68,7 @@ void freeDispatchCallback(void) {
 	hashtableInit(&g_DispatchTable, s_DispatchBulk, sizeof(s_DispatchBulk) / sizeof(s_DispatchBulk[0]), NULL, NULL);
 }
 
-int regDispatchRpcContext(int cmd, Fiber_t* fiber) {
+int regDispatchRpcContext(int cmd, struct Fiber_t* fiber) {
 	DispatchItem_t* item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
 	if (item) {
 		HashtableNode_t* exist_node;
@@ -83,7 +83,7 @@ int regDispatchRpcContext(int cmd, Fiber_t* fiber) {
 	return 0;
 }
 
-Fiber_t* getDispatchRpcContext(int cmd) {
+struct Fiber_t* getDispatchRpcContext(int cmd) {
 	HashtableNode_t* node = hashtableSearchKey(&g_DispatchRpcCtxTable, (void*)(size_t)cmd);
 	if (node) {
 		return pod_container_of(node, DispatchItem_t, m_hashnode)->fiber;

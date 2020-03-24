@@ -96,7 +96,6 @@ int main(int argc, char** argv) {
 	initDispatch();
 	initClusterTable();
 	initSessionTable();
-	initQueueTable();
 
 	if (!dataqueueInit(&g_DataQueue))
 		goto err;
@@ -208,7 +207,6 @@ end:
 	freeDispatchCallback();
 	freeSessionTable();
 	freeClusterTable();
-	freeQueueTable();
 	freeGlobalResource();
 	return 0;
 }

@@ -149,8 +149,6 @@
     <ClCompile Include="mq_dispatch.c" />
     <ClCompile Include="mq_cluster_handler.c" />
     <ClCompile Include="mq_msg.c" />
-    <ClCompile Include="mq_queue.c" />
-    <ClCompile Include="mq_queue_handler.c" />
     <ClCompile Include="mq_session.c" />
     <ClCompile Include="mq_socket.c" />
     <ClCompile Include="mq_thread.c" />
@@ -203,7 +201,6 @@
     <ClInclude Include="mq_cmd.h" />
     <ClInclude Include="mq_dispatch.h" />
     <ClInclude Include="mq_msg.h" />
-    <ClInclude Include="mq_queue.h" />
     <ClInclude Include="mq_session.h" />
     <ClInclude Include="mq_socket.h" />
     <ClInclude Include="util\inc\all.h" />

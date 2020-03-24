@@ -159,13 +159,7 @@
     <ClCompile Include="mq_session.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="mq_queue.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="mq_cluster_handler.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="mq_queue_handler.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\datastruct\memfunc.c">
@@ -330,9 +324,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="mq_session.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="mq_queue.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\datastruct\memfunc.h">

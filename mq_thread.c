@@ -12,6 +12,38 @@ static void freeTimerEvent(RBTimerEvent_t* e) {
 	free(e);
 }
 
+static void sessionFiberProc(Fiber_t* fiber) {
+	Session_t* session = (Session_t*)fiber->arg;
+	while (1) {
+		ListNode_t* cur, *next;
+		for (cur = session->fiber_cmdlist.head; cur; cur = next) {
+			ReactorCmd_t* internal = (ReactorCmd_t*)cur;
+			next = cur->next;
+			session->fiber_busy = 1;
+
+			if (REACTOR_CHANNEL_FREE_CMD == internal->type) {
+				Channel_t* channel = pod_container_of(internal, Channel_t, _.freecmd);
+				listRemoveNode(&session->fiber_cmdlist, cur);
+				channelDestroy(channel);
+				reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
+				break;
+			}
+			else {
+				MQRecvMsg_t* ctrl = pod_container_of(internal, MQRecvMsg_t, internal);
+				MQDispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
+				if (callback) {
+					callback(ctrl);
+				}
+				listRemoveNode(&session->fiber_cmdlist, cur);
+				free(ctrl);
+			}
+		}
+		session->fiber_busy = 0;
+		fiberSwitch(fiber, g_DataFiber);
+	}
+	fiberSwitch(fiber, g_DataFiber);
+}
+
 unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	int wait_msec = g_Config.timer_interval_msec;
 	long long cur_msec, timer_min_msec;
@@ -28,32 +60,61 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			next = cur->next;
 			if (REACTOR_USER_CMD == internal->type) {
 				MQRecvMsg_t* ctrl = pod_container_of(internal , MQRecvMsg_t, internal);
-				if (ctrl->cmd < RPC_CMD_START) {
-					MQDispatchCallback_t callback_func = getDispatchCallback(ctrl->cmd);
-					if (!callback_func) {
+				Session_t* session = channelSession(ctrl->channel);
+				if (!session) {
+					session = newSession();
+					if (!session) {
+						channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+						free(ctrl);
 						continue;
 					}
-					callback_func(ctrl);
-					free(ctrl);
+					session->fiber = fiberCreate(g_DataFiber, 0x4000, sessionFiberProc);
+					if (!session->fiber) {
+						channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+						free(ctrl);
+						freeSession(session);
+						continue;
+					}
+					session->fiber->arg = session;
+					sessionBindChannel(session, ctrl->channel);
 				}
-				else {
+
+				if (ctrl->cmd < CMD_RPC_RET_START) {
+					listPushNodeBack(&session->fiber_cmdlist, cur);
+					if (!session->fiber_busy) {
+						fiberSwitch(g_DataFiber, session->fiber);
+					}
+				}
+				else if (session->fiber_busy) {
 					Fiber_t* rpc_fiber = getDispatchRpcContext(ctrl->cmd);
 					if (rpc_fiber) {
 						fiberSwitch(g_DataFiber, rpc_fiber);
 					}
 				}
+				else {
+					free(ctrl);
+				}
 			}
 			else if (REACTOR_CHANNEL_FREE_CMD == internal->type) {
 				Channel_t* channel = pod_container_of(internal, Channel_t, _.freecmd);
-				Session_t* session = (Session_t*)channel->userdata;
+				Session_t* session = channelSession(channel);
 				printf("channel(%p) detach, reason:%d", channel, channel->_.detach_error);
 				if (channel->_.flag & CHANNEL_FLAG_CLIENT)
 					printf(", connected times: %u\n", channel->_.connected_times);
 				else
 					putchar('\n');
-				sessionUnbindChannel(session);
-				channelDestroy(channel);
-				reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
+				if (session) {
+					// TODO delay free session
+					sessionUnbindChannel(session);
+					listPushNodeBack(&session->fiber_cmdlist, cur);
+					if (!session->fiber_busy) {
+						fiberSwitch(g_DataFiber, session->fiber);
+					}
+				}
+				else {
+					channelDestroy(channel);
+					reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
+				}
 			}
 			else {
 				printf("unknown message type: %d\n", internal->type);

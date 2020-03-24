@@ -145,11 +145,7 @@ int reqUploadCluster(MQRecvMsg_t* ctrl) {
 			break;
 		}
 
-		session = (Session_t*)malloc(sizeof(Session_t));
-		if (!session) {
-			fputs("malloc", stderr);
-			break;
-		}
+		session = channelSession(ctrl->channel);
 		session_id = allocSessionId();
 		do {
 			Session_t* exist_session = getSession(session_id);
@@ -160,7 +156,7 @@ int reqUploadCluster(MQRecvMsg_t* ctrl) {
 				}
 				clusterUnbindSession(exist_session->cluster);
 				unregSession(exist_session);
-				free(exist_session);
+				freeSession(exist_session);
 			}
 		} while (0);
 
@@ -173,20 +169,20 @@ int reqUploadCluster(MQRecvMsg_t* ctrl) {
 					channelSendv(channel, NULL, 0, NETPACKET_FIN);
 				}
 				unregSession(cluster_session);
-				free(cluster_session);
+				freeSession(cluster_session);
 			}
 		}
 		else {
 			cluster = (MQCluster_t*)malloc(sizeof(MQCluster_t));
 			if (!cluster) {
-				free(session);
+				freeSession(session);
 				fputs("malloc", stderr);
 				break;
 			}
 			strcpy(cluster->ip, cjson_ip->valuestring);
 			cluster->port = cjson_port->valueint;
 			if (!regCluster(cjson_name->valuestring, cluster)) {
-				free(session);
+				freeSession(session);
 				free(cluster);
 				fputs("regCluster", stderr);
 				break;

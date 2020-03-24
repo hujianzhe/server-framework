@@ -20,6 +20,17 @@ int allocSessionId(void) {
 	return session_id;
 }
 
+Session_t* newSession(void) {
+	Session_t* session = (Session_t*)malloc(sizeof(Session_t));
+	if (session) {
+		session->cluster = NULL;
+		session->fiber = NULL;
+		listInit(&session->fiber_cmdlist);
+		session->fiber_busy = 0;
+	}
+	return session;
+}
+
 Session_t* getSession(int id) {
 	HashtableNode_t* htnode = hashtableSearchKey(&g_SessionTable, (void*)(ptrlen_t)id);
 	return htnode ? pod_container_of(htnode, Session_t, m_htnode) : NULL;
@@ -35,6 +46,13 @@ void unregSession(Session_t* session) {
 	hashtableRemoveNode(&g_SessionTable, &session->m_htnode);
 }
 
+void freeSession(Session_t* session) {
+	if (session->fiber) {
+		fiberFree(session->fiber);
+	}
+	free(session);
+}
+
 void freeSessionTable(void) {
 	HashtableNode_t* htcur, *htnext;
 	for (htcur = hashtableFirstNode(&g_SessionTable); htcur; htcur = htnext) {
@@ -47,14 +65,14 @@ void freeSessionTable(void) {
 
 void sessionBindChannel(Session_t* session, Channel_t* channel) {
 	session->channel = channel;
-	channel->userdata = session;
+	channelSession(channel) = session;
 }
 
 Channel_t* sessionUnbindChannel(Session_t* session) {
 	if (session) {
 		Channel_t* channel = session->channel;
 		if (channel) {
-			channel->userdata = NULL;
+			channelSession(channel) = NULL;
 		}
 		session->channel = NULL;
 		return channel;

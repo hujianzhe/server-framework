@@ -45,9 +45,7 @@ static void sessionFiberProc(Fiber_t* fiber) {
 					regDispatchRpcContext(CMD_RET_TEST, fiber);
 					fiberSwitch(fiber, g_DataFiber);
 					printf("say hello world ... %s\n", session->fiber_return_data);
-					free(session->fiber_return_data);
-					session->fiber_return_data = NULL;
-					session->fiber_return_datalen = 0;
+					freeSessionReturnData(session);
 				}
 			}
 		}
@@ -101,14 +99,9 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				else if (session->fiber_busy) {
 					Fiber_t* rpc_fiber = getDispatchRpcContext(ctrl->cmd);
 					if (rpc_fiber) {
-						if (ctrl->datalen) {
-							session->fiber_return_data = (unsigned char*)malloc(ctrl->datalen);
-							if (!session->fiber_return_data) {
-								free(ctrl);
-								continue;
-							}
-							memcpy(session->fiber_return_data, ctrl->data, ctrl->datalen);
-							session->fiber_return_datalen = ctrl->datalen;
+						if (!saveSessionReturnData(session, ctrl->data, ctrl->datalen)) {
+							free(ctrl);
+							continue;
 						}
 						free(ctrl);
 						fiberSwitch(g_DataFiber, rpc_fiber);

@@ -26,6 +26,8 @@ Session_t* newSession(void);
 Session_t* getSession(int id);
 void regSession(int id, Session_t* session);
 void unregSession(Session_t* session);
+Session_t* saveSessionReturnData(Session_t* session, const void* data, unsigned int len);
+void freeSessionReturnData(Session_t* session);
 void freeSession(Session_t* session);
 void freeSessionTable(void);
 

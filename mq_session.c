@@ -48,7 +48,29 @@ void unregSession(Session_t* session) {
 	hashtableRemoveNode(&g_SessionTable, &session->m_htnode);
 }
 
+Session_t* saveSessionReturnData(Session_t* session, const void* data, unsigned int len) {
+	if (len) {
+		session->fiber_return_data = (unsigned char*)malloc(len);
+		if (!session->fiber_return_data) {
+			return NULL;
+		}
+		session->fiber_return_datalen = len;
+		memcpy(session->fiber_return_data, data, len);
+	}
+	session->fiber_return_datalen = len;
+	return session;
+}
+
+void freeSessionReturnData(Session_t* session) {
+	if (session->fiber_return_data) {
+		free(session->fiber_return_data);
+		session->fiber_return_data = NULL;
+		session->fiber_return_datalen = 0;
+	}
+}
+
 void freeSession(Session_t* session) {
+	freeSessionReturnData(session);
 	if (session->fiber) {
 		fiberFree(session->fiber);
 	}

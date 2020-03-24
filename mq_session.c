@@ -50,14 +50,14 @@ void unregSession(Session_t* session) {
 
 Session_t* saveSessionReturnData(Session_t* session, const void* data, unsigned int len) {
 	if (len) {
-		session->fiber_return_data = (unsigned char*)malloc(len);
+		session->fiber_return_data = (unsigned char*)malloc(len + 1);
 		if (!session->fiber_return_data) {
 			return NULL;
 		}
 		session->fiber_return_datalen = len;
 		memcpy(session->fiber_return_data, data, len);
+		session->fiber_return_data[len] = 0;
 	}
-	session->fiber_return_datalen = len;
 	return session;
 }
 

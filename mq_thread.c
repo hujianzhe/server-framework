@@ -36,6 +36,19 @@ static void sessionFiberProc(Fiber_t* fiber) {
 				}
 				listRemoveNode(&session->fiber_cmdlist, cur);
 				free(ctrl);
+
+				if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
+					char test_data[] = "this text is from client ^.^";
+					MQSendMsg_t msg;
+					makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
+					channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+					regDispatchRpcContext(CMD_RET_TEST, fiber);
+					fiberSwitch(fiber, g_DataFiber);
+					printf("say hello world ... %s\n", session->fiber_return_data);
+					free(session->fiber_return_data);
+					session->fiber_return_data = NULL;
+					session->fiber_return_datalen = 0;
+				}
 			}
 		}
 		session->fiber_busy = 0;
@@ -88,7 +101,20 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				else if (session->fiber_busy) {
 					Fiber_t* rpc_fiber = getDispatchRpcContext(ctrl->cmd);
 					if (rpc_fiber) {
+						if (ctrl->datalen) {
+							session->fiber_return_data = (unsigned char*)malloc(ctrl->datalen);
+							if (!session->fiber_return_data) {
+								free(ctrl);
+								continue;
+							}
+							memcpy(session->fiber_return_data, ctrl->data, ctrl->datalen);
+							session->fiber_return_datalen = ctrl->datalen;
+						}
+						free(ctrl);
 						fiberSwitch(g_DataFiber, rpc_fiber);
+					}
+					else {
+						free(ctrl);
 					}
 				}
 				else {

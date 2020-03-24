@@ -11,6 +11,8 @@ typedef struct Session_t {
 	Channel_t* channel;
 	Fiber_t* fiber;
 	List_t fiber_cmdlist;
+	unsigned char* fiber_return_data;
+	unsigned int fiber_return_datalen;
 	int fiber_busy;
 	int id;
 	struct MQCluster_t* cluster;

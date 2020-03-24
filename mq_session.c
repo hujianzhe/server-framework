@@ -26,6 +26,8 @@ Session_t* newSession(void) {
 		session->cluster = NULL;
 		session->fiber = NULL;
 		listInit(&session->fiber_cmdlist);
+		session->fiber_return_data = NULL;
+		session->fiber_return_datalen = 0;
 		session->fiber_busy = 0;
 	}
 	return session;

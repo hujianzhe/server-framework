@@ -1,6 +1,16 @@
 #include "global.h"
 #include <stdio.h>
 
+int reqTest(MQRecvMsg_t* ctrl) {
+	char test_data[] = "this text is from server ^.^";
+	MQSendMsg_t msg;
+	makeMQSendMsg(&msg, CMD_RET_TEST, test_data, sizeof(test_data));
+	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+
+	printf("say hello world !!! %s\n", (char*)ctrl->data);
+	return 0;
+}
+
 int reqReconnectCluster(MQRecvMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	MQSendMsg_t ret_msg;

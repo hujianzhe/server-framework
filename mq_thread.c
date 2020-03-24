@@ -19,11 +19,11 @@ static void sessionFiberProc(Fiber_t* fiber) {
 		for (cur = session->fiber_cmdlist.head; cur; cur = next) {
 			ReactorCmd_t* internal = (ReactorCmd_t*)cur;
 			next = cur->next;
+			listRemoveNode(&session->fiber_cmdlist, cur);
 			session->fiber_busy = 1;
 
 			if (REACTOR_CHANNEL_FREE_CMD == internal->type) {
 				Channel_t* channel = pod_container_of(internal, Channel_t, _.freecmd);
-				listRemoveNode(&session->fiber_cmdlist, cur);
 				channelDestroy(channel);
 				reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
 				break;
@@ -34,7 +34,6 @@ static void sessionFiberProc(Fiber_t* fiber) {
 				if (callback) {
 					callback(ctrl);
 				}
-				listRemoveNode(&session->fiber_cmdlist, cur);
 				free(ctrl);
 
 				if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {

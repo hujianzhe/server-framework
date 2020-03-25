@@ -17,6 +17,9 @@ static MQRecvMsg_t* sessionRpcWaitReturn(Session_t* session, int rpcid, long lon
 			callback(ctrl);
 		}
 		free(ctrl);
+		if (session->fiber_net_disconnect_cmd) {
+			break;
+		}
 		fiberSwitch(session->fiber, session->sche_fiber);
 	}
 	ret_msg = session->fiber_ret_msg;
@@ -28,13 +31,7 @@ static void sessionFiberProc(Fiber_t* fiber) {
 	Session_t* session = (Session_t*)fiber->arg;
 	while (1) {
 		session->fiber_busy = 1;
-		if (session->fiber_net_disconnect_cmd) {
-			Channel_t* channel = pod_container_of(session->fiber_net_disconnect_cmd, Channel_t, _.freecmd);
-			channelDestroy(channel);
-			reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
-			session->fiber_net_disconnect_cmd = NULL;
-		}
-		else if (session->fiber_new_msg) {
+		if (session->fiber_new_msg) {
 			MQRecvMsg_t* ctrl = session->fiber_new_msg;
 			session->fiber_new_msg = NULL;
 			MQDispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
@@ -60,6 +57,12 @@ static void sessionFiberProc(Fiber_t* fiber) {
 				}
 				free(ret_msg);
 			}
+		}
+		if (session->fiber_net_disconnect_cmd) {
+			Channel_t* channel = pod_container_of(session->fiber_net_disconnect_cmd, Channel_t, _.freecmd);
+			channelDestroy(channel);
+			reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
+			session->fiber_net_disconnect_cmd = NULL;
 		}
 		session->fiber_busy = 0;
 		fiberSwitch(fiber, session->sche_fiber);

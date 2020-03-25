@@ -2,16 +2,6 @@
 #include "config.h"
 #include <stdio.h>
 
-static void freeMQSocketMsg(ListNode_t* node) {
-	ReactorCmd_t* internal = (ReactorCmd_t*)node;
-	if (REACTOR_USER_CMD == internal->type)
-		free(pod_container_of(internal, MQRecvMsg_t, internal));
-}
-
-static void freeTimerEvent(RBTimerEvent_t* e) {
-	free(e);
-}
-
 static void sessionRpcSwitchTo(Session_t* session) {
 	fiberSwitch(session->fiber, session->sche_fiber);
 	while (session->new_msg_when_fiber_busy) {
@@ -78,6 +68,7 @@ static void sessionFiberProc(Fiber_t* fiber) {
 }
 
 unsigned int THREAD_CALL taskThreadEntry(void* arg) {
+	ListNode_t* cur, *next;
 	int wait_msec = g_Config.timer_interval_msec;
 	long long cur_msec, timer_min_msec;
 	long long frame_next_msec = gmtimeMillisecond() + g_Config.timer_interval_msec;
@@ -87,7 +78,6 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		return 1;
 	}
 	while (g_Valid) {
-		ListNode_t* cur, *next;
 		for (cur = dataqueuePop(&g_DataQueue, wait_msec, ~0); cur; cur = next) {
 			ReactorCmd_t* internal = (ReactorCmd_t*)cur;
 			next = cur->next;
@@ -167,7 +157,16 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				printf("unknown message type: %d\n", internal->type);
 			}
 		}
-		rbtimerCall(&g_Timer, gmtimeMillisecond(), freeTimerEvent);
+		for (cur = rbtimerTimeout(&g_Timer, gmtimeMillisecond()); cur; cur = next) {
+			RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
+			next = cur->next;
+			if (e->callback(e, e->arg)) {
+				rbtimerAddEvent(&g_Timer, e);
+			}
+			else {
+				free(e);
+			}
+		}
 
 		timer_min_msec = rbtimerMiniumTimestamp(&g_Timer);
 		cur_msec = gmtimeMillisecond();
@@ -184,9 +183,17 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		else
 			wait_msec = 0;
 	}
-	rbtimerClean(&g_Timer, freeTimerEvent);
-	dataqueueClean(&g_DataQueue, freeMQSocketMsg);
+	// thread exit clean
 	fiberFree(g_DataFiber);
+	for (cur = rbtimerClean(&g_Timer); cur; cur = next) {
+		free(pod_container_of(cur, RBTimerEvent_t, m_listnode));
+		next = cur->next;
+	}
+	for (cur = dataqueueClean(&g_DataQueue); cur; cur = next) {
+		ReactorCmd_t* internal = (ReactorCmd_t*)cur;
+		if (REACTOR_USER_CMD == internal->type)
+			free(pod_container_of(internal, MQRecvMsg_t, internal));
+	}
 	return 0;
 }
 

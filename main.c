@@ -202,10 +202,10 @@ err:
 	}
 end:
 	if (dqinitok) {
-		dataqueueDestroy(&g_DataQueue, NULL);
+		dataqueueDestroy(&g_DataQueue);
 	}
 	if (timerinitok) {
-		rbtimerDestroy(&g_Timer, NULL);
+		rbtimerDestroy(&g_Timer);
 	}
 	freeConfig();
 	freeDispatchCallback();

@@ -4,6 +4,7 @@
 #include "util/inc/component/channel.h"
 #include "util/inc/sysapi/process.h"
 
+struct MQRecvMsg_t;
 struct MQCluster_t;
 
 typedef struct Session_t {
@@ -13,8 +14,10 @@ typedef struct Session_t {
 	struct MQCluster_t* cluster;
 	struct {
 		Fiber_t* fiber;
+		Fiber_t* sche_fiber;
 		List_t fiber_cmdlist;
 		RBTree_t fiber_reg_rpc_tree;
+		struct MQRecvMsg_t* new_msg_when_fiber_busy;
 		unsigned char* fiber_return_data;
 		unsigned int fiber_return_datalen;
 		int fiber_busy;

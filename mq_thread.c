@@ -12,10 +12,24 @@ static void freeTimerEvent(RBTimerEvent_t* e) {
 	free(e);
 }
 
+static void sessionRpcSwitchTo(Session_t* session) {
+	fiberSwitch(session->fiber, session->sche_fiber);
+	while (session->new_msg_when_fiber_busy) {
+		MQDispatchCallback_t callback = getDispatchCallback(session->new_msg_when_fiber_busy->cmd);
+		if (callback) {
+			callback(session->new_msg_when_fiber_busy);
+		}
+		free(session->new_msg_when_fiber_busy);
+		session->new_msg_when_fiber_busy = NULL;
+		fiberSwitch(session->fiber, session->sche_fiber);
+	}
+}
+
 static void sessionFiberProc(Fiber_t* fiber) {
 	Session_t* session = (Session_t*)fiber->arg;
 	while (1) {
 		ListNode_t* cur, *next;
+		session->fiber_busy = 0;
 		for (cur = session->fiber_cmdlist.head; cur; cur = next) {
 			ReactorCmd_t* internal = (ReactorCmd_t*)cur;
 			next = cur->next;
@@ -44,8 +58,10 @@ static void sessionFiberProc(Fiber_t* fiber) {
 					regSessionRpc(session, CMD_RET_TEST);
 					session->fiber_wait_timestamp_msec = gmtimeMillisecond();
 					session->fiber_wait_timeout_msec = 1000;
-					fiberSwitch(fiber, g_DataFiber);
-					if (gmtimeMillisecond() - session->fiber_wait_timestamp_msec >= session->fiber_wait_timeout_msec) {
+					sessionRpcSwitchTo(session);
+					if (session->fiber_wait_timeout_msec >= 0 && 
+						gmtimeMillisecond() - session->fiber_wait_timestamp_msec >= session->fiber_wait_timeout_msec)
+					{
 						fputs("rpc timeout", stderr);
 					}
 					else {
@@ -54,11 +70,11 @@ static void sessionFiberProc(Fiber_t* fiber) {
 					}
 				}
 			}
+			session->fiber_busy = 0;
 		}
-		session->fiber_busy = 0;
-		fiberSwitch(fiber, g_DataFiber);
+		fiberSwitch(fiber, session->sche_fiber);
 	}
-	fiberSwitch(fiber, g_DataFiber);
+	fiberSwitch(fiber, session->sche_fiber);
 }
 
 unsigned int THREAD_CALL taskThreadEntry(void* arg) {
@@ -93,14 +109,18 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						continue;
 					}
 					session->fiber->arg = session;
+					session->sche_fiber = g_DataFiber;
 					sessionBindChannel(session, ctrl->channel);
 				}
 
 				if (ctrl->cmd < CMD_RPC_RET_START) {
-					listPushNodeBack(&session->fiber_cmdlist, cur);
-					if (!session->fiber_busy) {
-						fiberSwitch(g_DataFiber, session->fiber);
+					if (session->fiber_busy) {
+						session->new_msg_when_fiber_busy = ctrl;
 					}
+					else {
+						listPushNodeBack(&session->fiber_cmdlist, cur);
+					}
+					fiberSwitch(g_DataFiber, session->fiber);
 				}
 				else if (session->fiber_busy) {
 					if (existAndDeleteSessionRpc(session, ctrl->cmd)) {
@@ -130,8 +150,11 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				if (session) {
 					// TODO delay free session
 					sessionUnbindChannel(session);
-					listPushNodeBack(&session->fiber_cmdlist, cur);
-					if (!session->fiber_busy) {
+					if (session->fiber_cmdlist.head) {
+						listPushNodeBack(&session->fiber_cmdlist, cur);
+					}
+					else {
+						listPushNodeBack(&session->fiber_cmdlist, cur);
 						fiberSwitch(g_DataFiber, session->fiber);
 					}
 				}

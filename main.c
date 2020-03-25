@@ -8,6 +8,7 @@ unsigned int THREAD_CALL reactorThreadEntry(void* arg);
 unsigned int THREAD_CALL taskThreadEntry(void* arg);
 
 extern int reqTest(MQRecvMsg_t*);
+extern int notifyTest(MQRecvMsg_t*);
 extern int reqReconnectCluster(MQRecvMsg_t*);
 extern int retReconnect(MQRecvMsg_t*);
 extern int reqUploadCluster(MQRecvMsg_t*);
@@ -131,6 +132,7 @@ int main(int argc, char** argv) {
 		goto err;
 
 	regDispatchCallback(CMD_REQ_TEST, reqTest);
+	regDispatchCallback(CMD_NOTIFY_TEST, notifyTest);
 	regDispatchCallback(CMD_REQ_RECONNECT, reqReconnectCluster);
 	regDispatchCallback(CMD_RET_RECONNECT, retReconnect);
 	regDispatchCallback(CMD_REQ_UPLOAD_CLUSTER, reqUploadCluster);

@@ -4,10 +4,19 @@
 int reqTest(MQRecvMsg_t* ctrl) {
 	char test_data[] = "this text is from server ^.^";
 	MQSendMsg_t msg;
-	makeMQSendMsg(&msg, CMD_RET_TEST, test_data, sizeof(test_data));
-	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
+
+	makeMQSendMsg(&msg, CMD_NOTIFY_TEST, NULL, 0);
+	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+
+	makeMQSendMsg(&msg, CMD_RET_TEST, test_data, sizeof(test_data));
+	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	return 0;
+}
+
+int notifyTest(MQRecvMsg_t* ctrl) {
+	puts("recv server test notify");
 	return 0;
 }
 

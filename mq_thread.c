@@ -2,8 +2,11 @@
 #include "config.h"
 #include <stdio.h>
 
-static MQRecvMsg_t* sessionRpcSwitchTo(Session_t* session) {
+static MQRecvMsg_t* sessionRpcWaitReturn(Session_t* session, int rpcid, long long timeout_msec) {
 	MQRecvMsg_t* ret_msg;
+	session->fiber_wait_timestamp_msec = gmtimeMillisecond();
+	session->fiber_wait_timeout_msec = timeout_msec;
+	regSessionRpcId(session, rpcid);
 	fiberSwitch(session->fiber, session->sche_fiber);
 	while (session->fiber_new_msg) {
 		MQDispatchCallback_t callback;
@@ -46,10 +49,7 @@ static void sessionFiberProc(Fiber_t* fiber) {
 				MQSendMsg_t msg;
 				makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
 				channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-				regSessionRpc(session, CMD_RET_TEST);
-				session->fiber_wait_timestamp_msec = gmtimeMillisecond();
-				session->fiber_wait_timeout_msec = 1000;
-				ret_msg = sessionRpcSwitchTo(session);
+				ret_msg = sessionRpcWaitReturn(session, CMD_RET_TEST, 1000);
 				if (session->fiber_wait_timeout_msec >= 0 &&
 					gmtimeMillisecond() - session->fiber_wait_timestamp_msec >= session->fiber_wait_timeout_msec)
 				{
@@ -108,7 +108,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					fiberSwitch(g_DataFiber, session->fiber);
 				}
 				else if (session->fiber_busy) {
-					if (existAndDeleteSessionRpc(session, ctrl->cmd)) {
+					if (existAndDeleteSessionRpcId(session, ctrl->cmd)) {
 						session->fiber_ret_msg = ctrl;
 						fiberSwitch(g_DataFiber, session->fiber);
 					}

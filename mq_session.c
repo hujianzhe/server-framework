@@ -59,11 +59,11 @@ void unregSession(Session_t* session) {
 	hashtableRemoveNode(&g_SessionTable, &session->m_htnode);
 }
 
-Session_t* regSessionRpc(Session_t* session, int cmd) {
+Session_t* regSessionRpcId(Session_t* session, int rpcid) {
 	RpcItem_t* item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
 	if (item) {
 		RBTreeNode_t* exist_node;
-		item->m_treenode.key = (const void*)(size_t)cmd;
+		item->m_treenode.key = (const void*)(size_t)rpcid;
 		exist_node = rbtreeInsertNode(&session->fiber_reg_rpc_tree, &item->m_treenode);
 		if (exist_node != &item->m_treenode) {
 			free(item);
@@ -73,8 +73,8 @@ Session_t* regSessionRpc(Session_t* session, int cmd) {
 	return session;
 }
 
-int existAndDeleteSessionRpc(Session_t* session, int cmd) {
-	RBTreeNode_t* node = rbtreeSearchKey(&session->fiber_reg_rpc_tree, (const void*)(size_t)cmd);
+int existAndDeleteSessionRpcId(Session_t* session, int rpcid) {
+	RBTreeNode_t* node = rbtreeSearchKey(&session->fiber_reg_rpc_tree, (const void*)(size_t)rpcid);
 	if (node) {
 		free(pod_container_of(node, RpcItem_t, m_treenode));
 		return 1;

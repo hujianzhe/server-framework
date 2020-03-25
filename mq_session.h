@@ -34,8 +34,8 @@ Session_t* getSession(int id);
 void regSession(int id, Session_t* session);
 void unregSession(Session_t* session);
 
-Session_t* regSessionRpc(Session_t* session, int cmd);
-int existAndDeleteSessionRpc(Session_t* session, int cmd);
+Session_t* regSessionRpcId(Session_t* session, int rpcid);
+int existAndDeleteSessionRpcId(Session_t* session, int rpcid);
 
 void freeSession(Session_t* session);
 void freeSessionTable(void);

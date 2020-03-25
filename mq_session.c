@@ -34,12 +34,11 @@ Session_t* newSession(void) {
 		session->fiber = NULL;
 		session->sche_fiber = NULL;
 		listInit(&session->fiber_cmdlist);
-		session->fiber_return_data = NULL;
-		session->fiber_return_datalen = 0;
 		session->fiber_wait_timestamp_msec = 0;
 		session->fiber_wait_timeout_msec = -1;
 		session->fiber_busy = 0;
 		session->new_msg_when_fiber_busy = NULL;
+		session->fiber_ret_msg = NULL;
 		rbtreeInit(&session->fiber_reg_rpc_tree, __keycmp2);
 	}
 	return session;
@@ -83,29 +82,7 @@ int existAndDeleteSessionRpc(Session_t* session, int cmd) {
 	return 0;
 }
 
-Session_t* saveSessionReturnData(Session_t* session, const void* data, unsigned int len) {
-	if (len) {
-		session->fiber_return_data = (unsigned char*)malloc(len + 1);
-		if (!session->fiber_return_data) {
-			return NULL;
-		}
-		session->fiber_return_datalen = len;
-		memcpy(session->fiber_return_data, data, len);
-		session->fiber_return_data[len] = 0;
-	}
-	return session;
-}
-
-void freeSessionReturnData(Session_t* session) {
-	if (session->fiber_return_data) {
-		free(session->fiber_return_data);
-		session->fiber_return_data = NULL;
-		session->fiber_return_datalen = 0;
-	}
-}
-
 void freeSession(Session_t* session) {
-	freeSessionReturnData(session);
 	if (session->fiber) {
 		fiberFree(session->fiber);
 	}

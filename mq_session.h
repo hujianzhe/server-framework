@@ -18,8 +18,7 @@ typedef struct Session_t {
 		List_t fiber_cmdlist;
 		RBTree_t fiber_reg_rpc_tree;
 		struct MQRecvMsg_t* new_msg_when_fiber_busy;
-		unsigned char* fiber_return_data;
-		unsigned int fiber_return_datalen;
+		struct MQRecvMsg_t* fiber_ret_msg;
 		int fiber_busy;
 		long long fiber_wait_timestamp_msec;
 		long long fiber_wait_timeout_msec;
@@ -37,8 +36,6 @@ void unregSession(Session_t* session);
 
 Session_t* regSessionRpc(Session_t* session, int cmd);
 int existAndDeleteSessionRpc(Session_t* session, int cmd);
-Session_t* saveSessionReturnData(Session_t* session, const void* data, unsigned int len);
-void freeSessionReturnData(Session_t* session);
 
 void freeSession(Session_t* session);
 void freeSessionTable(void);

@@ -2,7 +2,8 @@
 #include "config.h"
 #include <stdio.h>
 
-static void sessionRpcSwitchTo(Session_t* session) {
+static MQRecvMsg_t* sessionRpcSwitchTo(Session_t* session) {
+	MQRecvMsg_t* ret_msg;
 	fiberSwitch(session->fiber, session->sche_fiber);
 	while (session->new_msg_when_fiber_busy) {
 		MQDispatchCallback_t callback;
@@ -15,6 +16,9 @@ static void sessionRpcSwitchTo(Session_t* session) {
 		free(ctrl);
 		fiberSwitch(session->fiber, session->sche_fiber);
 	}
+	ret_msg = session->fiber_ret_msg;
+	session->fiber_ret_msg = NULL;
+	return ret_msg;
 }
 
 static void sessionFiberProc(Fiber_t* fiber) {
@@ -43,6 +47,7 @@ static void sessionFiberProc(Fiber_t* fiber) {
 				free(ctrl);
 
 				if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
+					MQRecvMsg_t* ret_msg;
 					char test_data[] = "this text is from client ^.^";
 					MQSendMsg_t msg;
 					makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
@@ -50,16 +55,16 @@ static void sessionFiberProc(Fiber_t* fiber) {
 					regSessionRpc(session, CMD_RET_TEST);
 					session->fiber_wait_timestamp_msec = gmtimeMillisecond();
 					session->fiber_wait_timeout_msec = 1000;
-					sessionRpcSwitchTo(session);
+					ret_msg = sessionRpcSwitchTo(session);
 					if (session->fiber_wait_timeout_msec >= 0 && 
 						gmtimeMillisecond() - session->fiber_wait_timestamp_msec >= session->fiber_wait_timeout_msec)
 					{
 						fputs("rpc timeout", stderr);
 					}
 					else {
-						printf("say hello world ... %s\n", session->fiber_return_data);
-						freeSessionReturnData(session);
+						printf("say hello world ... %s\n", ret_msg->data);
 					}
+					free(ret_msg);
 				}
 			}
 			session->fiber_busy = 0;
@@ -116,11 +121,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				}
 				else if (session->fiber_busy) {
 					if (existAndDeleteSessionRpc(session, ctrl->cmd)) {
-						if (!saveSessionReturnData(session, ctrl->data, ctrl->datalen)) {
-							free(ctrl);
-							continue;
-						}
-						free(ctrl);
+						session->fiber_ret_msg = ctrl;
 						fiberSwitch(g_DataFiber, session->fiber);
 					}
 					else {

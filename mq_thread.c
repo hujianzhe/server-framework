@@ -5,12 +5,14 @@
 static void sessionRpcSwitchTo(Session_t* session) {
 	fiberSwitch(session->fiber, session->sche_fiber);
 	while (session->new_msg_when_fiber_busy) {
-		MQDispatchCallback_t callback = getDispatchCallback(session->new_msg_when_fiber_busy->cmd);
-		if (callback) {
-			callback(session->new_msg_when_fiber_busy);
-		}
-		free(session->new_msg_when_fiber_busy);
+		MQDispatchCallback_t callback;
+		MQRecvMsg_t* ctrl = session->new_msg_when_fiber_busy;
 		session->new_msg_when_fiber_busy = NULL;
+		callback = getDispatchCallback(ctrl->cmd);
+		if (callback) {
+			callback(ctrl);
+		}
+		free(ctrl);
 		fiberSwitch(session->fiber, session->sche_fiber);
 	}
 }

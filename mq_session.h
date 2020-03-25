@@ -15,10 +15,10 @@ typedef struct Session_t {
 	struct {
 		Fiber_t* fiber;
 		Fiber_t* sche_fiber;
-		List_t fiber_cmdlist;
 		RBTree_t fiber_reg_rpc_tree;
-		struct MQRecvMsg_t* new_msg_when_fiber_busy;
+		struct MQRecvMsg_t* fiber_new_msg;
 		struct MQRecvMsg_t* fiber_ret_msg;
+		const void* fiber_net_disconnect_cmd;
 		int fiber_busy;
 		long long fiber_wait_timestamp_msec;
 		long long fiber_wait_timeout_msec;

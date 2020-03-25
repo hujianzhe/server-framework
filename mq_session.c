@@ -33,12 +33,12 @@ Session_t* newSession(void) {
 		session->cluster = NULL;
 		session->fiber = NULL;
 		session->sche_fiber = NULL;
-		listInit(&session->fiber_cmdlist);
 		session->fiber_wait_timestamp_msec = 0;
 		session->fiber_wait_timeout_msec = -1;
 		session->fiber_busy = 0;
-		session->new_msg_when_fiber_busy = NULL;
+		session->fiber_new_msg = NULL;
 		session->fiber_ret_msg = NULL;
+		session->fiber_net_disconnect_cmd = NULL;
 		rbtreeInit(&session->fiber_reg_rpc_tree, __keycmp2);
 	}
 	return session;

@@ -5,10 +5,10 @@
 static MQRecvMsg_t* sessionRpcSwitchTo(Session_t* session) {
 	MQRecvMsg_t* ret_msg;
 	fiberSwitch(session->fiber, session->sche_fiber);
-	while (session->new_msg_when_fiber_busy) {
+	while (session->fiber_new_msg) {
 		MQDispatchCallback_t callback;
-		MQRecvMsg_t* ctrl = session->new_msg_when_fiber_busy;
-		session->new_msg_when_fiber_busy = NULL;
+		MQRecvMsg_t* ctrl = session->fiber_new_msg;
+		session->fiber_new_msg = NULL;
 		callback = getDispatchCallback(ctrl->cmd);
 		if (callback) {
 			callback(ctrl);
@@ -24,51 +24,44 @@ static MQRecvMsg_t* sessionRpcSwitchTo(Session_t* session) {
 static void sessionFiberProc(Fiber_t* fiber) {
 	Session_t* session = (Session_t*)fiber->arg;
 	while (1) {
-		ListNode_t* cur, *next;
-		session->fiber_busy = 0;
-		for (cur = session->fiber_cmdlist.head; cur; cur = next) {
-			ReactorCmd_t* internal = (ReactorCmd_t*)cur;
-			next = cur->next;
-			listRemoveNode(&session->fiber_cmdlist, cur);
-			session->fiber_busy = 1;
-
-			if (REACTOR_CHANNEL_FREE_CMD == internal->type) {
-				Channel_t* channel = pod_container_of(internal, Channel_t, _.freecmd);
-				channelDestroy(channel);
-				reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
-				break;
-			}
-			else {
-				MQRecvMsg_t* ctrl = pod_container_of(internal, MQRecvMsg_t, internal);
-				MQDispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
-				if (callback) {
-					callback(ctrl);
-				}
-				free(ctrl);
-
-				if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-					MQRecvMsg_t* ret_msg;
-					char test_data[] = "this text is from client ^.^";
-					MQSendMsg_t msg;
-					makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
-					channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-					regSessionRpc(session, CMD_RET_TEST);
-					session->fiber_wait_timestamp_msec = gmtimeMillisecond();
-					session->fiber_wait_timeout_msec = 1000;
-					ret_msg = sessionRpcSwitchTo(session);
-					if (session->fiber_wait_timeout_msec >= 0 && 
-						gmtimeMillisecond() - session->fiber_wait_timestamp_msec >= session->fiber_wait_timeout_msec)
-					{
-						fputs("rpc timeout", stderr);
-					}
-					else {
-						printf("say hello world ... %s\n", ret_msg->data);
-					}
-					free(ret_msg);
-				}
-			}
-			session->fiber_busy = 0;
+		session->fiber_busy = 1;
+		if (session->fiber_net_disconnect_cmd) {
+			Channel_t* channel = pod_container_of(session->fiber_net_disconnect_cmd, Channel_t, _.freecmd);
+			channelDestroy(channel);
+			reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
+			session->fiber_net_disconnect_cmd = NULL;
 		}
+		else if (session->fiber_new_msg) {
+			MQRecvMsg_t* ctrl = session->fiber_new_msg;
+			session->fiber_new_msg = NULL;
+			MQDispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
+			if (callback) {
+				callback(ctrl);
+			}
+			free(ctrl);
+			// test code
+			if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
+				MQRecvMsg_t* ret_msg;
+				char test_data[] = "this text is from client ^.^";
+				MQSendMsg_t msg;
+				makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
+				channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+				regSessionRpc(session, CMD_RET_TEST);
+				session->fiber_wait_timestamp_msec = gmtimeMillisecond();
+				session->fiber_wait_timeout_msec = 1000;
+				ret_msg = sessionRpcSwitchTo(session);
+				if (session->fiber_wait_timeout_msec >= 0 &&
+					gmtimeMillisecond() - session->fiber_wait_timestamp_msec >= session->fiber_wait_timeout_msec)
+				{
+					fputs("rpc timeout", stderr);
+				}
+				else {
+					printf("say hello world ... %s\n", ret_msg->data);
+				}
+				free(ret_msg);
+			}
+		}
+		session->fiber_busy = 0;
 		fiberSwitch(fiber, session->sche_fiber);
 	}
 	fiberSwitch(fiber, session->sche_fiber);
@@ -111,12 +104,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				}
 
 				if (ctrl->cmd < CMD_RPC_RET_START) {
-					if (session->fiber_busy) {
-						session->new_msg_when_fiber_busy = ctrl;
-					}
-					else {
-						listPushNodeBack(&session->fiber_cmdlist, cur);
-					}
+					session->fiber_new_msg = ctrl;
 					fiberSwitch(g_DataFiber, session->fiber);
 				}
 				else if (session->fiber_busy) {
@@ -143,11 +131,8 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				if (session) {
 					// TODO delay free session
 					sessionUnbindChannel(session);
-					if (session->fiber_cmdlist.head) {
-						listPushNodeBack(&session->fiber_cmdlist, cur);
-					}
-					else {
-						listPushNodeBack(&session->fiber_cmdlist, cur);
+					session->fiber_net_disconnect_cmd = internal;
+					if (!session->fiber_busy) {
 						fiberSwitch(g_DataFiber, session->fiber);
 					}
 				}

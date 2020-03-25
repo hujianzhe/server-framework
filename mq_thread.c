@@ -93,7 +93,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			next = cur->next;
 			if (REACTOR_USER_CMD == internal->type) {
 				MQRecvMsg_t* ctrl = pod_container_of(internal , MQRecvMsg_t, internal);
-				Session_t* session = channelSession(ctrl->channel);
+				Session_t* session = (Session_t*)channelSession(ctrl->channel);
 				if (!session) {
 					session = newSession();
 					if (!session) {
@@ -141,7 +141,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			}
 			else if (REACTOR_CHANNEL_FREE_CMD == internal->type) {
 				Channel_t* channel = pod_container_of(internal, Channel_t, _.freecmd);
-				Session_t* session = channelSession(channel);
+				Session_t* session = (Session_t*)channelSession(channel);
 				printf("channel(%p) detach, reason:%d", channel, channel->_.detach_error);
 				if (channel->_.flag & CHANNEL_FLAG_CLIENT)
 					printf(", connected times: %u\n", channel->_.connected_times);

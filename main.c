@@ -60,7 +60,7 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 	printf("channel(%p) connect success, ip:%s, port:%hu\n", c, peer_ip, peer_port);
 
 	if (c->connected_times > 1) {
-		Session_t* session = channelSession(channel);
+		Session_t* session = (Session_t*)channelSession(channel);
 		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"session_id\":%d}", g_Config.cluster_name, g_Config.outer_ip, g_Config.port ? g_Config.port[0] : 0, session->id);
 		makeMQSendMsg(&msg, CMD_REQ_RECONNECT, buffer, strlen(buffer));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN);

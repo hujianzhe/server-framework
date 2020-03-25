@@ -26,7 +26,7 @@ typedef struct Session_t {
 	};
 } Session_t;
 
-#define	channelSession(channel)	((Session_t*)((channel)->userdata))
+#define	channelSession(channel)	((channel)->userdata)
 
 int initSessionTable(void);
 int allocSessionId(void);

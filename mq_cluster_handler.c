@@ -164,7 +164,7 @@ int reqUploadCluster(MQRecvMsg_t* ctrl) {
 			break;
 		}
 
-		session = channelSession(ctrl->channel);
+		session = (Session_t*)channelSession(ctrl->channel);
 		session_id = allocSessionId();
 		do {
 			Session_t* exist_session = getSession(session_id);

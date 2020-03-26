@@ -32,6 +32,7 @@ Session_t* newSession(void) {
 		session->sche_fiber = NULL;
 		session->fiber_new_msg = NULL;
 		session->fiber_net_disconnect_cmd = NULL;
+		session->fiber_msg_handler = NULL;
 		rbtreeInit(&session->fiber_reg_rpc_tree, __keycmp2);
 	}
 	return session;
@@ -52,7 +53,7 @@ void unregSession(Session_t* session) {
 	hashtableRemoveNode(&g_SessionTable, &session->m_htnode);
 }
 
-RpcItem_t* regSessionRpc(Session_t* session, int rpcid, long long timeout_msec) {
+static RpcItem_t* regSessionRpc(Session_t* session, int rpcid, long long timeout_msec) {
 	RpcItem_t* item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
 	if (item) {
 		RBTreeNode_t* exist_node;
@@ -70,9 +71,65 @@ RpcItem_t* regSessionRpc(Session_t* session, int rpcid, long long timeout_msec) 
 	return item;
 }
 
-RpcItem_t* existSessionRpc(Session_t* session, int rpcid) {
+RpcItem_t* sessionExistRpc(Session_t* session, int rpcid) {
 	RBTreeNode_t* node = rbtreeSearchKey(&session->fiber_reg_rpc_tree, (const void*)(size_t)rpcid);
 	return node ? pod_container_of(node, RpcItem_t, m_treenode) : NULL;
+}
+
+RpcItem_t* sessionRpcWaitReturn(Session_t* session, int rpcid, long long timeout_msec) {
+	RpcItem_t* rpc_item = regSessionRpc(session, rpcid, timeout_msec);
+	if (rpc_item) {
+		fiberSwitch(session->fiber, session->sche_fiber);
+		while (session->fiber_new_msg) {
+			void* msg = session->fiber_new_msg;
+			session->fiber_new_msg = NULL;
+			session->fiber_msg_handler(msg);
+			if (session->fiber_net_disconnect_cmd) {
+				break;
+			}
+			fiberSwitch(session->fiber, session->sche_fiber);
+		}
+		rbtreeRemoveNode(&session->fiber_reg_rpc_tree, &rpc_item->m_treenode);
+	}
+	return rpc_item;
+}
+
+int sessionRpcReturnSwitch(Session_t* session, int rpcid, void* ret_msg) {
+	RpcItem_t* item = sessionExistRpc(session, rpcid);
+	if (item) {
+		item->ret_msg = ret_msg;
+		fiberSwitch(session->sche_fiber, session->fiber);
+		return 1;
+	}
+	return 0;
+}
+
+void sessionRpcMessageHandleSwitch(Session_t* session, void* new_msg) {
+	session->fiber_new_msg = new_msg;
+	fiberSwitch(session->sche_fiber, session->fiber);
+}
+
+void sessionRpcDisconnectHandleSwitch(Session_t* session, void* disconnect_cmd) {
+	session->fiber_net_disconnect_cmd = disconnect_cmd;
+	fiberSwitch(session->sche_fiber, session->fiber);
+}
+
+void sessionFiberProcEntry(Fiber_t* fiber) {
+	Session_t* session = (Session_t*)fiber->arg;
+	while (1) {
+		if (session->fiber_new_msg) {
+			void* msg = session->fiber_new_msg;
+			session->fiber_new_msg = NULL;
+			session->fiber_msg_handler(msg);
+		}
+		if (session->fiber_net_disconnect_cmd) {
+			void* msg = session->fiber_net_disconnect_cmd;
+			session->fiber_net_disconnect_cmd = NULL;
+			session->fiber_msg_handler(msg);
+		}
+		fiberSwitch(fiber, session->sche_fiber);
+	}
+	fiberSwitch(fiber, session->sche_fiber);
 }
 
 void freeSession(Session_t* session) {

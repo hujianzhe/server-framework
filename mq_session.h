@@ -25,6 +25,7 @@ typedef struct Session_t {
 		RBTree_t fiber_reg_rpc_tree;
 		void* fiber_new_msg;
 		void* fiber_net_disconnect_cmd;
+		void(*fiber_msg_handler)(void*);
 	};
 } Session_t;
 
@@ -37,8 +38,12 @@ Session_t* getSession(int id);
 void regSession(int id, Session_t* session);
 void unregSession(Session_t* session);
 
-RpcItem_t* regSessionRpc(Session_t* session, int rpcid, long long timeout_msec);
-RpcItem_t* existSessionRpc(Session_t* session, int rpcid);
+RpcItem_t* sessionExistRpc(Session_t* session, int rpcid);
+RpcItem_t* sessionRpcWaitReturn(Session_t* session, int rpcid, long long timeout_msec);
+int sessionRpcReturnSwitch(Session_t* session, int rpcid, void* ret_msg);
+void sessionRpcMessageHandleSwitch(Session_t* session, void* new_msg);
+void sessionRpcDisconnectHandleSwitch(Session_t* session, void* disconnect_cmd);
+void sessionFiberProcEntry(Fiber_t* fiber);
 
 void freeSession(Session_t* session);
 void freeSessionTable(void);

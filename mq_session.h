@@ -7,6 +7,14 @@
 struct MQRecvMsg_t;
 struct MQCluster_t;
 
+typedef struct RpcItem_t {
+	RBTreeNode_t m_treenode;
+	int id;
+	long long timestamp_msec;
+	long long timeout_msec;
+	struct MQRecvMsg_t* ret_msg;
+} RpcItem_t;
+
 typedef struct Session_t {
 	HashtableNode_t m_htnode;
 	Channel_t* channel;
@@ -17,10 +25,7 @@ typedef struct Session_t {
 		Fiber_t* sche_fiber;
 		RBTree_t fiber_reg_rpc_tree;
 		struct MQRecvMsg_t* fiber_new_msg;
-		struct MQRecvMsg_t* fiber_ret_msg;
 		const void* fiber_net_disconnect_cmd;
-		long long fiber_wait_timestamp_msec;
-		long long fiber_wait_timeout_msec;
 	};
 } Session_t;
 
@@ -33,8 +38,8 @@ Session_t* getSession(int id);
 void regSession(int id, Session_t* session);
 void unregSession(Session_t* session);
 
-Session_t* regSessionRpcId(Session_t* session, int rpcid);
-int existAndDeleteSessionRpcId(Session_t* session, int rpcid);
+RpcItem_t* regSessionRpc(Session_t* session, int rpcid, long long timeout_msec);
+RpcItem_t* existSessionRpc(Session_t* session, int rpcid);
 
 void freeSession(Session_t* session);
 void freeSessionTable(void);

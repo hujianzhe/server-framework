@@ -7,9 +7,6 @@ static Atom32_t CHANNEL_SESSION_ID = 0;
 static int __keycmp(const void* node_key, const void* key) { return node_key != key; }
 static unsigned int __keyhash(const void* key) { return (ptrlen_t)key; }
 
-typedef struct RpcItem_t {
-	RBTreeNode_t m_treenode;
-} RpcItem_t;
 static int __keycmp2(const void* node_key, const void* key) {
 	return ((int)(size_t)node_key) - (int)((size_t)key);
 }
@@ -33,10 +30,7 @@ Session_t* newSession(void) {
 		session->cluster = NULL;
 		session->fiber = NULL;
 		session->sche_fiber = NULL;
-		session->fiber_wait_timestamp_msec = 0;
-		session->fiber_wait_timeout_msec = -1;
 		session->fiber_new_msg = NULL;
-		session->fiber_ret_msg = NULL;
 		session->fiber_net_disconnect_cmd = NULL;
 		rbtreeInit(&session->fiber_reg_rpc_tree, __keycmp2);
 	}
@@ -58,7 +52,7 @@ void unregSession(Session_t* session) {
 	hashtableRemoveNode(&g_SessionTable, &session->m_htnode);
 }
 
-Session_t* regSessionRpcId(Session_t* session, int rpcid) {
+RpcItem_t* regSessionRpc(Session_t* session, int rpcid, long long timeout_msec) {
 	RpcItem_t* item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
 	if (item) {
 		RBTreeNode_t* exist_node;
@@ -68,17 +62,17 @@ Session_t* regSessionRpcId(Session_t* session, int rpcid) {
 			free(item);
 			return NULL;
 		}
+		item->id = rpcid;
+		item->timestamp_msec = gmtimeMillisecond();
+		item->timeout_msec = timeout_msec;
+		item->ret_msg = NULL;
 	}
-	return session;
+	return item;
 }
 
-int existAndDeleteSessionRpcId(Session_t* session, int rpcid) {
+RpcItem_t* existSessionRpc(Session_t* session, int rpcid) {
 	RBTreeNode_t* node = rbtreeSearchKey(&session->fiber_reg_rpc_tree, (const void*)(size_t)rpcid);
-	if (node) {
-		free(pod_container_of(node, RpcItem_t, m_treenode));
-		return 1;
-	}
-	return 0;
+	return node ? pod_container_of(node, RpcItem_t, m_treenode) : NULL;
 }
 
 void freeSession(Session_t* session) {

@@ -19,7 +19,6 @@ typedef struct Session_t {
 		struct MQRecvMsg_t* fiber_new_msg;
 		struct MQRecvMsg_t* fiber_ret_msg;
 		const void* fiber_net_disconnect_cmd;
-		int fiber_busy;
 		long long fiber_wait_timestamp_msec;
 		long long fiber_wait_timeout_msec;
 	};

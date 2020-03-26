@@ -30,7 +30,6 @@ static MQRecvMsg_t* sessionRpcWaitReturn(Session_t* session, int rpcid, long lon
 static void sessionFiberProc(Fiber_t* fiber) {
 	Session_t* session = (Session_t*)fiber->arg;
 	while (1) {
-		session->fiber_busy = 1;
 		if (session->fiber_new_msg) {
 			MQRecvMsg_t* ctrl = session->fiber_new_msg;
 			session->fiber_new_msg = NULL;
@@ -64,7 +63,6 @@ static void sessionFiberProc(Fiber_t* fiber) {
 			channelDestroy(channel);
 			reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
 		}
-		session->fiber_busy = 0;
 		fiberSwitch(fiber, session->sche_fiber);
 	}
 	fiberSwitch(fiber, session->sche_fiber);
@@ -110,14 +108,9 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					session->fiber_new_msg = ctrl;
 					fiberSwitch(g_DataFiber, session->fiber);
 				}
-				else if (session->fiber_busy) {
-					if (existAndDeleteSessionRpcId(session, ctrl->cmd)) {
-						session->fiber_ret_msg = ctrl;
-						fiberSwitch(g_DataFiber, session->fiber);
-					}
-					else {
-						free(ctrl);
-					}
+				else if (existAndDeleteSessionRpcId(session, ctrl->cmd)) {
+					session->fiber_ret_msg = ctrl;
+					fiberSwitch(g_DataFiber, session->fiber);
 				}
 				else {
 					free(ctrl);

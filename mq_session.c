@@ -35,7 +35,6 @@ Session_t* newSession(void) {
 		session->sche_fiber = NULL;
 		session->fiber_wait_timestamp_msec = 0;
 		session->fiber_wait_timeout_msec = -1;
-		session->fiber_busy = 0;
 		session->fiber_new_msg = NULL;
 		session->fiber_ret_msg = NULL;
 		session->fiber_net_disconnect_cmd = NULL;

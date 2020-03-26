@@ -16,7 +16,7 @@ int reqTest(MQRecvMsg_t* ctrl) {
 }
 
 int notifyTest(MQRecvMsg_t* ctrl) {
-	puts("recv server test notify");
+	printf("recv server test notify, recv msec = %lld\n", gmtimeMillisecond());
 	return 0;
 }
 

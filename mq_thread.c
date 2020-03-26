@@ -14,7 +14,7 @@ static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 		if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
 			RpcItem_t* rpc_item = rpcFiberCoreExistItem(session->rpc, CMD_RET_TEST);
 			if (rpc_item) {
-				printf("rpcid(%d) alread send\n", rpc_item->id);
+				printf("rpcid(%d) already send\n", rpc_item->id);
 			}
 			else {
 				char test_data[] = "this text is from client ^.^";

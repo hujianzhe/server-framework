@@ -25,15 +25,17 @@ static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 				if (!rpc_item) {
 					fputs("rpc call failure", stderr);
 				}
-				else if (rpc_item->timeout_msec >= 0 &&
-					gmtimeMillisecond() - rpc_item->timestamp_msec >= rpc_item->timeout_msec)
-				{
-					fputs("rpc timeout", stderr);
-				}
-				else if (rpc_item->ret_msg) {
-					MQRecvMsg_t* ret_msg = pod_container_of(rpc_item->ret_msg, MQRecvMsg_t, internal);
-					printf("say hello world ... %s\n", ret_msg->data);
-					free(ret_msg);
+				else {
+					long long now_msec = gmtimeMillisecond();
+					long long cost_msec = now_msec - rpc_item->timestamp_msec;
+					if (rpc_item->timeout_msec >= 0 && cost_msec >= rpc_item->timeout_msec) {
+						fputs("rpc timeout", stderr);
+					}
+					else if (rpc_item->ret_msg) {
+						MQRecvMsg_t* ret_msg = pod_container_of(rpc_item->ret_msg, MQRecvMsg_t, internal);
+						printf("time cost(%lld msec) say hello world ... %s\n", cost_msec, ret_msg->data);
+						free(ret_msg);
+					}
 				}
 				rpcFiberCoreFreeItem(session->rpc, rpc_item);
 			}

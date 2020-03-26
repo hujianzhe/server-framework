@@ -21,7 +21,7 @@ static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 				MQSendMsg_t msg;
 				makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
 				channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-				rpc_item = rpcFiberCoreWaitReturn(session->rpc, CMD_RET_TEST, 1000);
+				rpc_item = rpcFiberCoreReturnWait(session->rpc, CMD_RET_TEST, 1000);
 				if (!rpc_item) {
 					fputs("rpc call failure", stderr);
 				}

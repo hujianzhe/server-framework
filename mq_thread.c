@@ -7,7 +7,7 @@ static RpcItem_t* sessionRpcWaitReturn(Session_t* session, int rpcid, long long 
 	fiberSwitch(session->fiber, session->sche_fiber);
 	while (session->fiber_new_msg) {
 		MQDispatchCallback_t callback;
-		MQRecvMsg_t* ctrl = session->fiber_new_msg;
+		MQRecvMsg_t* ctrl = (MQRecvMsg_t*)session->fiber_new_msg;
 		session->fiber_new_msg = NULL;
 		callback = getDispatchCallback(ctrl->cmd);
 		if (callback) {
@@ -26,7 +26,7 @@ static void sessionFiberProc(Fiber_t* fiber) {
 	Session_t* session = (Session_t*)fiber->arg;
 	while (1) {
 		if (session->fiber_new_msg) {
-			MQRecvMsg_t* ctrl = session->fiber_new_msg;
+			MQRecvMsg_t* ctrl = (MQRecvMsg_t*)session->fiber_new_msg;
 			session->fiber_new_msg = NULL;
 			MQDispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
 			if (callback) {
@@ -47,8 +47,9 @@ static void sessionFiberProc(Fiber_t* fiber) {
 					fputs("rpc timeout", stderr);
 				}
 				else if (rpc_item->ret_msg) {
-					printf("say hello world ... %s\n", rpc_item->ret_msg->data);
-					free(rpc_item->ret_msg);
+					MQRecvMsg_t* ret_msg = (MQRecvMsg_t*)rpc_item->ret_msg;
+					printf("say hello world ... %s\n", ret_msg->data);
+					free(ret_msg);
 				}
 				free(rpc_item);
 			}

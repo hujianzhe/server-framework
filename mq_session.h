@@ -4,7 +4,6 @@
 #include "util/inc/component/channel.h"
 #include "util/inc/sysapi/process.h"
 
-struct MQRecvMsg_t;
 struct MQCluster_t;
 
 typedef struct RpcItem_t {
@@ -12,7 +11,7 @@ typedef struct RpcItem_t {
 	int id;
 	long long timestamp_msec;
 	long long timeout_msec;
-	struct MQRecvMsg_t* ret_msg;
+	void* ret_msg;
 } RpcItem_t;
 
 typedef struct Session_t {
@@ -24,8 +23,8 @@ typedef struct Session_t {
 		Fiber_t* fiber;
 		Fiber_t* sche_fiber;
 		RBTree_t fiber_reg_rpc_tree;
-		struct MQRecvMsg_t* fiber_new_msg;
-		const void* fiber_net_disconnect_cmd;
+		void* fiber_new_msg;
+		void* fiber_net_disconnect_cmd;
 	};
 } Session_t;
 

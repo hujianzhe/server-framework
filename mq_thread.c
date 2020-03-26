@@ -52,17 +52,17 @@ static void sessionFiberProc(Fiber_t* fiber) {
 				{
 					fputs("rpc timeout", stderr);
 				}
-				else {
+				else if (ret_msg) {
 					printf("say hello world ... %s\n", ret_msg->data);
+					free(ret_msg);
 				}
-				free(ret_msg);
 			}
 		}
 		if (session->fiber_net_disconnect_cmd) {
 			Channel_t* channel = pod_container_of(session->fiber_net_disconnect_cmd, Channel_t, _.freecmd);
+			session->fiber_net_disconnect_cmd = NULL;
 			channelDestroy(channel);
 			reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
-			session->fiber_net_disconnect_cmd = NULL;
 		}
 		session->fiber_busy = 0;
 		fiberSwitch(fiber, session->sche_fiber);
@@ -135,9 +135,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					// TODO delay free session
 					sessionUnbindChannel(session);
 					session->fiber_net_disconnect_cmd = internal;
-					if (!session->fiber_busy) {
-						fiberSwitch(g_DataFiber, session->fiber);
-					}
+					fiberSwitch(g_DataFiber, session->fiber);
 				}
 				else {
 					channelDestroy(channel);

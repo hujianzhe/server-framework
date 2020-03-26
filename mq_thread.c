@@ -173,6 +173,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	}
 	for (cur = dataqueueClean(&g_DataQueue); cur; cur = next) {
 		ReactorCmd_t* internal = (ReactorCmd_t*)cur;
+		next = cur->next;
 		if (REACTOR_USER_CMD == internal->type)
 			free(pod_container_of(internal, MQRecvMsg_t, internal));
 	}

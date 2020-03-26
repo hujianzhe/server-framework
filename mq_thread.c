@@ -14,13 +14,14 @@ static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 		if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
 			RpcItem_t* rpc_item = rpcFiberCoreExistItem(session->rpc, CMD_RET_TEST);
 			if (rpc_item) {
-				printf("rpcid(%d) already send\n", rpc_item->id);
+				printf("rpcid(%d) already send, send msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
 			}
 			else {
 				char test_data[] = "this text is from client ^.^";
 				MQSendMsg_t msg;
 				makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
 				channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+				printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, gmtimeMillisecond());
 				rpc_item = rpcFiberCoreReturnWait(session->rpc, CMD_RET_TEST, 1000);
 				if (!rpc_item) {
 					fputs("rpc call failure", stderr);

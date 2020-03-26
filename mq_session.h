@@ -39,6 +39,7 @@ void regSession(int id, Session_t* session);
 void unregSession(Session_t* session);
 
 RpcItem_t* sessionExistRpc(Session_t* session, int rpcid);
+void sessionFreeRpc(Session_t* session, RpcItem_t* item);
 RpcItem_t* sessionRpcWaitReturn(Session_t* session, int rpcid, long long timeout_msec);
 int sessionRpcReturnSwitch(Session_t* session, int rpcid, void* ret_msg);
 void sessionRpcMessageHandleSwitch(Session_t* session, void* new_msg);

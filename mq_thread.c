@@ -21,7 +21,7 @@ static void msg_handler(ReactorCmd_t* cmdobj) {
 				MQSendMsg_t msg;
 				makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
 				channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-				rpc_item = sessionRpcWaitReturn(session, CMD_RET_TEST, 1000);
+				RpcItem_t* rpc_item = sessionRpcWaitReturn(session, CMD_RET_TEST, 1000);
 				if (!rpc_item) {
 					fputs("rpc call failure", stderr);
 				}
@@ -35,7 +35,7 @@ static void msg_handler(ReactorCmd_t* cmdobj) {
 					printf("say hello world ... %s\n", ret_msg->data);
 					free(ret_msg);
 				}
-				free(rpc_item);
+				sessionFreeRpc(session, rpc_item);
 			}
 		}
 	}

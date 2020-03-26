@@ -76,6 +76,13 @@ RpcItem_t* sessionExistRpc(Session_t* session, int rpcid) {
 	return node ? pod_container_of(node, RpcItem_t, m_treenode) : NULL;
 }
 
+void sessionFreeRpc(Session_t* session, RpcItem_t* item) {
+	if (item) {
+		rbtreeRemoveNode(&session->fiber_reg_rpc_tree, &item->m_treenode);
+		free(item);
+	}
+}
+
 RpcItem_t* sessionRpcWaitReturn(Session_t* session, int rpcid, long long timeout_msec) {
 	RpcItem_t* rpc_item = regSessionRpc(session, rpcid, timeout_msec);
 	if (rpc_item) {
@@ -89,7 +96,7 @@ RpcItem_t* sessionRpcWaitReturn(Session_t* session, int rpcid, long long timeout
 			}
 			fiberSwitch(session->fiber, session->sche_fiber);
 		}
-		rbtreeRemoveNode(&session->fiber_reg_rpc_tree, &rpc_item->m_treenode);
+		//rbtreeRemoveNode(&session->fiber_reg_rpc_tree, &rpc_item->m_treenode);
 	}
 	return rpc_item;
 }

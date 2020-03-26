@@ -2,7 +2,7 @@
 #include "config.h"
 #include <stdio.h>
 
-static void msg_handler(ReactorCmd_t* cmdobj) {
+static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 	if (REACTOR_USER_CMD == cmdobj->type) {
 		MQRecvMsg_t* ctrl = pod_container_of(cmdobj, MQRecvMsg_t, internal);
 		Session_t* session = (Session_t*)channelSession(ctrl->channel);
@@ -12,7 +12,7 @@ static void msg_handler(ReactorCmd_t* cmdobj) {
 		free(ctrl);
 		// test code
 		if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-			RpcItem_t* rpc_item = sessionExistRpc(session, CMD_RET_TEST);
+			RpcItem_t* rpc_item = rpcFiberCoreExistItem(session->rpc, CMD_RET_TEST);
 			if (rpc_item) {
 				printf("rpcid(%d) alread send\n", rpc_item->id);
 			}
@@ -21,7 +21,7 @@ static void msg_handler(ReactorCmd_t* cmdobj) {
 				MQSendMsg_t msg;
 				makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
 				channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-				RpcItem_t* rpc_item = sessionRpcWaitReturn(session, CMD_RET_TEST, 1000);
+				rpc_item = rpcFiberCoreWaitReturn(session->rpc, CMD_RET_TEST, 1000);
 				if (!rpc_item) {
 					fputs("rpc call failure", stderr);
 				}
@@ -35,7 +35,7 @@ static void msg_handler(ReactorCmd_t* cmdobj) {
 					printf("say hello world ... %s\n", ret_msg->data);
 					free(ret_msg);
 				}
-				sessionFreeRpc(session, rpc_item);
+				rpcFiberCoreFreeItem(session->rpc, rpc_item);
 			}
 		}
 	}
@@ -70,23 +70,28 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						free(ctrl);
 						continue;
 					}
-					session->fiber = fiberCreate(g_DataFiber, 0x4000, sessionFiberProcEntry);
-					if (!session->fiber) {
+					session->rpc = (RpcFiberCore_t*)malloc(sizeof(RpcFiberCore_t));
+					if (!session->rpc) {
 						channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 						free(ctrl);
 						freeSession(session);
 						continue;
 					}
-					session->fiber->arg = session;
-					session->sche_fiber = g_DataFiber;
-					session->fiber_msg_handler = (void(*)(void*))msg_handler;
+					if (!rpcFiberCoreInit(session->rpc, g_DataFiber, 0x4000)) {
+						channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+						free(ctrl);
+						free(session->rpc);
+						freeSession(session);
+						continue;
+					}
+					session->rpc->msg_handler = (void(*)(RpcFiberCore_t*, void*))msg_handler;
 					sessionBindChannel(session, ctrl->channel);
 				}
 
 				if (ctrl->cmd < CMD_RPC_RET_START) {
-					sessionRpcMessageHandleSwitch(session, internal);
+					rpcFiberCoreMessageHandleSwitch(session->rpc, internal);
 				}
-				else if (!sessionRpcReturnSwitch(session, ctrl->cmd, internal)) {
+				else if (!rpcFiberCoreReturnSwitch(session->rpc, ctrl->cmd, internal)) {
 					free(ctrl);
 					continue;
 				}
@@ -94,15 +99,18 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			else if (REACTOR_CHANNEL_FREE_CMD == internal->type) {
 				Channel_t* channel = pod_container_of(internal, Channel_t, _.freecmd);
 				Session_t* session = (Session_t*)channelSession(channel);
+
+				sessionUnbindChannel(session);
+
 				printf("channel(%p) detach, reason:%d", channel, channel->_.detach_error);
 				if (channel->_.flag & CHANNEL_FLAG_CLIENT)
 					printf(", connected times: %u\n", channel->_.connected_times);
 				else
 					putchar('\n');
-				if (session) {
+
+				if (session && session->rpc) {
 					// TODO delay free session
-					sessionUnbindChannel(session);
-					sessionRpcDisconnectHandleSwitch(session, internal);
+					rpcFiberCoreDisconnectHandleSwitch(session->rpc, internal);
 				}
 				else {
 					channelDestroy(channel);

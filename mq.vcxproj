@@ -158,6 +158,7 @@
     <ClCompile Include="util\src\component\cXML.c" />
     <ClCompile Include="util\src\component\dataqueue.c" />
     <ClCompile Include="util\src\component\db.c" />
+    <ClCompile Include="util\src\component\rpc_fiber_core.c" />
     <ClCompile Include="util\src\component\httpframe.c" />
     <ClCompile Include="util\src\component\lengthfieldframe.c" />
     <ClCompile Include="util\src\component\log.c" />
@@ -211,6 +212,7 @@
     <ClInclude Include="util\inc\component\cXML.h" />
     <ClInclude Include="util\inc\component\dataqueue.h" />
     <ClInclude Include="util\inc\component\db.h" />
+    <ClInclude Include="util\inc\component\rpc_fiber_core.h" />
     <ClInclude Include="util\inc\component\httpframe.h" />
     <ClInclude Include="util\inc\component\lengthfieldframe.h" />
     <ClInclude Include="util\inc\component\log.h" />

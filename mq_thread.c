@@ -12,7 +12,7 @@ static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 		free(ctrl);
 		// test code
 		if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-			RpcItem_t* rpc_item = rpcFiberCoreExistItem(session->rpc, CMD_RET_TEST);
+			RpcItem_t* rpc_item = rpcFiberCoreExistItem(rpc, CMD_RET_TEST);
 			if (rpc_item) {
 				printf("rpcid(%d) already send, send msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
 			}
@@ -22,7 +22,7 @@ static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 				makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
 				channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 				printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, gmtimeMillisecond());
-				rpc_item = rpcFiberCoreReturnWait(session->rpc, CMD_RET_TEST, 1000);
+				rpc_item = rpcFiberCoreReturnWait(rpc, CMD_RET_TEST, 1000);
 				if (!rpc_item) {
 					fputs("rpc call failure", stderr);
 				}
@@ -38,7 +38,7 @@ static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 						free(ret_msg);
 					}
 				}
-				rpcFiberCoreFreeItem(session->rpc, rpc_item);
+				rpcFiberCoreFreeItem(rpc, rpc_item);
 			}
 		}
 	}
@@ -73,33 +73,76 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						free(ctrl);
 						continue;
 					}
-					if (g_Config.use_fiber) {
-						session->rpc = (RpcFiberCore_t*)malloc(sizeof(RpcFiberCore_t));
-						if (!session->rpc) {
+					if (g_Config.rpc_fiber) {
+						session->f_rpc = (RpcFiberCore_t*)malloc(sizeof(RpcFiberCore_t));
+						if (!session->f_rpc) {
 							channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 							free(ctrl);
 							freeSession(session);
 							continue;
 						}
-						if (!rpcFiberCoreInit(session->rpc, g_DataFiber, 0x4000)) {
+						if (!rpcFiberCoreInit(session->f_rpc, g_DataFiber, 0x4000)) {
 							channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 							free(ctrl);
-							free(session->rpc);
+							free(session->f_rpc);
 							freeSession(session);
 							continue;
 						}
-						session->rpc->msg_handler = (void(*)(RpcFiberCore_t*, void*))msg_handler;
+						session->f_rpc->msg_handler = (void(*)(RpcFiberCore_t*, void*))msg_handler;
+					}
+					else if (g_Config.rpc_async) {
+						session->a_rpc = (RpcAsyncCore_t*)malloc(sizeof(RpcAsyncCore_t));
+						if (!session->a_rpc) {
+							channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+							free(ctrl);
+							freeSession(session);
+							continue;
+						}
+						rpcAsyncCoreInit(session->a_rpc);
 					}
 					sessionBindChannel(session, ctrl->channel);
 				}
 
-				if (session->rpc) {
+				if (session->f_rpc) {
 					if (ctrl->cmd < CMD_RPC_RET_START) {
-						rpcFiberCoreMessageHandleSwitch(session->rpc, internal);
+						rpcFiberCoreMessageHandleSwitch(session->f_rpc, internal);
 					}
-					else if (!rpcFiberCoreReturnSwitch(session->rpc, ctrl->cmd, internal)) {
+					else if (!rpcFiberCoreReturnSwitch(session->f_rpc, ctrl->cmd, internal)) {
 						free(ctrl);
 						continue;
+					}
+				}
+				else if (session->a_rpc) {
+					RpcItem_t* rpc_item = NULL;
+					if (ctrl->cmd >= CMD_RPC_RET_START) {
+						rpc_item = rpcAsyncCoreExistItem(session->a_rpc, ctrl->cmd);
+						if (!rpc_item) {
+							free(ctrl);
+							continue;
+						}
+						ctrl->async_rpc_item = rpc_item;
+					}
+					MQDispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
+					if (callback)
+						callback(ctrl);
+					free(ctrl);
+					rpcAsyncCoreFreeItem(session->a_rpc, rpc_item);
+
+					// test code
+					if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
+						static int times;
+						if (0 == times) {
+							RpcItem_t* rpc_item;
+							char test_data[] = "this text is from client ^.^";
+							MQSendMsg_t msg;
+							makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
+							channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+							rpc_item = rpcAsyncCoreRegItem(session->a_rpc, CMD_RET_TEST, 1000, NULL);
+							if (rpc_item) {
+								printf("rpcid(%d) already send, send msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
+							}
+							times = 1;
+						}
 					}
 				}
 				else {
@@ -107,7 +150,8 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					if (callback)
 						callback(ctrl);
 					free(ctrl);
-					
+
+					// test code
 					if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
 						static int times;
 						if (0 == times) {
@@ -132,9 +176,9 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				else
 					putchar('\n');
 
-				if (session && session->rpc) {
+				if (session && session->f_rpc) {
 					// TODO delay free session
-					rpcFiberCoreDisconnectHandleSwitch(session->rpc, internal);
+					rpcFiberCoreDisconnectHandleSwitch(session->f_rpc, internal);
 				}
 				else {
 					channelDestroy(channel);

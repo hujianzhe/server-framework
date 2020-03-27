@@ -11,7 +11,8 @@ typedef struct Session_t {
 	Channel_t* channel;
 	int id;
 	struct MQCluster_t* cluster;
-	RpcFiberCore_t* rpc;
+	RpcFiberCore_t* f_rpc;
+	RpcAsyncCore_t* a_rpc;
 } Session_t;
 
 #define	channelSession(channel)	((channel)->userdata)

@@ -120,9 +120,14 @@ int initConfig(const char* path) {
 			}
 		}
 
-		cjson = cJSON_Field(root, "use_fiber");
+		cjson = cJSON_Field(root, "rpc_fiber");
 		if (cjson) {
-			g_Config.use_fiber = cjson->valueint;
+			g_Config.rpc_fiber = cjson->valueint;
+		}
+
+		cjson = cJSON_Field(root, "rpc_async");
+		if (cjson) {
+			g_Config.rpc_async = cjson->valueint;
 		}
 
 		res = 1;

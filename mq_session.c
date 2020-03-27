@@ -25,7 +25,8 @@ Session_t* newSession(void) {
 	if (session) {
 		session->id = 0;
 		session->cluster = NULL;
-		session->rpc = NULL;
+		session->f_rpc = NULL;
+		session->a_rpc = NULL;
 	}
 	return session;
 }

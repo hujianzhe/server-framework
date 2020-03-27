@@ -21,7 +21,14 @@ int notifyTest(MQRecvMsg_t* ctrl) {
 }
 
 int retTest(MQRecvMsg_t* ctrl) {
-	printf("say hello world ... %s, recv msec = %lld\n", ctrl->data, gmtimeMillisecond());
+	RpcItem_t* rpc_item = ctrl->async_rpc_item;
+	if (rpc_item) {
+		long long cost_msec = gmtimeMillisecond() - rpc_item->timestamp_msec;
+		printf("time cost(%lld msec) say hello world ... %s\n", cost_msec, ctrl->data);
+	}
+	else {
+		printf("say hello world ... %s, recv msec = %lld\n", ctrl->data, gmtimeMillisecond());
+	}
 	return 0;
 }
 

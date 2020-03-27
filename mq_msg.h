@@ -3,11 +3,13 @@
 
 #include "mq_socket.h"
 
+struct RpcItem_t;
 typedef struct MQRecvMsg_t {
 	ReactorCmd_t internal;
 	Channel_t* channel;
 	Sockaddr_t peer_addr;
 	int cmd;
+	struct RpcItem_t* async_rpc_item;
 	size_t datalen;
 	unsigned char data[1];
 } MQRecvMsg_t;

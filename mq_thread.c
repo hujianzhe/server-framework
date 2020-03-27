@@ -132,14 +132,22 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
 						static int times;
 						if (0 == times) {
-							RpcItem_t* rpc_item;
-							char test_data[] = "this text is from client ^.^";
-							MQSendMsg_t msg;
-							makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
-							channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-							rpc_item = rpcAsyncCoreRegItem(session->a_rpc, CMD_RET_TEST, 1000, NULL);
+							RpcItem_t* rpc_item = rpcAsyncCoreExistItem(session->a_rpc, CMD_RET_TEST);
 							if (rpc_item) {
 								printf("rpcid(%d) already send, send msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
+							}
+							else {
+								char test_data[] = "this text is from client ^.^";
+								MQSendMsg_t msg;
+								makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
+								rpc_item = rpcAsyncCoreRegItem(session->a_rpc, CMD_RET_TEST, 1000, NULL);
+								if (!rpc_item) {
+									printf("rpcid(%d) already send, send msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
+								}
+								else {
+									channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+									printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, gmtimeMillisecond());
+								}
 							}
 							times = 1;
 						}

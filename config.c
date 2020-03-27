@@ -120,6 +120,11 @@ int initConfig(const char* path) {
 			}
 		}
 
+		cjson = cJSON_Field(root, "use_fiber");
+		if (cjson) {
+			g_Config.use_fiber = cjson->valueint;
+		}
+
 		res = 1;
 	} while (0);
 	cJSON_Delete(root);

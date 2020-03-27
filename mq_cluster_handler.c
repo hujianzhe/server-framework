@@ -20,6 +20,11 @@ int notifyTest(MQRecvMsg_t* ctrl) {
 	return 0;
 }
 
+int retTest(MQRecvMsg_t* ctrl) {
+	printf("say hello world ... %s, recv msec = %lld\n", ctrl->data, gmtimeMillisecond());
+	return 0;
+}
+
 int reqReconnectCluster(MQRecvMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	MQSendMsg_t ret_msg;

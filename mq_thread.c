@@ -73,30 +73,51 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						free(ctrl);
 						continue;
 					}
-					session->rpc = (RpcFiberCore_t*)malloc(sizeof(RpcFiberCore_t));
-					if (!session->rpc) {
-						channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
-						free(ctrl);
-						freeSession(session);
-						continue;
+					if (g_Config.use_fiber) {
+						session->rpc = (RpcFiberCore_t*)malloc(sizeof(RpcFiberCore_t));
+						if (!session->rpc) {
+							channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+							free(ctrl);
+							freeSession(session);
+							continue;
+						}
+						if (!rpcFiberCoreInit(session->rpc, g_DataFiber, 0x4000)) {
+							channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+							free(ctrl);
+							free(session->rpc);
+							freeSession(session);
+							continue;
+						}
+						session->rpc->msg_handler = (void(*)(RpcFiberCore_t*, void*))msg_handler;
 					}
-					if (!rpcFiberCoreInit(session->rpc, g_DataFiber, 0x4000)) {
-						channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
-						free(ctrl);
-						free(session->rpc);
-						freeSession(session);
-						continue;
-					}
-					session->rpc->msg_handler = (void(*)(RpcFiberCore_t*, void*))msg_handler;
 					sessionBindChannel(session, ctrl->channel);
 				}
 
-				if (ctrl->cmd < CMD_RPC_RET_START) {
-					rpcFiberCoreMessageHandleSwitch(session->rpc, internal);
+				if (session->rpc) {
+					if (ctrl->cmd < CMD_RPC_RET_START) {
+						rpcFiberCoreMessageHandleSwitch(session->rpc, internal);
+					}
+					else if (!rpcFiberCoreReturnSwitch(session->rpc, ctrl->cmd, internal)) {
+						free(ctrl);
+						continue;
+					}
 				}
-				else if (!rpcFiberCoreReturnSwitch(session->rpc, ctrl->cmd, internal)) {
+				else {
+					MQDispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
+					if (callback)
+						callback(ctrl);
 					free(ctrl);
-					continue;
+					
+					if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
+						static int times;
+						if (0 == times) {
+							char test_data[] = "this text is from client ^.^";
+							MQSendMsg_t msg;
+							makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
+							channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+							times = 1;
+						}
+					}
 				}
 			}
 			else if (REACTOR_CHANNEL_FREE_CMD == internal->type) {

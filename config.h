@@ -14,6 +14,7 @@ typedef struct MQConfig_t {
 	int timer_interval_msec;
 	const char* cluster_name;
 	int cluster_id;
+	int use_fiber;
 	struct {
 		int socktype;
 		IPString_t ip;

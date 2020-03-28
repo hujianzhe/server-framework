@@ -7,17 +7,6 @@
 unsigned int THREAD_CALL reactorThreadEntry(void* arg);
 unsigned int THREAD_CALL taskThreadEntry(void* arg);
 
-extern int reqTest(MQRecvMsg_t*);
-extern int notifyTest(MQRecvMsg_t*);
-extern int retTest(MQRecvMsg_t*);
-extern int reqReconnectCluster(MQRecvMsg_t*);
-extern int retReconnect(MQRecvMsg_t*);
-extern int reqUploadCluster(MQRecvMsg_t*);
-extern int retUploadCluster(MQRecvMsg_t*);
-extern int notifyNewCluster(MQRecvMsg_t*);
-extern int reqRemoveCluster(MQRecvMsg_t*);
-extern int retRemoveCluster(MQRecvMsg_t*);
-
 static void sigintHandler(int signo) {
 	int i;
 	g_Valid = 0;

@@ -9,7 +9,6 @@ typedef struct MQRecvMsg_t {
 	Channel_t* channel;
 	Sockaddr_t peer_addr;
 	int cmd;
-	struct RpcItem_t* async_rpc_item;
 	size_t datalen;
 	unsigned char data[1];
 } MQRecvMsg_t;

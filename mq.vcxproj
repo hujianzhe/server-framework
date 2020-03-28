@@ -151,6 +151,7 @@
     <ClCompile Include="mq_msg.c" />
     <ClCompile Include="mq_session.c" />
     <ClCompile Include="mq_socket.c" />
+    <ClCompile Include="mq_test_handler.c" />
     <ClCompile Include="mq_thread.c" />
     <ClCompile Include="util\src\component\channel.c" />
     <ClCompile Include="util\src\component\cJSON.c" />

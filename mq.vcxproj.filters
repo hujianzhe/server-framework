@@ -171,6 +171,9 @@
     <ClCompile Include="util\src\component\rpc_fiber_core.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="mq_test_handler.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global.h">

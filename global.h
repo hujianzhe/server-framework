@@ -8,6 +8,7 @@
 #include "mq_socket.h"
 #include "mq_msg.h"
 #include "mq_session.h"
+#include "mq_handler.h"
 #include <stdlib.h>
 
 extern volatile int g_Valid;

@@ -113,21 +113,20 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					}
 				}
 				else if (session->a_rpc) {
-					RpcItem_t* rpc_item = NULL;
-					if (ctrl->cmd >= CMD_RPC_RET_START) {
-						rpc_item = rpcAsyncCoreExistItem(session->a_rpc, ctrl->cmd);
+					if (ctrl->cmd < CMD_RPC_RET_START) {
+						MQDispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
+						if (callback)
+							callback(ctrl);
+						free(ctrl);
+					}
+					else {
+						RpcItem_t* rpc_item = rpcAsyncCoreCallback(session->a_rpc, ctrl->cmd, ctrl);
+						free(ctrl);
 						if (!rpc_item) {
-							free(ctrl);
 							continue;
 						}
-						ctrl->async_rpc_item = rpc_item;
+						rpcAsyncCoreFreeItem(session->a_rpc, rpc_item);
 					}
-					MQDispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
-					if (callback)
-						callback(ctrl);
-					free(ctrl);
-					rpcAsyncCoreFreeItem(session->a_rpc, rpc_item);
-
 					// test code
 					if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
 						static int times;
@@ -140,7 +139,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 								char test_data[] = "this text is from client ^.^";
 								MQSendMsg_t msg;
 								makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
-								rpc_item = rpcAsyncCoreRegItem(session->a_rpc, CMD_RET_TEST, 1000, NULL);
+								rpc_item = rpcAsyncCoreRegItem(session->a_rpc, CMD_RET_TEST, 1000, NULL, rpcRetTest);
 								if (!rpc_item) {
 									printf("rpcid(%d) already send, send msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
 								}

@@ -100,7 +100,6 @@ static void channel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResul
 			memcpy(message->data, decode_result->bodyptr + sizeof(int), message->datalen);
 		}
 		message->data[message->datalen] = 0;
-		message->async_rpc_item = NULL;
 		dataqueuePush(&g_DataQueue, &message->internal._);
 	}
 	else if (c->_.flag & CHANNEL_FLAG_SERVER) {

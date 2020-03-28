@@ -12,33 +12,39 @@ static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 		free(ctrl);
 		// test code
 		if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-			RpcItem_t* rpc_item = rpcFiberCoreExistItem(rpc, CMD_RET_TEST);
-			if (rpc_item) {
-				printf("rpcid(%d) already send, send msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
-			}
-			else {
-				char test_data[] = "this text is from client ^.^";
-				MQSendMsg_t msg;
-				makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
-				channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-				printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, gmtimeMillisecond());
-				rpc_item = rpcFiberCoreReturnWait(rpc, CMD_RET_TEST, 1000);
-				if (!rpc_item) {
-					fputs("rpc call failure", stderr);
+			static int times;
+			while (10 > times) {
+				RpcItem_t* rpc_item = rpcFiberCoreExistItem(rpc, CMD_RET_TEST);
+				if (rpc_item) {
+					printf("rpcid(%d) already send, send msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
+					times++;
+					break;
 				}
 				else {
-					long long now_msec = gmtimeMillisecond();
-					long long cost_msec = now_msec - rpc_item->timestamp_msec;
-					if (rpc_item->timeout_msec >= 0 && cost_msec >= rpc_item->timeout_msec) {
-						fputs("rpc timeout", stderr);
+					char test_data[] = "this text is from client ^.^";
+					MQSendMsg_t msg;
+					makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
+					channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+					printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, gmtimeMillisecond());
+					rpc_item = rpcFiberCoreReturnWait(rpc, CMD_RET_TEST, 1000);
+					if (!rpc_item) {
+						fputs("rpc call failure", stderr);
 					}
-					else if (rpc_item->ret_msg) {
-						MQRecvMsg_t* ret_msg = pod_container_of(rpc_item->ret_msg, MQRecvMsg_t, internal);
-						printf("time cost(%lld msec) say hello world ... %s\n", cost_msec, ret_msg->data);
-						free(ret_msg);
+					else {
+						long long now_msec = gmtimeMillisecond();
+						long long cost_msec = now_msec - rpc_item->timestamp_msec;
+						if (rpc_item->timeout_msec >= 0 && cost_msec >= rpc_item->timeout_msec) {
+							fputs("rpc timeout", stderr);
+						}
+						else if (rpc_item->ret_msg) {
+							MQRecvMsg_t* ret_msg = pod_container_of(rpc_item->ret_msg, MQRecvMsg_t, internal);
+							printf("time cost(%lld msec) say hello world ... %s\n", cost_msec, ret_msg->data);
+							free(ret_msg);
+						}
 					}
+					rpcFiberCoreFreeItem(rpc, rpc_item);
 				}
-				rpcFiberCoreFreeItem(rpc, rpc_item);
+				times++;
 			}
 		}
 	}
@@ -130,7 +136,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					// test code
 					if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
 						static int times;
-						if (0 == times) {
+						if (10 > times) {
 							RpcItem_t* rpc_item = rpcAsyncCoreExistItem(session->a_rpc, CMD_RET_TEST);
 							if (rpc_item) {
 								printf("rpcid(%d) already send, send msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
@@ -148,7 +154,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 									printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, gmtimeMillisecond());
 								}
 							}
-							times = 1;
+							times++;
 						}
 					}
 				}
@@ -161,12 +167,12 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					// test code
 					if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
 						static int times;
-						if (0 == times) {
+						if (10 > times) {
 							char test_data[] = "this text is from client ^.^";
 							MQSendMsg_t msg;
 							makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
 							channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-							times = 1;
+							times++;
 						}
 					}
 				}

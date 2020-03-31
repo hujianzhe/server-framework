@@ -18,7 +18,6 @@ extern Thread_t g_TaskThread;
 extern Reactor_t* g_Reactors;
 extern Reactor_t* g_ReactorAccept;
 extern DataQueue_t g_DataQueue;
-extern Fiber_t* g_DataFiber;
 extern size_t g_ReactorCnt;
 extern RBTimer_t g_Timer;
 extern Hashtable_t g_DispatchTable;

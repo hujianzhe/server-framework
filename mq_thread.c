@@ -65,9 +65,10 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	ListNode_t* cur, *next;
 	int wait_msec;
 	long long cur_msec, timer_min_msec;
+	Fiber_t* thread_fiber;
 	if (g_Config.rpc_fiber) {
-		g_DataFiber = fiberFromThread();
-		if (!g_DataFiber) {
+		thread_fiber = fiberFromThread();
+		if (!thread_fiber) {
 			fputs("fiberFromThread error", stderr);
 			return 1;
 		}
@@ -95,7 +96,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							freeSession(session);
 							continue;
 						}
-						if (!rpcFiberCoreInit(session->f_rpc, g_DataFiber, 0x4000)) {
+						if (!rpcFiberCoreInit(session->f_rpc, thread_fiber, 0x4000)) {
 							channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 							free(ctrl);
 							free(session->f_rpc);
@@ -235,8 +236,8 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		}
 	}
 	// thread exit clean
-	if (g_DataFiber) {
-		fiberFree(g_DataFiber);
+	if (thread_fiber) {
+		fiberFree(thread_fiber);
 	}
 	for (cur = rbtimerClean(&g_Timer); cur; cur = next) {
 		free(pod_container_of(cur, RBTimerEvent_t, m_listnode));

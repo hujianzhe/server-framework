@@ -7,7 +7,6 @@ Thread_t g_TaskThread;
 Reactor_t* g_Reactors;
 Reactor_t* g_ReactorAccept;
 DataQueue_t g_DataQueue;
-Fiber_t* g_DataFiber;
 size_t g_ReactorCnt;
 RBTimer_t g_Timer;
 
@@ -35,7 +34,6 @@ void freeGlobalResource(void) {
 		g_ReactorThreads = NULL;
 		g_ReactorAcceptThread = NULL;
 	}
-	g_DataFiber = NULL;
 	networkCleanEnv();
 }
 

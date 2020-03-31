@@ -63,14 +63,16 @@ static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 
 unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	ListNode_t* cur, *next;
-	int wait_msec = g_Config.timer_interval_msec;
+	int wait_msec;
 	long long cur_msec, timer_min_msec;
-	long long frame_next_msec = gmtimeMillisecond() + g_Config.timer_interval_msec;
-	g_DataFiber = fiberFromThread();
-	if (!g_DataFiber) {
-		fputs("fiberFromThread error", stderr);
-		return 1;
+	if (g_Config.rpc_fiber) {
+		g_DataFiber = fiberFromThread();
+		if (!g_DataFiber) {
+			fputs("fiberFromThread error", stderr);
+			return 1;
+		}
 	}
+	wait_msec = g_Config.timer_interval_msec;
 	while (g_Valid) {
 		for (cur = dataqueuePop(&g_DataQueue, wait_msec, ~0); cur; cur = next) {
 			ReactorCmd_t* internal = (ReactorCmd_t*)cur;
@@ -222,20 +224,20 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		timer_min_msec = rbtimerMiniumTimestamp(&g_Timer);
 		cur_msec = gmtimeMillisecond();
 
-		if (timer_min_msec < 0 || timer_min_msec >= frame_next_msec) {
-			if (cur_msec <= frame_next_msec)
-				wait_msec = frame_next_msec - cur_msec;
-			else {
-				frame_next_msec += g_Config.timer_interval_msec;
-			}
+		if (timer_min_msec > 0) {
+			if (timer_min_msec > cur_msec)
+				wait_msec = timer_min_msec - cur_msec;
+			else
+				wait_msec = 0;
 		}
-		else if (cur_msec <= timer_min_msec)
-			wait_msec = timer_min_msec - cur_msec;
-		else
-			wait_msec = 0;
+		else {
+			wait_msec = g_Config.timer_interval_msec;
+		}
 	}
 	// thread exit clean
-	fiberFree(g_DataFiber);
+	if (g_DataFiber) {
+		fiberFree(g_DataFiber);
+	}
 	for (cur = rbtimerClean(&g_Timer); cur; cur = next) {
 		free(pod_container_of(cur, RBTimerEvent_t, m_listnode));
 		next = cur->next;

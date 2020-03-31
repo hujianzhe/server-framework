@@ -65,7 +65,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	ListNode_t* cur, *next;
 	int wait_msec;
 	long long cur_msec, timer_min_msec;
-	Fiber_t* thread_fiber;
+	Fiber_t* thread_fiber = NULL;
 	if (g_Config.rpc_fiber) {
 		thread_fiber = fiberFromThread();
 		if (!thread_fiber) {

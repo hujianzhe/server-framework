@@ -27,7 +27,6 @@ Session_t* newSession(void) {
 		session->cluster = NULL;
 		session->f_rpc = NULL;
 		session->a_rpc = NULL;
-		rbtimerInit(&session->timer, FALSE);
 	}
 	return session;
 }

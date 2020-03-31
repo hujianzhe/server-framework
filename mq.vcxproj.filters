@@ -168,10 +168,10 @@
     <ClCompile Include="util\src\sysapi\sprintf.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\component\rpc_fiber_core.c">
+    <ClCompile Include="mq_test_handler.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="mq_test_handler.c">
+    <ClCompile Include="util\src\component\rpc_core.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -338,7 +338,7 @@
     <ClInclude Include="util\inc\sysapi\sprintf.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\component\rpc_fiber_core.h">
+    <ClInclude Include="util\inc\component\rpc_core.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

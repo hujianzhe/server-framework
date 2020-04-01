@@ -75,7 +75,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	}
 	wait_msec = g_Config.timer_interval_msec;
 	while (g_Valid) {
-		for (cur = dataqueuePop(&g_DataQueue, wait_msec, ~0); cur; cur = next) {
+		for (cur = dataqueuePopWait(&g_DataQueue, wait_msec, ~0); cur; cur = next) {
 			ReactorCmd_t* internal = (ReactorCmd_t*)cur;
 			next = cur->next;
 			if (REACTOR_USER_CMD == internal->type) {

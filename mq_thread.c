@@ -223,16 +223,15 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		}
 
 		timer_min_msec = rbtimerMiniumTimestamp(&g_Timer);
-		cur_msec = gmtimeMillisecond();
-
-		if (timer_min_msec > 0) {
+		if (timer_min_msec < 0) {
+			wait_msec = -1;
+		}
+		else {
+			cur_msec = gmtimeMillisecond();
 			if (timer_min_msec > cur_msec)
 				wait_msec = timer_min_msec - cur_msec;
 			else
 				wait_msec = 0;
-		}
-		else {
-			wait_msec = -1;
 		}
 	}
 	// thread exit clean

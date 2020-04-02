@@ -73,7 +73,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			return 1;
 		}
 	}
-	wait_msec = g_Config.timer_interval_msec;
+	wait_msec = -1;
 	while (g_Valid) {
 		for (cur = dataqueuePopWait(&g_DataQueue, wait_msec, ~0); cur; cur = next) {
 			ReactorCmd_t* internal = (ReactorCmd_t*)cur;
@@ -232,7 +232,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				wait_msec = 0;
 		}
 		else {
-			wait_msec = g_Config.timer_interval_msec;
+			wait_msec = -1;
 		}
 	}
 	// thread exit clean

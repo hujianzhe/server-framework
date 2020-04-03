@@ -11,7 +11,6 @@ typedef struct MQConfig_t {
 	IPString_t outer_ip;
 	unsigned short* port;
 	unsigned int portcnt;
-	int timer_interval_msec;
 	const char* cluster_name;
 	int cluster_id;
 	int rpc_fiber;

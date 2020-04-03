@@ -90,14 +90,6 @@ int initConfig(const char* path) {
 			strcpy(g_Config.outer_ip, cjson->valuestring);
 		}
 
-		cjson = cJSON_Field(root, "timer_interval_msec");
-		if (cjson) {
-			g_Config.timer_interval_msec = cjson->valueint;
-		}
-		else {
-			g_Config.timer_interval_msec = 16;
-		}
-
 		cjson = cJSON_Field(root, "center_addr");
 		if (cjson) {
 			cJSON* sub_cjson = cJSON_Field(cjson, "ip");

@@ -199,8 +199,8 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					putchar('\n');
 
 				if (session && session->f_rpc) {
+					rpcFiberCoreMessageHandleSwitch(session->f_rpc, internal);
 					// TODO delay free session
-					rpcFiberCoreDisconnectHandleSwitch(session->f_rpc, internal);
 				}
 				else {
 					channelDestroy(channel);

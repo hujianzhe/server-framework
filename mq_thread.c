@@ -2,62 +2,54 @@
 #include "config.h"
 #include <stdio.h>
 
-static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
-	if (REACTOR_USER_CMD == cmdobj->type) {
-		UserMsg_t* ctrl = pod_container_of(cmdobj, UserMsg_t, internal);
-		Session_t* session = (Session_t*)channelSession(ctrl->channel);
-		DispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
-		if (callback)
-			callback(ctrl);
-		free(ctrl);
-		// test code
-		if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-			static int times;
-			while (10 > times) {
-				RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
+static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
+	Session_t* session = (Session_t*)channelSession(ctrl->channel);
+	DispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
+	if (callback)
+		callback(ctrl);
+	free(ctrl);
+	// test code
+	if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
+		static int times;
+		while (10 > times) {
+			RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
+			if (!rpc_item) {
+				break;
+			}
+			rpcItemInit(rpc_item, CMD_RET_TEST);
+			if (!rpcFiberCoreRegItem(rpc, rpc_item, 1000)) {
+				printf("rpcid(%d) already send\n", rpc_item->id);
+				free(rpc_item);
+				times++;
+				break;
+			}
+			else {
+				char test_data[] = "this text is from client ^.^";
+				SendMsg_t msg;
+				makeSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
+				channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+				rpc_item->timestamp_msec = gmtimeMillisecond();
+				printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, rpc_item->timestamp_msec);
+				rpc_item = rpcFiberCoreReturnWait(rpc, rpc_item);
 				if (!rpc_item) {
-					break;
-				}
-				rpcItemInit(rpc_item, CMD_RET_TEST);
-				if (!rpcFiberCoreRegItem(rpc, rpc_item, 1000)) {
-					printf("rpcid(%d) already send\n", rpc_item->id);
-					free(rpc_item);
-					times++;
-					break;
+					fputs("rpc call failure", stderr);
 				}
 				else {
-					char test_data[] = "this text is from client ^.^";
-					SendMsg_t msg;
-					makeSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
-					channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-					rpc_item->timestamp_msec = gmtimeMillisecond();
-					printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, rpc_item->timestamp_msec);
-					rpc_item = rpcFiberCoreReturnWait(rpc, rpc_item);
-					if (!rpc_item) {
-						fputs("rpc call failure", stderr);
+					long long now_msec = gmtimeMillisecond();
+					long long cost_msec = now_msec - rpc_item->timestamp_msec;
+					if (rpc_item->timeout_msec >= 0 && cost_msec >= rpc_item->timeout_msec) {
+						fputs("rpc timeout", stderr);
 					}
-					else {
-						long long now_msec = gmtimeMillisecond();
-						long long cost_msec = now_msec - rpc_item->timestamp_msec;
-						if (rpc_item->timeout_msec >= 0 && cost_msec >= rpc_item->timeout_msec) {
-							fputs("rpc timeout", stderr);
-						}
-						else if (rpc_item->ret_msg) {
-							UserMsg_t* ret_msg = pod_container_of(rpc_item->ret_msg, UserMsg_t, internal);
-							printf("time cost(%lld msec) say hello world ... %s\n", cost_msec, ret_msg->data);
-							free(ret_msg);
-						}
+					else if (rpc_item->ret_msg) {
+						UserMsg_t* ret_msg = pod_container_of(rpc_item->ret_msg, UserMsg_t, internal);
+						printf("time cost(%lld msec) say hello world ... %s\n", cost_msec, ret_msg->data);
+						free(ret_msg);
 					}
-					free(rpc_item);
 				}
-				times++;
+				free(rpc_item);
 			}
+			times++;
 		}
-	}
-	else if (REACTOR_CHANNEL_FREE_CMD == cmdobj->type) {
-		Channel_t* channel = pod_container_of(cmdobj, Channel_t, _.freecmd);
-		channelDestroy(channel);
-		reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
 	}
 }
 
@@ -120,9 +112,9 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 
 				if (session->f_rpc) {
 					if (ctrl->cmd < CMD_RPC_RET_START) {
-						rpcFiberCoreMessageHandleSwitch(session->f_rpc, internal);
+						rpcFiberCoreMessageHandleSwitch(session->f_rpc, ctrl);
 					}
-					else if (!rpcFiberCoreReturnSwitch(session->f_rpc, ctrl->cmd, internal)) {
+					else if (!rpcFiberCoreReturnSwitch(session->f_rpc, ctrl->cmd, ctrl)) {
 						free(ctrl);
 						continue;
 					}
@@ -199,13 +191,11 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					putchar('\n');
 
 				if (session && session->f_rpc) {
-					rpcFiberCoreMessageHandleSwitch(session->f_rpc, internal);
+					rpcFiberCoreMessageHandleSwitch(session->f_rpc, NULL);
 					// TODO delay free session
 				}
-				else {
-					channelDestroy(channel);
-					reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
-				}
+				channelDestroy(channel);
+				reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
 			}
 			else {
 				printf("unknown message type: %d\n", internal->type);

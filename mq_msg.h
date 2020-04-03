@@ -3,7 +3,6 @@
 
 #include "mq_socket.h"
 
-struct RpcItem_t;
 typedef struct MQRecvMsg_t {
 	ReactorCmd_t internal;
 	Channel_t* channel;

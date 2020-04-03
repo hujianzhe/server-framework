@@ -341,5 +341,8 @@
     <ClInclude Include="util\inc\component\rpc_core.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="mq_handler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -19,8 +19,8 @@ static void sigintHandler(int signo) {
 
 static int centerChannelHeartbeat(Channel_t* c, int heartbeat_times) {
 	if (heartbeat_times < c->heartbeat_maxtimes) {
-		MQSendMsg_t msg;
-		makeMQSendMsgEmpty(&msg);
+		SendMsg_t msg;
+		makeSendMsgEmpty(&msg);
 		channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 		printf("channel(%p) send heartbeat, times %d...\n", c, heartbeat_times);
 	}
@@ -40,7 +40,7 @@ static int centerChannelHeartbeat(Channel_t* c, int heartbeat_times) {
 static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 	Channel_t* channel = pod_container_of(c, Channel_t, _);
 	char buffer[1024];
-	MQSendMsg_t msg;
+	SendMsg_t msg;
 	IPString_t peer_ip = { 0 };
 	unsigned short peer_port = 0;
 
@@ -52,12 +52,12 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 	if (c->connected_times > 1) {
 		Session_t* session = (Session_t*)channelSession(channel);
 		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"session_id\":%d}", g_Config.cluster_name, g_Config.outer_ip, g_Config.port ? g_Config.port[0] : 0, session->id);
-		makeMQSendMsg(&msg, CMD_REQ_RECONNECT, buffer, strlen(buffer));
+		makeSendMsg(&msg, CMD_REQ_RECONNECT, buffer, strlen(buffer));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN);
 	}
 	else {
 		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", g_Config.cluster_name, g_Config.outer_ip, g_Config.port ? g_Config.port[0] : 0);
-		makeMQSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
+		makeSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		/*
 		int i = 0;
@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
 
 	if (g_Config.portcnt > 0) {
 		for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.portcnt; ++listensockinitokcnt) {
-			ReactorObject_t* o = mqlistenOpen(
+			ReactorObject_t* o = openListener(
 				g_Config.domain,
 				g_Config.socktype,
 				g_Config.listen_ip,
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
 		o = reactorobjectOpen(INVALID_FD_HANDLE, domain, g_Config.center_attr.socktype, 0);
 		if (!o)
 			goto err;
-		c = mqsocketOpenChannel(o, CHANNEL_FLAG_CLIENT, &connect_addr);
+		c = openChannel(o, CHANNEL_FLAG_CLIENT, &connect_addr);
 		if (!c) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			goto err;

@@ -20,13 +20,13 @@ int initClusterTable(void) {
 	return 1;
 }
 
-MQCluster_t* getCluster(const char* name, const IPString_t ip, unsigned short port) {
+Cluster_t* getCluster(const char* name, const IPString_t ip, unsigned short port) {
 	HashtableNode_t* htnode = hashtableSearchKey(&g_ClusterTable, name);
 	if (htnode) {
 		ListNode_t* cur;
 		ClusterTableItem_t* item = pod_container_of(htnode, ClusterTableItem_t, m_htnode);
 		for (cur = item->clusterlist.head; cur; cur = cur->next) {
-			MQCluster_t* exist_cluster = pod_container_of(cur, MQCluster_t, m_reg_htlistnode);
+			Cluster_t* exist_cluster = pod_container_of(cur, Cluster_t, m_reg_htlistnode);
 			if (!strcmp(exist_cluster->ip, ip) && exist_cluster->port == port) {
 				return exist_cluster;
 			}
@@ -35,7 +35,7 @@ MQCluster_t* getCluster(const char* name, const IPString_t ip, unsigned short po
 	return NULL;
 }
 
-int regCluster(const char* name, MQCluster_t* cluster) {
+int regCluster(const char* name, Cluster_t* cluster) {
 	ClusterTableItem_t* item;
 	HashtableNode_t* htnode = hashtableSearchKey(&g_ClusterTable, name);
 	if (htnode) {
@@ -60,7 +60,7 @@ int regCluster(const char* name, MQCluster_t* cluster) {
 	return 1;
 }
 
-void unregCluster(MQCluster_t* cluster) {
+void unregCluster(Cluster_t* cluster) {
 	ClusterTableItem_t* item = (ClusterTableItem_t*)cluster->m_reg_item;
 	listRemoveNode(&item->clusterlist, &cluster->m_reg_htlistnode);
 	item->clusterlistcnt--;
@@ -79,7 +79,7 @@ void freeClusterTable(void) {
 		ClusterTableItem_t* item = pod_container_of(curhtnode, ClusterTableItem_t, m_htnode);
 		nexthtnode = hashtableNextNode(curhtnode);
 		for (curlistnode = item->clusterlist.head; curlistnode; curlistnode = nextlistnode) {
-			MQCluster_t* cluster = pod_container_of(curlistnode, MQCluster_t, m_reg_htlistnode);
+			Cluster_t* cluster = pod_container_of(curlistnode, Cluster_t, m_reg_htlistnode);
 			nextlistnode = curlistnode->next;
 			free(cluster);
 		}
@@ -90,12 +90,12 @@ void freeClusterTable(void) {
 	listInit(&g_ClusterList);
 }
 
-void clusterBindSession(MQCluster_t* cluster, Session_t* session) {
+void clusterBindSession(Cluster_t* cluster, Session_t* session) {
 	cluster->session = session;
 	session->cluster = cluster;
 }
 
-Session_t* clusterUnbindSession(MQCluster_t* cluster) {
+Session_t* clusterUnbindSession(Cluster_t* cluster) {
 	if (cluster) {
 		Session_t* session = cluster->session;
 		if (session) {

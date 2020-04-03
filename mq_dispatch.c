@@ -4,7 +4,7 @@
 typedef struct DispatchItem_t {
 	HashtableNode_t m_hashnode;
 	union {
-		MQDispatchCallback_t func;
+		DispatchCallback_t func;
 		Fiber_t* fiber;
 	};
 } DispatchItem_t;
@@ -25,7 +25,7 @@ int initDispatch(void) {
 	return 1;
 }
 
-int regDispatchCallback(int cmd, MQDispatchCallback_t func) {
+int regDispatchCallback(int cmd, DispatchCallback_t func) {
 	DispatchItem_t* item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
 	if (item) {
 		HashtableNode_t* exist_node;
@@ -41,7 +41,7 @@ int regDispatchCallback(int cmd, MQDispatchCallback_t func) {
 	return 0;
 }
 
-MQDispatchCallback_t getDispatchCallback(int cmd) {
+DispatchCallback_t getDispatchCallback(int cmd) {
 	HashtableNode_t* node = hashtableSearchKey(&g_DispatchTable, (void*)(size_t)cmd);
 	if (node) {
 		return pod_container_of(node, DispatchItem_t, m_hashnode)->func;

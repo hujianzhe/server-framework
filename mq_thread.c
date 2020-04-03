@@ -4,9 +4,9 @@
 
 static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 	if (REACTOR_USER_CMD == cmdobj->type) {
-		MQRecvMsg_t* ctrl = pod_container_of(cmdobj, MQRecvMsg_t, internal);
+		UserMsg_t* ctrl = pod_container_of(cmdobj, UserMsg_t, internal);
 		Session_t* session = (Session_t*)channelSession(ctrl->channel);
-		MQDispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
+		DispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
 		if (callback)
 			callback(ctrl);
 		free(ctrl);
@@ -27,8 +27,8 @@ static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 				}
 				else {
 					char test_data[] = "this text is from client ^.^";
-					MQSendMsg_t msg;
-					makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
+					SendMsg_t msg;
+					makeSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
 					channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 					rpc_item->timestamp_msec = gmtimeMillisecond();
 					printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, rpc_item->timestamp_msec);
@@ -43,7 +43,7 @@ static void msg_handler(RpcFiberCore_t* rpc, ReactorCmd_t* cmdobj) {
 							fputs("rpc timeout", stderr);
 						}
 						else if (rpc_item->ret_msg) {
-							MQRecvMsg_t* ret_msg = pod_container_of(rpc_item->ret_msg, MQRecvMsg_t, internal);
+							UserMsg_t* ret_msg = pod_container_of(rpc_item->ret_msg, UserMsg_t, internal);
 							printf("time cost(%lld msec) say hello world ... %s\n", cost_msec, ret_msg->data);
 							free(ret_msg);
 						}
@@ -79,7 +79,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			ReactorCmd_t* internal = (ReactorCmd_t*)cur;
 			next = cur->next;
 			if (REACTOR_USER_CMD == internal->type) {
-				MQRecvMsg_t* ctrl = pod_container_of(internal , MQRecvMsg_t, internal);
+				UserMsg_t* ctrl = pod_container_of(internal , UserMsg_t, internal);
 				Session_t* session = (Session_t*)channelSession(ctrl->channel);
 				if (!session) {
 					session = newSession();
@@ -129,7 +129,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				}
 				else if (session->a_rpc) {
 					if (ctrl->cmd < CMD_RPC_RET_START) {
-						MQDispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
+						DispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
 						if (callback)
 							callback(ctrl);
 						free(ctrl);
@@ -157,8 +157,8 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							}
 							else {
 								char test_data[] = "this text is from client ^.^";
-								MQSendMsg_t msg;
-								makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
+								SendMsg_t msg;
+								makeSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
 								channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 								rpc_item->timestamp_msec = gmtimeMillisecond();
 								printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, rpc_item->timestamp_msec);
@@ -168,7 +168,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					}
 				}
 				else {
-					MQDispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
+					DispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
 					if (callback)
 						callback(ctrl);
 					free(ctrl);
@@ -178,8 +178,8 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						static int times;
 						if (10 > times) {
 							char test_data[] = "this text is from client ^.^";
-							MQSendMsg_t msg;
-							makeMQSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
+							SendMsg_t msg;
+							makeSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
 							channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 							times++;
 						}
@@ -246,7 +246,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		ReactorCmd_t* internal = (ReactorCmd_t*)cur;
 		next = cur->next;
 		if (REACTOR_USER_CMD == internal->type)
-			free(pod_container_of(internal, MQRecvMsg_t, internal));
+			free(pod_container_of(internal, UserMsg_t, internal));
 	}
 	return 0;
 }

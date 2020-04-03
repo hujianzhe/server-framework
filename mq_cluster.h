@@ -5,7 +5,7 @@
 
 struct Session_t;
 
-typedef struct MQCluster_t {
+typedef struct Cluster_t {
 	ListNode_t m_reg_listnode;
 	ListNode_t m_reg_htlistnode;
 	void* m_reg_item;
@@ -13,15 +13,15 @@ typedef struct MQCluster_t {
 	const char* name;
 	IPString_t ip;
 	unsigned short port;
-} MQCluster_t;
+} Cluster_t;
 
 int initClusterTable(void);
-MQCluster_t* getCluster(const char* name, const IPString_t ip, unsigned short port);
-int regCluster(const char* name, MQCluster_t* cluster);
-void unregCluster(MQCluster_t* cluster);
+Cluster_t* getCluster(const char* name, const IPString_t ip, unsigned short port);
+int regCluster(const char* name, Cluster_t* cluster);
+void unregCluster(Cluster_t* cluster);
 void freeClusterTable(void);
 
-void clusterBindSession(MQCluster_t* cluster, struct Session_t* session);
-struct Session_t* clusterUnbindSession(MQCluster_t* cluster);
+void clusterBindSession(Cluster_t* cluster, struct Session_t* session);
+struct Session_t* clusterUnbindSession(Cluster_t* cluster);
 
 #endif // !MQ_CLUSTER_H

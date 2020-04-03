@@ -51,7 +51,7 @@ static void accept_callback(ChannelBase_t* listen_c, FD_t newfd, const void* pee
 		socketClose(newfd);
 		return;
 	}
-	listen_channel = mqsocketOpenChannel(o, CHANNEL_FLAG_SERVER, peer_addr);
+	listen_channel = openChannel(o, CHANNEL_FLAG_SERVER, peer_addr);
 	if (!listen_channel) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return;
@@ -82,7 +82,7 @@ static void channel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResul
 	printf("bodylen = %d, %d\n", decode_result->bodylen, i);
 	*/
 	if (decode_result->bodylen >= sizeof(int)) {
-		MQRecvMsg_t* message = (MQRecvMsg_t*)malloc(sizeof(MQRecvMsg_t) + decode_result->bodylen - sizeof(int));
+		UserMsg_t* message = (UserMsg_t*)malloc(sizeof(UserMsg_t) + decode_result->bodylen - sizeof(int));
 		if (!message) {
 			return;
 		}
@@ -103,8 +103,8 @@ static void channel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResul
 		dataqueuePush(&g_DataQueue, &message->internal._);
 	}
 	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
-		MQSendMsg_t packet;
-		makeMQSendMsgEmpty(&packet);
+		SendMsg_t packet;
+		makeSendMsgEmpty(&packet);
 		channelSendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 		puts("reply a empty packet");
 		//puts("not reply empty packet");
@@ -144,7 +144,7 @@ static void channel_reg_handler(ChannelBase_t* c, long long timestamp_msec) {
 
 /**************************************************************************/
 
-Channel_t* mqsocketOpenChannel(ReactorObject_t* o, int flag, const void* saddr) {
+Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr) {
 	Channel_t* c = reactorobjectOpenChannel(o, flag, 0, saddr);
 	if (!c)
 		return NULL;
@@ -168,7 +168,7 @@ Channel_t* mqsocketOpenChannel(ReactorObject_t* o, int flag, const void* saddr) 
 	return c;
 }
 
-ReactorObject_t* mqlistenOpen(int domain, int socktype, const char* ip, unsigned short port) {
+ReactorObject_t* openListener(int domain, int socktype, const char* ip, unsigned short port) {
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
 	Channel_t* c;
@@ -187,7 +187,7 @@ ReactorObject_t* mqlistenOpen(int domain, int socktype, const char* ip, unsigned
 			return NULL;
 		}
 	}
-	c = mqsocketOpenChannel(o, CHANNEL_FLAG_LISTEN, &local_saddr);
+	c = openChannel(o, CHANNEL_FLAG_LISTEN, &local_saddr);
 	if (!c) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;

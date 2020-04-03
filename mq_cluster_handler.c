@@ -1,9 +1,9 @@
 #include "global.h"
 #include <stdio.h>
 
-int reqReconnectCluster(MQRecvMsg_t* ctrl) {
+int reqReconnectCluster(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
-	MQSendMsg_t ret_msg;
+	SendMsg_t ret_msg;
 	int ok;
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
@@ -17,7 +17,7 @@ int reqReconnectCluster(MQRecvMsg_t* ctrl) {
 	do {
 		cJSON* cjson_name, *cjson_ip, *cjson_port, *cjson_session_id;
 		Session_t* session;
-		MQCluster_t* cluster;
+		Cluster_t* cluster;
 
 		cjson_name = cJSON_Field(cjson_req_root, "name");
 		if (!cjson_name) {
@@ -84,19 +84,19 @@ int reqReconnectCluster(MQRecvMsg_t* ctrl) {
 		return 1;
 	}
 
-	makeMQSendMsg(&ret_msg, CMD_RET_RECONNECT, NULL, 0);
+	makeSendMsg(&ret_msg, CMD_RET_RECONNECT, NULL, 0);
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_SYN_ACK);
 	puts("reconnect start");
 	return 0;
 }
 
-int retReconnect(MQRecvMsg_t* ctrl) {
+int retReconnect(UserMsg_t* ctrl) {
 	ReactorCmd_t* cmd;
 	ReactorPacket_t* pkg = NULL;
 	Channel_t* channel = ctrl->channel;
 	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
 		unsigned int hdrlen, bodylen;
-		bodylen = field_sizeof(MQSendMsg_t, htonl_cmd);
+		bodylen = field_sizeof(SendMsg_t, htonl_cmd);
 		hdrlen = channel->on_hdrsize(channel, bodylen);
 		pkg = reactorpacketMake(NETPACKET_FRAGMENT_EOF, hdrlen, bodylen);
 		if (!pkg) {
@@ -110,14 +110,14 @@ int retReconnect(MQRecvMsg_t* ctrl) {
 	return 0;
 }
 
-int reqUploadCluster(MQRecvMsg_t* ctrl) {
+int reqUploadCluster(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	cJSON *cjson_ret_root, *cjson_ret_array_cluster;
-	MQSendMsg_t ret_msg;
+	SendMsg_t ret_msg;
 	char* ret_data;
 	ListNode_t* lnode;
 	Session_t* session;
-	MQCluster_t* cluster;
+	Cluster_t* cluster;
 	int ok;
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
@@ -173,7 +173,7 @@ int reqUploadCluster(MQRecvMsg_t* ctrl) {
 			}
 		}
 		else {
-			cluster = (MQCluster_t*)malloc(sizeof(MQCluster_t));
+			cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
 			if (!cluster) {
 				freeSession(session);
 				fputs("malloc", stderr);
@@ -202,7 +202,7 @@ int reqUploadCluster(MQRecvMsg_t* ctrl) {
 	cJSON_AddNewNumber(cjson_ret_root, "session_id", session->id);
 	cjson_ret_array_cluster = cJSON_AddNewArray(cjson_ret_root, "cluster");
 	for (lnode = g_ClusterList.head; lnode; lnode = lnode->next) {
-		MQCluster_t* exist_cluster = pod_container_of(lnode, MQCluster_t, m_reg_listnode);
+		Cluster_t* exist_cluster = pod_container_of(lnode, Cluster_t, m_reg_listnode);
 		if (exist_cluster != cluster) {
 			cJSON* cjson_ret_object_cluster = cJSON_AddNewObject(cjson_ret_array_cluster, NULL);
 			if (cjson_ret_object_cluster) {
@@ -211,8 +211,8 @@ int reqUploadCluster(MQRecvMsg_t* ctrl) {
 				cJSON_AddNewNumber(cjson_ret_object_cluster, "port", exist_cluster->port);
 			}
 			if (exist_cluster->session && exist_cluster->session->channel) {
-				MQSendMsg_t notify_msg;
-				makeMQSendMsg(&notify_msg, CMD_NOTIFY_NEW_CLUSTER, ctrl->data, ctrl->datalen);
+				SendMsg_t notify_msg;
+				makeSendMsg(&notify_msg, CMD_NOTIFY_NEW_CLUSTER, ctrl->data, ctrl->datalen);
 				channelSendv(exist_cluster->session->channel, notify_msg.iov, sizeof(notify_msg.iov) / sizeof(notify_msg.iov[0]), NETPACKET_FRAGMENT);
 			}
 		}
@@ -220,13 +220,13 @@ int reqUploadCluster(MQRecvMsg_t* ctrl) {
 	ret_data = cJSON_Print(cjson_ret_root);
 	cJSON_Delete(cjson_ret_root);
 
-	makeMQSendMsg(&ret_msg, CMD_RET_UPLOAD_CLUSTER, ret_data, strlen(ret_data));
+	makeSendMsg(&ret_msg, CMD_RET_UPLOAD_CLUSTER, ret_data, strlen(ret_data));
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	free(ret_data);
 	return 0;
 }
 
-int retUploadCluster(MQRecvMsg_t* ctrl) {
+int retUploadCluster(UserMsg_t* ctrl) {
 	cJSON* cjson_ret_root;
 
 	cjson_ret_root = cJSON_Parse(NULL, (char*)ctrl->data);
@@ -244,7 +244,7 @@ int retUploadCluster(MQRecvMsg_t* ctrl) {
 		}
 		for (cjson_ret_object_cluster = cjson_ret_array_cluster->child; cjson_ret_object_cluster; cjson_ret_object_cluster = cjson_ret_object_cluster->next) {
 			cJSON* cjson_ip, *cjson_port, *cjson_name;
-			MQCluster_t* cluster;
+			Cluster_t* cluster;
 
 			cjson_ip = cJSON_Field(cjson_ret_object_cluster, "ip");
 			if (!cjson_ip) {
@@ -263,7 +263,7 @@ int retUploadCluster(MQRecvMsg_t* ctrl) {
 			if (cluster) {
 				continue;
 			}
-			cluster = (MQCluster_t*)malloc(sizeof(MQCluster_t));
+			cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
 			if (!cluster) {
 				break;
 			}
@@ -281,7 +281,7 @@ int retUploadCluster(MQRecvMsg_t* ctrl) {
 	return 0;
 }
 
-int notifyNewCluster(MQRecvMsg_t* ctrl) {
+int notifyNewCluster(UserMsg_t* ctrl) {
 	cJSON* cjson_ntf_root;
 	int ok;
 
@@ -293,7 +293,7 @@ int notifyNewCluster(MQRecvMsg_t* ctrl) {
 
 	ok = 0;
 	do {
-		MQCluster_t* cluster;
+		Cluster_t* cluster;
 		cJSON* cjson_name, *cjson_ip, *cjson_port;
 
 		cjson_name = cJSON_Field(cjson_ntf_root, "name");
@@ -311,7 +311,7 @@ int notifyNewCluster(MQRecvMsg_t* ctrl) {
 
 		cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
 		if (!cluster) {
-			cluster = (MQCluster_t*)malloc(sizeof(MQCluster_t));
+			cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
 			if (!cluster) {
 				fputs("malloc", stderr);
 				break;
@@ -335,9 +335,9 @@ int notifyNewCluster(MQRecvMsg_t* ctrl) {
 	return 0;
 }
 
-int reqRemoveCluster(MQRecvMsg_t* ctrl) {
+int reqRemoveCluster(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
-	MQSendMsg_t ret_msg;
+	SendMsg_t ret_msg;
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
@@ -346,7 +346,7 @@ int reqRemoveCluster(MQRecvMsg_t* ctrl) {
 	}
 
 	do {
-		MQCluster_t* cluster;
+		Cluster_t* cluster;
 		cJSON* cjson_name, *cjson_ip, *cjson_port;
 
 		cjson_name = cJSON_Field(cjson_req_root, "name");
@@ -375,11 +375,11 @@ int reqRemoveCluster(MQRecvMsg_t* ctrl) {
 	} while (0);
 	cJSON_Delete(cjson_req_root);
 
-	makeMQSendMsg(&ret_msg, CMD_RET_REMOVE_CLUSTER, NULL, 0);
+	makeSendMsg(&ret_msg, CMD_RET_REMOVE_CLUSTER, NULL, 0);
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	return 0;
 }
 
-int retRemoveCluster(MQRecvMsg_t* ctrl) {
+int retRemoveCluster(UserMsg_t* ctrl) {
 	return 0;
 }

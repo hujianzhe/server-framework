@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-MQConfig_t g_Config;
+Config_t g_Config;
 
 #ifdef __cplusplus
 extern "C" {

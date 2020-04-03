@@ -5,13 +5,13 @@
 #include "util/inc/component/rbtimer.h"
 #include "util/inc/sysapi/process.h"
 
-struct MQCluster_t;
+struct Cluster_t;
 
 typedef struct Session_t {
 	HashtableNode_t m_htnode;
 	Channel_t* channel;
 	int id;
-	struct MQCluster_t* cluster;
+	struct Cluster_t* cluster;
 	RpcFiberCore_t* f_rpc;
 	RpcAsyncCore_t* a_rpc;
 } Session_t;

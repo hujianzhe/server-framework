@@ -1,18 +1,18 @@
 #ifndef MQ_HANDLER_H
 #define	MQ_HANDLER_H
 
-extern int reqTest(MQRecvMsg_t*);
-extern int notifyTest(MQRecvMsg_t*);
+extern int reqTest(UserMsg_t*);
+extern int notifyTest(UserMsg_t*);
 extern void rpcRetTest(RpcItem_t*);
-extern int retTest(MQRecvMsg_t*);
+extern int retTest(UserMsg_t*);
 
-extern int reqReconnectCluster(MQRecvMsg_t*);
-extern int retReconnect(MQRecvMsg_t*);
-extern int reqUploadCluster(MQRecvMsg_t*);
-extern int retUploadCluster(MQRecvMsg_t*);
-extern int notifyNewCluster(MQRecvMsg_t*);
-extern int reqRemoveCluster(MQRecvMsg_t*);
-extern int retRemoveCluster(MQRecvMsg_t*);
+extern int reqReconnectCluster(UserMsg_t*);
+extern int retReconnect(UserMsg_t*);
+extern int reqUploadCluster(UserMsg_t*);
+extern int retUploadCluster(UserMsg_t*);
+extern int notifyNewCluster(UserMsg_t*);
+extern int reqRemoveCluster(UserMsg_t*);
+extern int retRemoveCluster(UserMsg_t*);
 
 
 #endif

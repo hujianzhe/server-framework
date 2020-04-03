@@ -1,7 +1,7 @@
 #include "util/inc/component/lengthfieldframe.h"
 #include "mq_msg.h"
 
-MQSendMsg_t* makeMQSendMsg(MQSendMsg_t* msg, int cmd, const void* data, unsigned int len) {
+SendMsg_t* makeSendMsg(SendMsg_t* msg, int cmd, const void* data, unsigned int len) {
 	msg->htonl_cmd = htonl(cmd);
 	iobufPtr(msg->iov + 0) = (char*)&msg->htonl_cmd;
 	iobufLen(msg->iov + 0) = sizeof(msg->htonl_cmd);
@@ -10,7 +10,7 @@ MQSendMsg_t* makeMQSendMsg(MQSendMsg_t* msg, int cmd, const void* data, unsigned
 	return msg;
 }
 
-MQSendMsg_t* makeMQSendMsgEmpty(MQSendMsg_t* msg) {
+SendMsg_t* makeSendMsgEmpty(SendMsg_t* msg) {
 	iobufPtr(msg->iov + 0) = NULL;
 	iobufLen(msg->iov + 0) = 0;
 	iobufPtr(msg->iov + 1) = NULL;

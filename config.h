@@ -3,7 +3,7 @@
 
 #include "util/inc/sysapi/socket.h"
 
-typedef struct MQConfig_t {
+typedef struct Config_t {
 	int domain;
 	int socktype;
 	IPString_t local_ip;
@@ -20,9 +20,9 @@ typedef struct MQConfig_t {
 		IPString_t ip;
 		unsigned short port;
 	} center_attr;
-} MQConfig_t;
+} Config_t;
 
-extern MQConfig_t g_Config;
+extern Config_t g_Config;
 
 #ifdef __cplusplus
 extern "C" {

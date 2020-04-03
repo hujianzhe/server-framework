@@ -3,21 +3,21 @@
 
 #include "mq_socket.h"
 
-typedef struct MQRecvMsg_t {
+typedef struct UserMsg_t {
 	ReactorCmd_t internal;
 	Channel_t* channel;
 	Sockaddr_t peer_addr;
 	int cmd;
 	size_t datalen;
 	unsigned char data[1];
-} MQRecvMsg_t;
+} UserMsg_t;
 
-typedef struct MQSendMsg_t {
+typedef struct SendMsg_t {
 	int htonl_cmd;
 	Iobuf_t iov[2];
-} MQSendMsg_t;
+} SendMsg_t;
 
-MQSendMsg_t* makeMQSendMsg(MQSendMsg_t* msg, int cmd, const void* data, unsigned int len);
-MQSendMsg_t* makeMQSendMsgEmpty(MQSendMsg_t* msg);
+SendMsg_t* makeSendMsg(SendMsg_t* msg, int cmd, const void* data, unsigned int len);
+SendMsg_t* makeSendMsgEmpty(SendMsg_t* msg);
 
 #endif // !MQ_MSG_H

@@ -43,10 +43,8 @@ static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 					else if (rpc_item->ret_msg) {
 						UserMsg_t* ret_msg = pod_container_of(rpc_item->ret_msg, UserMsg_t, internal);
 						printf("time cost(%lld msec) say hello world ... %s\n", cost_msec, ret_msg->data);
-						free(ret_msg);
 					}
 				}
-				free(rpc_item);
 			}
 			times++;
 		}
@@ -114,9 +112,13 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					if (ctrl->cmd < CMD_RPC_RET_START) {
 						rpcFiberCoreMessageHandleSwitch(session->f_rpc, ctrl);
 					}
-					else if (!rpcFiberCoreReturnSwitch(session->f_rpc, ctrl->cmd, ctrl)) {
+					else {
+						RpcItem_t* rpc_item = rpcFiberCoreReturnSwitch(session->f_rpc, ctrl->cmd, ctrl);
 						free(ctrl);
-						continue;
+						if (!rpc_item) {
+							continue;
+						}
+						free(rpc_item);
 					}
 				}
 				else if (session->a_rpc) {

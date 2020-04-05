@@ -16,8 +16,8 @@ static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 			if (!rpc_item) {
 				break;
 			}
-			rpcItemInit(rpc_item, CMD_RET_TEST);
-			if (!rpcFiberCoreRegItem(rpc, rpc_item, 1000)) {
+			rpcItemSet(rpc_item, CMD_RET_TEST, 1000);
+			if (!rpcFiberCoreRegItem(rpc, rpc_item)) {
 				printf("rpcid(%d) already send\n", rpc_item->id);
 				free(rpc_item);
 				times++;
@@ -144,8 +144,8 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							if (!rpc_item) {
 								continue;
 							}
-							rpcItemInit(rpc_item, CMD_RET_TEST);
-							if (!rpcAsyncCoreRegItem(session->a_rpc, rpc_item, 1000, NULL, rpcRetTest)) {
+							rpcItemSet(rpc_item, CMD_RET_TEST, 1000);
+							if (!rpcAsyncCoreRegItem(session->a_rpc, rpc_item, NULL, rpcRetTest)) {
 								printf("rpcid(%d) already send\n", rpc_item->id);
 								free(rpc_item);
 							}

@@ -41,7 +41,7 @@ static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 						fputs("rpc timeout", stderr);
 					}
 					else if (rpc_item->ret_msg) {
-						UserMsg_t* ret_msg = pod_container_of(rpc_item->ret_msg, UserMsg_t, internal);
+						UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
 						printf("time cost(%lld msec) say hello world ... %s\n", cost_msec, ret_msg->data);
 					}
 				}

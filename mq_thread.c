@@ -30,15 +30,15 @@ static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 				channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 				rpc_item->timestamp_msec = gmtimeMillisecond();
 				printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, rpc_item->timestamp_msec);
-				rpc_item = rpcFiberCoreReturnWait(rpc, rpc_item);
+				rpc_item = rpcFiberCoreYield(rpc);
 				if (!rpc_item) {
-					fputs("rpc call failure", stderr);
+					puts("rpc call failure///////////////");
 				}
 				else {
 					long long now_msec = gmtimeMillisecond();
 					long long cost_msec = now_msec - rpc_item->timestamp_msec;
 					if (rpc_item->timeout_msec >= 0 && cost_msec >= rpc_item->timeout_msec) {
-						fputs("rpc timeout", stderr);
+						puts("rpc call timeout");
 					}
 					else if (rpc_item->ret_msg) {
 						UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
@@ -110,10 +110,10 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 
 				if (session->f_rpc) {
 					if (ctrl->cmd < CMD_RPC_RET_START) {
-						rpcFiberCoreMessageHandleSwitch(session->f_rpc, ctrl);
+						rpcFiberCoreResumeMsg(session->f_rpc, ctrl);
 					}
 					else {
-						RpcItem_t* rpc_item = rpcFiberCoreReturnSwitch(session->f_rpc, ctrl->cmd, ctrl);
+						RpcItem_t* rpc_item = rpcFiberCoreResume(session->f_rpc, ctrl->cmd, ctrl);
 						free(ctrl);
 						if (!rpc_item) {
 							continue;

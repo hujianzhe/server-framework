@@ -24,6 +24,7 @@ static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 				break;
 			}
 			else {
+				long long now_msec, cost_msec;
 				char test_data[] = "this text is from client ^.^";
 				SendMsg_t msg;
 				makeSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
@@ -31,19 +32,15 @@ static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 				rpc_item->timestamp_msec = gmtimeMillisecond();
 				printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, rpc_item->timestamp_msec);
 				rpc_item = rpcFiberCoreYield(rpc);
-				if (!rpc_item) {
-					puts("rpc call failure///////////////");
+
+				now_msec = gmtimeMillisecond();
+				cost_msec = now_msec - rpc_item->timestamp_msec;
+				if (rpc_item->timeout_msec >= 0 && cost_msec >= rpc_item->timeout_msec) {
+					puts("rpc call timeout");
 				}
-				else {
-					long long now_msec = gmtimeMillisecond();
-					long long cost_msec = now_msec - rpc_item->timestamp_msec;
-					if (rpc_item->timeout_msec >= 0 && cost_msec >= rpc_item->timeout_msec) {
-						puts("rpc call timeout");
-					}
-					else if (rpc_item->ret_msg) {
-						UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
-						printf("time cost(%lld msec) say hello world ... %s\n", cost_msec, ret_msg->data);
-					}
+				else if (rpc_item->ret_msg) {
+					UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
+					printf("time cost(%lld msec) say hello world ... %s\n", cost_msec, ret_msg->data);
 				}
 			}
 			times++;

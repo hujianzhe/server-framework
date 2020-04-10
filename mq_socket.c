@@ -19,14 +19,15 @@ static void channel_lengthfieldframe_decode(Channel_t* c, unsigned char* buf, si
 		decode_result->incomplete = 1;
 	}
 	else {
-		if (datalen < CHANNEL_EXTHDRSIZE)
+		if (datalen < CHANNEL_EXTHDRSIZE) {
 			decode_result->incomplete = 1;
-		else {
-			decode_result->pktype = *data;
-			decode_result->pkseq = ntohl(*(unsigned int*)(data + 1));
-			data += CHANNEL_EXTHDRSIZE;
-			datalen -= CHANNEL_EXTHDRSIZE;
+			return;
 		}
+		decode_result->pktype = *data;
+		decode_result->pkseq = ntohl(*(unsigned int*)(data + 1));
+		data += CHANNEL_EXTHDRSIZE;
+		datalen -= CHANNEL_EXTHDRSIZE;
+
 		decode_result->bodyptr = data;
 		decode_result->bodylen = datalen;
 		decode_result->decodelen = res;

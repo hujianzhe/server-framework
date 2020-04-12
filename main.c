@@ -76,27 +76,6 @@ int main(int argc, char** argv) {
 		acceptthreadinitok = 0, acceptloopinitok = 0,
 		listensockinitokcnt = 0;
 	//
-	unsigned char buffer[1024], buf[255];
-	unsigned int iov_i = 0, iov_off = 0;
-	for (i = 0; i < sizeof(buffer); ++i) {
-		buffer[i] = i % 255;
-	}
-	Iobuf_t iov[] = {
-		iobufStaticInit(buffer, 12),
-		iobufStaticInit(buffer + 12, sizeof(buffer) - 12)
-	};
-	while (iov_i < sizeof(iov) / sizeof(iov[0])) {
-		unsigned int sz = iobufSharedCopy(iov, sizeof(iov) / sizeof(iov[0]), &iov_i, &iov_off, buf, sizeof(buf));
-		printf("copy sz = %u, ", sz);
-		for (i = 0; i < sz; ++i) {
-			if (buf[i] != i)
-				break;
-		}
-		puts(i == sz ? "ok" : "err");
-	}
-	getchar();
-	return 0;
-	//
 	if (!initConfig(argc > 1 ? argv[1] : "config.txt")) {
 		return 1;
 	}

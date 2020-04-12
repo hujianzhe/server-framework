@@ -182,7 +182,7 @@
     <ClCompile Include="util\src\datastruct\transport_ctx.c" />
     <ClCompile Include="util\src\datastruct\tree.c" />
     <ClCompile Include="util\src\datastruct\url.c" />
-    <ClCompile Include="util\src\sysapi\alloca.c" />
+    <ClCompile Include="util\src\sysapi\misc.c" />
     <ClCompile Include="util\src\sysapi\error.c" />
     <ClCompile Include="util\src\sysapi\file.c" />
     <ClCompile Include="util\src\sysapi\io.c" />
@@ -191,7 +191,6 @@
     <ClCompile Include="util\src\sysapi\mmap.c" />
     <ClCompile Include="util\src\sysapi\process.c" />
     <ClCompile Include="util\src\sysapi\socket.c" />
-    <ClCompile Include="util\src\sysapi\sprintf.c" />
     <ClCompile Include="util\src\sysapi\statistics.c" />
     <ClCompile Include="util\src\sysapi\terminal.c" />
     <ClCompile Include="util\src\sysapi\time.c" />
@@ -238,7 +237,7 @@
     <ClInclude Include="util\inc\datastruct\tree.h" />
     <ClInclude Include="util\inc\datastruct\url.h" />
     <ClInclude Include="util\inc\platform_define.h" />
-    <ClInclude Include="util\inc\sysapi\alloca.h" />
+    <ClInclude Include="util\inc\sysapi\misc.h" />
     <ClInclude Include="util\inc\sysapi\assert.h" />
     <ClInclude Include="util\inc\sysapi\atomic.h" />
     <ClInclude Include="util\inc\sysapi\error.h" />
@@ -249,7 +248,6 @@
     <ClInclude Include="util\inc\sysapi\mmap.h" />
     <ClInclude Include="util\inc\sysapi\process.h" />
     <ClInclude Include="util\inc\sysapi\socket.h" />
-    <ClInclude Include="util\inc\sysapi\sprintf.h" />
     <ClInclude Include="util\inc\sysapi\statistics.h" />
     <ClInclude Include="util\inc\sysapi\terminal.h" />
     <ClInclude Include="util\inc\sysapi\time.h" />

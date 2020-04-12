@@ -87,9 +87,6 @@
     <ClCompile Include="util\src\datastruct\url.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\sysapi\alloca.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="util\src\sysapi\error.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -165,13 +162,13 @@
     <ClCompile Include="util\src\datastruct\memfunc.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\sysapi\sprintf.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="mq_test_handler.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\rpc_core.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\sysapi\misc.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -243,9 +240,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\datastruct\url.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\sysapi\alloca.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\sysapi\assert.h">
@@ -335,13 +329,13 @@
     <ClInclude Include="util\inc\datastruct\memfunc.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\sysapi\sprintf.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\component\rpc_core.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="mq_handler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\sysapi\misc.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

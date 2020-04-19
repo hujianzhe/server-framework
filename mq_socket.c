@@ -152,7 +152,6 @@ Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr) {
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
-	c->maxhdrsize = lengthfieldframe_hdrsize(c, 0);
 	c->on_hdrsize = lengthfieldframe_hdrsize;
 	c->on_decode = channel_lengthfieldframe_decode;
 	c->on_encode = channel_lengthfieldframe_encode;

@@ -106,7 +106,7 @@ static void channel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResul
 	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
 		SendMsg_t packet;
 		makeSendMsgEmpty(&packet);
-		channelSendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
+		channelSharedSendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 		puts("reply a empty packet");
 		//puts("not reply empty packet");
 	}
@@ -132,7 +132,7 @@ static void channel_reg_handler(ChannelBase_t* c, long long timestamp_msec) {
 	socktype_str = (channel_flag & CHANNEL_FLAG_STREAM) ? "tcp" : "udp";
 	if (channel_flag & CHANNEL_FLAG_CLIENT) {
 		printf("connect addr %s(%s:%hu)\n", socktype_str, ip, port);
-		channelSendv(channel, NULL, 0, NETPACKET_SYN);
+		channelSharedSendv(channel, NULL, 0, NETPACKET_SYN);
 	}
 	else if (channel_flag & CHANNEL_FLAG_LISTEN) {
 		printf("listen addr %s(%s:%hu)\n", socktype_str, ip, port);

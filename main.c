@@ -21,7 +21,7 @@ static int centerChannelHeartbeat(Channel_t* c, int heartbeat_times) {
 	if (heartbeat_times < c->heartbeat_maxtimes) {
 		SendMsg_t msg;
 		makeSendMsgEmpty(&msg);
-		channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
+		channelSharedSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 		printf("channel(%p) send heartbeat, times %d...\n", c, heartbeat_times);
 	}
 	else {
@@ -53,12 +53,12 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 		Session_t* session = (Session_t*)channelSession(channel);
 		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"session_id\":%d}", g_Config.cluster_name, g_Config.outer_ip, g_Config.port ? g_Config.port[0] : 0, session->id);
 		makeSendMsg(&msg, CMD_REQ_RECONNECT, buffer, strlen(buffer));
-		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN);
+		channelSharedSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN);
 	}
 	else {
 		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", g_Config.cluster_name, g_Config.outer_ip, g_Config.port ? g_Config.port[0] : 0);
 		makeSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
-		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		channelSharedSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		/*
 		int i = 0;
 		for (i = 0; i < sizeof(buffer); ++i) {

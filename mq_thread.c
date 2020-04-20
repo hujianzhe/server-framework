@@ -16,7 +16,7 @@ static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 			if (!rpc_item) {
 				break;
 			}
-			rpcItemSet(rpc_item, CMD_RET_TEST, 1000);
+			rpcItemSet(rpc_item, rpcGenId(), 1000);
 			if (!rpcFiberCoreRegItem(rpc, rpc_item)) {
 				printf("rpcid(%d) already send\n", rpc_item->id);
 				free(rpc_item);
@@ -27,7 +27,7 @@ static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 				long long now_msec, cost_msec;
 				char test_data[] = "this text is from client ^.^";
 				SendMsg_t msg;
-				makeSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
+				makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
 				channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 				rpc_item->timestamp_msec = gmtimeMillisecond();
 				printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, rpc_item->timestamp_msec);
@@ -106,55 +106,56 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				}
 
 				if (session->f_rpc) {
-					if (ctrl->cmd < CMD_RPC_RET_START) {
-						rpcFiberCoreResumeMsg(session->f_rpc, ctrl);
-					}
-					else {
-						RpcItem_t* rpc_item = rpcFiberCoreResume(session->f_rpc, ctrl->cmd, ctrl);
+					if ('T' == ctrl->rpc_status) {
+						RpcItem_t* rpc_item = rpcFiberCoreResume(session->f_rpc, ctrl->rpcid, ctrl);
 						free(ctrl);
 						if (!rpc_item) {
 							continue;
 						}
 						free(rpc_item);
 					}
+					else {
+						rpcFiberCoreResumeMsg(session->f_rpc, ctrl);
+					}
 				}
 				else if (session->a_rpc) {
-					if (ctrl->cmd < CMD_RPC_RET_START) {
+					if ('T' == ctrl->rpc_status) {
+						RpcItem_t* rpc_item = rpcAsyncCoreCallback(session->a_rpc, ctrl->rpcid, ctrl);
+						free(ctrl);
+						if (!rpc_item) {
+							continue;
+						}
+						free(rpc_item);
+					}
+					else {
 						DispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
 						if (callback)
 							callback(ctrl);
 						free(ctrl);
-					}
-					else {
-						RpcItem_t* rpc_item = rpcAsyncCoreCallback(session->a_rpc, ctrl->cmd, ctrl);
-						free(ctrl);
-						if (!rpc_item) {
-							continue;
-						}
-						free(rpc_item);
-					}
-					// test code
-					if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-						static int times;
-						if (10 > times) {
-							RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
-							if (!rpc_item) {
-								continue;
+
+						// test code
+						if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
+							static int times;
+							if (10 > times) {
+								RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
+								if (!rpc_item) {
+									continue;
+								}
+								rpcItemSet(rpc_item, rpcGenId(), 1000);
+								if (!rpcAsyncCoreRegItem(session->a_rpc, rpc_item, NULL, rpcRetTest)) {
+									printf("rpcid(%d) already send\n", rpc_item->id);
+									free(rpc_item);
+								}
+								else {
+									char test_data[] = "this text is from client ^.^";
+									SendMsg_t msg;
+									makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
+									channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+									rpc_item->timestamp_msec = gmtimeMillisecond();
+									printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, rpc_item->timestamp_msec);
+								}
+								times++;
 							}
-							rpcItemSet(rpc_item, CMD_RET_TEST, 1000);
-							if (!rpcAsyncCoreRegItem(session->a_rpc, rpc_item, NULL, rpcRetTest)) {
-								printf("rpcid(%d) already send\n", rpc_item->id);
-								free(rpc_item);
-							}
-							else {
-								char test_data[] = "this text is from client ^.^";
-								SendMsg_t msg;
-								makeSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
-								channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-								rpc_item->timestamp_msec = gmtimeMillisecond();
-								printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, rpc_item->timestamp_msec);
-							}
-							times++;
 						}
 					}
 				}

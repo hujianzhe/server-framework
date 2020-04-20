@@ -3,7 +3,7 @@
 
 /*************************************************************************/
 static const unsigned int CHANNEL_BASEHDRSIZE = 4;
-static const unsigned int CHANNEL_EXTHDRSIZE = 7;
+static const unsigned int CHANNEL_EXTHDRSIZE = 5;
 static unsigned int lengthfieldframe_hdrsize(Channel_t* c, unsigned int bodylen) {
 	return CHANNEL_BASEHDRSIZE + CHANNEL_EXTHDRSIZE;
 }
@@ -38,7 +38,6 @@ static void channel_lengthfieldframe_encode(Channel_t* c, unsigned char* hdr, un
 	bodylen += CHANNEL_EXTHDRSIZE;
 	*(hdr + CHANNEL_BASEHDRSIZE) = pktype;
 	*(unsigned int*)(hdr + CHANNEL_BASEHDRSIZE + 1) = htonl(pkseq);
-	*(unsigned short*)(hdr + CHANNEL_BASEHDRSIZE + 5) = 0;
 	lengthfieldframeEncode(hdr, CHANNEL_BASEHDRSIZE, bodylen);
 }
 
@@ -82,8 +81,9 @@ static void channel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResul
 	}
 	printf("bodylen = %d, %d\n", decode_result->bodylen, i);
 	*/
-	if (decode_result->bodylen >= sizeof(int)) {
-		UserMsg_t* message = (UserMsg_t*)malloc(sizeof(UserMsg_t) + decode_result->bodylen - sizeof(int));
+	unsigned int cmdid_rpcid_sz = 9;
+	if (decode_result->bodylen >= cmdid_rpcid_sz) {
+		UserMsg_t* message = (UserMsg_t*)malloc(sizeof(UserMsg_t) + decode_result->bodylen - cmdid_rpcid_sz);
 		if (!message) {
 			return;
 		}
@@ -95,10 +95,12 @@ static void channel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResul
 		else {
 			memcpy(&message->peer_addr, addr, sockaddrLength(addr));
 		}
-		message->cmd = ntohl(*(int*)(decode_result->bodyptr));
-		message->datalen = decode_result->bodylen - sizeof(int);
+		message->rpc_status = *(decode_result->bodyptr);
+		message->cmd = ntohl(*(int*)(decode_result->bodyptr + 1));
+		message->rpcid = ntohl(*(int*)(decode_result->bodyptr + 5));
+		message->datalen = decode_result->bodylen - cmdid_rpcid_sz;
 		if (message->datalen) {
-			memcpy(message->data, decode_result->bodyptr + sizeof(int), message->datalen);
+			memcpy(message->data, decode_result->bodyptr + cmdid_rpcid_sz, message->datalen);
 		}
 		message->data[message->datalen] = 0;
 		dataqueuePush(&g_DataQueue, &message->internal._);

@@ -9,7 +9,12 @@ int reqTest(UserMsg_t* ctrl) {
 	makeSendMsg(&msg, CMD_NOTIFY_TEST, NULL, 0);
 	channelShardSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
-	makeSendMsg(&msg, CMD_RET_TEST, test_data, sizeof(test_data));
+	if (ctrl->rpc_status == 'R') {
+		makeSendMsgRpcResp(&msg, ctrl->rpcid, test_data, sizeof(test_data));
+	}
+	else {
+		makeSendMsg(&msg, CMD_RET_TEST, test_data, sizeof(test_data));
+	}
 	channelShardSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	return 0;
 }

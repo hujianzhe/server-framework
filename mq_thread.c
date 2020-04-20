@@ -28,7 +28,7 @@ static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 				char test_data[] = "this text is from client ^.^";
 				SendMsg_t msg;
 				makeSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
-				channelSharedSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+				channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 				rpc_item->timestamp_msec = gmtimeMillisecond();
 				printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, rpc_item->timestamp_msec);
 				rpc_item = rpcFiberCoreYield(rpc);
@@ -71,20 +71,20 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				if (!session) {
 					session = newSession();
 					if (!session) {
-						channelSharedSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+						channelShardSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 						free(ctrl);
 						continue;
 					}
 					if (g_Config.rpc_fiber) {
 						session->f_rpc = (RpcFiberCore_t*)malloc(sizeof(RpcFiberCore_t));
 						if (!session->f_rpc) {
-							channelSharedSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+							channelShardSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 							free(ctrl);
 							freeSession(session);
 							continue;
 						}
 						if (!rpcFiberCoreInit(session->f_rpc, thread_fiber, 0x4000)) {
-							channelSharedSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+							channelShardSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 							free(ctrl);
 							free(session->f_rpc);
 							freeSession(session);
@@ -95,7 +95,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					else if (g_Config.rpc_async) {
 						session->a_rpc = (RpcAsyncCore_t*)malloc(sizeof(RpcAsyncCore_t));
 						if (!session->a_rpc) {
-							channelSharedSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+							channelShardSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 							free(ctrl);
 							freeSession(session);
 							continue;
@@ -150,7 +150,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 								char test_data[] = "this text is from client ^.^";
 								SendMsg_t msg;
 								makeSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
-								channelSharedSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+								channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 								rpc_item->timestamp_msec = gmtimeMillisecond();
 								printf("rpc(%d) start send, send_msec=%lld\n", CMD_RET_TEST, rpc_item->timestamp_msec);
 							}
@@ -171,7 +171,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							char test_data[] = "this text is from client ^.^";
 							SendMsg_t msg;
 							makeSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
-							channelSharedSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+							channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 							times++;
 						}
 					}

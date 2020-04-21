@@ -1,3 +1,4 @@
+#include "config.h"
 #include "global.h"
 #include <stdio.h>
 
@@ -166,14 +167,14 @@ Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr) {
 	}
 	else if (flag & CHANNEL_FLAG_SERVER)
 		c->heartbeat_timeout_sec = 20;
-	if (flag & CHANNEL_FLAG_DGRAM)
-		c->_.dgram_ctx.cwndsize = 10;
-	/*
-	else if (flag & CHANNEL_FLAG_SERVER) {
-		int on = 1;
-		setsockopt(o->fd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on));
+	if (flag & CHANNEL_FLAG_STREAM) {
+		if ((flag & CHANNEL_FLAG_CLIENT) || (flag & CHANNEL_FLAG_SERVER)) {
+			int on = g_Config.tcp_nodelay;
+			setsockopt(o->fd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on));
+		}
 	}
-	*/
+	else
+		c->_.dgram_ctx.cwndsize = 10;
 	return c;
 }
 

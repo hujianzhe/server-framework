@@ -122,6 +122,11 @@ int initConfig(const char* path) {
 			g_Config.rpc_async = cjson->valueint;
 		}
 
+		cjson = cJSON_Field(root, "tcp_nodelay");
+		if (cjson) {
+			g_Config.tcp_nodelay = cjson->valueint;
+		}
+
 		res = 1;
 	} while (0);
 	cJSON_Delete(root);

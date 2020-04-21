@@ -159,6 +159,7 @@ Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr) {
 	c->on_encode = channel_lengthfieldframe_encode;
 	c->dgram.on_reply_ack = channel_lengthfieldfram_reply_ack;
 	c->on_recv = channel_recv;
+	flag = c->_.flag;
 	if (flag & CHANNEL_FLAG_CLIENT) {
 		c->heartbeat_timeout_sec = 10;
 		c->heartbeat_maxtimes = 3;
@@ -167,6 +168,12 @@ Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr) {
 		c->heartbeat_timeout_sec = 20;
 	if (flag & CHANNEL_FLAG_DGRAM)
 		c->_.dgram_ctx.cwndsize = 10;
+	/*
+	else if (flag & CHANNEL_FLAG_SERVER) {
+		int on = 1;
+		setsockopt(o->fd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on));
+	}
+	*/
 	return c;
 }
 

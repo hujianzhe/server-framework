@@ -279,6 +279,14 @@ int retUploadCluster(UserMsg_t* ctrl) {
 	cJSON_Delete(cjson_ret_root);
 
 	printf("ret: %s\n", (char*)ctrl->data);
+	// test code
+	{
+		Session_t* session = (Session_t*)channelSession(ctrl->channel);
+		if (session->f_rpc)
+			frpc_test_code(session);
+		else if (session->a_rpc)
+			arpc_test_code(session);
+	}
 	return 0;
 }
 

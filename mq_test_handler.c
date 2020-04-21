@@ -1,6 +1,6 @@
 #include "global.h"
 
-static void frpc_test_code(Session_t* session) {
+void frpc_test_code(Session_t* session) {
 	// test code
 	if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
 		RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
@@ -36,7 +36,7 @@ static void frpc_test_code(Session_t* session) {
 	}
 }
 
-static void arpc_test_code(Session_t* session) {
+void arpc_test_code(Session_t* session) {
 	// test code
 	if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
 		RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t));

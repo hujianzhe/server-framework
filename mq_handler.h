@@ -1,6 +1,8 @@
 #ifndef MQ_HANDLER_H
 #define	MQ_HANDLER_H
 
+extern void frpc_test_code(Session_t*);
+extern void arpc_test_code(Session_t*);
 extern int reqTest(UserMsg_t*);
 extern int notifyTest(UserMsg_t*);
 extern void rpcRetTest(RpcItem_t*);

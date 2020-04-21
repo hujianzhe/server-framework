@@ -4,12 +4,14 @@
 	"local_ip" : "127.0.0.1",
 	"outer_ip" : "127.0.0.1",
 	"listen_ip" : "127.0.0.1",
-	"timer_interval_msec" : 20,
 	"cluster_name" : "game",
 	"cluster_id" : 0,
+	"rpc_fiber" : 1,
+	"tcp_nodelay" : 1,
+	"udp_cwndsize" : 20,
 	"center_addr" : {
-		"socktype" : "SOCK_STREAM",
-		"ip" : "127.0.0.1",
+		"socktype" : "SOCK_DGRAM",
+		"ip" : "39.100.213.153",
 		"port" : 50002
 	}
 }

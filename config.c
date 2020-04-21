@@ -127,6 +127,11 @@ int initConfig(const char* path) {
 			g_Config.tcp_nodelay = cjson->valueint;
 		}
 
+		cjson = cJSON_Field(root, "udp_cwndsize");
+		if (cjson) {
+			g_Config.udp_cwndsize = cjson->valueint;
+		}
+
 		res = 1;
 	} while (0);
 	cJSON_Delete(root);

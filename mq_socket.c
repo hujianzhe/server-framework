@@ -173,8 +173,9 @@ Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr) {
 			setsockopt(o->fd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on));
 		}
 	}
-	else
-		c->_.dgram_ctx.cwndsize = 10;
+	else {
+		c->_.dgram_ctx.cwndsize = g_Config.udp_cwndsize;
+	}
 	return c;
 }
 

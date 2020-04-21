@@ -16,6 +16,7 @@ typedef struct Config_t {
 	int rpc_fiber;
 	int rpc_async;
 	int tcp_nodelay;
+	int udp_cwndsize;
 	struct {
 		int socktype;
 		IPString_t ip;

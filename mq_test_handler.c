@@ -96,9 +96,7 @@ void rpcRetTest(RpcItem_t* rpc_item) {
 	long long cost_msec = gmtimeMillisecond() - rpc_item->timestamp_msec;
 	printf("rpc(%d) time cost(%lld msec) say hello world ... %s\n", rpc_item->id, cost_msec, ctrl->data);
 	// test code
-	if (session->f_rpc)
-		frpc_test_code(session);
-	else if (session->a_rpc)
+	if (session->a_rpc)
 		arpc_test_code(session);
 
 }

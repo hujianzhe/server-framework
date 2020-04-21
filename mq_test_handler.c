@@ -27,7 +27,7 @@ int notifyTest(UserMsg_t* ctrl) {
 void rpcRetTest(RpcItem_t* rpc_item) {
 	UserMsg_t* ctrl = (UserMsg_t*)rpc_item->ret_msg;
 	long long cost_msec = gmtimeMillisecond() - rpc_item->timestamp_msec;
-	printf("time cost(%lld msec) say hello world ... %s\n", cost_msec, ctrl->data);
+	printf("rpc(%d) time cost(%lld msec) say hello world ... %s\n", rpc_item->id, cost_msec, ctrl->data);
 }
 
 int retTest(UserMsg_t* ctrl) {

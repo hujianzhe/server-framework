@@ -8,45 +8,6 @@ static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 	if (callback)
 		callback(ctrl);
 	free(ctrl);
-	// test code
-	if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-		static int times;
-		while (10 > times) {
-			RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
-			if (!rpc_item) {
-				break;
-			}
-			rpcItemSet(rpc_item, rpcGenId(), 1000);
-			if (!rpcFiberCoreRegItem(rpc, rpc_item)) {
-				printf("rpcid(%d) already send\n", rpc_item->id);
-				free(rpc_item);
-				times++;
-				break;
-			}
-			else {
-				long long now_msec, cost_msec;
-				char test_data[] = "this text is from client ^.^";
-				SendMsg_t msg;
-				makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
-				channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-				rpc_item->timestamp_msec = gmtimeMillisecond();
-				//printf("rpc(%d) start send, send_msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
-				rpc_item = rpcFiberCoreYield(rpc);
-
-				now_msec = gmtimeMillisecond();
-				cost_msec = now_msec - rpc_item->timestamp_msec;
-				printf("rpc(%d) send msec=%lld time cost(%lld msec)\n", rpc_item->id, rpc_item->timestamp_msec, cost_msec);
-				if (rpc_item->timeout_msec >= 0 && cost_msec >= rpc_item->timeout_msec) {
-					printf("rpc(%d) call timeout\n", rpc_item->id);
-				}
-				else if (rpc_item->ret_msg) {
-					UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
-					printf("rpc(%d) say hello world ... %s\n", rpc_item->id, ret_msg->data);
-				}
-			}
-			times++;
-		}
-	}
 }
 
 unsigned int THREAD_CALL taskThreadEntry(void* arg) {
@@ -134,48 +95,12 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							callback(ctrl);
 						free(ctrl);
 					}
-					// test code
-					if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-						static int times;
-						if (20 > times) {
-							RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
-							if (!rpc_item) {
-								continue;
-							}
-							rpcItemSet(rpc_item, rpcGenId(), 1000);
-							if (!rpcAsyncCoreRegItem(session->a_rpc, rpc_item, NULL, rpcRetTest)) {
-								printf("rpcid(%d) already send\n", rpc_item->id);
-								free(rpc_item);
-							}
-							else {
-								char test_data[] = "this text is from client ^.^";
-								SendMsg_t msg;
-								makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
-								channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-								rpc_item->timestamp_msec = gmtimeMillisecond();
-								printf("rpc(%d) start send, send_msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
-							}
-							times++;
-						}
-					}
 				}
 				else {
 					DispatchCallback_t callback = getDispatchCallback(ctrl->cmdid);
 					if (callback)
 						callback(ctrl);
 					free(ctrl);
-
-					// test code
-					if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-						static int times;
-						if (10 > times) {
-							char test_data[] = "this text is from client ^.^";
-							SendMsg_t msg;
-							makeSendMsg(&msg, CMD_REQ_TEST, test_data, sizeof(test_data));
-							channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-							times++;
-						}
-					}
 				}
 			}
 			else if (REACTOR_CHANNEL_FREE_CMD == internal->type) {

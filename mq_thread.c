@@ -4,7 +4,7 @@
 
 static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 	Session_t* session = (Session_t*)channelSession(ctrl->channel);
-	DispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
+	DispatchCallback_t callback = getDispatchCallback(ctrl->cmdid);
 	if (callback)
 		callback(ctrl);
 	free(ctrl);
@@ -129,7 +129,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						free(rpc_item);
 					}
 					else {
-						DispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
+						DispatchCallback_t callback = getDispatchCallback(ctrl->cmdid);
 						if (callback)
 							callback(ctrl);
 						free(ctrl);
@@ -160,7 +160,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					}
 				}
 				else {
-					DispatchCallback_t callback = getDispatchCallback(ctrl->cmd);
+					DispatchCallback_t callback = getDispatchCallback(ctrl->cmdid);
 					if (callback)
 						callback(ctrl);
 					free(ctrl);

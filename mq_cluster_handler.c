@@ -95,14 +95,15 @@ int retReconnect(UserMsg_t* ctrl) {
 	ReactorPacket_t* pkg = NULL;
 	Channel_t* channel = ctrl->channel;
 	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
-		unsigned int hdrlen, bodylen;
-		bodylen = field_sizeof(SendMsg_t, htonl_cmd);
-		hdrlen = channel->on_hdrsize(channel, bodylen);
-		pkg = reactorpacketMake(NETPACKET_FRAGMENT_EOF, hdrlen, bodylen);
-		if (!pkg) {
-			return 1;
+		List_t pklist;
+		SendMsg_t ret_msg;
+		makeSendMsg(&ret_msg, CMD_RET_RECONNECT, NULL, 0);
+		listInit(&pklist);
+		if (!channelShard(channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT_EOF, &pklist)) {
+			puts("reconnect error");
+			return 0;
 		}
-		*(unsigned int*)(pkg->_.buf + hdrlen) = htonl(CMD_RET_RECONNECT);
+		pkg = pod_container_of(pklist.head, ReactorPacket_t, cmd._);
 	}
 	cmd = reactorNewReuseFinishCmd(&channel->_, pkg);
 	reactorCommitCmd(NULL, cmd);

@@ -97,7 +97,7 @@ static void channel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResul
 			memcpy(&message->peer_addr, addr, sockaddrLength(addr));
 		}
 		message->rpc_status = *(decode_result->bodyptr);
-		message->cmd = ntohl(*(int*)(decode_result->bodyptr + 1));
+		message->cmdid = ntohl(*(int*)(decode_result->bodyptr + 1));
 		message->rpcid = ntohl(*(int*)(decode_result->bodyptr + 5));
 		message->datalen = decode_result->bodylen - cmdid_rpcid_sz;
 		if (message->datalen) {

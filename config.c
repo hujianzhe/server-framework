@@ -31,14 +31,6 @@ int initConfig(const char* path) {
 			break;
 		}
 
-		cjson = cJSON_Field(root, "cluster_id");
-		if (cjson) {
-			g_Config.cluster_id = cjson->valueint;
-		}
-		else {
-			break;
-		}
-
 		cjson = cJSON_Field(root, "port");
 		if (cjson) {
 			int i;

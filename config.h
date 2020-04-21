@@ -12,7 +12,6 @@ typedef struct Config_t {
 	unsigned short* port;
 	unsigned int portcnt;
 	const char* cluster_name;
-	int cluster_id;
 	int rpc_fiber;
 	int rpc_async;
 	int tcp_nodelay;

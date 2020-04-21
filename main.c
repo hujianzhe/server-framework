@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
 	if (!initConfig(argc > 1 ? argv[1] : "config.txt")) {
 		return 1;
 	}
-	printf("cluster_name:%s\ncluster_id:%d\npid:%zu\n", g_Config.cluster_name, g_Config.cluster_id, processId());
+	printf("cluster_name:%s, pid:%zu\n", g_Config.cluster_name, processId());
 
 	if (!initGlobalResource()) {
 		return 1;

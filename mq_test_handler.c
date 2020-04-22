@@ -19,7 +19,6 @@ void frpc_test_code(Session_t* session) {
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
 			channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 			rpc_item->timestamp_msec = gmtimeMillisecond();
-			//printf("rpc(%d) start send, send_msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
 			rpc_item = rpcFiberCoreYield(session->f_rpc);
 
 			now_msec = gmtimeMillisecond();
@@ -91,14 +90,16 @@ int notifyTest(UserMsg_t* ctrl) {
 }
 
 void rpcRetTest(RpcItem_t* rpc_item) {
-	UserMsg_t* ctrl = (UserMsg_t*)rpc_item->ret_msg;
-	Session_t* session = (Session_t*)channelSession(ctrl->channel);
-	long long cost_msec = gmtimeMillisecond() - rpc_item->timestamp_msec;
-	printf("rpc(%d) time cost(%lld msec) say hello world ... %s\n", rpc_item->id, cost_msec, ctrl->data);
-	// test code
-	if (session->a_rpc)
-		arpc_test_code(session);
-
+	UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
+	if (!ret_msg) {
+		return;
+	}
+	else {
+		Session_t* session = (Session_t*)channelSession(ret_msg->channel);
+		long long cost_msec = gmtimeMillisecond() - rpc_item->timestamp_msec;
+		printf("rpc(%d) send msec=%lld time cost(%lld msec)\n", rpc_item->id, rpc_item->timestamp_msec, cost_msec);
+		printf("rpc(%d) say hello world ... %s\n", rpc_item->id, ret_msg->data);
+	}
 }
 
 int retTest(UserMsg_t* ctrl) {

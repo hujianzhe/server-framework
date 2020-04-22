@@ -129,6 +129,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					}
 					for (rbnode = rbtreeFirstNode(&rpc_item_tree); rbnode; ) {
 						RBTreeNode_t* rbnext = rbtreeNextNode(rbnode);
+						rbtreeRemoveNode(&rpc_item_tree, rbnode);
 						free(pod_container_of(rbnode, RpcItem_t, m_treenode));
 						rbnode = rbnext;
 					}

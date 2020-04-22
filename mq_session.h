@@ -9,6 +9,7 @@ struct Cluster_t;
 
 typedef struct Session_t {
 	HashtableNode_t m_htnode;
+	int has_reg;
 	Channel_t* channel;
 	int id;
 	struct Cluster_t* cluster;
@@ -16,14 +17,15 @@ typedef struct Session_t {
 	RpcAsyncCore_t* a_rpc;
 } Session_t;
 
-#define	channelSession(channel)	((channel)->userdata)
+#define	channelSession(channel)		((channel)->userdata)
+#define	channelSessionId(channel)	((channel)->userid32)
 
 int initSessionTable(void);
 int allocSessionId(void);
 Session_t* newSession(void);
 Session_t* getSession(int id);
 void regSession(int id, Session_t* session);
-void unregSession(Session_t* session);
+Session_t* unregSession(Session_t* session);
 void freeSession(Session_t* session);
 void freeSessionTable(void);
 

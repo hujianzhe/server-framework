@@ -23,6 +23,7 @@ int allocSessionId(void) {
 Session_t* newSession(void) {
 	Session_t* session = (Session_t*)malloc(sizeof(Session_t));
 	if (session) {
+		session->has_reg = 0;
 		session->id = 0;
 		session->cluster = NULL;
 		session->f_rpc = NULL;
@@ -37,13 +38,20 @@ Session_t* getSession(int id) {
 }
 
 void regSession(int id, Session_t* session) {
-	session->id = id;
-	session->m_htnode.key = (void*)(ptrlen_t)id;
-	hashtableReplaceNode(hashtableInsertNode(&g_SessionTable, &session->m_htnode), &session->m_htnode);
+	if (!session->has_reg) {
+		session->has_reg = 1;
+		session->id = id;
+		session->m_htnode.key = (void*)(ptrlen_t)id;
+		hashtableReplaceNode(hashtableInsertNode(&g_SessionTable, &session->m_htnode), &session->m_htnode);
+	}
 }
 
-void unregSession(Session_t* session) {
-	hashtableRemoveNode(&g_SessionTable, &session->m_htnode);
+Session_t* unregSession(Session_t* session) {
+	if (session->has_reg) {
+		session->has_reg = 0;
+		hashtableRemoveNode(&g_SessionTable, &session->m_htnode);
+	}
+	return session;
 }
 
 void freeSession(Session_t* session) {
@@ -63,6 +71,7 @@ void freeSessionTable(void) {
 void sessionBindChannel(Session_t* session, Channel_t* channel) {
 	session->channel = channel;
 	channelSession(channel) = session;
+	channelSessionId(channel) = session->id;
 }
 
 Channel_t* sessionUnbindChannel(Session_t* session) {
@@ -70,6 +79,7 @@ Channel_t* sessionUnbindChannel(Session_t* session) {
 		Channel_t* channel = session->channel;
 		if (channel) {
 			channelSession(channel) = NULL;
+			channelSessionId(channel) = 0;
 		}
 		session->channel = NULL;
 		return channel;

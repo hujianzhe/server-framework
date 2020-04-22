@@ -115,8 +115,23 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				else
 					putchar('\n');
 
-				if (session && session->f_rpc) {
-					// TODO delay free session
+				if (session) {
+					RBTree_t rpc_item_tree;
+					RBTreeNode_t* rbnode;
+					if (session->f_rpc) {
+						rpcFiberCoreCancelAll(session->f_rpc, &rpc_item_tree);
+					}
+					else if (session->a_rpc) {
+						rpcAsyncCoreCancelAll(session->a_rpc, &rpc_item_tree);
+					}
+					else {
+						rbtreeInit(&rpc_item_tree, NULL);
+					}
+					for (rbnode = rbtreeFirstNode(&rpc_item_tree); rbnode; ) {
+						RBTreeNode_t* rbnext = rbtreeNextNode(rbnode);
+						free(pod_container_of(rbnode, RpcItem_t, m_treenode));
+						rbnode = rbnext;
+					}
 				}
 				channelDestroy(channel);
 				reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);

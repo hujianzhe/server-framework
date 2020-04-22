@@ -55,6 +55,14 @@ Session_t* unregSession(Session_t* session) {
 }
 
 void freeSession(Session_t* session) {
+	if (session->f_rpc) {
+		rpcFiberCoreDestroy(session->f_rpc);
+		free(session->f_rpc);
+	}
+	else if (session->a_rpc) {
+		rpcAsyncCoreDestroy(session->a_rpc);
+		free(session->a_rpc);
+	}
 	free(session);
 }
 
@@ -63,7 +71,7 @@ void freeSessionTable(void) {
 	for (htcur = hashtableFirstNode(&g_SessionTable); htcur; htcur = htnext) {
 		Session_t* session = pod_container_of(htcur, Session_t, m_htnode);
 		htnext = hashtableNextNode(htcur);
-		free(session);
+		freeSession(session);
 	}
 	hashtableInit(&g_SessionTable, s_SessionBulk, sizeof(s_SessionBulk) / sizeof(s_SessionBulk[0]), __keycmp, __keyhash);
 }

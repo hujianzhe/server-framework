@@ -6,11 +6,13 @@ void frpc_test_code(Session_t* session) {
 		return;
 	}
 	if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-		RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
+		RBTimerEvent_t* rpc_item_timeout_ev;
+		RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t) + sizeof(RBTimerEvent_t));
 		if (!rpc_item) {
 			return;
 		}
-		rpcItemSet(rpc_item, rpcGenId(), 1000);
+		rpc_item_timeout_ev = (RBTimerEvent_t*)(rpc_item + 1);
+		rpcItemSet(rpc_item, rpcGenId(), 1000, rpc_item_timeout_ev);
 		if (!rpcFiberCoreRegItem(session->f_rpc, rpc_item)) {
 			printf("rpcid(%d) already send\n", rpc_item->id);
 			free(rpc_item);
@@ -41,11 +43,13 @@ void frpc_test_code(Session_t* session) {
 void arpc_test_code(Session_t* session) {
 	// test code
 	if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-		RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
+		RBTimerEvent_t* rpc_item_timeout_ev;
+		RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t) + sizeof(RBTimerEvent_t));
 		if (!rpc_item) {
 			return;
 		}
-		rpcItemSet(rpc_item, rpcGenId(), 1000);
+		rpc_item_timeout_ev = (RBTimerEvent_t*)(rpc_item + 1);
+		rpcItemSet(rpc_item, rpcGenId(), 1000, rpc_item_timeout_ev);
 		if (!rpcAsyncCoreRegItem(session->a_rpc, rpc_item, NULL, rpcRetTest)) {
 			printf("rpcid(%d) already send\n", rpc_item->id);
 			free(rpc_item);

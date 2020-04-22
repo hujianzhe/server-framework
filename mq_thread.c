@@ -24,6 +24,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	}
 	wait_msec = -1;
 	while (g_Valid) {
+		// handle message and event
 		for (cur = dataqueuePopWait(&g_DataQueue, wait_msec, ~0); cur; cur = next) {
 			ReactorCmd_t* internal = (ReactorCmd_t*)cur;
 			next = cur->next;
@@ -141,6 +142,9 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				printf("unknown message type: %d\n", internal->type);
 			}
 		}
+		// handle rpc timeout
+
+		// handle timer event
 		for (cur = rbtimerTimeout(&g_Timer, gmtimeMillisecond()); cur; cur = next) {
 			RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
 			next = cur->next;
@@ -151,7 +155,6 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				free(e);
 			}
 		}
-
 		timer_min_msec = rbtimerMiniumTimestamp(&g_Timer);
 		if (timer_min_msec < 0) {
 			wait_msec = -1;

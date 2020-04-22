@@ -237,7 +237,13 @@ int retUploadCluster(UserMsg_t* ctrl) {
 	}
 
 	do {
-		cJSON* cjson_ret_object_cluster, *cjson_ret_array_cluster;
+		cJSON* cjson_ret_object_cluster, *cjson_ret_array_cluster, *cjson_sessoin_id;;
+
+		cjson_sessoin_id = cJSON_Field(cjson_ret_root, "session_id");
+		if (!cjson_sessoin_id) {
+			fputs("miss session id field", stderr);
+			break;
+		}
 
 		cjson_ret_array_cluster = cJSON_Field(cjson_ret_root, "cluster");
 		if (!cjson_ret_array_cluster) {
@@ -275,10 +281,12 @@ int retUploadCluster(UserMsg_t* ctrl) {
 				break;
 			}
 		}
+		channelSessionId(ctrl->channel) = cjson_sessoin_id->valueint;
 	} while (0);
 	cJSON_Delete(cjson_ret_root);
 
 	printf("ret: %s\n", (char*)ctrl->data);
+	/*
 	// test code
 	{
 		Session_t* session = (Session_t*)channelSession(ctrl->channel);
@@ -287,6 +295,7 @@ int retUploadCluster(UserMsg_t* ctrl) {
 		else if (session->a_rpc)
 			arpc_test_code(session);
 	}
+	*/
 	return 0;
 }
 

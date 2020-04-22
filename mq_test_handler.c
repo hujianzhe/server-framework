@@ -2,6 +2,9 @@
 
 void frpc_test_code(Session_t* session) {
 	// test code
+	if (!session->channel) {
+		return;
+	}
 	if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
 		RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t));
 		if (!rpc_item) {

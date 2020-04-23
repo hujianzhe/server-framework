@@ -108,8 +108,6 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				Channel_t* channel = pod_container_of(internal, Channel_t, _.freecmd);
 				Session_t* session = (Session_t*)channelSession(channel);
 
-				sessionUnbindChannel(session);
-
 				printf("channel(%p) detach, reason:%d", channel, channel->_.detach_error);
 				if (channel->_.flag & CHANNEL_FLAG_CLIENT)
 					printf(", connected times: %u\n", channel->_.connected_times);
@@ -134,6 +132,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						free(pod_container_of(rbnode, RpcItem_t, m_treenode));
 						rbnode = rbnext;
 					}
+					sessionUnbindChannel(session);
 				}
 				channelDestroy(channel);
 				reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);

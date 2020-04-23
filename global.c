@@ -9,6 +9,7 @@ Reactor_t* g_ReactorAccept;
 DataQueue_t g_DataQueue;
 size_t g_ReactorCnt;
 RBTimer_t g_Timer;
+RBTimer_t g_TimerRpcTimeout;
 
 int initGlobalResource(void) {
 	size_t nbytes;

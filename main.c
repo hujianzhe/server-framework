@@ -71,7 +71,7 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 
 int main(int argc, char** argv) {
 	int i;
-	int dqinitok = 0, timerinitok = 0,
+	int dqinitok = 0, timerinitok = 0, timerrpcinitok = 0,
 		taskthreadinitok = 0, socketloopinitokcnt = 0,
 		acceptthreadinitok = 0, acceptloopinitok = 0,
 		listensockinitokcnt = 0;
@@ -96,6 +96,9 @@ int main(int argc, char** argv) {
 	if (!rbtimerInit(&g_Timer, TRUE))
 		goto err;
 	timerinitok = 1;
+	if (!rbtimerInit(&g_TimerRpcTimeout, TRUE))
+		goto err;
+	timerrpcinitok = 1;
 
 	if (!threadCreate(&g_TaskThread, taskThreadEntry, NULL))
 		goto err;
@@ -197,6 +200,9 @@ end:
 	}
 	if (timerinitok) {
 		rbtimerDestroy(&g_Timer);
+	}
+	if (timerrpcinitok) {
+		rbtimerDestroy(&g_TimerRpcTimeout);
 	}
 	freeConfig();
 	freeDispatchCallback();

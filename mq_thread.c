@@ -2,18 +2,22 @@
 #include "config.h"
 #include <stdio.h>
 
+#define	call_dispatch(ctrl) \
+{\
+DispatchCallback_t callback = getDispatchCallback(ctrl->cmdid);\
+if (callback)\
+	callback(ctrl);\
+free(ctrl);\
+}
+
 static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
-	Session_t* session = (Session_t*)channelSession(ctrl->channel);
-	DispatchCallback_t callback = getDispatchCallback(ctrl->cmdid);
-	if (callback)
-		callback(ctrl);
-	free(ctrl);
+	call_dispatch(ctrl);
 }
 
 unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	ListNode_t* cur, *next;
 	int wait_msec;
-	long long cur_msec, timer_min_msec;
+	long long cur_msec, timer_min_msec[2];
 	Fiber_t* thread_fiber = NULL;
 	if (g_Config.rpc_fiber) {
 		thread_fiber = fiberFromThread();
@@ -90,17 +94,11 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						free(rpc_item);
 					}
 					else {
-						DispatchCallback_t callback = getDispatchCallback(ctrl->cmdid);
-						if (callback)
-							callback(ctrl);
-						free(ctrl);
+						call_dispatch(ctrl);
 					}
 				}
 				else {
-					DispatchCallback_t callback = getDispatchCallback(ctrl->cmdid);
-					if (callback)
-						callback(ctrl);
-					free(ctrl);
+					call_dispatch(ctrl);
 				}
 			}
 			else if (REACTOR_CHANNEL_FREE_CMD == internal->type) {
@@ -140,10 +138,16 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				printf("unknown message type: %d\n", internal->type);
 			}
 		}
-		// handle rpc timeout
 
 		// handle timer event
-		for (cur = rbtimerTimeout(&g_Timer, gmtimeMillisecond()); cur; cur = next) {
+		cur_msec = gmtimeMillisecond();
+		for (cur = rbtimerTimeout(&g_TimerRpcTimeout, cur_msec); cur; cur = next) {
+			RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
+			RpcItem_t* rpc_item = (RpcItem_t*)(e->arg);
+			next = cur->next;
+			// TODO rpcAsyncCoreCancelAll or rpcFiberCoreCancelAll
+		}
+		for (cur = rbtimerTimeout(&g_Timer, cur_msec); cur; cur = next) {
 			RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
 			next = cur->next;
 			if (e->callback(e, e->arg)) {
@@ -153,14 +157,24 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				free(e);
 			}
 		}
-		timer_min_msec = rbtimerMiniumTimestamp(&g_Timer);
-		if (timer_min_msec < 0) {
+		timer_min_msec[0] = rbtimerMiniumTimestamp(&g_Timer);
+		timer_min_msec[1] = rbtimerMiniumTimestamp(&g_TimerRpcTimeout);
+		if (timer_min_msec[0] < 0 && timer_min_msec[1] < 0) {
 			wait_msec = -1;
 		}
 		else {
+			long long min_msec;
 			cur_msec = gmtimeMillisecond();
-			if (timer_min_msec > cur_msec)
-				wait_msec = timer_min_msec - cur_msec;
+			if (timer_min_msec[1] < 0)
+				min_msec = timer_min_msec[0];
+			else if (timer_min_msec[0] < 0)
+				min_msec = timer_min_msec[1];
+			else if (timer_min_msec[0] < timer_min_msec[1])
+				min_msec = timer_min_msec[0];
+			else
+				min_msec = timer_min_msec[1];
+			if (min_msec > cur_msec)
+				wait_msec = min_msec - cur_msec;
 			else
 				wait_msec = 0;
 		}

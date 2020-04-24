@@ -46,14 +46,13 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							freeSession(session);
 							continue;
 						}
-						if (!rpcFiberCoreInit(session->f_rpc, thread_fiber, 0x4000)) {
+						if (!rpcFiberCoreInit(session->f_rpc, thread_fiber, 0x4000, (void(*)(RpcFiberCore_t*, void*))msg_handler)) {
 							channelShardSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 							free(ctrl);
 							free(session->f_rpc);
 							freeSession(session);
 							continue;
 						}
-						session->f_rpc->msg_handler = (void(*)(RpcFiberCore_t*, void*))msg_handler;
 					}
 					else if (g_Config.rpc_async) {
 						session->a_rpc = (RpcAsyncCore_t*)malloc(sizeof(RpcAsyncCore_t));

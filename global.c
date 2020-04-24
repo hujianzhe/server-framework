@@ -10,6 +10,8 @@ DataQueue_t g_DataQueue;
 size_t g_ReactorCnt;
 RBTimer_t g_Timer;
 RBTimer_t g_TimerRpcTimeout;
+RpcFiberCore_t* g_RpcFiberCore;
+RpcAsyncCore_t* g_RpcAsyncCore;
 
 int initGlobalResource(void) {
 	size_t nbytes;

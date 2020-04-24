@@ -25,6 +25,8 @@ extern Hashtable_t g_DispatchTable;
 extern List_t g_ClusterList;
 extern Hashtable_t g_ClusterTable;
 extern Hashtable_t g_SessionTable;
+extern RpcFiberCore_t* g_RpcFiberCore;
+extern RpcAsyncCore_t* g_RpcAsyncCore;
 
 int initGlobalResource(void);
 void freeGlobalResource(void);

@@ -2,9 +2,6 @@
 
 void frpc_test_code(Session_t* session) {
 	// test code
-	if (!session->channel) {
-		return;
-	}
 	if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
 		RBTimerEvent_t* rpc_item_timeout_ev;
 		RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t) + sizeof(RBTimerEvent_t));
@@ -13,7 +10,7 @@ void frpc_test_code(Session_t* session) {
 		}
 		rpc_item_timeout_ev = (RBTimerEvent_t*)(rpc_item + 1);
 		rpcItemSet(rpc_item, rpcGenId(), 1000, rpc_item_timeout_ev);
-		if (!rpcFiberCoreRegItem(session->f_rpc, rpc_item)) {
+		if (!rpcFiberCoreRegItem(g_RpcFiberCore, rpc_item)) {
 			printf("rpcid(%d) already send\n", rpc_item->id);
 			free(rpc_item);
 		}
@@ -23,13 +20,14 @@ void frpc_test_code(Session_t* session) {
 			SendMsg_t msg;
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
 			channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+			listPushNodeBack(&session->rpc_itemlist, &rpc_item->listnode);
 			rpc_item->timestamp_msec = gmtimeMillisecond();
 			if (rpc_item->timeout_msec >= 0) {
 				rpc_item_timeout_ev->timestamp_msec = rpc_item->timestamp_msec + rpc_item->timeout_msec;
 				rpc_item_timeout_ev->arg = rpc_item;
 				rpc_item_timeout_ev->callback = (void*)1;
 			}
-			rpc_item = rpcFiberCoreYield(session->f_rpc);
+			rpc_item = rpcFiberCoreYield(g_RpcFiberCore);
 
 			now_msec = gmtimeMillisecond();
 			cost_msec = now_msec - rpc_item->timestamp_msec;
@@ -55,7 +53,7 @@ void arpc_test_code(Session_t* session) {
 		}
 		rpc_item_timeout_ev = (RBTimerEvent_t*)(rpc_item + 1);
 		rpcItemSet(rpc_item, rpcGenId(), 1000, rpc_item_timeout_ev);
-		if (!rpcAsyncCoreRegItem(session->a_rpc, rpc_item, NULL, rpcRetTest)) {
+		if (!rpcAsyncCoreRegItem(g_RpcAsyncCore, rpc_item, NULL, rpcRetTest)) {
 			printf("rpcid(%d) already send\n", rpc_item->id);
 			free(rpc_item);
 		}
@@ -64,7 +62,13 @@ void arpc_test_code(Session_t* session) {
 			SendMsg_t msg;
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
 			channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+			listPushNodeBack(&session->rpc_itemlist, &rpc_item->listnode);
 			rpc_item->timestamp_msec = gmtimeMillisecond();
+			if (rpc_item->timeout_msec >= 0) {
+				rpc_item_timeout_ev->timestamp_msec = rpc_item->timestamp_msec + rpc_item->timeout_msec;
+				rpc_item_timeout_ev->arg = rpc_item;
+				rpc_item_timeout_ev->callback = (void*)1;
+			}
 			printf("rpc(%d) start send, send_msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
 		}
 	}
@@ -93,9 +97,9 @@ int notifyTest(UserMsg_t* ctrl) {
 	Session_t* session = (Session_t*)channelSession(ctrl->channel);
 	printf("recv server test notify, recv msec = %lld\n", gmtimeMillisecond());
 	// test code
-	if (session->f_rpc)
+	if (g_RpcFiberCore)
 		frpc_test_code(session);
-	else if (session->a_rpc)
+	else if (g_RpcAsyncCore)
 		arpc_test_code(session);
 
 	return 0;

@@ -290,9 +290,9 @@ int retUploadCluster(UserMsg_t* ctrl) {
 	// test code
 	{
 		Session_t* session = (Session_t*)channelSession(ctrl->channel);
-		if (session->f_rpc)
+		if (g_RpcFiberCore)
 			frpc_test_code(session);
-		else if (session->a_rpc)
+		else if (g_RpcAsyncCore)
 			arpc_test_code(session);
 	}
 

@@ -13,8 +13,7 @@ typedef struct Session_t {
 	Channel_t* channel;
 	int id;
 	struct Cluster_t* cluster;
-	RpcFiberCore_t* f_rpc;
-	RpcAsyncCore_t* a_rpc;
+	List_t rpc_itemlist;
 } Session_t;
 
 #define	channelSession(channel)		((channel)->userdata)

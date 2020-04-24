@@ -26,8 +26,7 @@ Session_t* newSession(void) {
 		session->has_reg = 0;
 		session->id = 0;
 		session->cluster = NULL;
-		session->f_rpc = NULL;
-		session->a_rpc = NULL;
+		listInit(&session->rpc_itemlist);
 	}
 	return session;
 }
@@ -55,14 +54,6 @@ Session_t* unregSession(Session_t* session) {
 }
 
 void freeSession(Session_t* session) {
-	if (session->f_rpc) {
-		rpcFiberCoreDestroy(session->f_rpc);
-		free(session->f_rpc);
-	}
-	else if (session->a_rpc) {
-		rpcAsyncCoreDestroy(session->a_rpc);
-		free(session->a_rpc);
-	}
 	free(session);
 }
 

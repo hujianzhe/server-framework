@@ -70,6 +70,8 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							continue;
 						}
 						listRemoveNode(&session->rpc_itemlist, &rpc_item->listnode);
+						if (rpc_item->timeout_ev)
+							rbtimerDelEvent(&g_TimerRpcTimeout, (RBTimerEvent_t*)rpc_item->timeout_ev);
 						free(rpc_item);
 					}
 					else {
@@ -84,6 +86,8 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							continue;
 						}
 						listRemoveNode(&session->rpc_itemlist, &rpc_item->listnode);
+						if (rpc_item->timeout_ev)
+							rbtimerDelEvent(&g_TimerRpcTimeout, (RBTimerEvent_t*)rpc_item->timeout_ev);
 						free(rpc_item);
 					}
 					else {

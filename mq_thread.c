@@ -41,6 +41,10 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			fputs("malloc(sizeof(RpcAsyncCore_t)) error", stderr);
 			return 1;
 		}
+		if (!rpcAsyncCoreInit(g_RpcAsyncCore)) {
+			fputs("rpcAsyncCoreInit error", stderr);
+			return 1;
+		}
 	}
 	// start
 	wait_msec = -1;

@@ -9,35 +9,35 @@ void frpc_test_code(Session_t* session) {
 			return;
 		}
 		rpc_item_timeout_ev = (RBTimerEvent_t*)(rpc_item + 1);
-		rpcItemSet(rpc_item, rpcGenId(), 1000, rpc_item_timeout_ev);
+		rpcItemSet(rpc_item, rpcGenId());
 		if (!rpcFiberCoreRegItem(g_RpcFiberCore, rpc_item)) {
 			printf("rpcid(%d) already send\n", rpc_item->id);
 			free(rpc_item);
 		}
 		else {
-			long long now_msec, cost_msec;
 			char test_data[] = "this text is from client ^.^";
 			SendMsg_t msg;
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
 			channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-			listPushNodeBack(&session->rpc_itemlist, &rpc_item->listnode);
-			rpc_item->timestamp_msec = gmtimeMillisecond();
-			if (rpc_item->timeout_msec >= 0) {
-				rpc_item_timeout_ev->timestamp_msec = rpc_item->timestamp_msec + rpc_item->timeout_msec;
-				rpc_item_timeout_ev->arg = rpc_item;
-				rpc_item_timeout_ev->callback = (void*)1;
-			}
-			rpc_item = rpcFiberCoreYield(g_RpcFiberCore);
 
-			now_msec = gmtimeMillisecond();
-			cost_msec = now_msec - rpc_item->timestamp_msec;
-			printf("rpc(%d) send msec=%lld time cost(%lld msec)\n", rpc_item->id, rpc_item->timestamp_msec, cost_msec);
-			if (rpc_item->timeout_msec > 0 && cost_msec >= rpc_item->timeout_msec) {
-				printf("rpc(%d) call timeout\n", rpc_item->id);
-			}
-			else if (rpc_item->ret_msg) {
+			listPushNodeBack(&session->rpc_itemlist, &rpc_item->listnode);
+			rpc_item->originator = session;
+			rpc_item->timestamp_msec = gmtimeMillisecond();
+			rpc_item->timeout_ev = rpc_item_timeout_ev;
+			rpc_item_timeout_ev->timestamp_msec = rpc_item->timestamp_msec + 1000;
+			rpc_item_timeout_ev->arg = rpc_item;
+			rpc_item_timeout_ev->callback = (void*)1;
+			rbtimerAddEvent(&g_TimerRpcTimeout, rpc_item_timeout_ev);
+
+			rpc_item = rpcFiberCoreYield(g_RpcFiberCore);
+			if (rpc_item->ret_msg) {
 				UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
+				long long cost_msec = gmtimeMillisecond() - rpc_item->timestamp_msec;
+				printf("rpc(%d) send msec=%lld time cost(%lld msec)\n", rpc_item->id, rpc_item->timestamp_msec, cost_msec);
 				printf("rpc(%d) say hello world ... %s\n", rpc_item->id, ret_msg->data);
+			}
+			else {
+				puts("rpc call failure timeout or cancel");
 			}
 		}
 	}
@@ -52,7 +52,7 @@ void arpc_test_code(Session_t* session) {
 			return;
 		}
 		rpc_item_timeout_ev = (RBTimerEvent_t*)(rpc_item + 1);
-		rpcItemSet(rpc_item, rpcGenId(), 1000, rpc_item_timeout_ev);
+		rpcItemSet(rpc_item, rpcGenId());
 		if (!rpcAsyncCoreRegItem(g_RpcAsyncCore, rpc_item, NULL, rpcRetTest)) {
 			printf("rpcid(%d) already send\n", rpc_item->id);
 			free(rpc_item);
@@ -62,14 +62,15 @@ void arpc_test_code(Session_t* session) {
 			SendMsg_t msg;
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
 			channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+
 			listPushNodeBack(&session->rpc_itemlist, &rpc_item->listnode);
+			rpc_item->originator = session;
 			rpc_item->timestamp_msec = gmtimeMillisecond();
-			if (rpc_item->timeout_msec >= 0) {
-				rpc_item_timeout_ev->timestamp_msec = rpc_item->timestamp_msec + rpc_item->timeout_msec;
-				rpc_item_timeout_ev->arg = rpc_item;
-				rpc_item_timeout_ev->callback = (void*)1;
-			}
-			printf("rpc(%d) start send, send_msec=%lld\n", rpc_item->id, rpc_item->timestamp_msec);
+			rpc_item->timeout_ev = rpc_item_timeout_ev;
+			rpc_item_timeout_ev->timestamp_msec = rpc_item->timestamp_msec + 1000;
+			rpc_item_timeout_ev->arg = rpc_item;
+			rpc_item_timeout_ev->callback = (void*)1;
+			rbtimerAddEvent(&g_TimerRpcTimeout, rpc_item_timeout_ev);
 		}
 	}
 }
@@ -108,10 +109,10 @@ int notifyTest(UserMsg_t* ctrl) {
 void rpcRetTest(RpcItem_t* rpc_item) {
 	UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
 	if (!ret_msg) {
+		puts("rpc call failure timeout or cancel");
 		return;
 	}
 	else {
-		Session_t* session = (Session_t*)channelSession(ret_msg->channel);
 		long long cost_msec = gmtimeMillisecond() - rpc_item->timestamp_msec;
 		printf("rpc(%d) send msec=%lld time cost(%lld msec)\n", rpc_item->id, rpc_item->timestamp_msec, cost_msec);
 		printf("rpc(%d) say hello world ... %s\n", rpc_item->id, ret_msg->data);

@@ -133,12 +133,15 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		for (cur = rbtimerTimeout(&g_TimerRpcTimeout, cur_msec); cur; cur = next) {
 			RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
 			RpcItem_t* rpc_item = (RpcItem_t*)e->arg;
+			Session_t* session = (Session_t*)rpc_item->originator;
 			next = cur->next;
 			rpc_item->timeout_ev = NULL;
 			if (g_RpcFiberCore)
 				rpcFiberCoreCancel(g_RpcFiberCore, rpc_item);
 			else if (g_RpcAsyncCore)
 				rpcAsyncCoreCancel(g_RpcAsyncCore, rpc_item);
+			listRemoveNode(&session->rpc_itemlist, &rpc_item->listnode);
+			free(rpc_item);
 		}
 		for (cur = rbtimerTimeout(&g_Timer, cur_msec); cur; cur = next) {
 			RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);

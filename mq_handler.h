@@ -7,6 +7,7 @@ extern int reqTest(UserMsg_t*);
 extern int notifyTest(UserMsg_t*);
 extern void rpcRetTest(RpcItem_t*);
 extern int retTest(UserMsg_t*);
+extern int reqHttpTest(UserMsg_t*);
 
 extern int reqReconnectCluster(UserMsg_t*);
 extern int retReconnect(UserMsg_t*);

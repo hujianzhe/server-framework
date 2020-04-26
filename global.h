@@ -21,7 +21,6 @@ extern DataQueue_t g_DataQueue;
 extern size_t g_ReactorCnt;
 extern RBTimer_t g_Timer;
 extern RBTimer_t g_TimerRpcTimeout;
-extern Hashtable_t g_DispatchTable;
 extern List_t g_ClusterList;
 extern Hashtable_t g_ClusterTable;
 extern Hashtable_t g_SessionTable;

@@ -123,3 +123,10 @@ int retTest(UserMsg_t* ctrl) {
 	printf("say hello world ... %s, recv msec = %lld\n", ctrl->data, gmtimeMillisecond());
 	return 0;
 }
+
+int reqHttpTest(UserMsg_t* ctrl) {
+	HttpFrame_t* httpframe = ctrl->httpframe;
+	printf("recv http browser ... %s\n", httpframe->query);
+	free(httpframeReset(httpframe));
+	return 0;
+}

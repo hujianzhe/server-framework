@@ -2,12 +2,19 @@
 #include "config.h"
 #include <stdio.h>
 
-#define	call_dispatch(ctrl) \
-{\
-DispatchCallback_t callback = getDispatchCallback(ctrl->cmdid);\
-if (callback)\
-	callback(ctrl);\
-free(ctrl);\
+static void call_dispatch(UserMsg_t* ctrl) {
+	DispatchCallback_t callback;
+	if (ctrl->httpframe) {
+		char* path = ctrl->httpframe->uri;
+		path[ctrl->httpframe->pathlen] = 0;
+		callback = getStringDispatch(path);
+	}
+	else {
+		callback = getNumberDispatch(ctrl->cmdid);
+	}
+	if (callback)
+		callback(ctrl);
+	free(ctrl);
 }
 
 static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {

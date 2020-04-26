@@ -125,16 +125,18 @@ int main(int argc, char** argv) {
 	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR)
 		goto err;
 
-	regDispatchCallback(CMD_REQ_TEST, reqTest);
-	regDispatchCallback(CMD_NOTIFY_TEST, notifyTest);
-	regDispatchCallback(CMD_RET_TEST, retTest);
-	regDispatchCallback(CMD_REQ_RECONNECT, reqReconnectCluster);
-	regDispatchCallback(CMD_RET_RECONNECT, retReconnect);
-	regDispatchCallback(CMD_REQ_UPLOAD_CLUSTER, reqUploadCluster);
-	regDispatchCallback(CMD_RET_UPLOAD_CLUSTER, retUploadCluster);
-	regDispatchCallback(CMD_NOTIFY_NEW_CLUSTER, notifyNewCluster);
-	regDispatchCallback(CMD_REQ_REMOVE_CLUSTER, reqRemoveCluster);
-	regDispatchCallback(CMD_RET_REMOVE_CLUSTER, retRemoveCluster);
+	regNumberDispatch(CMD_REQ_TEST, reqTest);
+	regNumberDispatch(CMD_NOTIFY_TEST, notifyTest);
+	regNumberDispatch(CMD_RET_TEST, retTest);
+	regNumberDispatch(CMD_REQ_RECONNECT, reqReconnectCluster);
+	regNumberDispatch(CMD_RET_RECONNECT, retReconnect);
+	regNumberDispatch(CMD_REQ_UPLOAD_CLUSTER, reqUploadCluster);
+	regNumberDispatch(CMD_RET_UPLOAD_CLUSTER, retUploadCluster);
+	regNumberDispatch(CMD_NOTIFY_NEW_CLUSTER, notifyNewCluster);
+	regNumberDispatch(CMD_REQ_REMOVE_CLUSTER, reqRemoveCluster);
+	regNumberDispatch(CMD_RET_REMOVE_CLUSTER, retRemoveCluster);
+
+	regStringDispatch("/reqHttpTest", reqHttpTest);
 
 	if (g_Config.listen_options_cnt > 0) {
 		for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {

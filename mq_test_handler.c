@@ -128,5 +128,23 @@ int reqHttpTest(UserMsg_t* ctrl) {
 	HttpFrame_t* httpframe = ctrl->httpframe;
 	printf("recv http browser ... %s\n", httpframe->query);
 	free(httpframeReset(httpframe));
+
+	const char test_data[] = "C server say hello world, yes ~.~";
+	int reply_len;
+	char* reply = strFormat(&reply_len,
+		"HTTP/1.1 %u %s\r\n"
+		"Access-Control-Allow-Origin: *\r\n"
+		"Connection: close\r\n"
+		"Content-Length:%u\r\n"
+		"\r\n"
+		"%s",
+		200, httpframeStatusDesc(200), sizeof(test_data) - 1, test_data
+	);
+	if (!reply) {
+		return 0;
+	}
+	channelShardSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
+	reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
+	free(reply);
 	return 0;
 }

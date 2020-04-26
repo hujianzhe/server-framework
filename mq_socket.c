@@ -235,6 +235,7 @@ static void httpframe_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 			decode_result->bodyptr = NULL;
 			decode_result->bodylen = 0;
 			decode_result->decodelen = res;
+			decode_result->userdata = frame;
 			return;
 		}
 		if (!strcmp(frame->method, "POST")) {

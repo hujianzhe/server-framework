@@ -1,9 +1,19 @@
 {
 	"ipv6_enable" : 0,
 	"socktype" : "SOCK_DGRAM",
-	"local_ip" : "127.0.0.1",
 	"outer_ip" : "127.0.0.1",
-	"listen_ip" : "127.0.0.1",
+	"listen_options" : [
+		{
+			"protocol" : "inner",
+			"ip" : "127.0.0.1",
+			"port" : 50000
+		},
+		{
+			"protocol" : "http",
+			"ip" : "127.0.0.1",
+			"port" : 50001
+		}
+	],
 	"cluster_name" : "game0",
 	"rpc_fiber" : 1,
 	"rpc_async" : 0,

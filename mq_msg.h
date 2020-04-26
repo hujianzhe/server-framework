@@ -3,10 +3,12 @@
 
 #include "mq_socket.h"
 
+struct HttpFrame_t;
 typedef struct UserMsg_t {
 	ReactorCmd_t internal;
 	Channel_t* channel;
 	Sockaddr_t peer_addr;
+	struct HttpFrame_t* httpframe;
 	char rpc_status;
 	int cmdid;
 	int rpcid;

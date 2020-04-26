@@ -31,19 +31,30 @@ int initConfig(const char* path) {
 			break;
 		}
 
-		cjson = cJSON_Field(root, "port");
+		cjson = cJSON_Field(root, "listen_options");
 		if (cjson) {
 			int i;
-			cJSON* node;
-			g_Config.portcnt = cJSON_Size(cjson);
-			g_Config.port = (unsigned short*)malloc(sizeof(unsigned short) * g_Config.portcnt);
-			if (!g_Config.port) {
+			cJSON* childnode;
+			g_Config.listen_options_cnt = cJSON_Size(cjson);
+			g_Config.listen_options = (ConfigListenOption_t*)malloc(sizeof(ConfigListenOption_t) * g_Config.listen_options_cnt);
+			if (!g_Config.listen_options) {
 				break;
 			}
 			i = 0;
-			for (node = cjson->child; node; node = node->next) {
-				g_Config.port[i++] = node->valueint;
+			for (childnode = cjson->child; childnode; childnode = childnode->next) {
+				ConfigListenOption_t* option_ptr;
+				cJSON* protocol = cJSON_Field(childnode, "protocol");
+				cJSON* ipnode = cJSON_Field(childnode, "ip");
+				cJSON* portnode = cJSON_Field(childnode, "port");
+				if (!protocol || !ipnode || !portnode) {
+					continue;
+				}
+				option_ptr = &g_Config.listen_options[i++];
+				option_ptr->protocol = strdup(protocol->valuestring);
+				strcpy(option_ptr->ip, ipnode->valuestring);
+				option_ptr->port = portnode->valueint;
 			}
+			g_Config.listen_options_cnt = i;
 		}
 
 		cjson = cJSON_Field(root, "ipv6_enable");
@@ -65,16 +76,6 @@ int initConfig(const char* path) {
 		}
 		else {
 			g_Config.socktype = SOCK_STREAM;
-		}
-
-		cjson = cJSON_Field(root, "local_ip");
-		if (cjson) {
-			strcpy(g_Config.local_ip, cjson->valuestring);
-		}
-
-		cjson = cJSON_Field(root, "listen_ip");
-		if (cjson) {
-			strcpy(g_Config.listen_ip, cjson->valuestring);
 		}
 
 		cjson = cJSON_Field(root, "outer_ip");
@@ -131,10 +132,14 @@ int initConfig(const char* path) {
 }
 
 void freeConfig(void) {
-	free(g_Config.port);
-	free((char*)(g_Config.cluster_name));
-	g_Config.port = NULL;
-	g_Config.portcnt = 0;
+	unsigned int i;
+	for (i = 0; i < g_Config.listen_options_cnt; ++i) {
+		free((char*)g_Config.listen_options[i].protocol);
+	}
+	free(g_Config.listen_options);
+	g_Config.listen_options = NULL;
+	g_Config.listen_options_cnt = 0;
+	free((char*)g_Config.cluster_name);
 	g_Config.cluster_name = NULL;
 	g_Config.outer_ip[0] = 0;
 	g_Config.center_attr.ip[0] = 0;

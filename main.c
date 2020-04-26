@@ -50,13 +50,14 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 	printf("channel(%p) connect success, ip:%s, port:%hu\n", c, peer_ip, peer_port);
 
 	if (c->connected_times > 1) {
-		unsigned short port = g_Config.port ? g_Config.port[0] : 0;
+		unsigned short port = g_Config.listen_options ? g_Config.listen_options[0].port : 0;
 		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"session_id\":%d}", g_Config.cluster_name, g_Config.outer_ip, port, channelSessionId(channel));
 		makeSendMsg(&msg, CMD_REQ_RECONNECT, buffer, strlen(buffer));
 		channelShardSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN);
 	}
 	else {
-		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", g_Config.cluster_name, g_Config.outer_ip, g_Config.port ? g_Config.port[0] : 0);
+		unsigned short port = g_Config.listen_options ? g_Config.listen_options[0].port : 0;
+		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", g_Config.cluster_name, g_Config.outer_ip, port);
 		makeSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
 		channelShardSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		/*
@@ -135,17 +136,21 @@ int main(int argc, char** argv) {
 	regDispatchCallback(CMD_REQ_REMOVE_CLUSTER, reqRemoveCluster);
 	regDispatchCallback(CMD_RET_REMOVE_CLUSTER, retRemoveCluster);
 
-	if (g_Config.portcnt > 0) {
-		for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.portcnt; ++listensockinitokcnt) {
-			ReactorObject_t* o = openListener(
-				g_Config.domain,
-				g_Config.socktype,
-				g_Config.listen_ip,
-				g_Config.port[listensockinitokcnt]
-			);
-			if (!o)
-				goto err;
-			reactorCommitCmd(g_ReactorAccept, &o->regcmd);
+	if (g_Config.listen_options_cnt > 0) {
+		for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {
+			ConfigListenOption_t* option = g_Config.listen_options + listensockinitokcnt;
+			if (!strcmp(option->protocol, "inner")) {
+				ReactorObject_t* o = openListener(g_Config.domain, g_Config.socktype, option->ip, option->port);
+				if (!o)
+					goto err;
+				reactorCommitCmd(g_ReactorAccept, &o->regcmd);
+			}
+			else if (!strcmp(option->protocol, "http")) {
+				ReactorObject_t* o = openListenerHttp(g_Config.domain, option->ip, option->port);
+				if (!o)
+					goto err;
+				reactorCommitCmd(g_ReactorAccept, &o->regcmd);
+			}
 		}
 	}
 

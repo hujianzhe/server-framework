@@ -1,15 +1,15 @@
 {
-	"ipv6_enable" : 0,
-	"socktype" : "SOCK_DGRAM",
 	"outer_ip" : "127.0.0.1",
 	"listen_options" : [
 		{
 			"protocol" : "inner",
+			"socktype" : "SOCK_DGRAM",
 			"ip" : "127.0.0.1",
 			"port" : 50000
 		},
 		{
 			"protocol" : "http",
+			"socktype" : "SOCK_STREAM",
 			"ip" : "127.0.0.1",
 			"port" : 50001
 		}

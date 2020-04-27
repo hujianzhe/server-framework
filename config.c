@@ -46,6 +46,7 @@ int initConfig(const char* path) {
 				cJSON* protocol = cJSON_Field(childnode, "protocol");
 				cJSON* ipnode = cJSON_Field(childnode, "ip");
 				cJSON* portnode = cJSON_Field(childnode, "port");
+				cJSON* socktype = cJSON_Field(childnode, "socktype");
 				if (!protocol || !ipnode || !portnode) {
 					continue;
 				}
@@ -53,29 +54,16 @@ int initConfig(const char* path) {
 				option_ptr->protocol = strdup(protocol->valuestring);
 				strcpy(option_ptr->ip, ipnode->valuestring);
 				option_ptr->port = portnode->valueint;
+				if (!socktype)
+					option_ptr->socktype = SOCK_STREAM;
+				else if (!strcmp(socktype->valuestring, "SOCK_STREAM"))
+					option_ptr->socktype = SOCK_STREAM;
+				else if (!strcmp(socktype->valuestring, "SOCK_DGRAM"))
+					option_ptr->socktype = SOCK_DGRAM;
+				else
+					option_ptr->socktype = SOCK_STREAM;
 			}
 			g_Config.listen_options_cnt = i;
-		}
-
-		cjson = cJSON_Field(root, "ipv6_enable");
-		if (cjson) {
-			g_Config.domain = cjson->valueint ? AF_INET6 : AF_INET;
-		}
-		else {
-			g_Config.domain = AF_INET;
-		}
-
-		cjson = cJSON_Field(root, "socktype");
-		if (cjson) {
-			if (!strcmp(cjson->valuestring, "SOCK_STREAM"))
-				g_Config.socktype = SOCK_STREAM;
-			else if (!strcmp(cjson->valuestring, "SOCK_DGRAM"))
-				g_Config.socktype = SOCK_DGRAM;
-			else
-				break;
-		}
-		else {
-			g_Config.socktype = SOCK_STREAM;
 		}
 
 		cjson = cJSON_Field(root, "outer_ip");

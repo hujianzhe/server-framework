@@ -5,13 +5,12 @@
 
 typedef struct ConfigListenOption_t {
 	const char* protocol;
+	int socktype;
 	IPString_t ip;
 	unsigned short port;
 } ConfigListenOption_t;
 
 typedef struct Config_t {
-	int domain;
-	int socktype;
 	ConfigListenOption_t* listen_options;
 	unsigned int listen_options_cnt;
 	IPString_t outer_ip;

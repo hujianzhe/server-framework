@@ -142,13 +142,15 @@ int main(int argc, char** argv) {
 		for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {
 			ConfigListenOption_t* option = g_Config.listen_options + listensockinitokcnt;
 			if (!strcmp(option->protocol, "inner")) {
-				ReactorObject_t* o = openListener(g_Config.domain, g_Config.socktype, option->ip, option->port);
+				int domain = ipstrFamily(option->ip);
+				ReactorObject_t* o = openListener(domain, option->socktype, option->ip, option->port);
 				if (!o)
 					goto err;
 				reactorCommitCmd(g_ReactorAccept, &o->regcmd);
 			}
 			else if (!strcmp(option->protocol, "http")) {
-				ReactorObject_t* o = openListenerHttp(g_Config.domain, option->ip, option->port);
+				int domain = ipstrFamily(option->ip);
+				ReactorObject_t* o = openListenerHttp(domain, option->ip, option->port);
 				if (!o)
 					goto err;
 				reactorCommitCmd(g_ReactorAccept, &o->regcmd);

@@ -148,3 +148,15 @@ int reqHttpTest(UserMsg_t* ctrl) {
 	free(reply);
 	return 0;
 }
+
+int unknowRequest(UserMsg_t* ctrl) {
+	if (ctrl->httpframe) {
+		char reply[] = "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n";
+		channelShardSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
+		reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
+	}
+	else {
+	
+	}
+	return 0;
+}

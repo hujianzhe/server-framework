@@ -14,6 +14,8 @@ static void call_dispatch(UserMsg_t* ctrl) {
 	}
 	if (callback)
 		callback(ctrl);
+	else
+		unknowRequest(ctrl);
 	free(ctrl);
 }
 

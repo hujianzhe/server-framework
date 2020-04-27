@@ -26,7 +26,7 @@ void frpc_test_code(Session_t* session) {
 			rpc_item->timeout_ev = rpc_item_timeout_ev;
 			rpc_item_timeout_ev->timestamp_msec = rpc_item->timestamp_msec + 1000;
 			rpc_item_timeout_ev->arg = rpc_item;
-			rpc_item_timeout_ev->callback = (void*)(size_t)1;
+			rpc_item_timeout_ev->callback = (int(*)(struct RBTimerEvent_t*, void*))(size_t)1;
 			rbtimerAddEvent(&g_TimerRpcTimeout, rpc_item_timeout_ev);
 
 			rpc_item = rpcFiberCoreYield(g_RpcFiberCore);
@@ -69,7 +69,7 @@ void arpc_test_code(Session_t* session) {
 			rpc_item->timeout_ev = rpc_item_timeout_ev;
 			rpc_item_timeout_ev->timestamp_msec = rpc_item->timestamp_msec + 1000;
 			rpc_item_timeout_ev->arg = rpc_item;
-			rpc_item_timeout_ev->callback = (void*)(size_t)1;
+			rpc_item_timeout_ev->callback = (int(*)(struct RBTimerEvent_t*, void*))(size_t)1;
 			rbtimerAddEvent(&g_TimerRpcTimeout, rpc_item_timeout_ev);
 		}
 	}

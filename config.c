@@ -71,26 +71,39 @@ int initConfig(const char* path) {
 			strcpy(g_Config.outer_ip, cjson->valuestring);
 		}
 
-		cjson = cJSON_Field(root, "center_addr");
+		cjson = cJSON_Field(root, "connect_options");
 		if (cjson) {
-			cJSON* sub_cjson = cJSON_Field(cjson, "ip");
-			if (sub_cjson)
-				strcpy(g_Config.center_attr.ip, sub_cjson->valuestring);
-			sub_cjson = cJSON_Field(cjson, "port");
-			if (sub_cjson)
-				g_Config.center_attr.port = sub_cjson->valueint;
-			sub_cjson = cJSON_Field(cjson, "socktype");
-			if (sub_cjson) {
-				if (!strcmp(sub_cjson->valuestring, "SOCK_STREAM"))
-					g_Config.center_attr.socktype = SOCK_STREAM;
-				else if (!strcmp(sub_cjson->valuestring, "SOCK_DGRAM"))
-					g_Config.center_attr.socktype = SOCK_DGRAM;
+			int i;
+			cJSON* childnode;
+			g_Config.connect_options_cnt = cJSON_Size(cjson);
+			g_Config.connect_options = (ConfigListenOption_t*)malloc(sizeof(ConfigListenOption_t) * g_Config.connect_options_cnt);
+			if (!g_Config.connect_options) {
+				break;
+			}
+			i = 0;
+			for (childnode = cjson->child; childnode; childnode = childnode->next) {
+				ConfigListenOption_t* option_ptr;
+				cJSON* protocol = cJSON_Field(childnode, "protocol");
+				cJSON* ipnode = cJSON_Field(childnode, "ip");
+				cJSON* portnode = cJSON_Field(childnode, "port");
+				cJSON* socktype = cJSON_Field(childnode, "socktype");
+				if (!protocol || !ipnode || !portnode) {
+					continue;
+				}
+				option_ptr = &g_Config.connect_options[i++];
+				option_ptr->protocol = strdup(protocol->valuestring);
+				strcpy(option_ptr->ip, ipnode->valuestring);
+				option_ptr->port = portnode->valueint;
+				if (!socktype)
+					option_ptr->socktype = SOCK_STREAM;
+				else if (!strcmp(socktype->valuestring, "SOCK_STREAM"))
+					option_ptr->socktype = SOCK_STREAM;
+				else if (!strcmp(socktype->valuestring, "SOCK_DGRAM"))
+					option_ptr->socktype = SOCK_DGRAM;
 				else
-					break;
+					option_ptr->socktype = SOCK_STREAM;
 			}
-			else {
-				g_Config.center_attr.socktype = SOCK_STREAM;
-			}
+			g_Config.connect_options_cnt = i;
 		}
 
 		cjson = cJSON_Field(root, "rpc_fiber");
@@ -127,10 +140,17 @@ void freeConfig(void) {
 	free(g_Config.listen_options);
 	g_Config.listen_options = NULL;
 	g_Config.listen_options_cnt = 0;
+
+	for (i = 0; i < g_Config.connect_options_cnt; ++i) {
+		free((char*)g_Config.connect_options[i].protocol);
+	}
+	free(g_Config.connect_options);
+	g_Config.connect_options = NULL;
+	g_Config.connect_options_cnt = 0;
+	
 	free((char*)g_Config.cluster_name);
 	g_Config.cluster_name = NULL;
 	g_Config.outer_ip[0] = 0;
-	g_Config.center_attr.ip[0] = 0;
 }
 
 #ifdef __cplusplus

@@ -19,9 +19,12 @@
 	"rpc_async" : 0,
 	"tcp_nodelay" : 1,
 	"udp_cwndsize" : 40,
-	"center_addr" : {
-		"socktype" : "SOCK_DGRAM",
-		"ip" : "39.100.213.153",
-		"port" : 50002
-	}
+	"connect_options" : [
+		{
+			"protocol" : "inner",
+			"socktype" : "SOCK_DGRAM",
+			"ip" : "39.100.213.153",
+			"port" : 50000
+		}
+	]
 }

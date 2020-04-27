@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
 	int dqinitok = 0, timerinitok = 0, timerrpcinitok = 0,
 		taskthreadinitok = 0, socketloopinitokcnt = 0,
 		acceptthreadinitok = 0, acceptloopinitok = 0,
-		listensockinitokcnt = 0;
+		listensockinitokcnt = 0, connectsockinitokcnt = 0;
 	//
 	if (!initConfig(argc > 1 ? argv[1] : "config.txt")) {
 		return 1;
@@ -135,37 +135,37 @@ int main(int argc, char** argv) {
 	regNumberDispatch(CMD_NOTIFY_NEW_CLUSTER, notifyNewCluster);
 	regNumberDispatch(CMD_REQ_REMOVE_CLUSTER, reqRemoveCluster);
 	regNumberDispatch(CMD_RET_REMOVE_CLUSTER, retRemoveCluster);
-
 	regStringDispatch("/reqHttpTest", reqHttpTest);
 
-	if (g_Config.listen_options_cnt > 0) {
-		for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {
-			ConfigListenOption_t* option = g_Config.listen_options + listensockinitokcnt;
-			if (!strcmp(option->protocol, "inner")) {
-				int domain = ipstrFamily(option->ip);
-				ReactorObject_t* o = openListener(domain, option->socktype, option->ip, option->port);
-				if (!o)
-					goto err;
-				reactorCommitCmd(g_ReactorAccept, &o->regcmd);
-			}
-			else if (!strcmp(option->protocol, "http")) {
-				int domain = ipstrFamily(option->ip);
-				ReactorObject_t* o = openListenerHttp(domain, option->ip, option->port);
-				if (!o)
-					goto err;
-				reactorCommitCmd(g_ReactorAccept, &o->regcmd);
-			}
+	for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {
+		ConfigListenOption_t* option = g_Config.listen_options + listensockinitokcnt;
+		if (!strcmp(option->protocol, "inner")) {
+			int domain = ipstrFamily(option->ip);
+			ReactorObject_t* o = openListener(domain, option->socktype, option->ip, option->port);
+			if (!o)
+				goto err;
+			reactorCommitCmd(g_ReactorAccept, &o->regcmd);
+		}
+		else if (!strcmp(option->protocol, "http")) {
+			int domain = ipstrFamily(option->ip);
+			ReactorObject_t* o = openListenerHttp(domain, option->ip, option->port);
+			if (!o)
+				goto err;
+			reactorCommitCmd(g_ReactorAccept, &o->regcmd);
 		}
 	}
 
-	if (g_Config.center_attr.ip[0] && g_Config.center_attr.port) {
-		int domain = ipstrFamily(g_Config.center_attr.ip);
+	for (connectsockinitokcnt = 0; connectsockinitokcnt < g_Config.connect_options_cnt; ++connectsockinitokcnt) {
+		ConfigConnectOption_t* option = g_Config.connect_options + connectsockinitokcnt;
 		Sockaddr_t connect_addr;
 		Channel_t* c;
 		ReactorObject_t* o;
-		if (!sockaddrEncode(&connect_addr.st, domain, g_Config.center_attr.ip, g_Config.center_attr.port))
+		if (strcmp(option->protocol, "inner")) {
+			continue;
+		}
+		if (!sockaddrEncode(&connect_addr.st, ipstrFamily(option->ip), option->ip, option->port))
 			goto err;
-		o = reactorobjectOpen(INVALID_FD_HANDLE, domain, g_Config.center_attr.socktype, 0);
+		o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.st.ss_family, option->socktype, 0);
 		if (!o)
 			goto err;
 		c = openChannel(o, CHANNEL_FLAG_CLIENT, &connect_addr);
@@ -173,8 +173,10 @@ int main(int argc, char** argv) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			goto err;
 		}
-		c->_.on_syn_ack = centerChannelConnectCallback;
-		c->on_heartbeat = centerChannelHeartbeat;
+		if (!strcmp(option->protocol, "inner")) {
+			c->_.on_syn_ack = centerChannelConnectCallback;
+			c->on_heartbeat = centerChannelHeartbeat;
+		}
 		printf("channel(%p) connecting......\n", c);
 		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
 	}

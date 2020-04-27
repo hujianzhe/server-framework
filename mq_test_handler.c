@@ -156,7 +156,7 @@ int unknowRequest(UserMsg_t* ctrl) {
 		reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
 	}
 	else {
-	
+		channelShardSend(ctrl->channel, NULL, 0, NETPACKET_FRAGMENT);
 	}
 	return 0;
 }

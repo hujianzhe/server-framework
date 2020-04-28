@@ -1,5 +1,4 @@
-#include "util/inc/component/lengthfieldframe.h"
-#include "mq_msg.h"
+#include "msg_struct.h"
 
 SendMsg_t* makeSendMsg(SendMsg_t* msg, int cmdid, const void* data, unsigned int len) {
 	msg->htonl_cmdid = htonl(cmdid);

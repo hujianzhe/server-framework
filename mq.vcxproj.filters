@@ -24,9 +24,6 @@
     <ClCompile Include="config.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="mq_msg.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="util\src\component\cJSON.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -174,6 +171,9 @@
     <ClCompile Include="rpc_helper.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="msg_struct.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global.h">
@@ -183,9 +183,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="config.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="mq_msg.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\component\cJSON.h">
@@ -342,6 +339,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="rpc_helper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="msg_struct.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

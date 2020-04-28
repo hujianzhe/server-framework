@@ -4,13 +4,13 @@
 #include "util/inc/all.h"
 #include "channel_imp.h"
 #include "dispatch.h"
+#include "msg_struct.h"
 #include "rpc_helper.h"
 #include "session.h"
 #include <stdlib.h>
 
 #include "mq_cmd.h"
 #include "mq_cluster.h"
-#include "mq_msg.h"
 #include "mq_handler.h"
 
 extern volatile int g_Valid;

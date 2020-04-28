@@ -148,7 +148,7 @@
     <ClCompile Include="mq_cluster.c" />
     <ClCompile Include="dispatch.c" />
     <ClCompile Include="mq_cluster_handler.c" />
-    <ClCompile Include="mq_msg.c" />
+    <ClCompile Include="msg_struct.c" />
     <ClCompile Include="rpc_helper.c" />
     <ClCompile Include="session.c" />
     <ClCompile Include="channel_imp.c" />
@@ -203,7 +203,7 @@
     <ClInclude Include="mq_cmd.h" />
     <ClInclude Include="dispatch.h" />
     <ClInclude Include="mq_handler.h" />
-    <ClInclude Include="mq_msg.h" />
+    <ClInclude Include="msg_struct.h" />
     <ClInclude Include="rpc_helper.h" />
     <ClInclude Include="session.h" />
     <ClInclude Include="channel_imp.h" />

@@ -1,5 +1,5 @@
 #include "global.h"
-#include "mq_session.h"
+#include "session.h"
 
 Hashtable_t g_SessionTable;
 static HashtableNode_t* s_SessionBulk[1024];
@@ -25,7 +25,7 @@ Session_t* newSession(void) {
 	if (session) {
 		session->has_reg = 0;
 		session->id = 0;
-		session->cluster = NULL;
+		session->userdata = NULL;
 		listInit(&session->rpc_itemlist);
 	}
 	return session;

@@ -92,14 +92,14 @@ void freeClusterTable(void) {
 
 void clusterBindSession(Cluster_t* cluster, Session_t* session) {
 	cluster->session = session;
-	session->cluster = cluster;
+	sessionCluster(session) = cluster;
 }
 
 Session_t* clusterUnbindSession(Cluster_t* cluster) {
 	if (cluster) {
 		Session_t* session = cluster->session;
 		if (session) {
-			session->cluster = NULL;
+			sessionCluster(session) = NULL;
 		}
 		cluster->session = NULL;
 		return session;

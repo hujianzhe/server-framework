@@ -82,10 +82,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						if (!rpc_item) {
 							continue;
 						}
-						listRemoveNode(&session->rpc_itemlist, &rpc_item->listnode);
-						if (rpc_item->timeout_ev)
-							rbtimerDelEvent(&g_TimerRpcTimeout, (RBTimerEvent_t*)rpc_item->timeout_ev);
-						free(rpc_item);
+						freeRpcItemWhenNormal(session, rpc_item);
 					}
 					else {
 						rpcFiberCoreResumeMsg(g_RpcFiberCore, ctrl);
@@ -98,10 +95,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						if (!rpc_item) {
 							continue;
 						}
-						listRemoveNode(&session->rpc_itemlist, &rpc_item->listnode);
-						if (rpc_item->timeout_ev)
-							rbtimerDelEvent(&g_TimerRpcTimeout, (RBTimerEvent_t*)rpc_item->timeout_ev);
-						free(rpc_item);
+						freeRpcItemWhenNormal(session, rpc_item);
 					}
 					else {
 						call_dispatch(ctrl);
@@ -126,13 +120,19 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					for (cur = session->rpc_itemlist.head; cur; cur = next) {
 						RpcItem_t* rpc_item = pod_container_of(cur, RpcItem_t, listnode);
 						next = cur->next;
-						if (rpc_item->timeout_ev)
+
+						if (rpc_item->timeout_ev) {
 							rbtimerDelEvent(&g_TimerRpcTimeout, (RBTimerEvent_t*)rpc_item->timeout_ev);
+							rpc_item->timeout_ev = NULL;
+						}
+						rpc_item->originator = NULL;
+
 						if (g_RpcFiberCore)
 							rpcFiberCoreCancel(g_RpcFiberCore, rpc_item);
 						else if (g_RpcAsyncCore)
 							rpcAsyncCoreCancel(g_RpcAsyncCore, rpc_item);
-						free(rpc_item);
+
+						freeRpcItem(rpc_item);
 					}
 					listInit(&session->rpc_itemlist);
 					sessionUnbindChannel(session);
@@ -157,8 +157,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				rpcFiberCoreCancel(g_RpcFiberCore, rpc_item);
 			else if (g_RpcAsyncCore)
 				rpcAsyncCoreCancel(g_RpcAsyncCore, rpc_item);
-			listRemoveNode(&session->rpc_itemlist, &rpc_item->listnode);
-			free(rpc_item);
+			freeRpcItemWhenTimeout(rpc_item);
 		}
 		for (cur = rbtimerTimeout(&g_Timer, cur_msec); cur; cur = next) {
 			RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);

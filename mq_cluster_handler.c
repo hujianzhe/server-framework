@@ -40,7 +40,7 @@ int reqReconnectCluster(UserMsg_t* ctrl) {
 		if (!session) {
 			break;
 		}
-		cluster = session->cluster;
+		cluster = (Cluster_t*)sessionCluster(session);
 		if (!cluster) {
 			break;
 		}
@@ -155,7 +155,7 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 				if (channel) {
 					channelShardSendv(channel, NULL, 0, NETPACKET_FIN);
 				}
-				clusterUnbindSession(exist_session->cluster);
+				clusterUnbindSession((Cluster_t*)sessionCluster(exist_session));
 				unregSession(exist_session);
 				freeSession(exist_session);
 			}

@@ -3,16 +3,13 @@
 void frpc_test_code(Session_t* session) {
 	// test code
 	if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-		RBTimerEvent_t* rpc_item_timeout_ev;
-		RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t) + sizeof(RBTimerEvent_t));
+		RpcItem_t* rpc_item = newRpcItem();
 		if (!rpc_item) {
 			return;
 		}
-		rpc_item_timeout_ev = (RBTimerEvent_t*)(rpc_item + 1);
-		rpcItemSet(rpc_item, rpcGenId());
 		if (!rpcFiberCoreRegItem(g_RpcFiberCore, rpc_item)) {
 			printf("rpcid(%d) already send\n", rpc_item->id);
-			free(rpc_item);
+			freeRpcItem(rpc_item);
 		}
 		else {
 			char test_data[] = "this text is from client ^.^";
@@ -20,14 +17,7 @@ void frpc_test_code(Session_t* session) {
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
 			channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
-			listPushNodeBack(&session->rpc_itemlist, &rpc_item->listnode);
-			rpc_item->originator = session;
-			rpc_item->timestamp_msec = gmtimeMillisecond();
-			rpc_item->timeout_ev = rpc_item_timeout_ev;
-			rpc_item_timeout_ev->timestamp_msec = rpc_item->timestamp_msec + 1000;
-			rpc_item_timeout_ev->arg = rpc_item;
-			rpc_item_timeout_ev->callback = (int(*)(struct RBTimerEvent_t*, void*))(size_t)1;
-			rbtimerAddEvent(&g_TimerRpcTimeout, rpc_item_timeout_ev);
+			readyRpcItem(rpc_item, session, 1000);
 
 			rpc_item = rpcFiberCoreYield(g_RpcFiberCore);
 			if (rpc_item->ret_msg) {
@@ -46,16 +36,13 @@ void frpc_test_code(Session_t* session) {
 void arpc_test_code(Session_t* session) {
 	// test code
 	if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
-		RBTimerEvent_t* rpc_item_timeout_ev;
-		RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t) + sizeof(RBTimerEvent_t));
+		RpcItem_t* rpc_item = newRpcItem();
 		if (!rpc_item) {
 			return;
 		}
-		rpc_item_timeout_ev = (RBTimerEvent_t*)(rpc_item + 1);
-		rpcItemSet(rpc_item, rpcGenId());
 		if (!rpcAsyncCoreRegItem(g_RpcAsyncCore, rpc_item, NULL, rpcRetTest)) {
 			printf("rpcid(%d) already send\n", rpc_item->id);
-			free(rpc_item);
+			freeRpcItem(rpc_item);
 		}
 		else {
 			char test_data[] = "this text is from client ^.^";
@@ -63,14 +50,7 @@ void arpc_test_code(Session_t* session) {
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
 			channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
-			listPushNodeBack(&session->rpc_itemlist, &rpc_item->listnode);
-			rpc_item->originator = session;
-			rpc_item->timestamp_msec = gmtimeMillisecond();
-			rpc_item->timeout_ev = rpc_item_timeout_ev;
-			rpc_item_timeout_ev->timestamp_msec = rpc_item->timestamp_msec + 1000;
-			rpc_item_timeout_ev->arg = rpc_item;
-			rpc_item_timeout_ev->callback = (int(*)(struct RBTimerEvent_t*, void*))(size_t)1;
-			rbtimerAddEvent(&g_TimerRpcTimeout, rpc_item_timeout_ev);
+			readyRpcItem(rpc_item, session, 1000);
 		}
 	}
 }

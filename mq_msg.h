@@ -1,7 +1,7 @@
 #ifndef MQ_MSG_H
 #define	MQ_MSG_H
 
-#include "mq_socket.h"
+#include "channel_imp.h"
 
 struct HttpFrame_t;
 typedef struct UserMsg_t {

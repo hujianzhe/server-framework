@@ -1,18 +1,14 @@
-#ifndef MQ_SESSION_H
-#define	MQ_SESSION_H
+#ifndef SESSION_H
+#define	SESSION_H
 
 #include "util/inc/component/channel.h"
-#include "util/inc/component/rbtimer.h"
-#include "util/inc/sysapi/process.h"
-
-struct Cluster_t;
 
 typedef struct Session_t {
 	HashtableNode_t m_htnode;
 	int has_reg;
 	Channel_t* channel;
 	int id;
-	struct Cluster_t* cluster;
+	void* userdata;
 	List_t rpc_itemlist;
 } Session_t;
 
@@ -31,4 +27,4 @@ void freeSessionTable(void);
 void sessionBindChannel(Session_t* session, Channel_t* channel);
 Channel_t* sessionUnbindChannel(Session_t* session);
 
-#endif // !MQ_SESSION_H
+#endif // !SESSION_H

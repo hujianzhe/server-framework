@@ -1,5 +1,6 @@
 #include "config.h"
 #include "global.h"
+#include "channel_imp.h"
 #include <stdio.h>
 
 /*************************************************************************/
@@ -9,7 +10,7 @@ static unsigned int lengthfieldframe_hdrsize(Channel_t* c, unsigned int bodylen)
 	return CHANNEL_BASEHDRSIZE + CHANNEL_EXTHDRSIZE;
 }
 
-static void channel_lengthfieldframe_decode(Channel_t* c, unsigned char* buf, size_t buflen, ChannelInbufDecodeResult_t* decode_result) {
+static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen, ChannelInbufDecodeResult_t* decode_result) {
 	unsigned char* data;
 	unsigned int datalen;
 	int res = lengthfieldframeDecode(CHANNEL_BASEHDRSIZE, buf, buflen, &data, &datalen);
@@ -35,14 +36,14 @@ static void channel_lengthfieldframe_decode(Channel_t* c, unsigned char* buf, si
 	}
 }
 
-static void channel_lengthfieldframe_encode(Channel_t* c, unsigned char* hdr, unsigned int bodylen, unsigned char pktype, unsigned int pkseq) {
+static void innerchannel_encode(Channel_t* c, unsigned char* hdr, unsigned int bodylen, unsigned char pktype, unsigned int pkseq) {
 	bodylen += CHANNEL_EXTHDRSIZE;
 	*(hdr + CHANNEL_BASEHDRSIZE) = pktype;
 	*(unsigned int*)(hdr + CHANNEL_BASEHDRSIZE + 1) = htonl(pkseq);
 	lengthfieldframeEncode(hdr, CHANNEL_BASEHDRSIZE, bodylen);
 }
 
-static void accept_callback(ChannelBase_t* listen_c, FD_t newfd, const void* peer_addr, long long ts_msec) {
+static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const void* peer_addr, long long ts_msec) {
 	Channel_t* listen_channel = pod_container_of(listen_c, Channel_t, _);
 	ReactorObject_t* listen_o = listen_c->o;
 	IPString_t ip;
@@ -64,14 +65,14 @@ static void accept_callback(ChannelBase_t* listen_c, FD_t newfd, const void* pee
 		puts("accept parse sockaddr error");
 }
 
-static void channel_lengthfieldfram_reply_ack(Channel_t* c, unsigned int seq, const void* addr) {
+static void innerchannel_reply_ack(Channel_t* c, unsigned int seq, const void* addr) {
 	unsigned int hdrsize = c->on_hdrsize(c, 0);
 	unsigned char* buf = (unsigned char*)alloca(hdrsize);
 	c->on_encode(c, buf, 0, NETPACKET_ACK, seq);
 	socketWrite(c->_.o->fd, buf, hdrsize, 0, addr, sockaddrLength(addr));
 }
 
-static void channel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResult_t* decode_result) {
+static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResult_t* decode_result) {
 	/*
 	int i;
 	for (i = 0; i < decode_result->bodylen; ++i) {
@@ -157,10 +158,10 @@ Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr) {
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
 	c->on_hdrsize = lengthfieldframe_hdrsize;
-	c->on_decode = channel_lengthfieldframe_decode;
-	c->on_encode = channel_lengthfieldframe_encode;
-	c->dgram.on_reply_ack = channel_lengthfieldfram_reply_ack;
-	c->on_recv = channel_recv;
+	c->on_decode = innerchannel_decode;
+	c->on_encode = innerchannel_encode;
+	c->dgram.on_reply_ack = innerchannel_reply_ack;
+	c->on_recv = innerchannel_recv;
 	flag = c->_.flag;
 	if (flag & CHANNEL_FLAG_CLIENT) {
 		c->heartbeat_timeout_sec = 10;
@@ -204,7 +205,7 @@ ReactorObject_t* openListener(int domain, int socktype, const char* ip, unsigned
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
-	c->_.on_ack_halfconn = accept_callback;
+	c->_.on_ack_halfconn = innerchannel_accept_callback;
 	return o;
 }
 

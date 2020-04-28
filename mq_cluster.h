@@ -15,6 +15,8 @@ typedef struct Cluster_t {
 	unsigned short port;
 } Cluster_t;
 
+#define	sessionCluster(session)		((session)->userdata)
+
 int initClusterTable(void);
 Cluster_t* getCluster(const char* name, const IPString_t ip, unsigned short port);
 int regCluster(const char* name, Cluster_t* cluster);

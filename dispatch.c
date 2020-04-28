@@ -1,5 +1,5 @@
 #include "global.h"
-#include "mq_dispatch.h"
+#include "dispatch.h"
 
 typedef struct DispatchItem_t {
 	HashtableNode_t m_hashnode;

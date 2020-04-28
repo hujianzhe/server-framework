@@ -2,14 +2,16 @@
 #define	GLOBAL_H
 
 #include "util/inc/all.h"
+#include "channel_imp.h"
+#include "dispatch.h"
+#include "rpc_helper.h"
+#include "session.h"
+#include <stdlib.h>
+
 #include "mq_cmd.h"
 #include "mq_cluster.h"
-#include "mq_dispatch.h"
-#include "mq_socket.h"
 #include "mq_msg.h"
-#include "mq_session.h"
 #include "mq_handler.h"
-#include <stdlib.h>
 
 extern volatile int g_Valid;
 extern Thread_t* g_ReactorThreads;

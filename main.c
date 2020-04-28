@@ -125,6 +125,7 @@ int main(int argc, char** argv) {
 	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR)
 		goto err;
 
+	g_DefaultDispatchCallback = unknowRequest;
 	regNumberDispatch(CMD_REQ_TEST, reqTest);
 	regNumberDispatch(CMD_NOTIFY_TEST, notifyTest);
 	regNumberDispatch(CMD_RET_TEST, retTest);

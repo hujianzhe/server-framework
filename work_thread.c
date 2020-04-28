@@ -15,7 +15,7 @@ static void call_dispatch(UserMsg_t* ctrl) {
 	if (callback)
 		callback(ctrl);
 	else
-		unknowRequest(ctrl);
+		g_DefaultDispatchCallback(ctrl);
 	free(ctrl);
 }
 

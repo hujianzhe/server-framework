@@ -16,6 +16,9 @@ static HashtableNode_t* s_StringDispatchBulk[1024];
 static int __strkeycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
 static unsigned int __strkeyhash(const void* key) { return hashBKDR((const char*)key); }
 
+static int default_dispatch_callback(UserMsg_t* m) { return 0; }
+DispatchCallback_t g_DefaultDispatchCallback = default_dispatch_callback;
+
 int initDispatch(void) {
 	hashtableInit(
 		&s_NumberDispatchTable,

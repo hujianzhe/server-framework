@@ -23,8 +23,7 @@ extern DataQueue_t g_DataQueue;
 extern size_t g_ReactorCnt;
 extern RBTimer_t g_Timer;
 extern RBTimer_t g_TimerRpcTimeout;
-extern List_t g_ClusterList;
-extern Hashtable_t g_ClusterTable;
+extern DispatchCallback_t g_DefaultDispatchCallback;
 extern Hashtable_t g_SessionTable;
 extern RpcFiberCore_t* g_RpcFiberCore;
 extern RpcAsyncCore_t* g_RpcAsyncCore;
@@ -32,5 +31,8 @@ extern RpcAsyncCore_t* g_RpcAsyncCore;
 int initGlobalResource(void);
 void freeGlobalResource(void);
 Reactor_t* selectReactor(size_t key);
+
+extern List_t g_ClusterList;
+extern Hashtable_t g_ClusterTable;
 
 #endif // !GLOBAL_H

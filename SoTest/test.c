@@ -30,7 +30,15 @@ int reqSoTest(UserMsg_t* ctrl) {
 	return 0;
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 __declspec_dllexport int init(int argc, char** argv) {
 	regStringDispatch("/reqSoTest", reqSoTest);
 	return 1;
 }
+
+#ifdef __cplusplus
+}
+#endif

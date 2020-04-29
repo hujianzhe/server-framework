@@ -1,5 +1,9 @@
 #include "msg_struct.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 SendMsg_t* makeSendMsg(SendMsg_t* msg, int cmdid, const void* data, unsigned int len) {
 	msg->htonl_cmdid = htonl(cmdid);
 	msg->rpc_status = 0;
@@ -37,3 +41,7 @@ SendMsg_t* makeSendMsgEmpty(SendMsg_t* msg) {
 	}
 	return msg;
 }
+
+#ifdef __cplusplus
+}
+#endif

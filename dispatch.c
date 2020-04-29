@@ -19,6 +19,10 @@ static unsigned int __strkeyhash(const void* key) { return hashBKDR((const char*
 static int default_dispatch_callback(UserMsg_t* m) { return 0; }
 DispatchCallback_t g_DefaultDispatchCallback = default_dispatch_callback;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int initDispatch(void) {
 	hashtableInit(
 		&s_NumberDispatchTable,
@@ -111,3 +115,7 @@ void freeDispatchCallback(void) {
 	}
 	hashtableInit(&s_StringDispatchTable, s_StringDispatchBulk, sizeof(s_StringDispatchBulk) / sizeof(s_StringDispatchBulk[0]), NULL, NULL);
 }
+
+#ifdef __cplusplus
+}
+#endif

@@ -3,6 +3,10 @@
 #include "channel_imp.h"
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*************************************************************************/
 static const unsigned int CHANNEL_BASEHDRSIZE = 4;
 static const unsigned int CHANNEL_EXTHDRSIZE = 5;
@@ -366,3 +370,7 @@ ReactorObject_t* openListenerHttp(int domain, const char* ip, unsigned short por
 	c->_.on_ack_halfconn = http_accept_callback;
 	return o;
 }
+
+#ifdef __cplusplus
+}
+#endif

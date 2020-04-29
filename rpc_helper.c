@@ -1,5 +1,9 @@
 #include "global.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 RpcItem_t* newRpcItem(void) {
 	RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t) + sizeof(RBTimerEvent_t));
 	if (rpc_item) {
@@ -51,3 +55,7 @@ RpcItem_t* readyRpcItem(RpcItem_t* rpc_item, Session_t* session, long long timeo
 	rpc_item->originator = session;
 	return rpc_item;
 }
+
+#ifdef __cplusplus
+}
+#endif

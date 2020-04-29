@@ -7,6 +7,10 @@ static Atom32_t CHANNEL_SESSION_ID = 0;
 static int __keycmp(const void* node_key, const void* key) { return node_key != key; }
 static unsigned int __keyhash(const void* key) { return (ptrlen_t)key; }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int initSessionTable(void) {
 	hashtableInit(&g_SessionTable, s_SessionBulk, sizeof(s_SessionBulk) / sizeof(s_SessionBulk[0]), __keycmp, __keyhash);
 	return 1;
@@ -85,3 +89,7 @@ Channel_t* sessionUnbindChannel(Session_t* session) {
 	}
 	return NULL;
 }
+
+#ifdef __cplusplus
+}
+#endif

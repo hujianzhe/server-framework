@@ -16,15 +16,15 @@ typedef struct Session_t {
 #define	channelSessionId(channel)	((channel)->userid32)
 
 int initSessionTable(void);
-int allocSessionId(void);
-Session_t* newSession(void);
-Session_t* getSession(int id);
-void regSession(int id, Session_t* session);
-Session_t* unregSession(Session_t* session);
-void freeSession(Session_t* session);
+__declspec_dll int allocSessionId(void);
+__declspec_dll Session_t* newSession(void);
+__declspec_dll Session_t* getSession(int id);
+__declspec_dll void regSession(int id, Session_t* session);
+__declspec_dll Session_t* unregSession(Session_t* session);
+__declspec_dll void freeSession(Session_t* session);
 void freeSessionTable(void);
 
-void sessionBindChannel(Session_t* session, Channel_t* channel);
-Channel_t* sessionUnbindChannel(Session_t* session);
+__declspec_dll void sessionBindChannel(Session_t* session, Channel_t* channel);
+__declspec_dll Channel_t* sessionUnbindChannel(Session_t* session);
 
 #endif // !SESSION_H

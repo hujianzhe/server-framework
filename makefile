@@ -7,7 +7,7 @@ TARGET_PATH += .
 
 COMPILE_OPTION := -Wno-deprecated -Wno-parentheses
 MACRO := -D_REENTRANT
-DLL_PATH := -Wl,-rpath,./:$(TARGET_PATH)
+DLL_PATH := -Wl,-E,-rpath,./:$(TARGET_PATH)
 
 DEFAULT_LINK := -lpthread -lm -ldl
 ifeq ($(shell uname), Linux)

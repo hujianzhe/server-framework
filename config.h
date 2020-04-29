@@ -17,6 +17,7 @@ typedef struct Config_t {
 	unsigned int connect_options_cnt;
 	IPString_t outer_ip;
 	const char* cluster_name;
+	const char* module_path;
 	int rpc_fiber;
 	int rpc_async;
 	int tcp_nodelay;

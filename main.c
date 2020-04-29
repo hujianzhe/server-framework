@@ -76,6 +76,8 @@ int main(int argc, char** argv) {
 		taskthreadinitok = 0, socketloopinitokcnt = 0,
 		acceptthreadinitok = 0, acceptloopinitok = 0,
 		listensockinitokcnt = 0, connectsockinitokcnt = 0;
+	void* module_ptr = NULL;
+	void(*module_destroy_fn_ptr)(void) = NULL;
 	//
 	if (!initConfig(argc > 1 ? argv[1] : "config.txt")) {
 		return 1;
@@ -182,6 +184,26 @@ int main(int argc, char** argv) {
 		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
 	}
 	//
+	if (g_Config.module_path) {
+		int(*init_fn_ptr)(int, char**);
+		module_ptr = moduleLoad(g_Config.module_path);
+		if (!module_ptr) {
+			printf("moduleLoad(%s) failure\n", g_Config.module_path);
+			goto err;
+		}
+		module_destroy_fn_ptr = (void(*)(void))moduleSymbolAddress(module_ptr, "destroy");
+
+		init_fn_ptr = (int(*)(int, char**))moduleSymbolAddress(module_ptr, "init");
+		if (!init_fn_ptr) {
+			printf("moduleSymbolAddress(%s, \"init\") failure\n", g_Config.module_path);
+			goto err;
+		}
+		if (!init_fn_ptr(argc, argv)) {
+			printf("(%s).init(argc, argv) return failure\n", g_Config.module_path);
+			goto err;
+		}
+	}
+	//
 	threadJoin(g_TaskThread, NULL);
 	threadJoin(*g_ReactorAcceptThread, NULL);
 	reactorDestroy(g_ReactorAccept);
@@ -215,6 +237,13 @@ end:
 	}
 	if (timerrpcinitok) {
 		rbtimerDestroy(&g_TimerRpcTimeout);
+	}
+	if (module_ptr) {
+		if (module_destroy_fn_ptr) {
+			module_destroy_fn_ptr();
+			module_destroy_fn_ptr = NULL;
+		}
+		moduleUnload(module_ptr);
 	}
 	freeConfig();
 	freeDispatchCallback();

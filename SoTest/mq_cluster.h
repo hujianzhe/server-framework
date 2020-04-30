@@ -1,7 +1,7 @@
 #ifndef MQ_CLUSTER_H
 #define	MQ_CLUSTER_H
 
-#include "../util/inc/component/channel.h"
+#include "../BootServer/util/inc/component/channel.h"
 
 extern List_t g_ClusterList;
 extern Hashtable_t g_ClusterTable;

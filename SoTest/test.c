@@ -1,12 +1,12 @@
-#include "../config.h"
-#include "../global.h"
+#include "../BootServer/config.h"
+#include "../BootServer/global.h"
 #include "mq_cmd.h"
 #include "mq_cluster.h"
 #include "mq_handler.h"
 #include <stdio.h>
 
 #if defined(_WIN32) || defined(_WIN64)
-#pragma comment(lib,"mq.lib")
+#pragma comment(lib, "BootServer.lib")
 #endif
 
 int reqSoTest(UserMsg_t* ctrl) {

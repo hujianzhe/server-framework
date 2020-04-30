@@ -15,6 +15,7 @@
 		}
 	],
 	"cluster_name" : "game0",
+	"module_path" : "./SoTest.dll",
 	"rpc_fiber" : 1,
 	"rpc_async" : 0,
 	"tcp_nodelay" : 1,

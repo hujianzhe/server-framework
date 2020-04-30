@@ -1,4 +1,4 @@
-#include "../global.h"
+#include "../BootServer/global.h"
 #include "mq_cmd.h"
 #include "mq_cluster.h"
 #include "mq_handler.h"

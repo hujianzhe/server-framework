@@ -31,4 +31,4 @@ core.*
 *.TMP
 *.psess
 *.vspx
-/util
+/BootServer/util

@@ -1,0 +1,254 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CA93C673-968E-4916-BB23-C714E02CDB44}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>BootServer</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;DECLSPEC_DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="channel_imp.h" />
+    <ClInclude Include="config.h" />
+    <ClInclude Include="dispatch.h" />
+    <ClInclude Include="global.h" />
+    <ClInclude Include="msg_struct.h" />
+    <ClInclude Include="rpc_helper.h" />
+    <ClInclude Include="session.h" />
+    <ClInclude Include="util\inc\all.h" />
+    <ClInclude Include="util\inc\compiler_define.h" />
+    <ClInclude Include="util\inc\component\channel.h" />
+    <ClInclude Include="util\inc\component\cJSON.h" />
+    <ClInclude Include="util\inc\component\collision_detection.h" />
+    <ClInclude Include="util\inc\component\cXML.h" />
+    <ClInclude Include="util\inc\component\dataqueue.h" />
+    <ClInclude Include="util\inc\component\db.h" />
+    <ClInclude Include="util\inc\component\httpframe.h" />
+    <ClInclude Include="util\inc\component\lengthfieldframe.h" />
+    <ClInclude Include="util\inc\component\log.h" />
+    <ClInclude Include="util\inc\component\memheap_mt.h" />
+    <ClInclude Include="util\inc\component\rbtimer.h" />
+    <ClInclude Include="util\inc\component\reactor.h" />
+    <ClInclude Include="util\inc\component\rpc_core.h" />
+    <ClInclude Include="util\inc\component\websocketframe.h" />
+    <ClInclude Include="util\inc\datastruct\base64.h" />
+    <ClInclude Include="util\inc\datastruct\bstree.h" />
+    <ClInclude Include="util\inc\datastruct\graph.h" />
+    <ClInclude Include="util\inc\datastruct\hash.h" />
+    <ClInclude Include="util\inc\datastruct\hashtable.h" />
+    <ClInclude Include="util\inc\datastruct\list.h" />
+    <ClInclude Include="util\inc\datastruct\memfunc.h" />
+    <ClInclude Include="util\inc\datastruct\memheap.h" />
+    <ClInclude Include="util\inc\datastruct\random.h" />
+    <ClInclude Include="util\inc\datastruct\rbtree.h" />
+    <ClInclude Include="util\inc\datastruct\sha1.h" />
+    <ClInclude Include="util\inc\datastruct\sort.h" />
+    <ClInclude Include="util\inc\datastruct\transport_ctx.h" />
+    <ClInclude Include="util\inc\datastruct\tree.h" />
+    <ClInclude Include="util\inc\datastruct\url.h" />
+    <ClInclude Include="util\inc\platform_define.h" />
+    <ClInclude Include="util\inc\sysapi\assert.h" />
+    <ClInclude Include="util\inc\sysapi\atomic.h" />
+    <ClInclude Include="util\inc\sysapi\error.h" />
+    <ClInclude Include="util\inc\sysapi\file.h" />
+    <ClInclude Include="util\inc\sysapi\io.h" />
+    <ClInclude Include="util\inc\sysapi\ipc.h" />
+    <ClInclude Include="util\inc\sysapi\math.h" />
+    <ClInclude Include="util\inc\sysapi\misc.h" />
+    <ClInclude Include="util\inc\sysapi\mmap.h" />
+    <ClInclude Include="util\inc\sysapi\process.h" />
+    <ClInclude Include="util\inc\sysapi\socket.h" />
+    <ClInclude Include="util\inc\sysapi\statistics.h" />
+    <ClInclude Include="util\inc\sysapi\terminal.h" />
+    <ClInclude Include="util\inc\sysapi\time.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="channel_imp.c" />
+    <ClCompile Include="config.c" />
+    <ClCompile Include="dispatch.c" />
+    <ClCompile Include="global.c" />
+    <ClCompile Include="main.c" />
+    <ClCompile Include="msg_struct.c" />
+    <ClCompile Include="rpc_helper.c" />
+    <ClCompile Include="session.c" />
+    <ClCompile Include="util\src\component\channel.c" />
+    <ClCompile Include="util\src\component\cJSON.c" />
+    <ClCompile Include="util\src\component\collision_detection.c" />
+    <ClCompile Include="util\src\component\cXML.c" />
+    <ClCompile Include="util\src\component\dataqueue.c" />
+    <ClCompile Include="util\src\component\db.c" />
+    <ClCompile Include="util\src\component\httpframe.c" />
+    <ClCompile Include="util\src\component\lengthfieldframe.c" />
+    <ClCompile Include="util\src\component\log.c" />
+    <ClCompile Include="util\src\component\memheap_mt.c" />
+    <ClCompile Include="util\src\component\rbtimer.c" />
+    <ClCompile Include="util\src\component\reactor.c" />
+    <ClCompile Include="util\src\component\rpc_core.c" />
+    <ClCompile Include="util\src\component\websocketframe.c" />
+    <ClCompile Include="util\src\datastruct\base64.c" />
+    <ClCompile Include="util\src\datastruct\bstree.c" />
+    <ClCompile Include="util\src\datastruct\graph.c" />
+    <ClCompile Include="util\src\datastruct\hash.c" />
+    <ClCompile Include="util\src\datastruct\hashtable.c" />
+    <ClCompile Include="util\src\datastruct\list.c" />
+    <ClCompile Include="util\src\datastruct\memfunc.c" />
+    <ClCompile Include="util\src\datastruct\memheap.c" />
+    <ClCompile Include="util\src\datastruct\random.c" />
+    <ClCompile Include="util\src\datastruct\rbtree.c" />
+    <ClCompile Include="util\src\datastruct\sha1.c" />
+    <ClCompile Include="util\src\datastruct\sort.c" />
+    <ClCompile Include="util\src\datastruct\transport_ctx.c" />
+    <ClCompile Include="util\src\datastruct\tree.c" />
+    <ClCompile Include="util\src\datastruct\url.c" />
+    <ClCompile Include="util\src\sysapi\error.c" />
+    <ClCompile Include="util\src\sysapi\file.c" />
+    <ClCompile Include="util\src\sysapi\io.c" />
+    <ClCompile Include="util\src\sysapi\ipc.c" />
+    <ClCompile Include="util\src\sysapi\math.c" />
+    <ClCompile Include="util\src\sysapi\misc.c" />
+    <ClCompile Include="util\src\sysapi\mmap.c" />
+    <ClCompile Include="util\src\sysapi\process.c" />
+    <ClCompile Include="util\src\sysapi\socket.c" />
+    <ClCompile Include="util\src\sysapi\statistics.c" />
+    <ClCompile Include="util\src\sysapi\terminal.c" />
+    <ClCompile Include="util\src\sysapi\time.c" />
+    <ClCompile Include="work_thread.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

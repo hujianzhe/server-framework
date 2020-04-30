@@ -1,4 +1,6 @@
-#include "global.h"
+#include "../global.h"
+#include "mq_cmd.h"
+#include "mq_handler.h"
 
 void frpc_test_code(Session_t* session) {
 	// test code
@@ -7,7 +9,7 @@ void frpc_test_code(Session_t* session) {
 		if (!rpc_item) {
 			return;
 		}
-		if (!rpcFiberCoreRegItem(g_RpcFiberCore, rpc_item)) {
+		if (!rpcFiberCoreRegItem(ptr_g_RpcFiberCore(), rpc_item)) {
 			printf("rpcid(%d) already send\n", rpc_item->id);
 			freeRpcItem(rpc_item);
 		}
@@ -19,7 +21,7 @@ void frpc_test_code(Session_t* session) {
 
 			readyRpcItem(rpc_item, session, 1000);
 
-			rpc_item = rpcFiberCoreYield(g_RpcFiberCore);
+			rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
 			if (rpc_item->ret_msg) {
 				UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
 				long long cost_msec = gmtimeMillisecond() - rpc_item->timestamp_msec;
@@ -40,7 +42,7 @@ void arpc_test_code(Session_t* session) {
 		if (!rpc_item) {
 			return;
 		}
-		if (!rpcAsyncCoreRegItem(g_RpcAsyncCore, rpc_item, NULL, rpcRetTest)) {
+		if (!rpcAsyncCoreRegItem(ptr_g_RpcAsyncCore(), rpc_item, NULL, rpcRetTest)) {
 			printf("rpcid(%d) already send\n", rpc_item->id);
 			freeRpcItem(rpc_item);
 		}
@@ -78,9 +80,9 @@ int notifyTest(UserMsg_t* ctrl) {
 	Session_t* session = (Session_t*)channelSession(ctrl->channel);
 	printf("recv server test notify, recv msec = %lld\n", gmtimeMillisecond());
 	// test code
-	if (g_RpcFiberCore)
+	if (ptr_g_RpcFiberCore())
 		frpc_test_code(session);
-	else if (g_RpcAsyncCore)
+	else if (ptr_g_RpcAsyncCore())
 		arpc_test_code(session);
 
 	return 0;

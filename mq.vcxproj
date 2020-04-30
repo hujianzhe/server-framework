@@ -145,14 +145,11 @@
     <ClCompile Include="config.c" />
     <ClCompile Include="global.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="mq_cluster.c" />
     <ClCompile Include="dispatch.c" />
-    <ClCompile Include="mq_cluster_handler.c" />
     <ClCompile Include="msg_struct.c" />
     <ClCompile Include="rpc_helper.c" />
     <ClCompile Include="session.c" />
     <ClCompile Include="channel_imp.c" />
-    <ClCompile Include="mq_test_handler.c" />
     <ClCompile Include="work_thread.c" />
     <ClCompile Include="util\src\component\channel.c" />
     <ClCompile Include="util\src\component\cJSON.c" />
@@ -199,10 +196,7 @@
   <ItemGroup>
     <ClInclude Include="config.h" />
     <ClInclude Include="global.h" />
-    <ClInclude Include="mq_cluster.h" />
-    <ClInclude Include="mq_cmd.h" />
     <ClInclude Include="dispatch.h" />
-    <ClInclude Include="mq_handler.h" />
     <ClInclude Include="msg_struct.h" />
     <ClInclude Include="rpc_helper.h" />
     <ClInclude Include="session.h" />

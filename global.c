@@ -13,6 +13,10 @@ RBTimer_t g_TimerRpcTimeout;
 RpcFiberCore_t* g_RpcFiberCore;
 RpcAsyncCore_t* g_RpcAsyncCore;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int initGlobalResource(void) {
 	size_t nbytes;
 	if (!networkSetupEnv())
@@ -43,3 +47,13 @@ void freeGlobalResource(void) {
 Reactor_t* selectReactor(size_t key) {
 	return &g_Reactors[key % g_ReactorCnt];
 }
+
+RBTimer_t* ptr_g_Timer(void) { return &g_Timer; }
+void set_g_DefaultDispatchCallback(DispatchCallback_t fn) { g_DefaultDispatchCallback = fn; }
+Hashtable_t* ptr_g_SessionTable(void) { return &g_SessionTable; }
+RpcFiberCore_t* ptr_g_RpcFiberCore(void) { return g_RpcFiberCore; }
+RpcAsyncCore_t* ptr_g_RpcAsyncCore(void) { return g_RpcAsyncCore; }
+
+#ifdef __cplusplus
+}
+#endif

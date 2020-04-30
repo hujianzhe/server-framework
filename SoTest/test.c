@@ -1,4 +1,7 @@
 #include "../global.h"
+#include "mq_cmd.h"
+#include "mq_cluster.h"
+#include "mq_handler.h"
 #include <stdio.h>
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -35,8 +38,26 @@ extern "C" {
 #endif
 
 __declspec_dllexport int init(int argc, char** argv) {
+	initClusterTable();
+
+	set_g_DefaultDispatchCallback(unknowRequest);
+	regNumberDispatch(CMD_REQ_TEST, reqTest);
+	regNumberDispatch(CMD_NOTIFY_TEST, notifyTest);
+	regNumberDispatch(CMD_RET_TEST, retTest);
+	regNumberDispatch(CMD_REQ_RECONNECT, reqReconnectCluster);
+	regNumberDispatch(CMD_RET_RECONNECT, retReconnect);
+	regNumberDispatch(CMD_REQ_UPLOAD_CLUSTER, reqUploadCluster);
+	regNumberDispatch(CMD_RET_UPLOAD_CLUSTER, retUploadCluster);
+	regNumberDispatch(CMD_NOTIFY_NEW_CLUSTER, notifyNewCluster);
+	regNumberDispatch(CMD_REQ_REMOVE_CLUSTER, reqRemoveCluster);
+	regNumberDispatch(CMD_RET_REMOVE_CLUSTER, retRemoveCluster);
+	regStringDispatch("/reqHttpTest", reqHttpTest);
 	regStringDispatch("/reqSoTest", reqSoTest);
 	return 1;
+}
+
+__declspec_dllexport void destroy(void) {
+	freeClusterTable();
 }
 
 #ifdef __cplusplus

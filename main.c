@@ -52,13 +52,13 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 	if (c->connected_times > 1) {
 		unsigned short port = g_Config.listen_options ? g_Config.listen_options[0].port : 0;
 		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"session_id\":%d}", g_Config.cluster_name, g_Config.outer_ip, port, channelSessionId(channel));
-		makeSendMsg(&msg, CMD_REQ_RECONNECT, buffer, strlen(buffer));
+		makeSendMsg(&msg, 1, buffer, strlen(buffer));
 		channelShardSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN);
 	}
 	else {
 		unsigned short port = g_Config.listen_options ? g_Config.listen_options[0].port : 0;
 		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", g_Config.cluster_name, g_Config.outer_ip, port);
-		makeSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
+		makeSendMsg(&msg, 3, buffer, strlen(buffer));
 		channelShardSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		/*
 		int i = 0;
@@ -89,7 +89,6 @@ int main(int argc, char** argv) {
 	}
 
 	initDispatch();
-	initClusterTable();
 	initSessionTable();
 
 	if (!dataqueueInit(&g_DataQueue))
@@ -126,19 +125,6 @@ int main(int argc, char** argv) {
 
 	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR)
 		goto err;
-
-	g_DefaultDispatchCallback = unknowRequest;
-	regNumberDispatch(CMD_REQ_TEST, reqTest);
-	regNumberDispatch(CMD_NOTIFY_TEST, notifyTest);
-	regNumberDispatch(CMD_RET_TEST, retTest);
-	regNumberDispatch(CMD_REQ_RECONNECT, reqReconnectCluster);
-	regNumberDispatch(CMD_RET_RECONNECT, retReconnect);
-	regNumberDispatch(CMD_REQ_UPLOAD_CLUSTER, reqUploadCluster);
-	regNumberDispatch(CMD_RET_UPLOAD_CLUSTER, retUploadCluster);
-	regNumberDispatch(CMD_NOTIFY_NEW_CLUSTER, notifyNewCluster);
-	regNumberDispatch(CMD_REQ_REMOVE_CLUSTER, reqRemoveCluster);
-	regNumberDispatch(CMD_RET_REMOVE_CLUSTER, retRemoveCluster);
-	regStringDispatch("/reqHttpTest", reqHttpTest);
 
 	for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {
 		ConfigListenOption_t* option = g_Config.listen_options + listensockinitokcnt;
@@ -248,7 +234,6 @@ end:
 	freeConfig();
 	freeDispatchCallback();
 	freeSessionTable();
-	freeClusterTable();
 	freeGlobalResource();
 	return 0;
 }

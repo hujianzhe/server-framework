@@ -9,10 +9,6 @@
 #include "session.h"
 #include <stdlib.h>
 
-#include "mq_cmd.h"
-#include "mq_cluster.h"
-#include "mq_handler.h"
-
 extern volatile int g_Valid;
 extern Thread_t* g_ReactorThreads;
 extern Thread_t* g_ReactorAcceptThread;
@@ -28,11 +24,21 @@ extern Hashtable_t g_SessionTable;
 extern RpcFiberCore_t* g_RpcFiberCore;
 extern RpcAsyncCore_t* g_RpcAsyncCore;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int initGlobalResource(void);
 void freeGlobalResource(void);
-Reactor_t* selectReactor(size_t key);
+__declspec_dll Reactor_t* selectReactor(size_t key);
+__declspec_dll RBTimer_t* ptr_g_Timer(void);
+__declspec_dll void set_g_DefaultDispatchCallback(DispatchCallback_t fn);
+__declspec_dll Hashtable_t* ptr_g_SessionTable(void);
+__declspec_dll RpcFiberCore_t* ptr_g_RpcFiberCore(void);
+__declspec_dll RpcAsyncCore_t* ptr_g_RpcAsyncCore(void);
 
-extern List_t g_ClusterList;
-extern Hashtable_t g_ClusterTable;
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !GLOBAL_H

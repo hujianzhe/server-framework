@@ -19,5 +19,4 @@ extern int notifyNewCluster(UserMsg_t*);
 extern int reqRemoveCluster(UserMsg_t*);
 extern int retRemoveCluster(UserMsg_t*);
 
-
 #endif

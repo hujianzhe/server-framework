@@ -1,4 +1,7 @@
-#include "global.h"
+#include "../global.h"
+#include "mq_cmd.h"
+#include "mq_cluster.h"
+#include "mq_handler.h"
 #include <stdio.h>
 
 int reqReconnectCluster(UserMsg_t* ctrl) {
@@ -290,9 +293,9 @@ int retUploadCluster(UserMsg_t* ctrl) {
 	// test code
 	{
 		Session_t* session = (Session_t*)channelSession(ctrl->channel);
-		if (g_RpcFiberCore)
+		if (ptr_g_RpcFiberCore())
 			frpc_test_code(session);
-		else if (g_RpcAsyncCore)
+		else if (ptr_g_RpcAsyncCore())
 			arpc_test_code(session);
 	}
 

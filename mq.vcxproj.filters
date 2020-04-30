@@ -138,16 +138,7 @@
     <ClCompile Include="util\src\component\memheap_mt.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="mq_cluster.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="mq_cluster_handler.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="util\src\datastruct\memfunc.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="mq_test_handler.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\rpc_core.c">
@@ -177,9 +168,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="mq_cmd.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="config.h">
@@ -314,16 +302,10 @@
     <ClInclude Include="util\inc\component\memheap_mt.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="mq_cluster.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\datastruct\memfunc.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\component\rpc_core.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="mq_handler.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\sysapi\misc.h">

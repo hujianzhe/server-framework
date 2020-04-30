@@ -162,12 +162,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		for (cur = rbtimerTimeout(&g_Timer, cur_msec); cur; cur = next) {
 			RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
 			next = cur->next;
-			if (e->callback(e, e->arg)) {
-				rbtimerAddEvent(&g_Timer, e);
-			}
-			else {
-				free(e);
-			}
+			e->callback(e, e->arg);
 		}
 		timer_min_msec[0] = rbtimerMiniumTimestamp(&g_Timer);
 		timer_min_msec[1] = rbtimerMiniumTimestamp(&g_TimerRpcTimeout);

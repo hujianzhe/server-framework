@@ -31,6 +31,7 @@ extern "C" {
 int initGlobalResource(void);
 void freeGlobalResource(void);
 __declspec_dll Reactor_t* selectReactor(size_t key);
+__declspec_dll DataQueue_t* ptr_g_DataQueue(void);
 __declspec_dll RBTimer_t* ptr_g_Timer(void);
 __declspec_dll void set_g_DefaultDispatchCallback(DispatchCallback_t fn);
 __declspec_dll Hashtable_t* ptr_g_SessionTable(void);

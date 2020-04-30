@@ -2,4 +2,4 @@
 EXEC_PATH=.
 ulimit -c unlimited
 
-${EXEC_PATH}/mq_server.exe &
+${EXEC_PATH}/BootServer.exe &

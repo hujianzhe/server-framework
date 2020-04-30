@@ -163,6 +163,8 @@ void freeConfig(void) {
 	g_Config.outer_ip[0] = 0;
 }
 
+Config_t* ptr_g_Config(void) { return &g_Config; }
+
 #ifdef __cplusplus
 }
 #endif

@@ -10,6 +10,8 @@ typedef struct Session_t {
 	int id;
 	void* userdata;
 	List_t rpc_itemlist;
+	unsigned int expire_timeout_msec;
+	RBTimerEvent_t* expire_timeout_ev;
 } Session_t;
 
 #define	channelSession(channel)		((channel)->userdata)
@@ -25,7 +27,7 @@ __declspec_dll Session_t* newSession(void);
 __declspec_dll Session_t* getSession(int id);
 __declspec_dll void regSession(int id, Session_t* session);
 __declspec_dll Session_t* unregSession(Session_t* session);
-__declspec_dll void freeSession(Session_t* session);
+void freeSession(Session_t* session);
 void freeSessionTable(void);
 
 __declspec_dll void sessionBindChannel(Session_t* session, Channel_t* channel);

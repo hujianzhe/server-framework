@@ -19,6 +19,14 @@ static void call_dispatch(UserMsg_t* ctrl) {
 	free(ctrl);
 }
 
+static int session_expire_timeout_callback(RBTimerEvent_t* e, void* arg) {
+	Session_t* session = (Session_t*)arg;
+	unregSession(session);
+	freeSession(session);
+	free(e);
+	return 0;
+}
+
 static void msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 	call_dispatch(ctrl);
 }
@@ -136,6 +144,23 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					}
 					listInit(&session->rpc_itemlist);
 					sessionUnbindChannel(session);
+					do {
+						if (session->expire_timeout_msec > 0) {
+							RBTimerEvent_t* e = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
+							if (e) {
+								e->arg = session;
+								e->callback = session_expire_timeout_callback;
+								e->timestamp_msec = gmtimeMillisecond() + session->expire_timeout_msec;
+								session->expire_timeout_ev = e;
+								if (rbtimerAddEvent(&g_Timer, e)) {
+									break;
+								}
+								free(e);
+							}
+						}
+						unregSession(session);
+						freeSession(session);
+					} while (0);
 				}
 				channelDestroy(channel);
 				reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);

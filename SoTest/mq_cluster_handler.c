@@ -154,13 +154,12 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 		do {
 			Session_t* exist_session = getSession(session_id);
 			if (exist_session) {
-				Channel_t* channel = sessionUnbindChannel(exist_session);
+				Channel_t* channel = exist_session->channel;
 				if (channel) {
 					channelShardSendv(channel, NULL, 0, NETPACKET_FIN);
 				}
 				clusterUnbindSession((Cluster_t*)sessionCluster(exist_session));
 				unregSession(exist_session);
-				freeSession(exist_session);
 			}
 		} while (0);
 
@@ -168,26 +167,25 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 		if (cluster) {
 			Session_t* cluster_session = clusterUnbindSession(cluster);
 			if (cluster_session) {
-				Channel_t* channel = sessionUnbindChannel(cluster_session);
+				Channel_t* channel = cluster_session->channel;
 				if (channel) {
 					channelShardSendv(channel, NULL, 0, NETPACKET_FIN);
 				}
 				unregSession(cluster_session);
-				freeSession(cluster_session);
 			}
 		}
 		else {
 			cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
 			if (!cluster) {
-				freeSession(session);
+				channelShardSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 				fputs("malloc", stderr);
 				break;
 			}
 			strcpy(cluster->ip, cjson_ip->valuestring);
 			cluster->port = cjson_port->valueint;
 			if (!regCluster(cjson_name->valuestring, cluster)) {
-				freeSession(session);
 				free(cluster);
+				channelShardSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 				fputs("regCluster", stderr);
 				break;
 			}

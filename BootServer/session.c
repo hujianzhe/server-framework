@@ -31,6 +31,8 @@ Session_t* newSession(void) {
 		session->id = 0;
 		session->userdata = NULL;
 		listInit(&session->rpc_itemlist);
+		session->expire_timeout_msec = 0;
+		session->expire_timeout_ev = NULL;
 	}
 	return session;
 }

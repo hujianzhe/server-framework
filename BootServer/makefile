@@ -20,7 +20,7 @@ else
 COMPILER := gcc
 endif
 
-TARGET := $(TARGET_PATH)/mq_server.exe
+TARGET := $(TARGET_PATH)/BootServer.exe
 
 all:
 

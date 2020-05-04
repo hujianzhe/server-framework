@@ -28,6 +28,7 @@ Session_t* newSession(void) {
 	Session_t* session = (Session_t*)malloc(sizeof(Session_t));
 	if (session) {
 		session->has_reg = 0;
+		session->persist = 0;
 		session->id = 0;
 		session->userdata = NULL;
 		listInit(&session->rpc_itemlist);

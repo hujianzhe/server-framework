@@ -145,6 +145,8 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					listInit(&session->rpc_itemlist);
 					sessionUnbindChannel(session);
 					do {
+						if (session->persist)
+							break;
 						if (session->expire_timeout_msec > 0) {
 							RBTimerEvent_t* e = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
 							if (e) {

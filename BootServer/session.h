@@ -5,7 +5,8 @@
 
 typedef struct Session_t {
 	HashtableNode_t m_htnode;
-	int has_reg;
+	short has_reg;
+	short persist;
 	Channel_t* channel;
 	int id;
 	void* userdata;

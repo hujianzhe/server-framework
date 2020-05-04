@@ -28,7 +28,7 @@ int reqSoTest(UserMsg_t* ctrl) {
 	if (!reply) {
 		return 0;
 	}
-	channelShardSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
+	channelSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
 	reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
 	free(reply);
 	return 0;
@@ -38,7 +38,7 @@ static int centerChannelHeartbeat(Channel_t* c, int heartbeat_times) {
 	if (heartbeat_times < c->heartbeat_maxtimes) {
 		SendMsg_t msg;
 		makeSendMsgEmpty(&msg);
-		channelShardSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
+		channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 		printf("channel(%p) send heartbeat, times %d...\n", c, heartbeat_times);
 	}
 	else {
@@ -70,13 +70,13 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 		unsigned short port = ptr_g_Config()->listen_options ? ptr_g_Config()->listen_options[0].port : 0;
 		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"session_id\":%d}", ptr_g_Config()->cluster_name, ptr_g_Config()->outer_ip, port, channelSessionId(channel));
 		makeSendMsg(&msg, CMD_REQ_RECONNECT, buffer, strlen(buffer));
-		channelShardSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN);
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN);
 	}
 	else {
 		unsigned short port = ptr_g_Config()->listen_options ? ptr_g_Config()->listen_options[0].port : 0;
 		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", ptr_g_Config()->cluster_name, ptr_g_Config()->outer_ip, port);
 		makeSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
-		channelShardSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		/*
 		int i = 0;
 		for (i = 0; i < sizeof(buffer); ++i) {

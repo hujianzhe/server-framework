@@ -76,7 +76,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				if (!session) {
 					session = newSession();
 					if (!session) {
-						channelShardSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+						channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 						free(ctrl);
 						continue;
 					}

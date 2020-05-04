@@ -17,7 +17,7 @@ void frpc_test_code(Session_t* session) {
 			char test_data[] = "this text is from client ^.^";
 			SendMsg_t msg;
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
-			channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+			channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
 			readyRpcItem(rpc_item, session, 1000);
 
@@ -50,7 +50,7 @@ void arpc_test_code(Session_t* session) {
 			char test_data[] = "this text is from client ^.^";
 			SendMsg_t msg;
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
-			channelShardSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+			channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
 			readyRpcItem(rpc_item, session, 1000);
 		}
@@ -64,7 +64,7 @@ int reqTest(UserMsg_t* ctrl) {
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
 
 	makeSendMsg(&msg, CMD_NOTIFY_TEST, NULL, 0);
-	channelShardSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
 	if (ctrl->rpc_status == 'R') {
 		makeSendMsgRpcResp(&msg, ctrl->rpcid, test_data, sizeof(test_data));
@@ -72,7 +72,7 @@ int reqTest(UserMsg_t* ctrl) {
 	else {
 		makeSendMsg(&msg, CMD_RET_TEST, test_data, sizeof(test_data));
 	}
-	channelShardSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	return 0;
 }
 
@@ -125,7 +125,7 @@ int reqHttpTest(UserMsg_t* ctrl) {
 	if (!reply) {
 		return 0;
 	}
-	channelShardSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
+	channelSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
 	reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
 	free(reply);
 	return 0;
@@ -134,11 +134,11 @@ int reqHttpTest(UserMsg_t* ctrl) {
 int unknowRequest(UserMsg_t* ctrl) {
 	if (ctrl->httpframe) {
 		char reply[] = "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n";
-		channelShardSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
+		channelSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
 		reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
 	}
 	else {
-		channelShardSend(ctrl->channel, NULL, 0, NETPACKET_FRAGMENT);
+		channelSend(ctrl->channel, NULL, 0, NETPACKET_FRAGMENT);
 	}
 	return 0;
 }

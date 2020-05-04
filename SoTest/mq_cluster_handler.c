@@ -60,7 +60,7 @@ int reqReconnectCluster(UserMsg_t* ctrl) {
 		if (session->channel != ctrl->channel) {
 			Channel_t* channel = sessionUnbindChannel(session);
 			if (channel) {
-				channelShardSendv(channel, NULL, 0, NETPACKET_FIN);
+				channelSendv(channel, NULL, 0, NETPACKET_FIN);
 			}
 			sessionBindChannel(session, ctrl->channel);
 		}
@@ -82,13 +82,13 @@ int reqReconnectCluster(UserMsg_t* ctrl) {
 	} while (0);
 	cJSON_Delete(cjson_req_root);
 	if (!ok) {
-		channelShardSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+		channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 		puts("reconnect failure");
 		return 1;
 	}
 
 	makeSendMsg(&ret_msg, CMD_RET_RECONNECT, NULL, 0);
-	channelShardSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_SYN_ACK);
+	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_SYN_ACK);
 	puts("reconnect start");
 	return 0;
 }
@@ -156,7 +156,7 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 			if (exist_session) {
 				Channel_t* channel = exist_session->channel;
 				if (channel) {
-					channelShardSendv(channel, NULL, 0, NETPACKET_FIN);
+					channelSendv(channel, NULL, 0, NETPACKET_FIN);
 				}
 				clusterUnbindSession((Cluster_t*)sessionCluster(exist_session));
 				unregSession(exist_session);
@@ -169,7 +169,7 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 			if (cluster_session) {
 				Channel_t* channel = cluster_session->channel;
 				if (channel) {
-					channelShardSendv(channel, NULL, 0, NETPACKET_FIN);
+					channelSendv(channel, NULL, 0, NETPACKET_FIN);
 				}
 				unregSession(cluster_session);
 			}
@@ -177,7 +177,7 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 		else {
 			cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
 			if (!cluster) {
-				channelShardSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+				channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 				fputs("malloc", stderr);
 				break;
 			}
@@ -185,7 +185,7 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 			cluster->port = cjson_port->valueint;
 			if (!regCluster(cjson_name->valuestring, cluster)) {
 				free(cluster);
-				channelShardSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+				channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 				fputs("regCluster", stderr);
 				break;
 			}
@@ -215,7 +215,7 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 			if (exist_cluster->session && exist_cluster->session->channel) {
 				SendMsg_t notify_msg;
 				makeSendMsg(&notify_msg, CMD_NOTIFY_NEW_CLUSTER, ctrl->data, ctrl->datalen);
-				channelShardSendv(exist_cluster->session->channel, notify_msg.iov, sizeof(notify_msg.iov) / sizeof(notify_msg.iov[0]), NETPACKET_FRAGMENT);
+				channelSendv(exist_cluster->session->channel, notify_msg.iov, sizeof(notify_msg.iov) / sizeof(notify_msg.iov[0]), NETPACKET_FRAGMENT);
 			}
 		}
 	}
@@ -223,7 +223,7 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 	cJSON_Delete(cjson_ret_root);
 
 	makeSendMsg(&ret_msg, CMD_RET_UPLOAD_CLUSTER, ret_data, strlen(ret_data));
-	channelShardSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
+	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	free(ret_data);
 	return 0;
 }
@@ -387,7 +387,7 @@ int reqRemoveCluster(UserMsg_t* ctrl) {
 			if (session) {
 				Channel_t* channel = sessionUnbindChannel(session);
 				if (channel) {
-					channelShardSendv(channel, NULL, 0, NETPACKET_FIN);
+					channelSendv(channel, NULL, 0, NETPACKET_FIN);
 				}
 			}
 		}
@@ -395,7 +395,7 @@ int reqRemoveCluster(UserMsg_t* ctrl) {
 	cJSON_Delete(cjson_req_root);
 
 	makeSendMsg(&ret_msg, CMD_RET_REMOVE_CLUSTER, NULL, 0);
-	channelShardSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
+	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	return 0;
 }
 

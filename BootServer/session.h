@@ -9,6 +9,7 @@ typedef struct Session_t {
 	short persist;
 	Channel_t* channel;
 	int id;
+	int usertype;
 	void* userdata;
 	List_t rpc_itemlist;
 	unsigned int expire_timeout_msec;

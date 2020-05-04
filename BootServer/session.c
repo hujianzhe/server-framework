@@ -30,6 +30,7 @@ Session_t* newSession(void) {
 		session->has_reg = 0;
 		session->persist = 0;
 		session->id = 0;
+		session->usertype = 0;
 		session->userdata = NULL;
 		listInit(&session->rpc_itemlist);
 		session->expire_timeout_msec = 0;

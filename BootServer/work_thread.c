@@ -21,8 +21,8 @@ static void call_dispatch(UserMsg_t* ctrl) {
 
 static int session_expire_timeout_callback(RBTimerEvent_t* e, void* arg) {
 	Session_t* session = (Session_t*)arg;
-	unregSession(session);
-	freeSession(session);
+	g_SessionAction.unreg(session);
+	g_SessionAction.destroy(session);
 	free(e);
 	return 0;
 }
@@ -74,7 +74,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				UserMsg_t* ctrl = pod_container_of(internal , UserMsg_t, internal);
 				Session_t* session = (Session_t*)channelSession(ctrl->channel);
 				if (!session) {
-					session = newSession();
+					session = g_SessionAction.create(ctrl->channel->usertype);
 					if (!session) {
 						channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 						free(ctrl);
@@ -160,8 +160,8 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 								free(e);
 							}
 						}
-						unregSession(session);
-						freeSession(session);
+						g_SessionAction.unreg(session);
+						g_SessionAction.destroy(session);
 					} while (0);
 				}
 				channelDestroy(channel);

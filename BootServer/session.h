@@ -16,6 +16,12 @@ typedef struct Session_t {
 	RBTimerEvent_t* expire_timeout_ev;
 } Session_t;
 
+typedef struct SessionActon_t {
+	Session_t*(*create)(int type);
+	void(*unreg)(Session_t* s);
+	void(*destroy)(Session_t* s);
+} SessionActon_t;
+
 #define	channelSession(channel)		((channel)->userdata)
 #define	channelSessionId(channel)	((channel)->userid32)
 
@@ -25,11 +31,7 @@ extern "C" {
 
 int initSessionTable(void);
 __declspec_dll int allocSessionId(void);
-__declspec_dll Session_t* newSession(void);
-__declspec_dll Session_t* getSession(int id);
-__declspec_dll void regSession(int id, Session_t* session);
-__declspec_dll Session_t* unregSession(Session_t* session);
-void freeSession(Session_t* session);
+__declspec_dll Session_t* initSession(Session_t* session);
 void freeSessionTable(void);
 
 __declspec_dll void sessionBindChannel(Session_t* session, Channel_t* channel);

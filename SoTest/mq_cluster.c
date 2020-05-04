@@ -37,7 +37,11 @@ Cluster_t* getCluster(const char* name, const IPString_t ip, unsigned short port
 
 int regCluster(const char* name, Cluster_t* cluster) {
 	ClusterTableItem_t* item;
-	HashtableNode_t* htnode = hashtableSearchKey(&g_ClusterTable, name);
+	HashtableNode_t* htnode;
+	if (cluster->session.has_reg) {
+		return 1;
+	}
+	htnode = hashtableSearchKey(&g_ClusterTable, name);
 	if (htnode) {
 		item = pod_container_of(htnode, ClusterTableItem_t, m_htnode);
 	}
@@ -57,19 +61,23 @@ int regCluster(const char* name, Cluster_t* cluster) {
 	item->clusterlistcnt++;
 	listPushNodeBack(&item->clusterlist, &cluster->m_reg_htlistnode);
 	listPushNodeBack(&g_ClusterList, &cluster->m_reg_listnode);
+	cluster->session.has_reg = 1;
 	return 1;
 }
 
 void unregCluster(Cluster_t* cluster) {
-	ClusterTableItem_t* item = (ClusterTableItem_t*)cluster->m_reg_item;
-	listRemoveNode(&item->clusterlist, &cluster->m_reg_htlistnode);
-	item->clusterlistcnt--;
-	if (!item->clusterlist.head) {
-		hashtableRemoveNode(&g_ClusterTable, &item->m_htnode);
-		free((void*)item->m_htnode.key);
-		free(item);
+	if (cluster->session.has_reg) {
+		ClusterTableItem_t* item = (ClusterTableItem_t*)cluster->m_reg_item;
+		listRemoveNode(&item->clusterlist, &cluster->m_reg_htlistnode);
+		item->clusterlistcnt--;
+		if (!item->clusterlist.head) {
+			hashtableRemoveNode(&g_ClusterTable, &item->m_htnode);
+			free((void*)item->m_htnode.key);
+			free(item);
+		}
+		listRemoveNode(&g_ClusterList, &cluster->m_reg_listnode);
+		cluster->session.has_reg = 0;
 	}
-	listRemoveNode(&g_ClusterList, &cluster->m_reg_listnode);
 }
 
 void freeClusterTable(void) {
@@ -90,19 +98,19 @@ void freeClusterTable(void) {
 	listInit(&g_ClusterList);
 }
 
-void clusterBindSession(Cluster_t* cluster, Session_t* session) {
-	cluster->session = session;
-	sessionCluster(session) = cluster;
-}
-
-Session_t* clusterUnbindSession(Cluster_t* cluster) {
+Session_t* newSession(int type) {
+	Cluster_t* cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
 	if (cluster) {
-		Session_t* session = cluster->session;
-		if (session) {
-			sessionCluster(session) = NULL;
-		}
-		cluster->session = NULL;
-		return session;
+		initSession(&cluster->session);
+		cluster->session.usertype = type;
+		//cluster->session.persist = 1;
+		return &cluster->session;
 	}
 	return NULL;
+}
+
+void freeSession(Session_t* session) {
+	Cluster_t* cluster = pod_container_of(session, Cluster_t, session);
+	unregCluster(cluster);
+	free(cluster);
 }

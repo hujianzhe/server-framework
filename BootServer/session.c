@@ -7,6 +7,23 @@ static Atom32_t CHANNEL_SESSION_ID = 0;
 static int __keycmp(const void* node_key, const void* key) { return node_key != key; }
 static unsigned int __keyhash(const void* key) { return (ptrlen_t)key; }
 
+static Session_t* defaultNewSession(int usertype) {
+	Session_t* session = (Session_t*)malloc(sizeof(Session_t));
+	if (session) {
+		initSession(session);
+		session->usertype = usertype;
+	}
+	return session;
+}
+static void unregSession(Session_t* session) {
+	if (session->has_reg) {
+		session->has_reg = 0;
+		hashtableRemoveNode(&g_SessionTable, &session->m_htnode);
+	}
+}
+static void defaultFreeSession(Session_t* s) { free(s); }
+SessionActon_t g_SessionAction = { defaultNewSession, unregSession, defaultFreeSession };
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,45 +41,16 @@ int allocSessionId(void) {
 	return session_id;
 }
 
-Session_t* newSession(void) {
-	Session_t* session = (Session_t*)malloc(sizeof(Session_t));
-	if (session) {
-		session->has_reg = 0;
-		session->persist = 0;
-		session->id = 0;
-		session->usertype = 0;
-		session->userdata = NULL;
-		listInit(&session->rpc_itemlist);
-		session->expire_timeout_msec = 0;
-		session->expire_timeout_ev = NULL;
-	}
+Session_t* initSession(Session_t* session) {
+	session->has_reg = 0;
+	session->persist = 0;
+	session->id = 0;
+	session->usertype = 0;
+	session->userdata = NULL;
+	listInit(&session->rpc_itemlist);
+	session->expire_timeout_msec = 0;
+	session->expire_timeout_ev = NULL;
 	return session;
-}
-
-Session_t* getSession(int id) {
-	HashtableNode_t* htnode = hashtableSearchKey(&g_SessionTable, (void*)(ptrlen_t)id);
-	return htnode ? pod_container_of(htnode, Session_t, m_htnode) : NULL;
-}
-
-void regSession(int id, Session_t* session) {
-	if (!session->has_reg) {
-		session->has_reg = 1;
-		session->id = id;
-		session->m_htnode.key = (void*)(ptrlen_t)id;
-		hashtableReplaceNode(hashtableInsertNode(&g_SessionTable, &session->m_htnode), &session->m_htnode);
-	}
-}
-
-Session_t* unregSession(Session_t* session) {
-	if (session->has_reg) {
-		session->has_reg = 0;
-		hashtableRemoveNode(&g_SessionTable, &session->m_htnode);
-	}
-	return session;
-}
-
-void freeSession(Session_t* session) {
-	free(session);
 }
 
 void freeSessionTable(void) {
@@ -70,7 +58,7 @@ void freeSessionTable(void) {
 	for (htcur = hashtableFirstNode(&g_SessionTable); htcur; htcur = htnext) {
 		Session_t* session = pod_container_of(htcur, Session_t, m_htnode);
 		htnext = hashtableNextNode(htcur);
-		freeSession(session);
+		g_SessionAction.destroy(session);
 	}
 	hashtableInit(&g_SessionTable, s_SessionBulk, sizeof(s_SessionBulk) / sizeof(s_SessionBulk[0]), __keycmp, __keyhash);
 }

@@ -18,9 +18,8 @@ int reqReconnectCluster(UserMsg_t* ctrl) {
 
 	ok = 0;
 	do {
-		cJSON* cjson_name, *cjson_ip, *cjson_port, *cjson_session_id;
-		Session_t* session;
 		Cluster_t* cluster;
+		cJSON* cjson_name, *cjson_ip, *cjson_port;
 
 		cjson_name = cJSON_Field(cjson_req_root, "name");
 		if (!cjson_name) {
@@ -34,35 +33,18 @@ int reqReconnectCluster(UserMsg_t* ctrl) {
 		if (!cjson_port) {
 			break;
 		}
-		cjson_session_id = cJSON_Field(cjson_req_root, "session_id");
-		if (!cjson_session_id) {
-			break;
-		}
 
-		session = getSession(cjson_session_id->valueint);
-		if (!session) {
-			break;
-		}
-		cluster = (Cluster_t*)sessionCluster(session);
+		cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
 		if (!cluster) {
 			break;
 		}
-		else if (strcmp(cluster->name, cjson_name->valuestring)) {
-			break;
-		}
-		else if (strcmp(cluster->ip, cjson_ip->valuestring)) {
-			break;
-		}
-		else if (cluster->port != cjson_port->valueint) {
-			break;
-		}
 
-		if (session->channel != ctrl->channel) {
-			Channel_t* channel = sessionUnbindChannel(session);
+		if (cluster->session.channel != ctrl->channel) {
+			Channel_t* channel = sessionUnbindChannel(&cluster->session);
 			if (channel) {
 				channelSendv(channel, NULL, 0, NETPACKET_FIN);
 			}
-			sessionBindChannel(session, ctrl->channel);
+			sessionBindChannel(&cluster->session, ctrl->channel);
 		}
 		else {
 			ReactorCmd_t* cmd;
@@ -72,7 +54,7 @@ int reqReconnectCluster(UserMsg_t* ctrl) {
 				break;
 			}
 			printf("recv client reconnect (%s:%hu)\n", ip, port);
-			cmd = reactorNewReuseCmd(&session->channel->_, &ctrl->peer_addr);
+			cmd = reactorNewReuseCmd(&cluster->session.channel->_, &ctrl->peer_addr);
 			if (!cmd) {
 				break;
 			}
@@ -120,7 +102,6 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 	SendMsg_t ret_msg;
 	char* ret_data;
 	ListNode_t* lnode;
-	Session_t* session;
 	Cluster_t* cluster;
 	int ok;
 
@@ -133,7 +114,6 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 
 	ok = 0;
 	do {
-		int session_id;
 		cJSON* cjson_name, *cjson_ip, *cjson_port;
 
 		cjson_name = cJSON_Field(cjson_req_root, "name");
@@ -149,50 +129,26 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 			break;
 		}
 
-		session = (Session_t*)channelSession(ctrl->channel);
-		session_id = allocSessionId();
-		do {
-			Session_t* exist_session = getSession(session_id);
-			if (exist_session) {
-				Channel_t* channel = exist_session->channel;
-				if (channel) {
-					channelSendv(channel, NULL, 0, NETPACKET_FIN);
-				}
-				clusterUnbindSession((Cluster_t*)sessionCluster(exist_session));
-				unregSession(exist_session);
-			}
-		} while (0);
-
 		cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
 		if (cluster) {
-			Session_t* cluster_session = clusterUnbindSession(cluster);
-			if (cluster_session) {
-				Channel_t* channel = cluster_session->channel;
-				if (channel) {
-					channelSendv(channel, NULL, 0, NETPACKET_FIN);
-				}
-				unregSession(cluster_session);
+			Channel_t* channel = sessionUnbindChannel(&cluster->session);
+			if (channel) {
+				channelSendv(channel, NULL, 0, NETPACKET_FIN);
 			}
 		}
 		else {
-			cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
-			if (!cluster) {
-				channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
-				fputs("malloc", stderr);
-				break;
-			}
+			Session_t* session = (Session_t*)channelSession(ctrl->channel);
+			cluster = pod_container_of(session, Cluster_t, session);
 			strcpy(cluster->ip, cjson_ip->valuestring);
 			cluster->port = cjson_port->valueint;
 			if (!regCluster(cjson_name->valuestring, cluster)) {
-				free(cluster);
 				channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 				fputs("regCluster", stderr);
 				break;
 			}
 		}
-		regSession(session_id, session);
-		clusterBindSession(cluster, session);
-		sessionBindChannel(session, ctrl->channel);
+		cluster->session.id = allocSessionId();
+		sessionBindChannel(&cluster->session, ctrl->channel);
 		ok = 1;
 	} while (0);
 	cJSON_Delete(cjson_req_root);
@@ -201,7 +157,7 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 	}
 
 	cjson_ret_root = cJSON_NewObject(NULL);
-	cJSON_AddNewNumber(cjson_ret_root, "session_id", session->id);
+	cJSON_AddNewNumber(cjson_ret_root, "session_id", cluster->session.id);
 	cjson_ret_array_cluster = cJSON_AddNewArray(cjson_ret_root, "cluster");
 	for (lnode = g_ClusterList.head; lnode; lnode = lnode->next) {
 		Cluster_t* exist_cluster = pod_container_of(lnode, Cluster_t, m_reg_listnode);
@@ -212,10 +168,10 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 				cJSON_AddNewString(cjson_ret_object_cluster, "ip", exist_cluster->ip);
 				cJSON_AddNewNumber(cjson_ret_object_cluster, "port", exist_cluster->port);
 			}
-			if (exist_cluster->session && exist_cluster->session->channel) {
+			if (cluster->session.channel) {
 				SendMsg_t notify_msg;
 				makeSendMsg(&notify_msg, CMD_NOTIFY_NEW_CLUSTER, ctrl->data, ctrl->datalen);
-				channelSendv(exist_cluster->session->channel, notify_msg.iov, sizeof(notify_msg.iov) / sizeof(notify_msg.iov[0]), NETPACKET_FRAGMENT);
+				channelSendv(cluster->session.channel, notify_msg.iov, sizeof(notify_msg.iov) / sizeof(notify_msg.iov[0]), NETPACKET_FRAGMENT);
 			}
 		}
 	}
@@ -383,13 +339,11 @@ int reqRemoveCluster(UserMsg_t* ctrl) {
 
 		cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
 		if (cluster) {
-			Session_t* session = clusterUnbindSession(cluster);
-			if (session) {
-				Channel_t* channel = sessionUnbindChannel(session);
-				if (channel) {
-					channelSendv(channel, NULL, 0, NETPACKET_FIN);
-				}
+			Channel_t* channel = sessionUnbindChannel(&cluster->session);
+			if (channel) {
+				channelSendv(channel, NULL, 0, NETPACKET_FIN);
 			}
+			unregCluster(cluster);
 		}
 	} while (0);
 	cJSON_Delete(cjson_req_root);

@@ -167,7 +167,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					} while (0);
 				}
 				channelDestroy(channel);
-				reactorCommitCmd(channel->_.reactor, &channel->_.freecmd);
+				reactorCommitCmd(NULL, &channel->_.freecmd);
 			}
 			else {
 				printf("unknown message type: %d\n", internal->type);

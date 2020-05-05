@@ -179,7 +179,6 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		for (cur = rbtimerTimeout(&g_TimerRpcTimeout, cur_msec); cur; cur = next) {
 			RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
 			RpcItem_t* rpc_item = (RpcItem_t*)e->arg;
-			Session_t* session = (Session_t*)rpc_item->originator;
 			next = cur->next;
 			rpc_item->timeout_ev = NULL;
 			if (g_RpcFiberCore)

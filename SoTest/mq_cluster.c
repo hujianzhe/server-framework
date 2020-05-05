@@ -1,4 +1,5 @@
 #include "../BootServer/global.h"
+#include "mq_cmd.h"
 #include "mq_cluster.h"
 #include <string.h>
 
@@ -102,7 +103,7 @@ Cluster_t* newCluster(void) {
 	Cluster_t* cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
 	if (cluster) {
 		initSession(&cluster->session);
-		cluster->session.usertype = CHANNEL_TYPE_INNER;
+		cluster->session.usertype = SESSION_TYPE_CLUSTER;
 	}
 	return cluster;
 }

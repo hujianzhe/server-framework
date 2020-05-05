@@ -16,4 +16,8 @@ enum {
 	CMD_RET_TEST
 };
 
+enum {
+	SESSION_TYPE_CLUSTER = 1
+};
+
 #endif // !MQ_CMD_H

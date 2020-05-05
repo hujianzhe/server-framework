@@ -1,10 +1,9 @@
-#ifndef SESSION_H
-#define	SESSION_H
+#ifndef SESSION_STRUCT_H
+#define	SESSION_STRUCT_H
 
 #include "util/inc/component/channel.h"
 
 typedef struct Session_t {
-	HashtableNode_t m_htnode;
 	short has_reg;
 	short persist;
 	Channel_t* channel;
@@ -29,10 +28,8 @@ typedef struct SessionActon_t {
 extern "C" {
 #endif
 
-int initSessionTable(void);
 __declspec_dll int allocSessionId(void);
 __declspec_dll Session_t* initSession(Session_t* session);
-void freeSessionTable(void);
 
 __declspec_dll void sessionBindChannel(Session_t* session, Channel_t* channel);
 __declspec_dll Channel_t* sessionUnbindChannel(Session_t* session);
@@ -41,4 +38,4 @@ __declspec_dll Channel_t* sessionUnbindChannel(Session_t* session);
 }
 #endif
 
-#endif // !SESSION_H
+#endif // !SESSION_STRUCT_H

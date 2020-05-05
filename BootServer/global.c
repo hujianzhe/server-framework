@@ -51,7 +51,6 @@ Reactor_t* selectReactor(size_t key) {
 DataQueue_t* ptr_g_DataQueue(void) { return &g_DataQueue; }
 RBTimer_t* ptr_g_Timer(void) { return &g_Timer; }
 void set_g_DefaultDispatchCallback(DispatchCallback_t fn) { g_DefaultDispatchCallback = fn; }
-Hashtable_t* ptr_g_SessionTable(void) { return &g_SessionTable; }
 RpcFiberCore_t* ptr_g_RpcFiberCore(void) { return g_RpcFiberCore; }
 RpcAsyncCore_t* ptr_g_RpcAsyncCore(void) { return g_RpcAsyncCore; }
 SessionActon_t* ptr_g_SessionAction(void) { return &g_SessionAction; }

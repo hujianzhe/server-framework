@@ -2,7 +2,7 @@
 #define	RPC_HELPER_H
 
 #include "util/inc/component/rpc_core.h"
-#include "session.h"
+#include "session_struct.h"
 
 #ifdef __cplusplus
 extern "C" {

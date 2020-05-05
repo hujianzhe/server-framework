@@ -1,7 +1,7 @@
 #ifndef MQ_CLUSTER_H
 #define	MQ_CLUSTER_H
 
-#include "../BootServer/session.h"
+#include "../BootServer/session_struct.h"
 
 extern List_t g_ClusterList;
 extern Hashtable_t g_ClusterTable;

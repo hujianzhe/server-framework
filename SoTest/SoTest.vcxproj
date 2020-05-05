@@ -145,7 +145,7 @@
     <ClCompile Include="mq_cluster.c" />
     <ClCompile Include="mq_cluster_handler.c" />
     <ClCompile Include="mq_test_handler.c" />
-    <ClCompile Include="test.c" />
+    <ClCompile Include="init.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mq_cluster.h" />

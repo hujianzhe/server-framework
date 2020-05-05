@@ -148,7 +148,7 @@
     <ClInclude Include="global.h" />
     <ClInclude Include="msg_struct.h" />
     <ClInclude Include="rpc_helper.h" />
-    <ClInclude Include="session.h" />
+    <ClInclude Include="session_struct.h" />
     <ClInclude Include="util\inc\all.h" />
     <ClInclude Include="util\inc\compiler_define.h" />
     <ClInclude Include="util\inc\component\channel.h" />
@@ -204,7 +204,7 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="msg_struct.c" />
     <ClCompile Include="rpc_helper.c" />
-    <ClCompile Include="session.c" />
+    <ClCompile Include="session_struct.c" />
     <ClCompile Include="util\src\component\channel.c" />
     <ClCompile Include="util\src\component\cJSON.c" />
     <ClCompile Include="util\src\component\collision_detection.c" />

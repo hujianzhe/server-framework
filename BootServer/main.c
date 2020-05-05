@@ -36,7 +36,6 @@ int main(int argc, char** argv) {
 	}
 
 	initDispatch();
-	initSessionTable();
 
 	if (!dataqueueInit(&g_DataQueue))
 		goto err;
@@ -154,7 +153,6 @@ end:
 	}
 	freeConfig();
 	freeDispatchCallback();
-	freeSessionTable();
 	freeGlobalResource();
 	return 0;
 }

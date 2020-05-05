@@ -23,4 +23,9 @@ endif
 TARGET := $(TARGET_PATH)/SoTest.so
 
 all:
+
+debug:
+	$(COMPILER) -fPIC -shared $(MACRO) -g $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DEFAULT_LINK)
+
+reliease:
 	$(COMPILER) -fPIC -shared $(MACRO) $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DEFAULT_LINK)

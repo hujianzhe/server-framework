@@ -169,10 +169,10 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 				cJSON_AddNewString(cjson_ret_object_cluster, "ip", exist_cluster->ip);
 				cJSON_AddNewNumber(cjson_ret_object_cluster, "port", exist_cluster->port);
 			}
-			if (cluster->session.channel) {
+			if (exist_cluster->session.channel) {
 				SendMsg_t notify_msg;
 				makeSendMsg(&notify_msg, CMD_NOTIFY_NEW_CLUSTER, ctrl->data, ctrl->datalen);
-				channelSendv(cluster->session.channel, notify_msg.iov, sizeof(notify_msg.iov) / sizeof(notify_msg.iov[0]), NETPACKET_FRAGMENT);
+				channelSendv(exist_cluster->session.channel, notify_msg.iov, sizeof(notify_msg.iov) / sizeof(notify_msg.iov[0]), NETPACKET_FRAGMENT);
 			}
 		}
 	}

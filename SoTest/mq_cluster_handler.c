@@ -195,7 +195,7 @@ int retUploadCluster(UserMsg_t* ctrl) {
 	}
 
 	do {
-		cJSON* cjson_ret_object_cluster, *cjson_ret_array_cluster, *cjson_sessoin_id;;
+		cJSON* cjson_ret_object_cluster, *cjson_ret_array_cluster, *cjson_sessoin_id;
 
 		cjson_sessoin_id = cJSON_Field(cjson_ret_root, "session_id");
 		if (!cjson_sessoin_id) {

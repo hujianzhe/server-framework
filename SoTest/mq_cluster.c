@@ -89,7 +89,7 @@ void freeClusterTable(void) {
 		for (curlistnode = item->clusterlist.head; curlistnode; curlistnode = nextlistnode) {
 			Cluster_t* cluster = pod_container_of(curlistnode, Cluster_t, m_reg_htlistnode);
 			nextlistnode = curlistnode->next;
-			free(cluster);
+			ptr_g_SessionAction()->unreg(&cluster->session);
 		}
 		free((void*)item->m_htnode.key);
 		free(item);
@@ -99,18 +99,33 @@ void freeClusterTable(void) {
 }
 
 Session_t* newSession(int type) {
-	Cluster_t* cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
-	if (cluster) {
-		initSession(&cluster->session);
-		cluster->session.usertype = type;
-		//cluster->session.persist = 1;
-		return &cluster->session;
+	if (CHANNEL_TYPE_INNER == type) {
+		Cluster_t* cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
+		if (cluster) {
+			initSession(&cluster->session);
+			cluster->session.usertype = type;
+			//cluster->session.persist = 1;
+			return &cluster->session;
+		}
+	}
+	else if (CHANNEL_TYPE_HTTP == type) {
+		Session_t* session = (Session_t*)malloc(sizeof(Session_t));
+		if (session) {
+			initSession(session);
+			session->usertype = type;
+			return session;
+		}
 	}
 	return NULL;
 }
 
 void freeSession(Session_t* session) {
-	Cluster_t* cluster = pod_container_of(session, Cluster_t, session);
-	unregCluster(cluster);
-	free(cluster);
+	if (CHANNEL_TYPE_INNER == session->usertype) {
+		Cluster_t* cluster = pod_container_of(session, Cluster_t, session);
+		unregCluster(cluster);
+		free(cluster);
+	}
+	else if (CHANNEL_TYPE_HTTP == session->usertype) {
+		free(session);
+	}
 }

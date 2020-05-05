@@ -227,9 +227,11 @@ int retUploadCluster(UserMsg_t* ctrl) {
 			if (cluster) {
 				continue;
 			}
-			cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
-			if (!cluster) {
-				break;
+			{
+				Session_t* s = ptr_g_SessionAction()->create(CHANNEL_TYPE_INNER);
+				if (!s)
+					break;
+				cluster = pod_container_of(s, Cluster_t, session);
 			}
 			strcpy(cluster->ip, cjson_ip->valuestring);
 			cluster->port = cjson_port->valueint;
@@ -286,15 +288,16 @@ int notifyNewCluster(UserMsg_t* ctrl) {
 
 		cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
 		if (!cluster) {
-			cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
-			if (!cluster) {
-				fputs("malloc", stderr);
+			Session_t* session = ptr_g_SessionAction()->create(CHANNEL_TYPE_INNER);
+			if (!session) {
+				fputs("create session err", stderr);
 				break;
 			}
+			cluster = pod_container_of(session, Cluster_t, session);
 			strcpy(cluster->ip, cjson_ip->valuestring);
 			cluster->port = cjson_port->valueint;
 			if (!regCluster(cjson_name->valuestring, cluster)) {
-				free(cluster);
+				ptr_g_SessionAction()->destroy(&cluster->session);
 				fputs("regCluster", stderr);
 				break;
 			}

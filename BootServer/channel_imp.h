@@ -4,6 +4,11 @@
 #include "util/inc/component/reactor.h"
 #include "util/inc/component/channel.h"
 
+enum {
+	CHANNEL_TYPE_INNER = 1,
+	CHANNEL_TYPE_HTTP
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif

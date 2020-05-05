@@ -159,6 +159,7 @@ Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr) {
 	if (!c)
 		return NULL;
 	// c->_.write_fragment_size = 500;
+	c->usertype = CHANNEL_TYPE_INNER;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
 	c->on_hdrsize = lengthfieldframe_hdrsize;
@@ -329,6 +330,7 @@ Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const void* saddr) {
 	if (!c)
 		return NULL;
 	// c->_.write_fragment_size = 500;
+	c->usertype = CHANNEL_TYPE_HTTP;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
 	c->on_hdrsize = httpframe_hdrsize;

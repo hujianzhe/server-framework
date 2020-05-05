@@ -15,14 +15,14 @@ RpcItem_t* newRpcItem(void) {
 }
 
 void freeRpcItemWhenTimeout(RpcItem_t* rpc_item) {
-	Session_t* session = (Session_t*)rpc_item->originator;
-	listRemoveNode(&session->rpc_itemlist, &rpc_item->listnode);
+	Channel_t* channel = (Channel_t*)rpc_item->originator;
+	listRemoveNode(&channel->rpc_itemlist, &rpc_item->listnode);
 	free(rpc_item);
 }
 
-void freeRpcItemWhenNormal(Session_t* session, RpcItem_t* rpc_item) {
-	if (session == rpc_item->originator) {
-		listRemoveNode(&session->rpc_itemlist, &rpc_item->listnode);
+void freeRpcItemWhenNormal(Channel_t* channel, RpcItem_t* rpc_item) {
+	if (channel == rpc_item->originator) {
+		listRemoveNode(&channel->rpc_itemlist, &rpc_item->listnode);
 		if (rpc_item->timeout_ev)
 			rbtimerDelEvent(&g_TimerRpcTimeout, (RBTimerEvent_t*)rpc_item->timeout_ev);
 		free(rpc_item);
@@ -31,15 +31,15 @@ void freeRpcItemWhenNormal(Session_t* session, RpcItem_t* rpc_item) {
 
 void freeRpcItem(RpcItem_t* rpc_item) {
 	if (rpc_item->originator) {
-		Session_t* session = (Session_t*)rpc_item->originator;
-		listRemoveNode(&session->rpc_itemlist, &rpc_item->listnode);
+		Channel_t* channel = (Channel_t*)rpc_item->originator;
+		listRemoveNode(&channel->rpc_itemlist, &rpc_item->listnode);
 	}
 	if (rpc_item->timeout_ev)
 		rbtimerDelEvent(&g_TimerRpcTimeout, (RBTimerEvent_t*)rpc_item->timeout_ev);
 	free(rpc_item);
 }
 
-RpcItem_t* readyRpcItem(RpcItem_t* rpc_item, Session_t* session, long long timeout_msec) {
+RpcItem_t* readyRpcItem(RpcItem_t* rpc_item, Channel_t* channel, long long timeout_msec) {
 	rpc_item->timestamp_msec = gmtimeMillisecond();
 	if (timeout_msec >= 0) {
 		RBTimerEvent_t* timeout_ev = (RBTimerEvent_t*)(rpc_item + 1);
@@ -51,8 +51,8 @@ RpcItem_t* readyRpcItem(RpcItem_t* rpc_item, Session_t* session, long long timeo
 		}
 		rpc_item->timeout_ev = timeout_ev;
 	}
-	listPushNodeBack(&session->rpc_itemlist, &rpc_item->listnode);
-	rpc_item->originator = session;
+	listPushNodeBack(&channel->rpc_itemlist, &rpc_item->listnode);
+	rpc_item->originator = channel;
 	return rpc_item;
 }
 

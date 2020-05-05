@@ -73,17 +73,6 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			next = cur->next;
 			if (REACTOR_USER_CMD == internal->type) {
 				UserMsg_t* ctrl = pod_container_of(internal , UserMsg_t, internal);
-				Session_t* session = (Session_t*)channelSession(ctrl->channel);
-				if (!session) {
-					session = g_SessionAction.create(ctrl->channel->usertype);
-					if (!session) {
-						channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
-						free(ctrl);
-						continue;
-					}
-					sessionBindChannel(session, ctrl->channel);
-				}
-
 				if (g_RpcFiberCore) {
 					if ('T' == ctrl->rpc_status) {
 						RpcItem_t* rpc_item = rpcFiberCoreResume(g_RpcFiberCore, ctrl->rpcid, ctrl);
@@ -91,7 +80,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						if (!rpc_item) {
 							continue;
 						}
-						freeRpcItemWhenNormal(session, rpc_item);
+						freeRpcItemWhenNormal(ctrl->channel, rpc_item);
 					}
 					else {
 						rpcFiberCoreResumeMsg(g_RpcFiberCore, ctrl);
@@ -104,7 +93,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						if (!rpc_item) {
 							continue;
 						}
-						freeRpcItemWhenNormal(session, rpc_item);
+						freeRpcItemWhenNormal(ctrl->channel, rpc_item);
 					}
 					else {
 						call_dispatch(ctrl);
@@ -116,7 +105,6 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			}
 			else if (REACTOR_CHANNEL_FREE_CMD == internal->type) {
 				Channel_t* channel = pod_container_of(internal, Channel_t, _.freecmd);
-				Session_t* session = (Session_t*)channelSession(channel);
 
 				printf("channel(%p) detach, reason:%d", channel, channel->_.detach_error);
 				if (channel->_.flag & CHANNEL_FLAG_CLIENT)
@@ -124,9 +112,9 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				else
 					putchar('\n');
 
-				if (session) {
+				do {
 					ListNode_t* cur, *next;
-					for (cur = session->rpc_itemlist.head; cur; cur = next) {
+					for (cur = channel->rpc_itemlist.head; cur; cur = next) {
 						RpcItem_t* rpc_item = pod_container_of(cur, RpcItem_t, listnode);
 						next = cur->next;
 
@@ -143,29 +131,33 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 
 						freeRpcItem(rpc_item);
 					}
-					listInit(&session->rpc_itemlist);
+				} while (0);
+
+				do {
+					Session_t* session = (Session_t*)channelSession(channel);
+					if (!session)
+						break;
 					sessionUnbindChannel(session);
-					do {
-						if (session->persist)
-							break;
-						if (session->expire_timeout_msec > 0) {
-							RBTimerEvent_t* e = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
-							if (e) {
-								e->arg = session;
-								e->callback = session_expire_timeout_callback;
-								e->timestamp_msec = gmtimeMillisecond() + session->expire_timeout_msec;
-								session->expire_timeout_ev = e;
-								if (rbtimerAddEvent(&g_Timer, e)) {
-									break;
-								}
-								free(e);
+					if (session->persist)
+						break;
+					if (session->expire_timeout_msec > 0) {
+						RBTimerEvent_t* e = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
+						if (e) {
+							e->arg = session;
+							e->callback = session_expire_timeout_callback;
+							e->timestamp_msec = gmtimeMillisecond() + session->expire_timeout_msec;
+							session->expire_timeout_ev = e;
+							if (rbtimerAddEvent(&g_Timer, e)) {
+								break;
 							}
+							free(e);
 						}
-						if (g_SessionAction.unreg)
-							g_SessionAction.unreg(session);
-						g_SessionAction.destroy(session);
-					} while (0);
-				}
+					}
+					if (g_SessionAction.unreg)
+						g_SessionAction.unreg(session);
+					g_SessionAction.destroy(session);
+				} while (0);
+
 				channelDestroy(channel);
 				reactorCommitCmd(NULL, &channel->_.freecmd);
 			}

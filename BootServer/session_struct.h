@@ -10,7 +10,6 @@ typedef struct Session_t {
 	int id;
 	int usertype;
 	void* userdata;
-	List_t rpc_itemlist;
 	unsigned int expire_timeout_msec;
 	RBTimerEvent_t* expire_timeout_ev;
 } Session_t;

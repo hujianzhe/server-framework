@@ -30,10 +30,10 @@ int allocSessionId(void) {
 Session_t* initSession(Session_t* session) {
 	session->has_reg = 0;
 	session->persist = 0;
+	session->channel = NULL;
 	session->id = 0;
 	session->usertype = 0;
 	session->userdata = NULL;
-	listInit(&session->rpc_itemlist);
 	session->expire_timeout_msec = 0;
 	session->expire_timeout_ev = NULL;
 	return session;

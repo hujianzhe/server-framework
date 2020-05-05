@@ -19,7 +19,7 @@ void frpc_test_code(Session_t* session) {
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
 			channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
-			readyRpcItem(rpc_item, session, 1000);
+			readyRpcItem(rpc_item, session->channel, 1000);
 
 			rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
 			if (rpc_item->ret_msg) {
@@ -52,7 +52,7 @@ void arpc_test_code(Session_t* session) {
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
 			channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
-			readyRpcItem(rpc_item, session, 1000);
+			readyRpcItem(rpc_item, session->channel, 1000);
 		}
 	}
 }

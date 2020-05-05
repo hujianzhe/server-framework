@@ -137,11 +137,12 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 			}
 		}
 		else {
-			Session_t* session = (Session_t*)channelSession(ctrl->channel);
+			Session_t* session = ptr_g_SessionAction()->create(CHANNEL_TYPE_INNER);
 			cluster = pod_container_of(session, Cluster_t, session);
 			strcpy(cluster->ip, cjson_ip->valuestring);
 			cluster->port = cjson_port->valueint;
 			if (!regCluster(cjson_name->valuestring, cluster)) {
+				ptr_g_SessionAction()->destroy(session);
 				channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 				fputs("regCluster", stderr);
 				break;
@@ -236,6 +237,8 @@ int retUploadCluster(UserMsg_t* ctrl) {
 			strcpy(cluster->ip, cjson_ip->valuestring);
 			cluster->port = cjson_port->valueint;
 			if (!regCluster(cjson_name->valuestring, cluster)) {
+				ptr_g_SessionAction()->destroy(&cluster->session);
+				channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 				fputs("regCluster", stderr);
 				break;
 			}

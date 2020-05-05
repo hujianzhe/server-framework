@@ -4,16 +4,8 @@
 static HashtableNode_t* s_SessionBulk[1024];
 static Atom32_t CHANNEL_SESSION_ID = 0;
 
-static Session_t* defaultNewSession(int usertype) {
-	Session_t* session = (Session_t*)malloc(sizeof(Session_t));
-	if (session) {
-		initSession(session);
-		session->usertype = usertype;
-	}
-	return session;
-}
 static void defaultFreeSession(Session_t* s) { free(s); }
-SessionActon_t g_SessionAction = { defaultNewSession, NULL, defaultFreeSession };
+SessionActon_t g_SessionAction = { NULL, defaultFreeSession };
 
 #ifdef __cplusplus
 extern "C" {

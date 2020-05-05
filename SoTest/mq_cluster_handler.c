@@ -137,12 +137,14 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 			}
 		}
 		else {
-			Session_t* session = ptr_g_SessionAction()->create(CHANNEL_TYPE_INNER);
-			cluster = pod_container_of(session, Cluster_t, session);
+			cluster = newCluster();
+			if (!cluster) {
+				break;
+			}
 			strcpy(cluster->ip, cjson_ip->valuestring);
 			cluster->port = cjson_port->valueint;
 			if (!regCluster(cjson_name->valuestring, cluster)) {
-				ptr_g_SessionAction()->destroy(session);
+				freeCluster(cluster);
 				channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 				fputs("regCluster", stderr);
 				break;
@@ -228,16 +230,14 @@ int retUploadCluster(UserMsg_t* ctrl) {
 			if (cluster) {
 				continue;
 			}
-			{
-				Session_t* s = ptr_g_SessionAction()->create(CHANNEL_TYPE_INNER);
-				if (!s)
-					break;
-				cluster = pod_container_of(s, Cluster_t, session);
+			cluster = newCluster();
+			if (!cluster) {
+				break;
 			}
 			strcpy(cluster->ip, cjson_ip->valuestring);
 			cluster->port = cjson_port->valueint;
 			if (!regCluster(cjson_name->valuestring, cluster)) {
-				ptr_g_SessionAction()->destroy(&cluster->session);
+				freeCluster(cluster);
 				channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 				fputs("regCluster", stderr);
 				break;
@@ -288,16 +288,14 @@ int notifyNewCluster(UserMsg_t* ctrl) {
 
 		cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
 		if (!cluster) {
-			Session_t* session = ptr_g_SessionAction()->create(CHANNEL_TYPE_INNER);
-			if (!session) {
-				fputs("create session err", stderr);
+			cluster = newCluster();
+			if (!cluster) {
 				break;
 			}
-			cluster = pod_container_of(session, Cluster_t, session);
 			strcpy(cluster->ip, cjson_ip->valuestring);
 			cluster->port = cjson_port->valueint;
 			if (!regCluster(cjson_name->valuestring, cluster)) {
-				ptr_g_SessionAction()->destroy(&cluster->session);
+				freeCluster(cluster);
 				fputs("regCluster", stderr);
 				break;
 			}

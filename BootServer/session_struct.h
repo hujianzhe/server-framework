@@ -15,7 +15,6 @@ typedef struct Session_t {
 } Session_t;
 
 typedef struct SessionActon_t {
-	Session_t*(*create)(int type);
 	void(*unreg)(Session_t* s);
 	void(*destroy)(Session_t* s);
 } SessionActon_t;

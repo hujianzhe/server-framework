@@ -17,12 +17,11 @@ typedef struct Cluster_t {
 } Cluster_t;
 
 int initClusterTable(void);
+Cluster_t* newCluster(void);
+void freeCluster(Cluster_t* cluster);
 Cluster_t* getCluster(const char* name, const IPString_t ip, unsigned short port);
 int regCluster(const char* name, Cluster_t* cluster);
 void unregCluster(Cluster_t* cluster);
 void freeClusterTable(void);
-
-Session_t* newSession(int type);
-void freeSession(Session_t* session);
 
 #endif // !MQ_CLUSTER_H

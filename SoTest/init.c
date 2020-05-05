@@ -70,9 +70,6 @@ __declspec_dllexport int init(int argc, char** argv) {
 	int connectsockinitokcnt;
 	initClusterTable();
 
-	ptr_g_SessionAction()->create = newSession;
-	ptr_g_SessionAction()->destroy = freeSession;
-
 	set_g_DefaultDispatchCallback(unknowRequest);
 	regNumberDispatch(CMD_REQ_TEST, reqTest);
 	regNumberDispatch(CMD_NOTIFY_TEST, notifyTest);

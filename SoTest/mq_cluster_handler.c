@@ -250,13 +250,10 @@ int retUploadCluster(UserMsg_t* ctrl) {
 	printf("ret: %s\n", (char*)ctrl->data);
 
 	// test code
-	{
-		Session_t* session = (Session_t*)channelSession(ctrl->channel);
-		if (ptr_g_RpcFiberCore())
-			frpc_test_code(session);
-		else if (ptr_g_RpcAsyncCore())
-			arpc_test_code(session);
-	}
+	if (ptr_g_RpcFiberCore())
+		frpc_test_code(ctrl->channel);
+	else if (ptr_g_RpcAsyncCore())
+		arpc_test_code(ctrl->channel);
 
 	return 0;
 }

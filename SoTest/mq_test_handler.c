@@ -2,9 +2,9 @@
 #include "mq_cmd.h"
 #include "mq_handler.h"
 
-void frpc_test_code(Session_t* session) {
+void frpc_test_code(Channel_t* channel) {
 	// test code
-	if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
+	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
 		RpcItem_t* rpc_item = newRpcItem();
 		if (!rpc_item) {
 			return;
@@ -17,9 +17,9 @@ void frpc_test_code(Session_t* session) {
 			char test_data[] = "this text is from client ^.^";
 			SendMsg_t msg;
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
-			channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+			channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
-			readyRpcItem(rpc_item, session->channel, 1000);
+			readyRpcItem(rpc_item, channel, 1000);
 
 			rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
 			if (rpc_item->ret_msg) {
@@ -35,9 +35,9 @@ void frpc_test_code(Session_t* session) {
 	}
 }
 
-void arpc_test_code(Session_t* session) {
+void arpc_test_code(Channel_t* channel) {
 	// test code
-	if (session->channel->_.flag & CHANNEL_FLAG_CLIENT) {
+	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
 		RpcItem_t* rpc_item = newRpcItem();
 		if (!rpc_item) {
 			return;
@@ -50,9 +50,9 @@ void arpc_test_code(Session_t* session) {
 			char test_data[] = "this text is from client ^.^";
 			SendMsg_t msg;
 			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
-			channelSendv(session->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+			channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
-			readyRpcItem(rpc_item, session->channel, 1000);
+			readyRpcItem(rpc_item, channel, 1000);
 		}
 	}
 }
@@ -81,9 +81,9 @@ int notifyTest(UserMsg_t* ctrl) {
 	printf("recv server test notify, recv msec = %lld\n", gmtimeMillisecond());
 	// test code
 	if (ptr_g_RpcFiberCore())
-		frpc_test_code(session);
+		frpc_test_code(ctrl->channel);
 	else if (ptr_g_RpcAsyncCore())
-		arpc_test_code(session);
+		arpc_test_code(ctrl->channel);
 
 	return 0;
 }

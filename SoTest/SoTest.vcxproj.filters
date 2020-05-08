@@ -27,9 +27,6 @@
     <ClCompile Include="init.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="consistent_hash_cluster.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mq_cluster.h">
@@ -39,9 +36,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="mq_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="consistent_hash_cluster.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

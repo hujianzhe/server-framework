@@ -142,14 +142,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="consistent_hash_cluster.c" />
     <ClCompile Include="mq_cluster.c" />
     <ClCompile Include="mq_cluster_handler.c" />
     <ClCompile Include="mq_test_handler.c" />
     <ClCompile Include="init.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="consistent_hash_cluster.h" />
     <ClInclude Include="mq_cluster.h" />
     <ClInclude Include="mq_cmd.h" />
     <ClInclude Include="mq_handler.h" />

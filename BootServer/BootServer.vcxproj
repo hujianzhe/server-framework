@@ -144,6 +144,7 @@
   <ItemGroup>
     <ClInclude Include="channel_imp.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="consistent_hash_cluster.h" />
     <ClInclude Include="dispatch.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="msg_struct.h" />
@@ -199,6 +200,7 @@
   <ItemGroup>
     <ClCompile Include="channel_imp.c" />
     <ClCompile Include="config.c" />
+    <ClCompile Include="consistent_hash_cluster.c" />
     <ClCompile Include="dispatch.c" />
     <ClCompile Include="global.c" />
     <ClCompile Include="main.c" />

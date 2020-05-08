@@ -163,7 +163,7 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 	cJSON_AddNewNumber(cjson_ret_root, "session_id", cluster->session.id);
 	cjson_ret_array_cluster = cJSON_AddNewArray(cjson_ret_root, "cluster");
 	for (lnode = g_ClusterList.head; lnode; lnode = lnode->next) {
-		Cluster_t* exist_cluster = pod_container_of(lnode, Cluster_t, m_reg_listnode);
+		Cluster_t* exist_cluster = pod_container_of(lnode, Cluster_t, m_listnode);
 		if (exist_cluster != cluster) {
 			cJSON* cjson_ret_object_cluster = cJSON_AddNewObject(cjson_ret_array_cluster, NULL);
 			if (cjson_ret_object_cluster) {

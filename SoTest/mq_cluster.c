@@ -15,6 +15,19 @@ int initClusterTable(void) {
 	return 1;
 }
 
+Cluster_t* newCluster(void) {
+	Cluster_t* cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
+	if (cluster) {
+		initSession(&cluster->session);
+		cluster->session.usertype = SESSION_TYPE_CLUSTER;
+	}
+	return cluster;
+}
+
+void freeCluster(Cluster_t* cluster) {
+	free(cluster);
+}
+
 ClusterGroup_t* getClusterGroup(const char* name) {
 	HashtableNode_t* htnode = hashtableSearchKey(&g_ClusterGroupTable, name);
 	return htnode ? pod_container_of(htnode, ClusterGroup_t, m_htnode) : NULL;
@@ -94,17 +107,4 @@ void freeClusterTable(void) {
 		free(item);
 	}
 	initClusterTable();
-}
-
-Cluster_t* newCluster(void) {
-	Cluster_t* cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
-	if (cluster) {
-		initSession(&cluster->session);
-		cluster->session.usertype = SESSION_TYPE_CLUSTER;
-	}
-	return cluster;
-}
-
-void freeCluster(Cluster_t* cluster) {
-	free(cluster);
 }

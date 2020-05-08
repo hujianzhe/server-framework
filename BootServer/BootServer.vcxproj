@@ -144,7 +144,6 @@
   <ItemGroup>
     <ClInclude Include="channel_imp.h" />
     <ClInclude Include="config.h" />
-    <ClInclude Include="consistent_hash_cluster.h" />
     <ClInclude Include="dispatch.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="msg_struct.h" />
@@ -155,6 +154,7 @@
     <ClInclude Include="util\inc\component\channel.h" />
     <ClInclude Include="util\inc\component\cJSON.h" />
     <ClInclude Include="util\inc\component\collision_detection.h" />
+    <ClInclude Include="util\inc\component\consistent_hash.h" />
     <ClInclude Include="util\inc\component\cXML.h" />
     <ClInclude Include="util\inc\component\dataqueue.h" />
     <ClInclude Include="util\inc\component\db.h" />
@@ -200,7 +200,6 @@
   <ItemGroup>
     <ClCompile Include="channel_imp.c" />
     <ClCompile Include="config.c" />
-    <ClCompile Include="consistent_hash_cluster.c" />
     <ClCompile Include="dispatch.c" />
     <ClCompile Include="global.c" />
     <ClCompile Include="main.c" />
@@ -210,6 +209,7 @@
     <ClCompile Include="util\src\component\channel.c" />
     <ClCompile Include="util\src\component\cJSON.c" />
     <ClCompile Include="util\src\component\collision_detection.c" />
+    <ClCompile Include="util\src\component\consistent_hash.c" />
     <ClCompile Include="util\src\component\cXML.c" />
     <ClCompile Include="util\src\component\dataqueue.c" />
     <ClCompile Include="util\src\component\db.c" />

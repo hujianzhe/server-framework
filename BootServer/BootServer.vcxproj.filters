@@ -174,7 +174,7 @@
     <ClInclude Include="session_struct.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="consistent_hash_cluster.h">
+    <ClInclude Include="util\inc\component\consistent_hash.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -329,7 +329,7 @@
     <ClCompile Include="session_struct.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="consistent_hash_cluster.c">
+    <ClCompile Include="util\src\component\consistent_hash.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

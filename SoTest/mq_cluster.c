@@ -90,7 +90,7 @@ void freeClusterTable(void) {
 		for (curlistnode = item->clusterlist.head; curlistnode; curlistnode = nextlistnode) {
 			Cluster_t* cluster = pod_container_of(curlistnode, Cluster_t, m_reg_htlistnode);
 			nextlistnode = curlistnode->next;
-			free(cluster);
+			freeCluster(cluster);
 		}
 		free((void*)item->m_htnode.key);
 		free(item);
@@ -109,6 +109,5 @@ Cluster_t* newCluster(void) {
 }
 
 void freeCluster(Cluster_t* cluster) {
-	unregCluster(cluster);
 	free(cluster);
 }

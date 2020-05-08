@@ -65,6 +65,7 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 static void freeSession(Session_t* session) {
 	if (SESSION_TYPE_CLUSTER == session->usertype) {
 		Cluster_t* cluster = pod_container_of(session, Cluster_t, session);
+		unregCluster(cluster);
 		freeCluster(cluster);
 	}
 }

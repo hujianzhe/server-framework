@@ -36,6 +36,7 @@ int main(int argc, char** argv) {
 	}
 
 	initDispatch();
+	initClusterTable();
 
 	if (!dataqueueInit(&g_DataQueue))
 		goto err;
@@ -153,6 +154,7 @@ end:
 	}
 	freeConfig();
 	freeDispatchCallback();
+	freeClusterTable();
 	freeGlobalResource();
 	return 0;
 }

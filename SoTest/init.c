@@ -1,7 +1,6 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
 #include "mq_cmd.h"
-#include "mq_cluster.h"
 #include "mq_handler.h"
 #include <stdio.h>
 
@@ -62,23 +61,12 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 	}
 }
 
-static void freeSession(Session_t* session) {
-	if (SESSION_TYPE_CLUSTER == session->usertype) {
-		Cluster_t* cluster = pod_container_of(session, Cluster_t, session);
-		unregCluster(cluster);
-		freeCluster(cluster);
-	}
-}
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 __declspec_dllexport int init(int argc, char** argv) {
 	int connectsockinitokcnt;
-	initClusterTable();
-
-	ptr_g_SessionAction()->destroy = freeSession;
 
 	set_g_DefaultDispatchCallback(unknowRequest);
 	regNumberDispatch(CMD_REQ_TEST, reqTest);
@@ -124,7 +112,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 }
 
 __declspec_dllexport void destroy(void) {
-	freeClusterTable();
+
 }
 
 #ifdef __cplusplus

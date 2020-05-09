@@ -21,10 +21,8 @@ static void call_dispatch(UserMsg_t* ctrl) {
 
 static int session_expire_timeout_callback(RBTimerEvent_t* e, void* arg) {
 	Session_t* session = (Session_t*)arg;
-	if (g_SessionAction.unreg)
-		g_SessionAction.unreg(session);
-	g_SessionAction.destroy(session);
-	free(e);
+	if (session->destroy)
+		session->destroy(session);
 	return 0;
 }
 
@@ -153,9 +151,8 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							free(e);
 						}
 					}
-					if (g_SessionAction.unreg)
-						g_SessionAction.unreg(session);
-					g_SessionAction.destroy(session);
+					if (session->destroy)
+						session->destroy(session);
 				} while (0);
 
 				channelDestroy(channel);

@@ -8,16 +8,11 @@ typedef struct Session_t {
 	short persist;
 	Channel_t* channel;
 	int id;
-	int usertype;
 	void* userdata;
+	void(*destroy)(struct Session_t*);
 	unsigned int expire_timeout_msec;
 	RBTimerEvent_t* expire_timeout_ev;
 } Session_t;
-
-typedef struct SessionActon_t {
-	void(*unreg)(Session_t* s);
-	void(*destroy)(Session_t* s);
-} SessionActon_t;
 
 #define	channelSession(channel)		((channel)->userdata)
 #define	channelSessionId(channel)	((channel)->userid32)

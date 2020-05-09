@@ -1,6 +1,5 @@
-#include "../BootServer/global.h"
-#include "mq_cmd.h"
-#include "mq_cluster.h"
+#include "global.h"
+#include "cluster.h"
 #include <string.h>
 
 List_t g_ClusterList;
@@ -30,6 +29,16 @@ static void free_cluster_group(ClusterGroup_t* grp) {
 	free(grp);
 }
 
+static void cluster_session_destroy(Session_t* session) {
+	Cluster_t* cluster = pod_container_of(session, Cluster_t, session);
+	unregCluster(cluster);
+	freeCluster(cluster);
+}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int initClusterTable(void) {
 	hashtableInit(&g_ClusterGroupTable, s_ClusterGroupBulk, sizeof(s_ClusterGroupBulk) / sizeof(s_ClusterGroupBulk[0]), __keycmp, __keyhash);
 	listInit(&g_ClusterList);
@@ -40,7 +49,7 @@ Cluster_t* newCluster(void) {
 	Cluster_t* cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
 	if (cluster) {
 		initSession(&cluster->session);
-		cluster->session.usertype = SESSION_TYPE_CLUSTER;
+		cluster->session.destroy = cluster_session_destroy;
 	}
 	return cluster;
 }
@@ -126,3 +135,7 @@ void freeClusterTable(void) {
 	}
 	initClusterTable();
 }
+
+#ifdef __cplusplus
+}
+#endif

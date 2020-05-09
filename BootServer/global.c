@@ -53,7 +53,8 @@ RBTimer_t* ptr_g_Timer(void) { return &g_Timer; }
 void set_g_DefaultDispatchCallback(DispatchCallback_t fn) { g_DefaultDispatchCallback = fn; }
 RpcFiberCore_t* ptr_g_RpcFiberCore(void) { return g_RpcFiberCore; }
 RpcAsyncCore_t* ptr_g_RpcAsyncCore(void) { return g_RpcAsyncCore; }
-SessionActon_t* ptr_g_SessionAction(void) { return &g_SessionAction; }
+List_t* ptr_g_ClusterList(void) { return &g_ClusterList; }
+Hashtable_t* ptr_g_ClusterGroupTable(void) { return &g_ClusterGroupTable; }
 
 #ifdef __cplusplus
 }

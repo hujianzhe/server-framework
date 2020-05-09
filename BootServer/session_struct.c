@@ -4,9 +4,6 @@
 static HashtableNode_t* s_SessionBulk[1024];
 static Atom32_t CHANNEL_SESSION_ID = 0;
 
-static void defaultFreeSession(Session_t* s) { free(s); }
-SessionActon_t g_SessionAction = { NULL, defaultFreeSession };
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,8 +21,8 @@ Session_t* initSession(Session_t* session) {
 	session->persist = 0;
 	session->channel = NULL;
 	session->id = 0;
-	session->usertype = 0;
 	session->userdata = NULL;
+	session->destroy = NULL;
 	session->expire_timeout_msec = 0;
 	session->expire_timeout_ev = NULL;
 	return session;

@@ -3,6 +3,7 @@
 
 #include "util/inc/all.h"
 #include "channel_imp.h"
+#include "cluster.h"
 #include "dispatch.h"
 #include "msg_struct.h"
 #include "rpc_helper.h"
@@ -22,7 +23,6 @@ extern RBTimer_t g_TimerRpcTimeout;
 extern DispatchCallback_t g_DefaultDispatchCallback;
 extern RpcFiberCore_t* g_RpcFiberCore;
 extern RpcAsyncCore_t* g_RpcAsyncCore;
-extern SessionActon_t g_SessionAction;
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,7 +36,8 @@ __declspec_dll RBTimer_t* ptr_g_Timer(void);
 __declspec_dll void set_g_DefaultDispatchCallback(DispatchCallback_t fn);
 __declspec_dll RpcFiberCore_t* ptr_g_RpcFiberCore(void);
 __declspec_dll RpcAsyncCore_t* ptr_g_RpcAsyncCore(void);
-__declspec_dll SessionActon_t* ptr_g_SessionAction(void);
+__declspec_dll List_t* ptr_g_ClusterList(void);
+__declspec_dll Hashtable_t* ptr_g_ClusterGroupTable(void);
 
 #ifdef __cplusplus
 }

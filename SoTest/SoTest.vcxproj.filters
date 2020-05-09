@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="mq_cluster.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="mq_cluster_handler.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -29,9 +26,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mq_cluster.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="mq_cmd.h">
       <Filter>头文件</Filter>
     </ClInclude>

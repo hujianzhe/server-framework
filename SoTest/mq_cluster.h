@@ -1,6 +1,7 @@
 #ifndef MQ_CLUSTER_H
 #define	MQ_CLUSTER_H
 
+#include "../BootServer/util/inc/component/consistent_hash.h"
 #include "../BootServer/session_struct.h"
 
 extern List_t g_ClusterList;
@@ -10,6 +11,7 @@ typedef struct ClusterGroup_t {
 	HashtableNode_t m_htnode;
 	List_t clusterlist;
 	size_t clusterlistcnt;
+	ConsistentHash_t consistent_hash;
 } ClusterGroup_t;
 
 typedef struct Cluster_t {

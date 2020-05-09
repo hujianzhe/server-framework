@@ -9,6 +9,27 @@ static HashtableNode_t* s_ClusterGroupBulk[32];
 static int __keycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
 static unsigned int __keyhash(const void* key) { return hashBKDR((const char*)key); }
 
+static ClusterGroup_t* new_cluster_group(const char* name) {
+	ClusterGroup_t* grp = (ClusterGroup_t*)malloc(sizeof(ClusterGroup_t));
+	if (!grp)
+		return NULL;
+	grp->m_htnode.key = strdup(name);
+	if (!grp->m_htnode.key) {
+		free(grp);
+		return NULL;
+	}
+	grp->clusterlistcnt = 0;
+	listInit(&grp->clusterlist);
+	consistenthashInit(&grp->consistent_hash);
+	return grp;
+}
+
+static void free_cluster_group(ClusterGroup_t* grp) {
+	free((void*)grp->m_htnode.key);
+	consistenthashFree(&grp->consistent_hash);
+	free(grp);
+}
+
 int initClusterTable(void) {
 	hashtableInit(&g_ClusterGroupTable, s_ClusterGroupBulk, sizeof(s_ClusterGroupBulk) / sizeof(s_ClusterGroupBulk[0]), __keycmp, __keyhash);
 	listInit(&g_ClusterList);
@@ -48,47 +69,45 @@ Cluster_t* getCluster(const char* name, const IPString_t ip, unsigned short port
 }
 
 int regCluster(const char* name, Cluster_t* cluster) {
-	ClusterGroup_t* item;
+	ClusterGroup_t* grp;
 	HashtableNode_t* htnode;
 	if (cluster->session.has_reg) {
 		return 1;
 	}
 	htnode = hashtableSearchKey(&g_ClusterGroupTable, name);
 	if (htnode) {
-		item = pod_container_of(htnode, ClusterGroup_t, m_htnode);
+		grp = pod_container_of(htnode, ClusterGroup_t, m_htnode);
 	}
 	else {
-		item = (ClusterGroup_t*)malloc(sizeof(ClusterGroup_t));
-		if (!item)
+		grp = new_cluster_group(name);
+		if (!grp)
 			return 0;
-		item->m_htnode.key = strdup(name);
-		if (!item->m_htnode.key)
-			return 0;
-		item->clusterlistcnt = 0;
-		listInit(&item->clusterlist);
-		hashtableInsertNode(&g_ClusterGroupTable, &item->m_htnode);
+		hashtableInsertNode(&g_ClusterGroupTable, &grp->m_htnode);
 	}
-	cluster->name = (const char*)item->m_htnode.key;
-	cluster->grp = item;
-	item->clusterlistcnt++;
-	listPushNodeBack(&item->clusterlist, &cluster->m_grp_listnode);
+	cluster->name = (const char*)grp->m_htnode.key;
+	cluster->grp = grp;
+	grp->clusterlistcnt++;
+	listPushNodeBack(&grp->clusterlist, &cluster->m_grp_listnode);
 	listPushNodeBack(&g_ClusterList, &cluster->m_listnode);
 	cluster->session.has_reg = 1;
 	return 1;
 }
 
 void unregCluster(Cluster_t* cluster) {
-	if (cluster->session.has_reg) {
-		ClusterGroup_t* item = cluster->grp;
-		listRemoveNode(&item->clusterlist, &cluster->m_grp_listnode);
-		item->clusterlistcnt--;
-		if (!item->clusterlist.head) {
-			hashtableRemoveNode(&g_ClusterGroupTable, &item->m_htnode);
-			free((void*)item->m_htnode.key);
-			free(item);
+	if (cluster->session.has_reg && cluster->grp) {
+		ClusterGroup_t* grp = cluster->grp;
+		listRemoveNode(&grp->clusterlist, &cluster->m_grp_listnode);
+		grp->clusterlistcnt--;
+		if (grp->clusterlist.head) {
+			consistenthashDelValue(&grp->consistent_hash, cluster);
+		}
+		else {
+			hashtableRemoveNode(&g_ClusterGroupTable, &grp->m_htnode);
+			free_cluster_group(grp);
 		}
 		listRemoveNode(&g_ClusterList, &cluster->m_listnode);
 		cluster->session.has_reg = 0;
+		cluster->grp = NULL;
 	}
 }
 
@@ -96,15 +115,14 @@ void freeClusterTable(void) {
 	HashtableNode_t* curhtnode, *nexthtnode;
 	for (curhtnode = hashtableFirstNode(&g_ClusterGroupTable); curhtnode; curhtnode = nexthtnode) {
 		ListNode_t* curlistnode, *nextlistnode;
-		ClusterGroup_t* item = pod_container_of(curhtnode, ClusterGroup_t, m_htnode);
+		ClusterGroup_t* grp = pod_container_of(curhtnode, ClusterGroup_t, m_htnode);
 		nexthtnode = hashtableNextNode(curhtnode);
-		for (curlistnode = item->clusterlist.head; curlistnode; curlistnode = nextlistnode) {
+		for (curlistnode = grp->clusterlist.head; curlistnode; curlistnode = nextlistnode) {
 			Cluster_t* cluster = pod_container_of(curlistnode, Cluster_t, m_grp_listnode);
 			nextlistnode = curlistnode->next;
 			freeCluster(cluster);
 		}
-		free((void*)item->m_htnode.key);
-		free(item);
+		free_cluster_group(grp);
 	}
 	initClusterTable();
 }

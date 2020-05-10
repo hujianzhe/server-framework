@@ -1,0 +1,14 @@
+{
+	"cluster_grouop" : [
+		{
+			"name" : "game",
+			"cluster" : [
+				{
+					"socktype" : "SOCK_DGRAM",
+					"ip" : "127.0.0.1",
+					"port" : 50000
+				}
+			]
+		}
+	]
+}

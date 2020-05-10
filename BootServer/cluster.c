@@ -49,6 +49,10 @@ Cluster_t* newCluster(void) {
 	Cluster_t* cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
 	if (cluster) {
 		initSession(&cluster->session);
+		cluster->grp = NULL;
+		cluster->name = NULL;
+		cluster->ip[0] = 0;
+		cluster->port = 0;
 		cluster->session.destroy = cluster_session_destroy;
 	}
 	return cluster;

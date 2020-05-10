@@ -18,7 +18,7 @@ int reqReconnectCluster(UserMsg_t* ctrl) {
 	ok = 0;
 	do {
 		Cluster_t* cluster;
-		cJSON* cjson_name, *cjson_ip, *cjson_port;
+		cJSON* cjson_name, *cjson_ip, *cjson_port, *cjson_session_id;
 
 		cjson_name = cJSON_Field(cjson_req_root, "name");
 		if (!cjson_name) {
@@ -32,9 +32,16 @@ int reqReconnectCluster(UserMsg_t* ctrl) {
 		if (!cjson_port) {
 			break;
 		}
+		cjson_session_id = cJSON_Field(cjson_req_root, "session_id");
+		if (!cjson_session_id) {
+			break;
+		}
 
 		cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
 		if (!cluster) {
+			break;
+		}
+		if (cluster->session.id != cjson_session_id->valueint) {
 			break;
 		}
 

@@ -20,7 +20,7 @@ else
 COMPILER := gcc
 endif
 
-TARGET := $(TARGET_PATH)/SoTest.so
+TARGET := $(TARGET_PATH)/ServiceCenter.so
 
 all:
 

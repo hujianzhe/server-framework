@@ -1,23 +1,23 @@
 #ifndef MQ_HANDLER_H
 #define	MQ_HANDLER_H
 
-extern int unknowRequest(UserMsg_t* ctrl);
+extern void unknowRequest(UserMsg_t* ctrl);
 
 extern void frpc_test_code(Channel_t*);
 extern void arpc_test_code(Channel_t*);
-extern int reqTest(UserMsg_t*);
-extern int notifyTest(UserMsg_t*);
+extern void reqTest(UserMsg_t*);
+extern void notifyTest(UserMsg_t*);
 extern void rpcRetTest(RpcItem_t*);
-extern int retTest(UserMsg_t*);
-extern int reqHttpTest(UserMsg_t*);
-extern int reqSoTest(UserMsg_t* ctrl);
+extern void retTest(UserMsg_t*);
+extern void reqHttpTest(UserMsg_t*);
+extern void reqSoTest(UserMsg_t* ctrl);
 
-extern int reqReconnectCluster(UserMsg_t*);
-extern int retReconnect(UserMsg_t*);
-extern int reqUploadCluster(UserMsg_t*);
-extern int retUploadCluster(UserMsg_t*);
-extern int notifyNewCluster(UserMsg_t*);
-extern int reqRemoveCluster(UserMsg_t*);
-extern int retRemoveCluster(UserMsg_t*);
+extern void reqReconnectCluster(UserMsg_t*);
+extern void retReconnect(UserMsg_t*);
+extern void reqUploadCluster(UserMsg_t*);
+extern void retUploadCluster(UserMsg_t*);
+extern void notifyNewCluster(UserMsg_t*);
+extern void reqRemoveCluster(UserMsg_t*);
+extern void retRemoveCluster(UserMsg_t*);
 
 #endif

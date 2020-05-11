@@ -16,7 +16,7 @@ typedef struct UserMsg_t {
 	unsigned char data[1];
 } UserMsg_t;
 
-typedef int(*DispatchCallback_t)(UserMsg_t*);
+typedef void(*DispatchCallback_t)(UserMsg_t*);
 
 #ifdef __cplusplus
 extern "C" {

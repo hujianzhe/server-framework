@@ -57,7 +57,7 @@ void arpc_test_code(Channel_t* channel) {
 	}
 }
 
-int reqTest(UserMsg_t* ctrl) {
+void reqTest(UserMsg_t* ctrl) {
 	char test_data[] = "this text is from server ^.^";
 	SendMsg_t msg;
 
@@ -73,10 +73,9 @@ int reqTest(UserMsg_t* ctrl) {
 		makeSendMsg(&msg, CMD_RET_TEST, test_data, sizeof(test_data));
 	}
 	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-	return 0;
 }
 
-int notifyTest(UserMsg_t* ctrl) {
+void notifyTest(UserMsg_t* ctrl) {
 	Session_t* session = (Session_t*)channelSession(ctrl->channel);
 	printf("recv server test notify, recv msec = %lld\n", gmtimeMillisecond());
 	// test code
@@ -84,8 +83,6 @@ int notifyTest(UserMsg_t* ctrl) {
 		frpc_test_code(ctrl->channel);
 	else if (ptr_g_RpcAsyncCore())
 		arpc_test_code(ctrl->channel);
-
-	return 0;
 }
 
 void rpcRetTest(RpcItem_t* rpc_item) {
@@ -101,12 +98,11 @@ void rpcRetTest(RpcItem_t* rpc_item) {
 	}
 }
 
-int retTest(UserMsg_t* ctrl) {
+void retTest(UserMsg_t* ctrl) {
 	printf("say hello world ... %s, recv msec = %lld\n", ctrl->data, gmtimeMillisecond());
-	return 0;
 }
 
-int reqHttpTest(UserMsg_t* ctrl) {
+void reqHttpTest(UserMsg_t* ctrl) {
 	HttpFrame_t* httpframe = ctrl->httpframe;
 	printf("recv http browser ... %s\n", httpframe->query);
 	free(httpframeReset(httpframe));
@@ -123,15 +119,15 @@ int reqHttpTest(UserMsg_t* ctrl) {
 		200, httpframeStatusDesc(200), sizeof(test_data) - 1, test_data
 	);
 	if (!reply) {
-		return 0;
+		return;
 	}
 	channelSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
 	reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
 	free(reply);
-	return 0;
+	return;
 }
 
-int reqSoTest(UserMsg_t* ctrl) {
+void reqSoTest(UserMsg_t* ctrl) {
 	HttpFrame_t* httpframe = ctrl->httpframe;
 	printf("module recv http browser ... %s\n", httpframe->query);
 	free(httpframeReset(httpframe));
@@ -148,15 +144,14 @@ int reqSoTest(UserMsg_t* ctrl) {
 		200, httpframeStatusDesc(200), sizeof(test_data) - 1, test_data
 	);
 	if (!reply) {
-		return 0;
+		return;
 	}
 	channelSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
 	reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
 	free(reply);
-	return 0;
 }
 
-int unknowRequest(UserMsg_t* ctrl) {
+void unknowRequest(UserMsg_t* ctrl) {
 	if (ctrl->httpframe) {
 		char reply[] = "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n";
 		channelSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
@@ -165,5 +160,4 @@ int unknowRequest(UserMsg_t* ctrl) {
 	else {
 		channelSend(ctrl->channel, NULL, 0, NETPACKET_FRAGMENT);
 	}
-	return 0;
 }

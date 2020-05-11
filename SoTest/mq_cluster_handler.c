@@ -3,7 +3,7 @@
 #include "mq_handler.h"
 #include <stdio.h>
 
-int reqReconnectCluster(UserMsg_t* ctrl) {
+void reqReconnectCluster(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	SendMsg_t ret_msg;
 	int ok;
@@ -11,7 +11,7 @@ int reqReconnectCluster(UserMsg_t* ctrl) {
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
 		fputs("cJSON_Parse", stderr);
-		return 0;
+		return;
 	}
 	printf("req: %s\n", (char*)(ctrl->data));
 
@@ -72,16 +72,15 @@ int reqReconnectCluster(UserMsg_t* ctrl) {
 	if (!ok) {
 		channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 		puts("reconnect failure");
-		return 1;
+		return;
 	}
 
 	makeSendMsg(&ret_msg, CMD_RET_RECONNECT, NULL, 0);
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_SYN_ACK);
 	puts("reconnect start");
-	return 0;
 }
 
-int retReconnect(UserMsg_t* ctrl) {
+void retReconnect(UserMsg_t* ctrl) {
 	ReactorCmd_t* cmd;
 	ReactorPacket_t* pkg = NULL;
 	Channel_t* channel = ctrl->channel;
@@ -92,17 +91,16 @@ int retReconnect(UserMsg_t* ctrl) {
 		listInit(&pklist);
 		if (!channelShard(channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT_EOF, &pklist)) {
 			puts("reconnect error");
-			return 0;
+			return;
 		}
 		pkg = pod_container_of(pklist.head, ReactorPacket_t, cmd._);
 	}
 	cmd = reactorNewReuseFinishCmd(&channel->_, pkg);
 	reactorCommitCmd(NULL, cmd);
 	puts("reconnect finish");
-	return 0;
 }
 
-int reqUploadCluster(UserMsg_t* ctrl) {
+void reqUploadCluster(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	cJSON *cjson_ret_root, *cjson_ret_array_cluster;
 	SendMsg_t ret_msg;
@@ -114,7 +112,7 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
 		fputs("cJSON_Parse", stderr);
-		return 0;
+		return;
 	}
 	printf("req: %s\n", (char*)(ctrl->data));
 
@@ -162,7 +160,7 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 	} while (0);
 	cJSON_Delete(cjson_req_root);
 	if (!ok) {
-		return 0;
+		return;
 	}
 
 	cjson_ret_root = cJSON_NewObject(NULL);
@@ -190,16 +188,15 @@ int reqUploadCluster(UserMsg_t* ctrl) {
 	makeSendMsg(&ret_msg, CMD_RET_UPLOAD_CLUSTER, ret_data, strlen(ret_data));
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	free(ret_data);
-	return 0;
 }
 
-int retUploadCluster(UserMsg_t* ctrl) {
+void retUploadCluster(UserMsg_t* ctrl) {
 	cJSON* cjson_ret_root;
 
 	cjson_ret_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_ret_root) {
 		fputs("cJSON_Parse", stderr);
-		return 0;
+		return;
 	}
 
 	do {
@@ -260,18 +257,16 @@ int retUploadCluster(UserMsg_t* ctrl) {
 		frpc_test_code(ctrl->channel);
 	else if (ptr_g_RpcAsyncCore())
 		arpc_test_code(ctrl->channel);
-
-	return 0;
 }
 
-int notifyNewCluster(UserMsg_t* ctrl) {
+void notifyNewCluster(UserMsg_t* ctrl) {
 	cJSON* cjson_ntf_root;
 	int ok;
 
 	cjson_ntf_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_ntf_root) {
 		fputs("cJSON_Parse", stderr);
-		return 0;
+		return;
 	}
 
 	ok = 0;
@@ -310,21 +305,20 @@ int notifyNewCluster(UserMsg_t* ctrl) {
 	} while (0);
 	cJSON_Delete(cjson_ntf_root);
 	if (!ok) {
-		return 0;
+		return;
 	}
 
 	printf("notify: %s\n", (char*)ctrl->data);
-	return 0;
 }
 
-int reqRemoveCluster(UserMsg_t* ctrl) {
+void reqRemoveCluster(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	SendMsg_t ret_msg;
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
 		fputs("cJSON_Parse", stderr);
-		return 0;
+		return;
 	}
 
 	do {
@@ -357,9 +351,7 @@ int reqRemoveCluster(UserMsg_t* ctrl) {
 
 	makeSendMsg(&ret_msg, CMD_RET_REMOVE_CLUSTER, NULL, 0);
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
-	return 0;
 }
 
-int retRemoveCluster(UserMsg_t* ctrl) {
-	return 0;
+void retRemoveCluster(UserMsg_t* ctrl) {
 }

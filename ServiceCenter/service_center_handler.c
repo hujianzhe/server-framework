@@ -2,7 +2,7 @@
 #include "service_center_handler.h"
 #include <stdio.h>
 
-int reqClusterList_http(UserMsg_t* ctrl) {
+void reqClusterList_http(UserMsg_t* ctrl) {
 	cJSON* root, *cluster_array;
 	ListNode_t* node;
 	char* ret_data, *reply;
@@ -31,10 +31,9 @@ int reqClusterList_http(UserMsg_t* ctrl) {
 	free(ret_data);
 	channelSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
 	reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
-	return 1;
 }
 
-int reqClusterList(UserMsg_t* ctrl) {
+void reqClusterList(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	cJSON *cjson_ret_root, *cjson_ret_array_cluster;
 	SendMsg_t ret_msg;
@@ -46,7 +45,7 @@ int reqClusterList(UserMsg_t* ctrl) {
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
 		fputs("cJSON_Parse", stderr);
-		return 0;
+		return;
 	}
 	printf("req: %s\n", (char*)(ctrl->data));
 
@@ -86,7 +85,7 @@ int reqClusterList(UserMsg_t* ctrl) {
 		const char ret_data[] = "{\"errno\":1}";
 		makeSendMsg(&ret_msg, CMD_RET_CLUSTER_LIST, ret_data, sizeof(ret_data) - 1);
 		channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
-		return 0;
+		return;
 	}
 
 	cjson_ret_root = cJSON_NewObject(NULL);
@@ -105,7 +104,7 @@ int reqClusterList(UserMsg_t* ctrl) {
 	}
 	if (lnode) {
 		cJSON_Delete(cjson_ret_root);
-		return 0;
+		return;
 	}
 	ret_data = cJSON_Print(cjson_ret_root);
 	cJSON_Delete(cjson_ret_root);
@@ -113,17 +112,16 @@ int reqClusterList(UserMsg_t* ctrl) {
 	makeSendMsg(&ret_msg, CMD_RET_CLUSTER_LIST, ret_data, strlen(ret_data));
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	free(ret_data);
-	return 0;
 }
 
-int retClusterList(UserMsg_t* ctrl) {
+void retClusterList(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	int ok;
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
 		fputs("cJSON_Parse", stderr);
-		return 0;
+		return;
 	}
 	printf("recv: %s\n", (char*)(ctrl->data));
 
@@ -175,13 +173,11 @@ int retClusterList(UserMsg_t* ctrl) {
 	} while (0);
 	cJSON_Delete(cjson_req_root);
 	if (!ok) {
-		return 0;
+		return;
 	}
-
-	return 0;
 }
 
-int reqClusterLogin(UserMsg_t* ctrl) {
+void reqClusterLogin(UserMsg_t* ctrl) {
 	ListNode_t* cluster_listnode;
 	Cluster_t* cluster;
 	Session_t* session;
@@ -191,12 +187,12 @@ int reqClusterLogin(UserMsg_t* ctrl) {
 
 	session = channelSession(ctrl->channel);
 	if (!session)
-		return 0;
+		return;
 	cluster = pod_container_of(session, Cluster_t, session);
 
 	req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", cluster->name, cluster->ip, cluster->port);
 	if (!req_data) {
-		return 0;
+		return;
 	}
 	makeSendMsg(&req_msg, CMD_REQ_CLUSTER_LOGIN, req_data, req_datalen);
 
@@ -215,6 +211,4 @@ int reqClusterLogin(UserMsg_t* ctrl) {
 			break;
 		}
 	}
-
-	return 0;
 }

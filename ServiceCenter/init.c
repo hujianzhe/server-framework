@@ -8,7 +8,7 @@
 #pragma comment(lib, "BootServer.lib")
 #endif
 
-int loadClusterNode(const char* path) {
+static int loadClusterNode(const char* path) {
 	cJSON* cluster_grp_array, *cluster_grp;
 	cJSON* root = cJSON_ParseFromFile(NULL, path);
 	if (!root) {

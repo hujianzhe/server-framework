@@ -5,6 +5,7 @@
 
 int reqClusterList_http(UserMsg_t* ctrl);
 int reqClusterList(UserMsg_t* ctrl);
+int retClusterList(UserMsg_t* ctrl);
 int reqClusterLogin(UserMsg_t* ctrl);
 
 #endif // !SERVICE_CENTER_HANDLER_H

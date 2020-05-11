@@ -116,22 +116,104 @@ int reqClusterList(UserMsg_t* ctrl) {
 	return 0;
 }
 
+int retClusterList(UserMsg_t* ctrl) {
+	cJSON* cjson_req_root;
+	int ok;
+
+	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
+	if (!cjson_req_root) {
+		fputs("cJSON_Parse", stderr);
+		return 0;
+	}
+	printf("recv: %s\n", (char*)(ctrl->data));
+
+	ok = 0;
+	do {
+		cJSON* cjson_session_id, *cjson_cluster_array, *cjson_cluster;
+
+		if (!cJSON_Field(cjson_req_root, "errno")) {
+			break;
+		}
+
+		cjson_session_id = cJSON_Field(cjson_req_root, "session_id");
+		if (!cjson_session_id) {
+			break;
+		}
+		cjson_cluster_array = cJSON_Field(cjson_req_root, "cluster");
+		if (!cjson_cluster_array) {
+			break;
+		}
+		for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
+			Cluster_t* cluster;
+			cJSON* name, *ip, *port;
+			name = cJSON_Field(cjson_cluster, "name");
+			if (!name)
+				continue;
+			ip = cJSON_Field(cjson_cluster, "ip");
+			if (!ip)
+				continue;
+			port = cJSON_Field(cjson_cluster, "port");
+			if (!port)
+				continue;
+			cluster = newCluster();
+			if (!cluster) {
+				break;
+			}
+			strcpy(cluster->ip, ip->valuestring);
+			cluster->port = port->valueint;
+			if (!regCluster(name->valuestring, cluster)) {
+				freeCluster(cluster);
+				break;
+			}
+		}
+		if (cjson_cluster) {
+			break;
+		}
+		
+		channelSessionId(ctrl->channel) = cjson_session_id->valueint;
+		ok = 1;
+	} while (0);
+	cJSON_Delete(cjson_req_root);
+	if (!ok) {
+		return 0;
+	}
+
+	return 0;
+}
+
 int reqClusterLogin(UserMsg_t* ctrl) {
 	ListNode_t* cluster_listnode;
 	Cluster_t* cluster;
 	Session_t* session;
+	char* req_data;
+	int req_datalen;
+	SendMsg_t req_msg;
 
 	session = channelSession(ctrl->channel);
 	if (!session)
 		return 0;
 	cluster = pod_container_of(session, Cluster_t, session);
 
+	req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", cluster->name, cluster->ip, cluster->port);
+	if (!req_data) {
+		return 0;
+	}
+	makeSendMsg(&req_msg, CMD_REQ_CLUSTER_LOGIN, req_data, req_datalen);
+
 	for (cluster_listnode = ptr_g_ClusterList()->head; cluster_listnode; cluster_listnode = cluster_listnode->next) {
 		Cluster_t* exist_cluster = pod_container_of(cluster_listnode, Cluster_t, m_listnode);
-		if (!exist_cluster->session.channel) {
+		Channel_t* channel = exist_cluster->session.channel;
+		if (!channel) {
 			continue;
 		}
-		// TODO notify other online cluster
+		RpcItem_t* rpc_item = newRpcItem();
+		rpcFiberCoreRegItem(ptr_g_RpcFiberCore(), rpc_item);
+		readyRpcItem(rpc_item, channel, 5000);
+		channelSendv(channel, req_msg.iov, sizeof(req_msg.iov) / sizeof(req_msg.iov[0]), NETPACKET_FRAGMENT);
+		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
+		if (!rpc_item->ret_msg) {
+			break;
+		}
 	}
 
 	return 0;

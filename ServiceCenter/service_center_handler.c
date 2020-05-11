@@ -83,6 +83,9 @@ int reqClusterCenterLogin(UserMsg_t* ctrl) {
 	} while (0);
 	cJSON_Delete(cjson_req_root);
 	if (!ok) {
+		const char ret_data[] = "{\"errno\":1}";
+		makeSendMsg(&ret_msg, CMD_RET_CLUSTER_CENTER_LOGIN, ret_data, sizeof(ret_data) - 1);
+		channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 		return 0;
 	}
 

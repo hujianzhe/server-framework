@@ -172,9 +172,6 @@ void retClusterList(UserMsg_t* ctrl) {
 		ok = 1;
 	} while (0);
 	cJSON_Delete(cjson_req_root);
-	if (!ok) {
-		return;
-	}
 }
 
 void reqClusterLogin(UserMsg_t* ctrl) {

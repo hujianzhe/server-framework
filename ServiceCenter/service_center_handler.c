@@ -116,3 +116,44 @@ int reqClusterCenterLogin(UserMsg_t* ctrl) {
 	free(ret_data);
 	return 0;
 }
+
+int notifyClusterLogin(UserMsg_t* ctrl) {
+	cJSON* cjson_req_root;
+	Cluster_t* cluster;
+
+	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
+	if (!cjson_req_root) {
+		fputs("cJSON_Parse", stderr);
+		return 0;
+	}
+	printf("req: %s\n", (char*)(ctrl->data));
+
+	do {
+		cJSON* cjson_name, *cjson_ip, *cjson_port;
+
+		cjson_name = cJSON_Field(cjson_req_root, "name");
+		if (!cjson_name) {
+			break;
+		}
+		cjson_ip = cJSON_Field(cjson_req_root, "ip");
+		if (!cjson_ip) {
+			break;
+		}
+		cjson_port = cJSON_Field(cjson_req_root, "port");
+		if (!cjson_port) {
+			break;
+		}
+
+		cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
+		if (cluster) {
+			Channel_t* channel = sessionUnbindChannel(&cluster->session);
+			if (channel) {
+				channelSendv(channel, NULL, 0, NETPACKET_FIN);
+			}
+		}
+		cluster->session.id = allocSessionId();
+		sessionBindChannel(&cluster->session, ctrl->channel);
+	} while (0);
+	cJSON_Delete(cjson_req_root);
+	return 0;
+}

@@ -29,6 +29,10 @@ extern Hashtable_t g_ClusterGroupTable;
 extern "C" {
 #endif
 
+__declspec_dll List_t* ptr_g_ClusterList(void);
+__declspec_dll Hashtable_t* ptr_g_ClusterGroupTable(void);
+__declspec_dll Cluster_t* ptr_g_ClusterSelf(void);
+
 int initClusterTable(void);
 __declspec_dll Cluster_t* newCluster(void);
 __declspec_dll void freeCluster(Cluster_t* cluster);

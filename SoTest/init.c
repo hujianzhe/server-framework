@@ -41,14 +41,14 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 	printf("channel(%p) connect success, ip:%s, port:%hu\n", c, peer_ip, peer_port);
 
 	if (c->connected_times > 1) {
-		unsigned short port = ptr_g_Config()->listen_options ? ptr_g_Config()->listen_options[0].port : 0;
-		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"session_id\":%d}", ptr_g_Config()->cluster_name, ptr_g_Config()->outer_ip, port, channelSessionId(channel));
+		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"session_id\":%d}",
+			ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port, channelSessionId(channel));
 		makeSendMsg(&msg, CMD_REQ_RECONNECT, buffer, strlen(buffer));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN);
 	}
 	else {
-		unsigned short port = ptr_g_Config()->listen_options ? ptr_g_Config()->listen_options[0].port : 0;
-		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", ptr_g_Config()->cluster_name, ptr_g_Config()->outer_ip, port);
+		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}",
+			ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
 		makeSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		/*

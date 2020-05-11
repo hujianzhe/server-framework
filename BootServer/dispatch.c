@@ -22,6 +22,8 @@ DispatchCallback_t g_DefaultDispatchCallback = NULL;
 extern "C" {
 #endif
 
+void set_g_DefaultDispatchCallback(DispatchCallback_t fn) { g_DefaultDispatchCallback = fn; }
+
 int initDispatch(void) {
 	hashtableInit(
 		&s_NumberDispatchTable,

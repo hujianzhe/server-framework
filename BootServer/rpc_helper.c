@@ -1,8 +1,15 @@
 #include "global.h"
 
+RpcFiberCore_t* g_RpcFiberCore;
+RpcAsyncCore_t* g_RpcAsyncCore;
+RBTimer_t g_TimerRpcTimeout;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+RpcFiberCore_t* ptr_g_RpcFiberCore(void) { return g_RpcFiberCore; }
+RpcAsyncCore_t* ptr_g_RpcAsyncCore(void) { return g_RpcAsyncCore; }
 
 RpcItem_t* newRpcItem(void) {
 	RpcItem_t* rpc_item = (RpcItem_t*)malloc(sizeof(RpcItem_t) + sizeof(RBTimerEvent_t));

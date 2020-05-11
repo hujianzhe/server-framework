@@ -9,9 +9,6 @@ Reactor_t* g_ReactorAccept;
 DataQueue_t g_DataQueue;
 size_t g_ReactorCnt;
 RBTimer_t g_Timer;
-RBTimer_t g_TimerRpcTimeout;
-RpcFiberCore_t* g_RpcFiberCore;
-RpcAsyncCore_t* g_RpcAsyncCore;
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,18 +41,9 @@ void freeGlobalResource(void) {
 	networkCleanEnv();
 }
 
-Reactor_t* selectReactor(size_t key) {
-	return &g_Reactors[key % g_ReactorCnt];
-}
-
+Reactor_t* selectReactor(size_t key) { return &g_Reactors[key % g_ReactorCnt]; }
 DataQueue_t* ptr_g_DataQueue(void) { return &g_DataQueue; }
 RBTimer_t* ptr_g_Timer(void) { return &g_Timer; }
-void set_g_DefaultDispatchCallback(DispatchCallback_t fn) { g_DefaultDispatchCallback = fn; }
-RpcFiberCore_t* ptr_g_RpcFiberCore(void) { return g_RpcFiberCore; }
-RpcAsyncCore_t* ptr_g_RpcAsyncCore(void) { return g_RpcAsyncCore; }
-List_t* ptr_g_ClusterList(void) { return &g_ClusterList; }
-Hashtable_t* ptr_g_ClusterGroupTable(void) { return &g_ClusterGroupTable; }
-Cluster_t* ptr_g_ClusterSelf(void) { return g_ClusterSelf; }
 
 #ifdef __cplusplus
 }

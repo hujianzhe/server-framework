@@ -40,6 +40,10 @@ static void cluster_session_destroy(Session_t* session) {
 extern "C" {
 #endif
 
+List_t* ptr_g_ClusterList(void) { return &g_ClusterList; }
+Hashtable_t* ptr_g_ClusterGroupTable(void) { return &g_ClusterGroupTable; }
+Cluster_t* ptr_g_ClusterSelf(void) { return g_ClusterSelf; }
+
 int initClusterTable(void) {
 	hashtableInit(&g_ClusterGroupTable, s_ClusterGroupBulk, sizeof(s_ClusterGroupBulk) / sizeof(s_ClusterGroupBulk[0]), __keycmp, __keyhash);
 	listInit(&g_ClusterList);

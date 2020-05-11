@@ -18,9 +18,13 @@ typedef struct UserMsg_t {
 
 typedef void(*DispatchCallback_t)(UserMsg_t*);
 
+extern DispatchCallback_t g_DefaultDispatchCallback;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+__declspec_dll void set_g_DefaultDispatchCallback(DispatchCallback_t fn);
 
 int initDispatch(void);
 __declspec_dll int regStringDispatch(const char* str, DispatchCallback_t func);

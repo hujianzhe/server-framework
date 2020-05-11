@@ -34,7 +34,7 @@ int reqClusterList_http(UserMsg_t* ctrl) {
 	return 1;
 }
 
-int reqClusterLogin(UserMsg_t* ctrl) {
+int reqClusterCenterLogin(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	cJSON *cjson_ret_root, *cjson_ret_array_cluster;
 	SendMsg_t ret_msg;
@@ -108,7 +108,7 @@ int reqClusterLogin(UserMsg_t* ctrl) {
 	ret_data = cJSON_Print(cjson_ret_root);
 	cJSON_Delete(cjson_ret_root);
 
-	makeSendMsg(&ret_msg, CMD_RET_CLUSTER_LOGIN, ret_data, strlen(ret_data));
+	makeSendMsg(&ret_msg, CMD_RET_CLUSTER_CENTER_LOGIN, ret_data, strlen(ret_data));
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	free(ret_data);
 	return 0;

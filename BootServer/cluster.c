@@ -2,6 +2,7 @@
 #include "cluster.h"
 #include <string.h>
 
+Cluster_t* g_ClusterSelf;
 List_t g_ClusterList;
 Hashtable_t g_ClusterGroupTable;
 static HashtableNode_t* s_ClusterGroupBulk[32];

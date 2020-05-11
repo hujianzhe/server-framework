@@ -38,6 +38,7 @@ __declspec_dll RpcFiberCore_t* ptr_g_RpcFiberCore(void);
 __declspec_dll RpcAsyncCore_t* ptr_g_RpcAsyncCore(void);
 __declspec_dll List_t* ptr_g_ClusterList(void);
 __declspec_dll Hashtable_t* ptr_g_ClusterGroupTable(void);
+__declspec_dll Cluster_t* ptr_g_ClusterSelf(void);
 
 #ifdef __cplusplus
 }

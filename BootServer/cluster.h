@@ -4,9 +4,6 @@
 #include "util/inc/component/consistent_hash.h"
 #include "session_struct.h"
 
-extern List_t g_ClusterList;
-extern Hashtable_t g_ClusterGroupTable;
-
 typedef struct ClusterGroup_t {
 	HashtableNode_t m_htnode;
 	List_t clusterlist;
@@ -23,6 +20,10 @@ typedef struct Cluster_t {
 	IPString_t ip;
 	unsigned short port;
 } Cluster_t;
+
+extern Cluster_t* g_ClusterSelf;
+extern List_t g_ClusterList;
+extern Hashtable_t g_ClusterGroupTable;
 
 #ifdef __cplusplus
 extern "C" {

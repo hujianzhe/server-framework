@@ -55,6 +55,7 @@ RpcFiberCore_t* ptr_g_RpcFiberCore(void) { return g_RpcFiberCore; }
 RpcAsyncCore_t* ptr_g_RpcAsyncCore(void) { return g_RpcAsyncCore; }
 List_t* ptr_g_ClusterList(void) { return &g_ClusterList; }
 Hashtable_t* ptr_g_ClusterGroupTable(void) { return &g_ClusterGroupTable; }
+Cluster_t* ptr_g_ClusterSelf(void) { return g_ClusterSelf; }
 
 #ifdef __cplusplus
 }

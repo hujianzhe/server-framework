@@ -32,7 +32,11 @@ int main(int argc, char** argv) {
 	printf("cluster_name:%s, pid:%zu\n", g_Config.cluster_name, processId());
 
 	if (!initGlobalResource()) {
-		return 1;
+		goto err;
+	}
+	g_ClusterSelf = newCluster();
+	if (!g_ClusterSelf) {
+		goto err;
 	}
 
 	initDispatch();

@@ -4,7 +4,7 @@
 #include "cmd.h"
 
 int reqClusterList_http(UserMsg_t* ctrl);
-int reqClusterCenterLogin(UserMsg_t* ctrl);
-int notifyClusterLogin(UserMsg_t* ctrl);
+int reqClusterList(UserMsg_t* ctrl);
+int reqClusterLogin(UserMsg_t* ctrl);
 
 #endif // !SERVICE_CENTER_HANDLER_H

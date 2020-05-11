@@ -1,4 +1,9 @@
 {
+	"cluster" : {
+		"group_name" : "game",
+		"ip" : "127.0.0.1",
+		"port" : 50000
+	},
 	"outer_ip" : "127.0.0.1",
 	"listen_options" : [
 		{
@@ -14,7 +19,6 @@
 			"port" : 50001
 		}
 	],
-	"cluster_name" : "game0",
 	"module_path" : "./ServiceCenter.dll",
 	"rpc_fiber" : 1,
 	"rpc_async" : 0,

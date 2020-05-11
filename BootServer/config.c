@@ -20,15 +20,26 @@ int initConfig(const char* path) {
 			break;
 		}
 
-		cjson = cJSON_Field(root, "cluster_name");
-		if (cjson && cjson->valuestring && cjson->valuestring[0]) {
-			g_Config.cluster_name = strdup(cjson->valuestring);
-			if (!g_Config.cluster_name) {
-				break;
-			}
+		cjson = cJSON_Field(root, "cluster");
+		if (!cjson) {
+			break;
 		}
 		else {
-			break;
+			cJSON* group_name, *ip, *port;
+			group_name = cJSON_Field(cjson, "group_name");
+			if (!group_name)
+				break;
+			ip = cJSON_Field(cjson, "ip");
+			if (!ip)
+				break;
+			port = cJSON_Field(cjson, "port");
+			if (!port)
+				break;
+			g_Config.cluster.group_name = strdup(group_name->valuestring);
+			if (!g_Config.cluster.group_name)
+				break;
+			strcpy(g_Config.cluster.ip, ip->valuestring);
+			g_Config.cluster.port = port->valueint;
 		}
 
 		cjson = cJSON_Field(root, "module_path");
@@ -156,8 +167,8 @@ void freeConfig(void) {
 	g_Config.connect_options = NULL;
 	g_Config.connect_options_cnt = 0;
 	
-	free((char*)g_Config.cluster_name);
-	g_Config.cluster_name = NULL;
+	free((char*)g_Config.cluster.group_name);
+	g_Config.cluster.group_name = NULL;
 	free((char*)g_Config.module_path);
 	g_Config.module_path = NULL;
 	g_Config.outer_ip[0] = 0;

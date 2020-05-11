@@ -29,18 +29,24 @@ int main(int argc, char** argv) {
 	if (!initConfig(argc > 1 ? argv[1] : "config.txt")) {
 		return 1;
 	}
-	printf("cluster_name:%s, pid:%zu\n", g_Config.cluster_name, processId());
+	printf("cluster_group_name:%s, pid:%zu\n", g_Config.cluster.group_name, processId());
+
+	initClusterTable();
+	initDispatch();
 
 	if (!initGlobalResource()) {
 		goto err;
 	}
+
 	g_ClusterSelf = newCluster();
 	if (!g_ClusterSelf) {
 		goto err;
 	}
-
-	initDispatch();
-	initClusterTable();
+	strcpy(g_ClusterSelf->ip, g_Config.cluster.ip);
+	g_ClusterSelf->port = g_Config.cluster.port;
+	if (!regCluster(g_Config.cluster.group_name, g_ClusterSelf)) {
+		goto err;
+	}
 
 	if (!dataqueueInit(&g_DataQueue))
 		goto err;

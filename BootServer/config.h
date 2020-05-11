@@ -16,7 +16,11 @@ typedef struct Config_t {
 	ConfigConnectOption_t* connect_options;
 	unsigned int connect_options_cnt;
 	IPString_t outer_ip;
-	const char* cluster_name;
+	struct {
+		const char* group_name;
+		IPString_t ip;
+		unsigned short port;
+	} cluster;
 	const char* module_path;
 	int rpc_fiber;
 	int rpc_async;

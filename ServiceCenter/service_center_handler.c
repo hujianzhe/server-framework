@@ -235,6 +235,7 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 		}
 	}
 	makeSendMsgRpcResp(&msg, ctrl->rpcid, ok, NULL, 0);
+	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 }
 
 void reqClusterConnectLogin(UserMsg_t* ctrl) {

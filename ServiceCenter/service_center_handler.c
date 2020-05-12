@@ -179,7 +179,9 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 	Session_t* session;
 	char* req_data;
 	int req_datalen;
-	SendMsg_t req_msg;
+	int cnt, ok;
+	RpcItem_t* rpc_item;
+	SendMsg_t msg;
 
 	session = channelSession(ctrl->channel);
 	if (!session)
@@ -191,22 +193,48 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 		return;
 	}
 
+	cnt = 0;
+	ok = 1;
 	for (cluster_listnode = ptr_g_ClusterList()->head; cluster_listnode; cluster_listnode = cluster_listnode->next) {
 		Cluster_t* exist_cluster = pod_container_of(cluster_listnode, Cluster_t, m_listnode);
 		Channel_t* channel = exist_cluster->session.channel;
-		if (!channel) {
+		if (channel) {
 			continue;
 		}
-		RpcItem_t* rpc_item = newRpcItem();
-		rpcFiberCoreRegItem(ptr_g_RpcFiberCore(), rpc_item);
-		makeSendMsgRpcReq(&req_msg, rpc_item->id, CMD_REQ_CLUSTER_CONNECT_LOGIN, req_data, req_datalen);
-		readyRpcItem(rpc_item, channel, 5000);
-		channelSendv(channel, req_msg.iov, sizeof(req_msg.iov) / sizeof(req_msg.iov[0]), NETPACKET_FRAGMENT);
-		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
-		if (!rpc_item->ret_msg) {
+		rpc_item = newRpcItem();
+		if (!rpc_item) {
+			ok = 0;
 			break;
 		}
+		if (!rpcFiberCoreRegItem(ptr_g_RpcFiberCore(), rpc_item)) {
+			freeRpcItem(rpc_item);
+			ok = 0;
+			break;
+		}
+		if (!readyRpcItem(rpc_item, channel, 5000)) {
+			freeRpcItem(rpc_item);
+			ok = 0;
+			break;
+		}
+		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_CONNECT_LOGIN, req_data, req_datalen);
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		++cnt;
 	}
+	free(req_data);
+	while (cnt--) {
+		UserMsg_t* rpc_ret_ctrl;
+		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
+		if (!rpc_item->ret_msg) {
+			ok = 0;
+			continue;
+		}
+		rpc_ret_ctrl = (UserMsg_t*)rpc_item->ret_msg;
+		if (rpc_ret_ctrl->retcode != 0) {
+			ok = 0;
+			continue;
+		}
+	}
+	makeSendMsgRpcResp(&msg, ctrl->rpcid, ok, NULL, 0);
 }
 
 void reqClusterConnectLogin(UserMsg_t* ctrl) {

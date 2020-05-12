@@ -182,6 +182,7 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 	int cnt, ok;
 	RpcItem_t* rpc_item;
 	SendMsg_t msg;
+	UserMsg_t dup_ctrl;
 
 	session = channelSession(ctrl->channel);
 	if (!session)
@@ -221,6 +222,8 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 		++cnt;
 	}
 	free(req_data);
+	dup_ctrl = *ctrl;
+	_xadd32(&dup_ctrl.channel->_.refcnt, 1);
 	while (cnt--) {
 		UserMsg_t* rpc_ret_ctrl;
 		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
@@ -234,8 +237,9 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 			continue;
 		}
 	}
-	makeSendMsgRpcResp(&msg, ctrl->rpcid, ok, NULL, 0);
-	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	makeSendMsgRpcResp(&msg, dup_ctrl.rpcid, ok, NULL, 0);
+	channelSendv(dup_ctrl.channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	reactorCommitCmd(NULL, &dup_ctrl.channel->_.freecmd);
 }
 
 void reqClusterConnectLogin(UserMsg_t* ctrl) {

@@ -191,7 +191,7 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 	if (!req_data) {
 		return;
 	}
-	makeSendMsg(&req_msg, CMD_REQ_CLUSTER_LOGIN, req_data, req_datalen);
+	makeSendMsg(&req_msg, CMD_REQ_CLUSTER_CONNECT_LOGIN, req_data, req_datalen);
 
 	for (cluster_listnode = ptr_g_ClusterList()->head; cluster_listnode; cluster_listnode = cluster_listnode->next) {
 		Cluster_t* exist_cluster = pod_container_of(cluster_listnode, Cluster_t, m_listnode);
@@ -207,5 +207,66 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 		if (!rpc_item->ret_msg) {
 			break;
 		}
+	}
+}
+
+void reqClusterConnectLogin(UserMsg_t* ctrl) {
+	cJSON* cjson_req_root;
+	int ok;
+	
+	cjson_req_root = cJSON_Parse(NULL, ctrl->data);
+	if (!cjson_req_root) {
+		fputs("cJSON_Parse", stderr);
+		return;
+	}
+
+	ok = 0;
+	do {
+		cJSON* ip, *port, *cjson_socktype;
+		int socktype;
+		ReactorObject_t* o;
+		Channel_t* c;
+		Sockaddr_t connect_addr;
+
+		ip = cJSON_Field(cjson_req_root, "ip");
+		if (!ip) {
+			break;
+		}
+		port = cJSON_Field(cjson_req_root, "port");
+		if (!port) {
+			break;
+		}
+		cjson_socktype = cJSON_Field(cjson_req_root, "socktype");
+		if (!cjson_socktype) {
+			break;
+		}
+		else if (!strcmp(cjson_socktype->valuestring, "SOCK_STREAM"))
+			socktype = SOCK_STREAM;
+		else
+			socktype = SOCK_DGRAM;
+
+		if (!sockaddrEncode(&connect_addr.st, ipstrFamily(ip->valuestring), ip->valuestring, port->valueint)) {
+			break;
+		}
+		o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.st.ss_family, socktype, 0);
+		if (!o) {
+			break;
+		}
+		c = openChannel(o, CHANNEL_FLAG_CLIENT, &connect_addr);
+		if (!c) {
+			reactorCommitCmd(NULL, &o->freecmd);
+			break;
+		}
+		c->_.on_syn_ack = NULL;
+		c->on_heartbeat = NULL;
+		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
+		ok = 1;
+	} while (0);
+	cJSON_Delete(cjson_req_root);
+	if (!ok) {
+		const char ret_data[] = "{\"errno\":1}";
+		SendMsg_t ret_msg;
+		makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, ret_data, sizeof(ret_data) - 1);
+		channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	}
 }

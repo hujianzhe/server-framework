@@ -244,7 +244,8 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 
 void reqClusterConnectLogin(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
-	int ok;
+	UserMsg_t dup_ctrl;
+	SendMsg_t ret_msg;
 	
 	cjson_req_root = cJSON_Parse(NULL, ctrl->data);
 	if (!cjson_req_root) {
@@ -252,7 +253,6 @@ void reqClusterConnectLogin(UserMsg_t* ctrl) {
 		return;
 	}
 
-	ok = 0;
 	do {
 		cJSON* ip, *port, *cjson_socktype;
 		int socktype;
@@ -292,12 +292,16 @@ void reqClusterConnectLogin(UserMsg_t* ctrl) {
 		c->_.on_syn_ack = NULL;
 		c->on_heartbeat = NULL;
 		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
-		ok = 1;
+		// TODO make connect callback yield
+
+		dup_ctrl = *ctrl;
+		_xadd32(&dup_ctrl.channel->_.refcnt, 1);
+		makeSendMsgRpcResp(&ret_msg, dup_ctrl.rpcid, 0, NULL, 0);
+		channelSendv(dup_ctrl.channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
+		reactorCommitCmd(NULL, &dup_ctrl.channel->_.freecmd);
+		return;
 	} while (0);
 	cJSON_Delete(cjson_req_root);
-	if (!ok) {
-		SendMsg_t ret_msg;
-		makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 1, NULL, 0);
-		channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
-	}
+	makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 1, NULL, 0);
+	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 }

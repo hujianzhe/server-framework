@@ -16,7 +16,7 @@ void frpc_test_code(Channel_t* channel) {
 		else {
 			char test_data[] = "this text is from client ^.^";
 			SendMsg_t msg;
-			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
+			makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST, test_data, sizeof(test_data));
 			channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
 			readyRpcItem(rpc_item, channel, 1000);
@@ -49,7 +49,7 @@ void arpc_test_code(Channel_t* channel) {
 		else {
 			char test_data[] = "this text is from client ^.^";
 			SendMsg_t msg;
-			makeSendMsgRpcReq(&msg, CMD_REQ_TEST, rpc_item->id, test_data, sizeof(test_data));
+			makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST, test_data, sizeof(test_data));
 			channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
 			readyRpcItem(rpc_item, channel, 1000);
@@ -67,7 +67,7 @@ void reqTest(UserMsg_t* ctrl) {
 	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
 	if (ctrl->rpc_status == 'R') {
-		makeSendMsgRpcResp(&msg, ctrl->rpcid, test_data, sizeof(test_data));
+		makeSendMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
 	}
 	else {
 		makeSendMsg(&msg, CMD_RET_TEST, test_data, sizeof(test_data));

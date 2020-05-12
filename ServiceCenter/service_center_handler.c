@@ -82,8 +82,7 @@ void reqClusterList(UserMsg_t* ctrl) {
 	} while (0);
 	cJSON_Delete(cjson_req_root);
 	if (!ok) {
-		const char ret_data[] = "{\"errno\":1}";
-		makeSendMsg(&ret_msg, CMD_RET_CLUSTER_LIST, ret_data, sizeof(ret_data) - 1);
+		makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 1, NULL, 0);
 		channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 		return;
 	}
@@ -109,7 +108,7 @@ void reqClusterList(UserMsg_t* ctrl) {
 	ret_data = cJSON_Print(cjson_ret_root);
 	cJSON_Delete(cjson_ret_root);
 
-	makeSendMsg(&ret_msg, CMD_RET_CLUSTER_LIST, ret_data, strlen(ret_data));
+	makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 0, ret_data, strlen(ret_data));
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	free(ret_data);
 }
@@ -191,7 +190,6 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 	if (!req_data) {
 		return;
 	}
-	makeSendMsg(&req_msg, CMD_REQ_CLUSTER_CONNECT_LOGIN, req_data, req_datalen);
 
 	for (cluster_listnode = ptr_g_ClusterList()->head; cluster_listnode; cluster_listnode = cluster_listnode->next) {
 		Cluster_t* exist_cluster = pod_container_of(cluster_listnode, Cluster_t, m_listnode);
@@ -201,6 +199,7 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 		}
 		RpcItem_t* rpc_item = newRpcItem();
 		rpcFiberCoreRegItem(ptr_g_RpcFiberCore(), rpc_item);
+		makeSendMsgRpcReq(&req_msg, rpc_item->id, CMD_REQ_CLUSTER_CONNECT_LOGIN, req_data, req_datalen);
 		readyRpcItem(rpc_item, channel, 5000);
 		channelSendv(channel, req_msg.iov, sizeof(req_msg.iov) / sizeof(req_msg.iov[0]), NETPACKET_FRAGMENT);
 		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
@@ -264,9 +263,8 @@ void reqClusterConnectLogin(UserMsg_t* ctrl) {
 	} while (0);
 	cJSON_Delete(cjson_req_root);
 	if (!ok) {
-		const char ret_data[] = "{\"errno\":1}";
 		SendMsg_t ret_msg;
-		makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, ret_data, sizeof(ret_data) - 1);
+		makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 1, NULL, 0);
 		channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	}
 }

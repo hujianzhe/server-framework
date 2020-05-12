@@ -5,6 +5,15 @@
 extern "C" {
 #endif
 
+SendMsg_t* makeSendMsgEmpty(SendMsg_t* msg) {
+	int i;
+	for (i = 0; i < sizeof(msg->iov) / sizeof(msg->iov[0]); ++i) {
+		iobufPtr(msg->iov + i) = NULL;
+		iobufLen(msg->iov + i) = 0;
+	}
+	return msg;
+}
+
 SendMsg_t* makeSendMsg(SendMsg_t* msg, int cmdid, const void* data, unsigned int len) {
 	msg->htonl_cmdid = htonl(cmdid);
 	msg->rpc_status = 0;
@@ -20,26 +29,17 @@ SendMsg_t* makeSendMsg(SendMsg_t* msg, int cmdid, const void* data, unsigned int
 	return msg;
 }
 
-SendMsg_t* makeSendMsgRpcReq(SendMsg_t* msg, int cmdid, int rpcid, const void* data, unsigned int len) {
+SendMsg_t* makeSendMsgRpcReq(SendMsg_t* msg, int rpcid, int cmdid, const void* data, unsigned int len) {
 	makeSendMsg(msg, cmdid, data, len);
 	msg->rpc_status = 'R';
 	msg->htonl_rpcid = htonl(rpcid);
 	return msg;
 }
 
-SendMsg_t* makeSendMsgRpcResp(SendMsg_t* msg, int rpcid, const void* data, unsigned int len) {
-	makeSendMsg(msg, 0, data, len);
+SendMsg_t* makeSendMsgRpcResp(SendMsg_t* msg, int rpcid, int retcode, const void* data, unsigned int len) {
+	makeSendMsg(msg, retcode, data, len);
 	msg->rpc_status = 'T';
 	msg->htonl_rpcid = htonl(rpcid);
-	return msg;
-}
-
-SendMsg_t* makeSendMsgEmpty(SendMsg_t* msg) {
-	int i;
-	for (i = 0; i < sizeof(msg->iov) / sizeof(msg->iov[0]); ++i) {
-		iobufPtr(msg->iov + i) = NULL;
-		iobufLen(msg->iov + i) = 0;
-	}
 	return msg;
 }
 

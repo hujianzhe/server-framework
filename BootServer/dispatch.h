@@ -10,7 +10,10 @@ typedef struct UserMsg_t {
 	Sockaddr_t peer_addr;
 	HttpFrame_t* httpframe;
 	char rpc_status;
-	int cmdid;
+	union {
+		int cmdid;
+		int retcode;
+	};
 	int rpcid;
 	size_t datalen;
 	unsigned char data[1];

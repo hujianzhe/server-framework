@@ -5,32 +5,23 @@
 void frpc_test_code(Channel_t* channel) {
 	// test code
 	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
-		RpcItem_t* rpc_item = newRpcItem();
+		char test_data[] = "this text is from client ^.^";
+		SendMsg_t msg;
+		RpcItem_t* rpc_item = newRpcItemFiberReady(ptr_g_RpcFiberCore(), channel, 1000);
 		if (!rpc_item) {
 			return;
 		}
-		if (!rpcFiberCoreRegItem(ptr_g_RpcFiberCore(), rpc_item)) {
-			printf("rpcid(%d) already send\n", rpc_item->id);
-			freeRpcItem(rpc_item);
+		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST, test_data, sizeof(test_data));
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
+		if (rpc_item->ret_msg) {
+			UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
+			long long cost_msec = gmtimeMillisecond() - rpc_item->timestamp_msec;
+			printf("rpc(%d) send msec=%lld time cost(%lld msec)\n", rpc_item->id, rpc_item->timestamp_msec, cost_msec);
+			printf("rpc(%d) say hello world ... %s\n", rpc_item->id, ret_msg->data);
 		}
 		else {
-			char test_data[] = "this text is from client ^.^";
-			SendMsg_t msg;
-			makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST, test_data, sizeof(test_data));
-			channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-
-			readyRpcItem(rpc_item, channel, 1000);
-
-			rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
-			if (rpc_item->ret_msg) {
-				UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
-				long long cost_msec = gmtimeMillisecond() - rpc_item->timestamp_msec;
-				printf("rpc(%d) send msec=%lld time cost(%lld msec)\n", rpc_item->id, rpc_item->timestamp_msec, cost_msec);
-				printf("rpc(%d) say hello world ... %s\n", rpc_item->id, ret_msg->data);
-			}
-			else {
-				puts("rpc call failure timeout or cancel");
-			}
+			puts("rpc call failure timeout or cancel");
 		}
 	}
 }
@@ -38,22 +29,14 @@ void frpc_test_code(Channel_t* channel) {
 void arpc_test_code(Channel_t* channel) {
 	// test code
 	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
-		RpcItem_t* rpc_item = newRpcItem();
+		char test_data[] = "this text is from client ^.^";
+		SendMsg_t msg;
+		RpcItem_t* rpc_item = newRpcItemAsyncReady(ptr_g_RpcAsyncCore(), channel, 1000, NULL, rpcRetTest);
 		if (!rpc_item) {
 			return;
 		}
-		if (!rpcAsyncCoreRegItem(ptr_g_RpcAsyncCore(), rpc_item, NULL, rpcRetTest)) {
-			printf("rpcid(%d) already send\n", rpc_item->id);
-			freeRpcItem(rpc_item);
-		}
-		else {
-			char test_data[] = "this text is from client ^.^";
-			SendMsg_t msg;
-			makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST, test_data, sizeof(test_data));
-			channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-
-			readyRpcItem(rpc_item, channel, 1000);
-		}
+		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST, test_data, sizeof(test_data));
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	}
 }
 

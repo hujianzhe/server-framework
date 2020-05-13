@@ -202,18 +202,8 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 		if (channel) {
 			continue;
 		}
-		rpc_item = newRpcItem();
+		rpc_item = newRpcItemFiberReady(ptr_g_RpcFiberCore(), channel, 5000);
 		if (!rpc_item) {
-			retcode = 1;
-			goto err;
-		}
-		if (!rpcFiberCoreRegItem(ptr_g_RpcFiberCore(), rpc_item)) {
-			freeRpcItem(rpc_item);
-			retcode = 1;
-			goto err;
-		}
-		if (!readyRpcItem(rpc_item, channel, 5000)) {
-			freeRpcItem(rpc_item);
 			retcode = 1;
 			goto err;
 		}
@@ -256,6 +246,8 @@ void reqClusterConnectLogin(UserMsg_t* ctrl) {
 	Sockaddr_t connect_addr;
 	RpcItem_t* rpc_item;
 	int retcode = 0;
+	char* req_data;
+	int req_datalen;
 	
 	cjson_req_root = cJSON_Parse(NULL, ctrl->data);
 	if (!cjson_req_root) {
@@ -303,20 +295,8 @@ void reqClusterConnectLogin(UserMsg_t* ctrl) {
 	c->_.on_syn_ack = NULL; // TODO
 	c->on_heartbeat = NULL; // TODO
 
-	rpc_item = newRpcItem();
+	rpc_item = newRpcItemFiberReady(ptr_g_RpcFiberCore(), c, 500);
 	if (!rpc_item) {
-		reactorCommitCmd(NULL, &o->freecmd);
-		reactorCommitCmd(NULL, &c->_.freecmd);
-		retcode = 1;
-		goto err;
-	}
-	if (!rpcFiberCoreRegItem(ptr_g_RpcFiberCore(), rpc_item)) {
-		reactorCommitCmd(NULL, &o->freecmd);
-		reactorCommitCmd(NULL, &c->_.freecmd);
-		retcode = 1;
-		goto err;
-	}
-	if (!readyRpcItem(rpc_item, c, 500)) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		reactorCommitCmd(NULL, &c->_.freecmd);
 		retcode = 1;
@@ -326,32 +306,33 @@ void reqClusterConnectLogin(UserMsg_t* ctrl) {
 
 	_xadd32(&dup_ctrl.channel->_.refcnt, 1);
 	rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
-	if (rpc_item->ret_msg) {
-		UserMsg_t* ctrl = (UserMsg_t*)rpc_item->ret_msg;
-		char* req_data;
-		int req_datalen;
-		req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}",
-			ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
-		if (!req_data) {
-			retcode = 1;
-			goto err;
-		}
-		rpc_item = newRpcItem();
-		rpcFiberCoreRegItem(ptr_g_RpcFiberCore(), rpc_item);
-		readyRpcItem(rpc_item, c, 500);
-		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_LOGIN, req_data, req_datalen);
-		channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
-		if (!rpc_item->ret_msg) {
-			retcode = 1;
-		}
-		else {
-			retcode = ((UserMsg_t*)rpc_item->ret_msg)->retcode;
-		}
+	if (!rpc_item->ret_msg) {
+		retcode = 1;
+		goto end;
 	}
-	else {
+	ctrl = (UserMsg_t*)rpc_item->ret_msg;
+		
+	req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}",
+		ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
+	if (!req_data) {
+		retcode = 1;
+		goto end;
+	}
+	rpc_item = newRpcItemFiberReady(ptr_g_RpcFiberCore(), ctrl->channel, 500);
+	if (!rpc_item) {
+		retcode = 1;
+		goto end;
+	}
+	makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_LOGIN, req_data, req_datalen);
+	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
+	if (!rpc_item->ret_msg) {
 		retcode = 1;
 	}
+	else {
+		retcode = ((UserMsg_t*)rpc_item->ret_msg)->retcode;
+	}
+end:
 	makeSendMsgRpcResp(&msg, dup_ctrl.rpcid, retcode, NULL, 0);
 	channelSendv(dup_ctrl.channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	reactorCommitCmd(NULL, &dup_ctrl.channel->_.freecmd);

@@ -36,56 +36,49 @@ void reqClusterList_http(UserMsg_t* ctrl) {
 void reqClusterList(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	cJSON *cjson_ret_root, *cjson_ret_array_cluster;
+	cJSON* cjson_name, *cjson_ip, *cjson_port;
 	SendMsg_t ret_msg;
 	char* ret_data;
 	ListNode_t* lnode;
 	Cluster_t* cluster;
-	int ok;
+	int retcode = 0;
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
-		fputs("cJSON_Parse", stderr);
-		return;
+		retcode = 1;
+		goto err;
 	}
 	printf("req: %s\n", (char*)(ctrl->data));
 
-	ok = 0;
-	do {
-		cJSON* cjson_name, *cjson_ip, *cjson_port;
-
-		cjson_name = cJSON_Field(cjson_req_root, "name");
-		if (!cjson_name) {
-			break;
-		}
-		cjson_ip = cJSON_Field(cjson_req_root, "ip");
-		if (!cjson_ip) {
-			break;
-		}
-		cjson_port = cJSON_Field(cjson_req_root, "port");
-		if (!cjson_port) {
-			break;
-		}
-
-		cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
-		if (cluster) {
-			Channel_t* channel = sessionUnbindChannel(&cluster->session);
-			if (channel) {
-				channelSendv(channel, NULL, 0, NETPACKET_FIN);
-			}
-		}
-		else {
-			break;
-		}
-		cluster->session.id = allocSessionId();
-		sessionBindChannel(&cluster->session, ctrl->channel);
-		ok = 1;
-	} while (0);
-	cJSON_Delete(cjson_req_root);
-	if (!ok) {
-		makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 1, NULL, 0);
-		channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
-		return;
+	cjson_name = cJSON_Field(cjson_req_root, "name");
+	if (!cjson_name) {
+		retcode = 1;
+		goto err;
 	}
+	cjson_ip = cJSON_Field(cjson_req_root, "ip");
+	if (!cjson_ip) {
+		retcode = 1;
+		goto err;
+	}
+	cjson_port = cJSON_Field(cjson_req_root, "port");
+	if (!cjson_port) {
+		retcode = 1;
+		goto err;
+	}
+
+	cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
+	if (cluster) {
+		Channel_t* channel = sessionUnbindChannel(&cluster->session);
+		if (channel) {
+			channelSendv(channel, NULL, 0, NETPACKET_FIN);
+		}
+	}
+	else {
+		retcode = 1;
+		goto err;
+	}
+	cluster->session.id = allocSessionId();
+	sessionBindChannel(&cluster->session, ctrl->channel);
 
 	cjson_ret_root = cJSON_NewObject(NULL);
 	cJSON_AddNewNumber(cjson_ret_root, "session_id", cluster->session.id);
@@ -103,7 +96,8 @@ void reqClusterList(UserMsg_t* ctrl) {
 	}
 	if (lnode) {
 		cJSON_Delete(cjson_ret_root);
-		return;
+		retcode = 1;
+		goto err;
 	}
 	ret_data = cJSON_Print(cjson_ret_root);
 	cJSON_Delete(cjson_ret_root);
@@ -111,6 +105,11 @@ void reqClusterList(UserMsg_t* ctrl) {
 	makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 0, ret_data, strlen(ret_data));
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	free(ret_data);
+	return;
+err:
+	cJSON_Delete(cjson_req_root);
+	makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, retcode, NULL, 0);
+	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 }
 
 void retClusterList(UserMsg_t* ctrl) {
@@ -179,23 +178,24 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 	Session_t* session;
 	char* req_data;
 	int req_datalen;
-	int cnt, ok;
+	int cnt, retcode = 0;
 	RpcItem_t* rpc_item;
 	SendMsg_t msg;
-	UserMsg_t dup_ctrl;
+	UserMsg_t dup_ctrl = *ctrl;
 
 	session = channelSession(ctrl->channel);
-	if (!session)
-		return;
+	if (!session) {
+		retcode = 1;
+		goto err;
+	}
 	cluster = pod_container_of(session, Cluster_t, session);
 
 	req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}", cluster->name, cluster->ip, cluster->port);
 	if (!req_data) {
-		return;
+		retcode = 1;
+		goto err;
 	}
-
 	cnt = 0;
-	ok = 1;
 	for (cluster_listnode = ptr_g_ClusterList()->head; cluster_listnode; cluster_listnode = cluster_listnode->next) {
 		Cluster_t* exist_cluster = pod_container_of(cluster_listnode, Cluster_t, m_listnode);
 		Channel_t* channel = exist_cluster->session.channel;
@@ -204,104 +204,160 @@ void reqClusterLogin(UserMsg_t* ctrl) {
 		}
 		rpc_item = newRpcItem();
 		if (!rpc_item) {
-			ok = 0;
-			break;
+			retcode = 1;
+			goto err;
 		}
 		if (!rpcFiberCoreRegItem(ptr_g_RpcFiberCore(), rpc_item)) {
 			freeRpcItem(rpc_item);
-			ok = 0;
-			break;
+			retcode = 1;
+			goto err;
 		}
 		if (!readyRpcItem(rpc_item, channel, 5000)) {
 			freeRpcItem(rpc_item);
-			ok = 0;
-			break;
+			retcode = 1;
+			goto err;
 		}
 		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_CONNECT_LOGIN, req_data, req_datalen);
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		++cnt;
 	}
 	free(req_data);
-	dup_ctrl = *ctrl;
 	_xadd32(&dup_ctrl.channel->_.refcnt, 1);
 	while (cnt--) {
-		UserMsg_t* rpc_ret_ctrl;
 		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
 		if (!rpc_item->ret_msg) {
-			ok = 0;
-			continue;
+			retcode = 1;
 		}
-		rpc_ret_ctrl = (UserMsg_t*)rpc_item->ret_msg;
-		if (rpc_ret_ctrl->retcode != 0) {
-			ok = 0;
-			continue;
+		else {
+			UserMsg_t* ctrl = (UserMsg_t*)rpc_item->ret_msg;
+			if (ctrl->retcode != 0) {
+				retcode = ctrl->retcode;
+			}
 		}
 	}
-	makeSendMsgRpcResp(&msg, dup_ctrl.rpcid, ok, NULL, 0);
+	makeSendMsgRpcResp(&msg, dup_ctrl.rpcid, retcode, NULL, 0);
 	channelSendv(dup_ctrl.channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	reactorCommitCmd(NULL, &dup_ctrl.channel->_.freecmd);
+	return;
+err:
+	free(req_data);
+	makeSendMsgRpcResp(&msg, dup_ctrl.rpcid, retcode, NULL, 0);
+	channelSendv(dup_ctrl.channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 }
 
 void reqClusterConnectLogin(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
-	UserMsg_t dup_ctrl;
-	SendMsg_t ret_msg;
+	UserMsg_t dup_ctrl = *ctrl;
+	SendMsg_t msg;
+	cJSON* ip, *port, *cjson_socktype;
+	int socktype;
+	ReactorObject_t* o;
+	Channel_t* c;
+	Sockaddr_t connect_addr;
+	RpcItem_t* rpc_item;
+	int retcode = 0;
 	
 	cjson_req_root = cJSON_Parse(NULL, ctrl->data);
 	if (!cjson_req_root) {
-		fputs("cJSON_Parse", stderr);
-		return;
+		retcode = 1;
+		goto err;
 	}
 
-	do {
-		cJSON* ip, *port, *cjson_socktype;
-		int socktype;
-		ReactorObject_t* o;
-		Channel_t* c;
-		Sockaddr_t connect_addr;
+	ip = cJSON_Field(cjson_req_root, "ip");
+	if (!ip) {
+		retcode = 1;
+		goto err;
+	}
+	port = cJSON_Field(cjson_req_root, "port");
+	if (!port) {
+		retcode = 1;
+		goto err;
+	}
+	cjson_socktype = cJSON_Field(cjson_req_root, "socktype");
+	if (!cjson_socktype) {
+		retcode = 1;
+		goto err;
+	}
+	else if (!strcmp(cjson_socktype->valuestring, "SOCK_STREAM"))
+		socktype = SOCK_STREAM;
+	else
+		socktype = SOCK_DGRAM;
 
-		ip = cJSON_Field(cjson_req_root, "ip");
-		if (!ip) {
-			break;
-		}
-		port = cJSON_Field(cjson_req_root, "port");
-		if (!port) {
-			break;
-		}
-		cjson_socktype = cJSON_Field(cjson_req_root, "socktype");
-		if (!cjson_socktype) {
-			break;
-		}
-		else if (!strcmp(cjson_socktype->valuestring, "SOCK_STREAM"))
-			socktype = SOCK_STREAM;
-		else
-			socktype = SOCK_DGRAM;
-
-		if (!sockaddrEncode(&connect_addr.st, ipstrFamily(ip->valuestring), ip->valuestring, port->valueint)) {
-			break;
-		}
-		o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.st.ss_family, socktype, 0);
-		if (!o) {
-			break;
-		}
-		c = openChannel(o, CHANNEL_FLAG_CLIENT, &connect_addr);
-		if (!c) {
-			reactorCommitCmd(NULL, &o->freecmd);
-			break;
-		}
-		c->_.on_syn_ack = NULL;
-		c->on_heartbeat = NULL;
-		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
-		// TODO make connect callback yield
-
-		dup_ctrl = *ctrl;
-		_xadd32(&dup_ctrl.channel->_.refcnt, 1);
-		makeSendMsgRpcResp(&ret_msg, dup_ctrl.rpcid, 0, NULL, 0);
-		channelSendv(dup_ctrl.channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
-		reactorCommitCmd(NULL, &dup_ctrl.channel->_.freecmd);
-		return;
-	} while (0);
 	cJSON_Delete(cjson_req_root);
-	makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 1, NULL, 0);
-	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
+
+	if (!sockaddrEncode(&connect_addr.st, ipstrFamily(ip->valuestring), ip->valuestring, port->valueint)) {
+		retcode = 1;
+		goto err;
+	}
+	o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.st.ss_family, socktype, 0);
+	if (!o) {
+		retcode = 1;
+		goto err;
+	}
+	c = openChannel(o, CHANNEL_FLAG_CLIENT, &connect_addr);
+	if (!c) {
+		reactorCommitCmd(NULL, &o->freecmd);
+		retcode = 1;
+		goto err;
+	}
+	c->_.on_syn_ack = NULL; // TODO
+	c->on_heartbeat = NULL; // TODO
+
+	rpc_item = newRpcItem();
+	if (!rpc_item) {
+		reactorCommitCmd(NULL, &o->freecmd);
+		reactorCommitCmd(NULL, &c->_.freecmd);
+		retcode = 1;
+		goto err;
+	}
+	if (!rpcFiberCoreRegItem(ptr_g_RpcFiberCore(), rpc_item)) {
+		reactorCommitCmd(NULL, &o->freecmd);
+		reactorCommitCmd(NULL, &c->_.freecmd);
+		retcode = 1;
+		goto err;
+	}
+	if (!readyRpcItem(rpc_item, c, 500)) {
+		reactorCommitCmd(NULL, &o->freecmd);
+		reactorCommitCmd(NULL, &c->_.freecmd);
+		retcode = 1;
+		goto err;
+	}
+	reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
+
+	_xadd32(&dup_ctrl.channel->_.refcnt, 1);
+	rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
+	if (rpc_item->ret_msg) {
+		UserMsg_t* ctrl = (UserMsg_t*)rpc_item->ret_msg;
+		char* req_data;
+		int req_datalen;
+		req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}",
+			ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
+		if (!req_data) {
+			retcode = 1;
+			goto err;
+		}
+		rpc_item = newRpcItem();
+		rpcFiberCoreRegItem(ptr_g_RpcFiberCore(), rpc_item);
+		readyRpcItem(rpc_item, c, 500);
+		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_LOGIN, req_data, req_datalen);
+		channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
+		if (!rpc_item->ret_msg) {
+			retcode = 1;
+		}
+		else {
+			retcode = ((UserMsg_t*)rpc_item->ret_msg)->retcode;
+		}
+	}
+	else {
+		retcode = 1;
+	}
+	makeSendMsgRpcResp(&msg, dup_ctrl.rpcid, retcode, NULL, 0);
+	channelSendv(dup_ctrl.channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	reactorCommitCmd(NULL, &dup_ctrl.channel->_.freecmd);
+	return;
+err:
+	cJSON_Delete(cjson_req_root);
+	makeSendMsgRpcResp(&msg, dup_ctrl.rpcid, retcode, NULL, 0);
+	channelSendv(dup_ctrl.channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 }

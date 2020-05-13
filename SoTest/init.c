@@ -46,18 +46,19 @@ static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
 		makeSendMsg(&msg, CMD_REQ_RECONNECT, buffer, strlen(buffer));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN);
 	}
+	else if (channel->rpc_itemlist.head) {
+		RpcItem_t* rpc_item = pod_container_of(channel->rpc_itemlist.head, RpcItem_t, listnode);
+		UserMsg_t* msg = newUserMsg(0);
+		msg->channel = channel;
+		msg->rpcid = rpc_item->id;
+		msg->rpc_status = 'T';
+		dataqueuePush(&g_DataQueue, &msg->internal._);
+	}
 	else {
 		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}",
 			ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
 		makeSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-		/*
-		int i = 0;
-		for (i = 0; i < sizeof(buffer); ++i) {
-		buffer[i] = i % 255;
-		}
-		channelSend(channel, buffer, sizeof(buffer), NETPACKET_FRAGMENT);
-		*/
 	}
 }
 

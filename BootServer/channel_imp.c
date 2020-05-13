@@ -89,27 +89,20 @@ static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecode
 	*/
 	unsigned int cmdid_rpcid_sz = 9;
 	if (decode_result->bodylen >= cmdid_rpcid_sz) {
-		UserMsg_t* message = (UserMsg_t*)malloc(sizeof(UserMsg_t) + decode_result->bodylen - cmdid_rpcid_sz);
+		UserMsg_t* message = newUserMsg(decode_result->bodylen - cmdid_rpcid_sz);
 		if (!message) {
 			return;
 		}
-		message->internal.type = REACTOR_USER_CMD;
 		message->channel = c;
-		if (c->_.flag & CHANNEL_FLAG_STREAM) {
-			message->peer_addr.sa.sa_family = AF_UNSPEC;
-		}
-		else {
+		if (!(c->_.flag & CHANNEL_FLAG_STREAM)) {
 			memcpy(&message->peer_addr, addr, sockaddrLength(addr));
 		}
-		message->httpframe = NULL;
 		message->rpc_status = *(decode_result->bodyptr);
 		message->retcode = message->cmdid = ntohl(*(int*)(decode_result->bodyptr + 1));
 		message->rpcid = ntohl(*(int*)(decode_result->bodyptr + 5));
-		message->datalen = decode_result->bodylen - cmdid_rpcid_sz;
 		if (message->datalen) {
 			memcpy(message->data, decode_result->bodyptr + cmdid_rpcid_sz, message->datalen);
 		}
-		message->data[message->datalen] = 0;
 		dataqueuePush(&g_DataQueue, &message->internal._);
 	}
 	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
@@ -278,27 +271,21 @@ static void httpframe_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 
 static void httpframe_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResult_t* decode_result) {
 	HttpFrame_t* httpframe = (HttpFrame_t*)decode_result->userdata;
-	UserMsg_t* message = (UserMsg_t*)malloc(sizeof(UserMsg_t) + decode_result->bodylen);
+	UserMsg_t* message = newUserMsg(decode_result->bodylen);
 	if (!message) {
 		return;
 	}
-	message->internal.type = REACTOR_USER_CMD;
 	message->channel = c;
-	if (c->_.flag & CHANNEL_FLAG_STREAM) {
-		message->peer_addr.sa.sa_family = AF_UNSPEC;
-	}
-	else {
+	if (!(c->_.flag & CHANNEL_FLAG_STREAM)) {
 		memcpy(&message->peer_addr, addr, sockaddrLength(addr));
 	}
 	message->httpframe = httpframe;
 	message->rpc_status = 0;
 	message->cmdid = 0;
 	message->rpcid = 0;
-	message->datalen = decode_result->bodylen;
 	if (message->datalen) {
 		memcpy(message->data, decode_result->bodyptr, message->datalen);
 	}
-	message->data[message->datalen] = 0;
 	dataqueuePush(&g_DataQueue, &message->internal._);
 }
 

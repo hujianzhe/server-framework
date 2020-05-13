@@ -22,6 +22,19 @@ DispatchCallback_t g_DefaultDispatchCallback = NULL;
 extern "C" {
 #endif
 
+UserMsg_t* newUserMsg(size_t datalen) {
+	UserMsg_t* msg = (UserMsg_t*)malloc(sizeof(UserMsg_t) + datalen);
+	if (msg) {
+		msg->internal.type = REACTOR_USER_CMD;
+		msg->channel = NULL;
+		msg->peer_addr.sa.sa_family = AF_UNSPEC;
+		msg->httpframe = NULL;
+		msg->datalen = datalen;
+		msg->data[msg->datalen] = 0;
+	}
+	return msg;
+}
+
 void set_g_DefaultDispatchCallback(DispatchCallback_t fn) { g_DefaultDispatchCallback = fn; }
 
 int initDispatch(void) {

@@ -27,6 +27,8 @@ extern DispatchCallback_t g_DefaultDispatchCallback;
 extern "C" {
 #endif
 
+__declspec_dll UserMsg_t* newUserMsg(size_t datalen);
+
 __declspec_dll void set_g_DefaultDispatchCallback(DispatchCallback_t fn);
 
 int initDispatch(void);

@@ -110,26 +110,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				else
 					putchar('\n');
 
-				do {
-					ListNode_t* cur, *next;
-					for (cur = channel->rpc_itemlist.head; cur; cur = next) {
-						RpcItem_t* rpc_item = pod_container_of(cur, RpcItem_t, listnode);
-						next = cur->next;
-
-						if (rpc_item->timeout_ev) {
-							rbtimerDelEvent(&g_TimerRpcTimeout, (RBTimerEvent_t*)rpc_item->timeout_ev);
-							rpc_item->timeout_ev = NULL;
-						}
-						rpc_item->originator = NULL;
-
-						if (g_RpcFiberCore)
-							rpcFiberCoreCancel(g_RpcFiberCore, rpc_item);
-						else if (g_RpcAsyncCore)
-							rpcAsyncCoreCancel(g_RpcAsyncCore, rpc_item);
-
-						freeRpcItem(rpc_item);
-					}
-				} while (0);
+				freeRpcItemWhenChannelDetach(channel);
 
 				do {
 					Session_t* session = (Session_t*)channelSession(channel);

@@ -36,6 +36,25 @@ void freeRpcItemWhenNormal(Channel_t* channel, RpcItem_t* rpc_item) {
 	}
 }
 
+void freeRpcItemWhenChannelDetach(Channel_t* channel) {
+	ListNode_t* cur, *next;
+	for (cur = channel->rpc_itemlist.head; cur; cur = next) {
+		RpcItem_t* rpc_item = pod_container_of(cur, RpcItem_t, listnode);
+		next = cur->next;
+
+		if (rpc_item->timeout_ev)
+			rbtimerDelEvent(&g_TimerRpcTimeout, (RBTimerEvent_t*)rpc_item->timeout_ev);
+
+		if (g_RpcFiberCore)
+			rpcFiberCoreCancel(g_RpcFiberCore, rpc_item);
+		else if (g_RpcAsyncCore)
+			rpcAsyncCoreCancel(g_RpcAsyncCore, rpc_item);
+
+		free(rpc_item);
+	}
+	listInit(&channel->rpc_itemlist);
+}
+
 void freeRpcItem(RpcItem_t* rpc_item) {
 	if (rpc_item->originator) {
 		Channel_t* channel = (Channel_t*)rpc_item->originator;

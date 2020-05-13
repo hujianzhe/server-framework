@@ -19,7 +19,7 @@
 			"port" : 50001
 		}
 	],
-	"module_path" : "./ServiceCenter.dll",
+	"module_path" : "./SoTest.dll",
 	"rpc_fiber" : 1,
 	"rpc_async" : 0,
 	"tcp_nodelay" : 1,

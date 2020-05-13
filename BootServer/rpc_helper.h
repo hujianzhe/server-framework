@@ -17,8 +17,9 @@ __declspec_dll RpcFiberCore_t* ptr_g_RpcFiberCore(void);
 __declspec_dll RpcAsyncCore_t* ptr_g_RpcAsyncCore(void);
 
 __declspec_dll RpcItem_t* newRpcItem(void);
-__declspec_dll void freeRpcItemWhenTimeout(RpcItem_t* rpc_item);
-__declspec_dll void freeRpcItemWhenNormal(Channel_t* channel, RpcItem_t* rpc_item);
+void freeRpcItemWhenTimeout(RpcItem_t* rpc_item);
+void freeRpcItemWhenNormal(Channel_t* channel, RpcItem_t* rpc_item);
+void freeRpcItemWhenChannelDetach(Channel_t* channel);
 __declspec_dll void freeRpcItem(RpcItem_t* rpc_item);
 __declspec_dll RpcItem_t* readyRpcItem(RpcItem_t* rpc_item, Channel_t* channel, long long timeout_msec);
 

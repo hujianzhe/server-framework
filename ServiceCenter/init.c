@@ -41,10 +41,12 @@ static int loadClusterNode(const char* path) {
 			cluster = newCluster();
 			if (!cluster)
 				continue;
-			if (!socktype || !strcmp(socktype->valuestring, "SOCK_STREAM"))
+			if (!socktype) {
 				cluster->socktype = SOCK_STREAM;
-			else
-				cluster->socktype = SOCK_DGRAM;
+			}
+			else {
+				cluster->socktype = if_string2socktype(socktype->valuestring);
+			}
 			strcpy(cluster->ip, ip->valuestring);
 			cluster->port = port->valueint;
 			if (!regCluster(name->valuestring, cluster)) {

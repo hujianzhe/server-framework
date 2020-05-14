@@ -92,12 +92,7 @@ void reqClusterList(UserMsg_t* ctrl) {
 			cJSON_AddNewString(cjson_ret_object_cluster, "name", exist_cluster->name);
 			cJSON_AddNewString(cjson_ret_object_cluster, "ip", exist_cluster->ip);
 			cJSON_AddNewNumber(cjson_ret_object_cluster, "port", exist_cluster->port);
-			if (SOCK_STREAM == cluster->socktype) {
-				cJSON_AddNewString(cjson_ret_object_cluster, "socktype", "SOCK_STREAM");
-			}
-			else {
-				cJSON_AddNewString(cjson_ret_object_cluster, "socktype", "SOCK_DGRAM");
-			}
+			cJSON_AddNewString(cjson_ret_object_cluster, "socktype", if_socktype2tring(cluster->socktype));
 		}
 	}
 	if (lnode) {
@@ -164,10 +159,7 @@ void retClusterList(UserMsg_t* ctrl) {
 			if (!cluster) {
 				break;
 			}
-			if (!strcmp(socktype->valuestring, "SOCK_STREAM"))
-				cluster->socktype = SOCK_STREAM;
-			else
-				cluster->socktype = SOCK_DGRAM;
+			cluster->socktype = if_string2socktype(socktype->valuestring);
 			strcpy(cluster->ip, ip->valuestring);
 			cluster->port = port->valueint;
 			if (!regCluster(name->valuestring, cluster)) {
@@ -283,10 +275,7 @@ void reqClusterConnectLogin(UserMsg_t* ctrl) {
 		retcode = 1;
 		goto err;
 	}
-	else if (!strcmp(cjson_socktype->valuestring, "SOCK_STREAM"))
-		socktype = SOCK_STREAM;
-	else
-		socktype = SOCK_DGRAM;
+	socktype = if_string2socktype(cjson_socktype->valuestring);
 
 	cJSON_Delete(cjson_req_root);
 

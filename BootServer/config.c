@@ -73,14 +73,12 @@ int initConfig(const char* path) {
 				option_ptr->protocol = strdup(protocol->valuestring);
 				strcpy(option_ptr->ip, ipnode->valuestring);
 				option_ptr->port = portnode->valueint;
-				if (!socktype)
+				if (!socktype) {
 					option_ptr->socktype = SOCK_STREAM;
-				else if (!strcmp(socktype->valuestring, "SOCK_STREAM"))
-					option_ptr->socktype = SOCK_STREAM;
-				else if (!strcmp(socktype->valuestring, "SOCK_DGRAM"))
-					option_ptr->socktype = SOCK_DGRAM;
-				else
-					option_ptr->socktype = SOCK_STREAM;
+				}
+				else {
+					option_ptr->socktype = if_string2socktype(socktype->valuestring);
+				}
 			}
 			g_Config.listen_options_cnt = i;
 		}
@@ -113,14 +111,12 @@ int initConfig(const char* path) {
 				option_ptr->protocol = strdup(protocol->valuestring);
 				strcpy(option_ptr->ip, ipnode->valuestring);
 				option_ptr->port = portnode->valueint;
-				if (!socktype)
+				if (!socktype) {
 					option_ptr->socktype = SOCK_STREAM;
-				else if (!strcmp(socktype->valuestring, "SOCK_STREAM"))
-					option_ptr->socktype = SOCK_STREAM;
-				else if (!strcmp(socktype->valuestring, "SOCK_DGRAM"))
-					option_ptr->socktype = SOCK_DGRAM;
-				else
-					option_ptr->socktype = SOCK_STREAM;
+				}
+				else {
+					option_ptr->socktype = if_string2socktype(socktype->valuestring);
+				}
 			}
 			g_Config.connect_options_cnt = i;
 		}

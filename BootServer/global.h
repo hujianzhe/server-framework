@@ -10,6 +10,8 @@
 #include "session_struct.h"
 #include <stdlib.h>
 
+extern int g_MainArgc;
+extern char** g_MainArgv;
 extern volatile int g_Valid;
 extern Thread_t* g_ReactorThreads;
 extern Thread_t* g_ReactorAcceptThread;

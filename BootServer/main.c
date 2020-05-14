@@ -25,8 +25,12 @@ int main(int argc, char** argv) {
 		listensockinitokcnt = 0;
 	void* module_ptr = NULL;
 	void(*module_destroy_fn_ptr)(void) = NULL;
+	const char* conf_path = argc > 1 ? argv[1] : "config.txt";
 	//
-	if (!initConfig(argc > 1 ? argv[1] : "config.txt")) {
+	g_MainArgc = argc;
+	g_MainArgv = argv;
+	if (!initConfig(conf_path)) {
+		printf("initConfig(%s) error\n", conf_path);
 		return 1;
 	}
 	printf("cluster_group_name:%s, pid:%zu\n", g_Config.cluster.group_name, processId());

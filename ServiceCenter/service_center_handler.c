@@ -320,11 +320,13 @@ void reqClusterConnectLogin(UserMsg_t* ctrl) {
 	}
 	rpc_item = newRpcItemFiberReady(ptr_g_RpcFiberCore(), ctrl->channel, 500);
 	if (!rpc_item) {
+		free(req_data);
 		retcode = 1;
 		goto end;
 	}
 	makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_LOGIN, req_data, req_datalen);
 	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	free(req_data);
 	rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
 	if (!rpc_item->ret_msg) {
 		retcode = 1;

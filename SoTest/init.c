@@ -52,6 +52,8 @@ __declspec_dllexport int init(int argc, char** argv) {
 		c->on_heartbeat = defaultOnHeartbeat;
 		printf("channel(%p) connecting......\n", c);
 		if (!newRpcItemFiberReady(ptr_g_RpcFiberCore(), c, 5000)) {
+			reactorCommitCmd(NULL, &o->freecmd);
+			reactorCommitCmd(NULL, &c->_.freecmd);
 			return 1;
 		}
 		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);

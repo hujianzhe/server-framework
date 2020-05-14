@@ -2,15 +2,13 @@
 #include "config.h"
 #include <stdio.h>
 
-static int(*s_fnModuleInit)(int, char**);
-
 static void call_dispatch(UserMsg_t* ctrl) {
-	if (s_fnModuleInit) {
-		if (!s_fnModuleInit(g_MainArgc, g_MainArgv)) {
+	if (g_ModuleInitFunc) {
+		if (!g_ModuleInitFunc(g_MainArgc, g_MainArgv)) {
 			printf("(%s).init(argc, argv) return failure\n", g_Config.module_path);
 			g_Valid = 0;
 		}
-		s_fnModuleInit = NULL;
+		g_ModuleInitFunc = NULL;
 	}
 	else {
 		DispatchCallback_t callback;
@@ -45,24 +43,6 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	ListNode_t* cur, *next;
 	int wait_msec;
 	long long cur_msec, timer_min_msec[2];
-	// init module
-	if (g_ModulePtr) {
-		s_fnModuleInit = (int(*)(int, char**))moduleSymbolAddress(g_ModulePtr, "init");
-		if (s_fnModuleInit) {
-			UserMsg_t* msg = newUserMsg(0);
-			if (msg) {
-				dataqueuePush(&g_DataQueue, &msg->internal._);
-			}
-			else {
-				puts("s_fnModuleInit newUserMsg failure\n");
-				return 1;
-			}
-		}
-		else {
-			printf("moduleSymbolAddress(%s, \"init\") failure\n", g_Config.module_path);
-			return 1;
-		}
-	}
 	// init rpc
 	if (g_Config.rpc_fiber) {
 		Fiber_t* thread_fiber = fiberFromThread();

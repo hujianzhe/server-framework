@@ -3,6 +3,7 @@
 int g_MainArgc;
 char** g_MainArgv;
 void* g_ModulePtr;
+int(*g_ModuleInitFunc)(int, char**);
 volatile int g_Valid = 1;
 Thread_t* g_ReactorThreads;
 Thread_t* g_ReactorAcceptThread;

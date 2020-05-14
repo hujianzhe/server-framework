@@ -19,35 +19,39 @@ static void sigintHandler(int signo) {
 
 int main(int argc, char** argv) {
 	int i;
-	int dqinitok = 0, timerinitok = 0, timerrpcinitok = 0,
+	int configinitok = 0, globalresourceinitok = 0,
+		dqinitok = 0, timerinitok = 0, timerrpcinitok = 0,
 		taskthreadinitok = 0, socketloopinitokcnt = 0,
 		acceptthreadinitok = 0, acceptloopinitok = 0,
 		listensockinitokcnt = 0;
-	const char* conf_path = argc > 1 ? argv[1] : "config.txt";
-	//
+	const char* conf_path;
+	// save boot arguments
 	g_MainArgc = argc;
 	g_MainArgv = argv;
+	// init some datastruct
+	initClusterTable();
+	initDispatch();
+	// load config
+	conf_path = argc > 1 ? argv[1] : "config.txt";
 	if (!initConfig(conf_path)) {
 		printf("initConfig(%s) error\n", conf_path);
-		return 1;
+		goto err;
 	}
+	configinitok = 1;
+	// load module
 	if (g_Config.module_path) {
 		g_ModulePtr = moduleLoad(g_Config.module_path);
 		if (!g_ModulePtr) {
 			printf("moduleLoad(%s) failure\n", g_Config.module_path);
-			freeConfig();
-			return 1;
+			goto err;
+		}
+		g_ModuleInitFunc = (int(*)(int, char**))moduleSymbolAddress(g_ModulePtr, "init");
+		if (!g_ModuleInitFunc) {
+			printf("moduleSymbolAddress(%s, \"init\") failure\n", g_Config.module_path);
+			goto err;
 		}
 	}
-	printf("cluster_group_name:%s, pid:%zu\n", g_Config.cluster.group_name, processId());
-
-	initClusterTable();
-	initDispatch();
-
-	if (!initGlobalResource()) {
-		goto err;
-	}
-
+	// reg cluster self
 	g_ClusterSelf = newCluster();
 	if (!g_ClusterSelf) {
 		goto err;
@@ -58,21 +62,24 @@ int main(int argc, char** argv) {
 		goto err;
 	}
 
+	printf("cluster_group_name:%s, pid:%zu\n", g_Config.cluster.group_name, processId());
+	// init resource
+	if (!initGlobalResource()) {
+		goto err;
+	}
+	globalresourceinitok = 1;
+	// init queue
 	if (!dataqueueInit(&g_DataQueue))
 		goto err;
 	dqinitok = 1;
-
+	// init timer
 	if (!rbtimerInit(&g_Timer, TRUE))
 		goto err;
 	timerinitok = 1;
 	if (!rbtimerInit(&g_TimerRpcTimeout, TRUE))
 		goto err;
 	timerrpcinitok = 1;
-
-	if (!threadCreate(&g_TaskThread, taskThreadEntry, NULL))
-		goto err;
-	taskthreadinitok = 1;
-
+	// init reactor and start reactor thread
 	if (!reactorInit(g_ReactorAccept))
 		goto err;
 	acceptloopinitok = 1;
@@ -89,10 +96,21 @@ int main(int argc, char** argv) {
 			goto err;
 		}
 	}
-
+	// start task thread
+	if (!threadCreate(&g_TaskThread, taskThreadEntry, NULL))
+		goto err;
+	taskthreadinitok = 1;
+	// post module init_func message
+	if (g_ModuleInitFunc) {
+		UserMsg_t* msg = newUserMsg(0);
+		if (!msg)
+			goto err;
+		dataqueuePush(&g_DataQueue, &msg->internal._);
+	}
+	// reg SIGINT signal
 	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR)
 		goto err;
-
+	// listen port
 	for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {
 		ConfigListenOption_t* option = g_Config.listen_options + listensockinitokcnt;
 		if (!strcmp(option->protocol, "inner")) {
@@ -110,7 +128,7 @@ int main(int argc, char** argv) {
 			reactorCommitCmd(g_ReactorAccept, &o->regcmd);
 		}
 	}
-	//
+	// wait thread exit
 	threadJoin(g_TaskThread, NULL);
 	g_Valid = 0;
 	threadJoin(*g_ReactorAcceptThread, NULL);
@@ -149,9 +167,13 @@ end:
 	if (g_ModulePtr) {
 		moduleUnload(g_ModulePtr);
 	}
-	freeConfig();
+	if (configinitok) {
+		freeConfig();
+	}
+	if (globalresourceinitok) {
+		freeGlobalResource();
+	}
 	freeDispatchCallback();
 	freeClusterTable();
-	freeGlobalResource();
 	return 0;
 }

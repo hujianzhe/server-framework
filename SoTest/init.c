@@ -8,60 +8,6 @@
 #pragma comment(lib, "BootServer.lib")
 #endif
 
-static int centerChannelHeartbeat(Channel_t* c, int heartbeat_times) {
-	if (heartbeat_times < c->heartbeat_maxtimes) {
-		SendMsg_t msg;
-		makeSendMsgEmpty(&msg);
-		channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
-		printf("channel(%p) send heartbeat, times %d...\n", c, heartbeat_times);
-	}
-	else {
-		ReactorCmd_t* cmd;
-		printf("channel(%p) zombie...\n", c);
-		cmd = reactorNewReuseCmd(&c->_, NULL);
-		if (!cmd) {
-			return 0;
-		}
-		reactorCommitCmd(NULL, cmd);
-		printf("channel(%p) reconnect start...\n", c);
-	}
-	return 1;
-}
-
-static void centerChannelConnectCallback(ChannelBase_t* c, long long ts_msec) {
-	Channel_t* channel = pod_container_of(c, Channel_t, _);
-	char buffer[1024];
-	SendMsg_t msg;
-	IPString_t peer_ip = { 0 };
-	unsigned short peer_port = 0;
-
-	channelEnableHeartbeat(channel, ts_msec);
-
-	sockaddrDecode(&c->to_addr.st, peer_ip, &peer_port);
-	printf("channel(%p) connect success, ip:%s, port:%hu\n", c, peer_ip, peer_port);
-
-	if (c->connected_times > 1) {
-		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"session_id\":%d}",
-			ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port, channelSessionId(channel));
-		makeSendMsg(&msg, CMD_REQ_RECONNECT, buffer, strlen(buffer));
-		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_SYN);
-	}
-	else if (channel->rpc_itemlist.head) {
-		RpcItem_t* rpc_item = pod_container_of(channel->rpc_itemlist.head, RpcItem_t, listnode);
-		UserMsg_t* msg = newUserMsg(0);
-		msg->channel = channel;
-		msg->rpcid = rpc_item->id;
-		msg->rpc_status = 'T';
-		dataqueuePush(&g_DataQueue, &msg->internal._);
-	}
-	else {
-		sprintf(buffer, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}",
-			ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
-		makeSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, buffer, strlen(buffer));
-		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-	}
-}
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -85,6 +31,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 
 	for (connectsockinitokcnt = 0; connectsockinitokcnt < ptr_g_Config()->connect_options_cnt; ++connectsockinitokcnt) {
 		ConfigConnectOption_t* option = ptr_g_Config()->connect_options + connectsockinitokcnt;
+		RpcItem_t* rpc_item;
 		Sockaddr_t connect_addr;
 		Channel_t* c;
 		ReactorObject_t* o;
@@ -101,12 +48,31 @@ __declspec_dllexport int init(int argc, char** argv) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			return 0;
 		}
-		if (!strcmp(option->protocol, "inner")) {
-			c->_.on_syn_ack = centerChannelConnectCallback;
-			c->on_heartbeat = centerChannelHeartbeat;
-		}
+		c->_.on_syn_ack = defaultRpcOnSynAck;
+		c->on_heartbeat = defaultOnHeartbeat;
 		printf("channel(%p) connecting......\n", c);
+		if (!newRpcItemFiberReady(ptr_g_RpcFiberCore(), c, 5000)) {
+			return 1;
+		}
 		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
+		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
+		if (rpc_item->ret_msg) {
+			SendMsg_t msg;
+			char* req_data;
+			int req_datalen;
+			req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}",
+				ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
+			if (!req_data) {
+				return 0;
+			}
+			makeSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, req_data, req_datalen);
+			channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+			free(req_data);
+		}
+		else {
+			printf("channel(%p) connect %s:%u failure\n", c, option->ip, option->port);
+			return 0;
+		}
 	}
 
 	return 1;

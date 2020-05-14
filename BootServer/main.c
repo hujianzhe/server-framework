@@ -122,6 +122,7 @@ int main(int argc, char** argv) {
 	}
 	//
 	threadJoin(g_TaskThread, NULL);
+	g_Valid = 0;
 	threadJoin(*g_ReactorAcceptThread, NULL);
 	reactorDestroy(g_ReactorAccept);
 	for (i = 0; i < g_ReactorCnt; ++i) {

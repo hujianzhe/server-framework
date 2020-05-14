@@ -39,15 +39,18 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		Fiber_t* thread_fiber = fiberFromThread();
 		if (!thread_fiber) {
 			fputs("fiberFromThread error", stderr);
+			g_Valid = 0;
 			return 1;
 		}
 		g_RpcFiberCore = (RpcFiberCore_t*)malloc(sizeof(RpcFiberCore_t));
 		if (!g_RpcFiberCore) {
 			fputs("malloc(sizeof(RpcFiberCore_t)) error", stderr);
+			g_Valid = 0;
 			return 1;
 		}
 		if (!rpcFiberCoreInit(g_RpcFiberCore, thread_fiber, 0x4000, (void(*)(RpcFiberCore_t*, void*))msg_handler)) {
 			fputs("rpcFiberCoreInit error", stderr);
+			g_Valid = 0;
 			return 1;
 		}
 	}
@@ -55,10 +58,12 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		g_RpcAsyncCore = (RpcAsyncCore_t*)malloc(sizeof(RpcAsyncCore_t));
 		if (!g_RpcAsyncCore) {
 			fputs("malloc(sizeof(RpcAsyncCore_t)) error", stderr);
+			g_Valid = 0;
 			return 1;
 		}
 		if (!rpcAsyncCoreInit(g_RpcAsyncCore)) {
 			fputs("rpcAsyncCoreInit error", stderr);
+			g_Valid = 0;
 			return 1;
 		}
 	}

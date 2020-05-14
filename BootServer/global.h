@@ -12,6 +12,7 @@
 
 extern int g_MainArgc;
 extern char** g_MainArgv;
+extern void* g_ModulePtr;
 extern volatile int g_Valid;
 extern Thread_t* g_ReactorThreads;
 extern Thread_t* g_ReactorAcceptThread;

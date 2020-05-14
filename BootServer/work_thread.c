@@ -2,20 +2,31 @@
 #include "config.h"
 #include <stdio.h>
 
+static int(*s_fnModuleInit)(int, char**);
+
 static void call_dispatch(UserMsg_t* ctrl) {
-	DispatchCallback_t callback;
-	if (ctrl->httpframe) {
-		char* path = ctrl->httpframe->uri;
-		path[ctrl->httpframe->pathlen] = 0;
-		callback = getStringDispatch(path);
+	if (s_fnModuleInit) {
+		if (!s_fnModuleInit(g_MainArgc, g_MainArgv)) {
+			printf("(%s).init(argc, argv) return failure\n", g_Config.module_path);
+			g_Valid = 0;
+		}
+		s_fnModuleInit = NULL;
 	}
 	else {
-		callback = getNumberDispatch(ctrl->cmdid);
+		DispatchCallback_t callback;
+		if (ctrl->httpframe) {
+			char* path = ctrl->httpframe->uri;
+			path[ctrl->httpframe->pathlen] = 0;
+			callback = getStringDispatch(path);
+		}
+		else {
+			callback = getNumberDispatch(ctrl->cmdid);
+		}
+		if (callback)
+			callback(ctrl);
+		else if (g_DefaultDispatchCallback)
+			g_DefaultDispatchCallback(ctrl);
 	}
-	if (callback)
-		callback(ctrl);
-	else if (g_DefaultDispatchCallback)
-		g_DefaultDispatchCallback(ctrl);
 	free(ctrl);
 }
 
@@ -34,7 +45,25 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	ListNode_t* cur, *next;
 	int wait_msec;
 	long long cur_msec, timer_min_msec[2];
-	// init
+	// init module
+	if (g_ModulePtr) {
+		s_fnModuleInit = (int(*)(int, char**))moduleSymbolAddress(g_ModulePtr, "init");
+		if (s_fnModuleInit) {
+			UserMsg_t* msg = newUserMsg(0);
+			if (msg) {
+				dataqueuePush(&g_DataQueue, &msg->internal._);
+			}
+			else {
+				puts("s_fnModuleInit newUserMsg failure\n");
+				return 1;
+			}
+		}
+		else {
+			printf("moduleSymbolAddress(%s, \"init\") failure\n", g_Config.module_path);
+			return 1;
+		}
+	}
+	// init rpc
 	if (g_Config.rpc_fiber) {
 		Fiber_t* thread_fiber = fiberFromThread();
 		if (!thread_fiber) {
@@ -206,6 +235,11 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		next = cur->next;
 		if (REACTOR_USER_CMD == internal->type)
 			free(pod_container_of(internal, UserMsg_t, internal));
+	}
+	if (g_ModulePtr) {
+		void(*module_destroy_fn_ptr)(void) = (void(*)(void))moduleSymbolAddress(g_ModulePtr, "destroy");
+		if (module_destroy_fn_ptr)
+			module_destroy_fn_ptr();
 	}
 	return 0;
 }

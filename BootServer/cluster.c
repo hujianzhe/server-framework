@@ -56,6 +56,7 @@ Cluster_t* newCluster(void) {
 		initSession(&cluster->session);
 		cluster->grp = NULL;
 		cluster->name = NULL;
+		cluster->socktype = 0;
 		cluster->ip[0] = 0;
 		cluster->port = 0;
 		cluster->session.destroy = cluster_session_destroy;

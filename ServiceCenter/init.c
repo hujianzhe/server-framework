@@ -32,8 +32,6 @@ static int loadClusterNode(const char* path) {
 			Cluster_t* cluster;
 			cJSON* socktype, *ip, *port;
 			socktype = cJSON_Field(node, "socktype");
-			if (!socktype)
-				continue;
 			ip = cJSON_Field(node, "ip");
 			if (!ip)
 				continue;
@@ -43,6 +41,10 @@ static int loadClusterNode(const char* path) {
 			cluster = newCluster();
 			if (!cluster)
 				continue;
+			if (!socktype || !strcmp(socktype->valuestring, "SOCK_STREAM"))
+				cluster->socktype = SOCK_STREAM;
+			else
+				cluster->socktype = SOCK_DGRAM;
 			strcpy(cluster->ip, ip->valuestring);
 			cluster->port = port->valueint;
 			if (!regCluster(name->valuestring, cluster)) {

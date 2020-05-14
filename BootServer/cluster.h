@@ -17,6 +17,7 @@ typedef struct Cluster_t {
 	ListNode_t m_grp_listnode;
 	ClusterGroup_t* grp;
 	const char* name;
+	int socktype;
 	IPString_t ip;
 	unsigned short port;
 } Cluster_t;

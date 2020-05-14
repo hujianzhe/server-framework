@@ -92,6 +92,12 @@ void reqClusterList(UserMsg_t* ctrl) {
 			cJSON_AddNewString(cjson_ret_object_cluster, "name", exist_cluster->name);
 			cJSON_AddNewString(cjson_ret_object_cluster, "ip", exist_cluster->ip);
 			cJSON_AddNewNumber(cjson_ret_object_cluster, "port", exist_cluster->port);
+			if (SOCK_STREAM == cluster->socktype) {
+				cJSON_AddNewString(cjson_ret_object_cluster, "socktype", "SOCK_STREAM");
+			}
+			else {
+				cJSON_AddNewString(cjson_ret_object_cluster, "socktype", "SOCK_DGRAM");
+			}
 		}
 	}
 	if (lnode) {
@@ -141,9 +147,12 @@ void retClusterList(UserMsg_t* ctrl) {
 		}
 		for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
 			Cluster_t* cluster;
-			cJSON* name, *ip, *port;
+			cJSON* name, *socktype, *ip, *port;
 			name = cJSON_Field(cjson_cluster, "name");
 			if (!name)
+				continue;
+			socktype = cJSON_Field(cjson_cluster, "socktype");
+			if (!socktype)
 				continue;
 			ip = cJSON_Field(cjson_cluster, "ip");
 			if (!ip)
@@ -155,6 +164,10 @@ void retClusterList(UserMsg_t* ctrl) {
 			if (!cluster) {
 				break;
 			}
+			if (!strcmp(socktype->valuestring, "SOCK_STREAM"))
+				cluster->socktype = SOCK_STREAM;
+			else
+				cluster->socktype = SOCK_DGRAM;
 			strcpy(cluster->ip, ip->valuestring);
 			cluster->port = port->valueint;
 			if (!regCluster(name->valuestring, cluster)) {
@@ -324,7 +337,7 @@ void reqClusterConnectLogin(UserMsg_t* ctrl) {
 		retcode = 1;
 		goto end;
 	}
-	makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_LOGIN, req_data, req_datalen);
+	makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_TELL_SELF, req_data, req_datalen);
 	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	free(req_data);
 	rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());

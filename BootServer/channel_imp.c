@@ -7,6 +7,31 @@
 extern "C" {
 #endif
 
+int defaultOnHeartbeat(Channel_t* c, int heartbeat_times) {
+	if (heartbeat_times < c->heartbeat_maxtimes) {
+		SendMsg_t msg;
+		makeSendMsgEmpty(&msg);
+		channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
+		return 1;
+	}
+	return 0;
+}
+
+void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
+	Channel_t* channel = pod_container_of(c, Channel_t, _);
+	if (1 == c->connected_times) {
+		channelEnableHeartbeat(channel, ts_msec);
+		if (channel->rpc_itemlist.head) {
+			RpcItem_t* rpc_item = pod_container_of(channel->rpc_itemlist.head, RpcItem_t, listnode);
+			UserMsg_t* msg = newUserMsg(0);
+			msg->channel = channel;
+			msg->rpcid = rpc_item->id;
+			msg->rpc_status = 'T';
+			dataqueuePush(&g_DataQueue, &msg->internal._);
+		}
+	}
+}
+
 /*************************************************************************/
 static const unsigned int CHANNEL_BASEHDRSIZE = 4;
 static const unsigned int CHANNEL_EXTHDRSIZE = 5;
@@ -77,16 +102,6 @@ static void innerchannel_reply_ack(Channel_t* c, unsigned int seq, const void* a
 }
 
 static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResult_t* decode_result) {
-	/*
-	int i;
-	for (i = 0; i < decode_result->bodylen; ++i) {
-		if (decode_result->bodyptr[i] != i % 255) {
-			puts("ERROR !!!!!!! ERROR /1==///////////");
-			break;
-		}
-	}
-	printf("bodylen = %d, %d\n", decode_result->bodylen, i);
-	*/
 	unsigned int cmdid_rpcid_sz = 9;
 	if (decode_result->bodylen >= cmdid_rpcid_sz) {
 		UserMsg_t* message = newUserMsg(decode_result->bodylen - cmdid_rpcid_sz);
@@ -110,7 +125,6 @@ static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecode
 		makeSendMsgEmpty(&packet);
 		channelSendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 		puts("reply a empty packet");
-		//puts("not reply empty packet");
 	}
 }
 

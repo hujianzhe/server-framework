@@ -292,8 +292,8 @@ void reqClusterConnectLogin(UserMsg_t* ctrl) {
 		retcode = 1;
 		goto err;
 	}
-	c->_.on_syn_ack = NULL; // TODO
-	c->on_heartbeat = NULL; // TODO
+	c->_.on_syn_ack = defaultRpcOnSynAck;
+	c->on_heartbeat = defaultOnHeartbeat;
 
 	rpc_item = newRpcItemFiberReady(ptr_g_RpcFiberCore(), c, 500);
 	if (!rpc_item) {

@@ -23,6 +23,7 @@ typedef struct Config_t {
 	} cluster;
 	const char* module_path;
 	int rpc_fiber;
+	unsigned int rpc_fiber_stack_size;
 	int rpc_async;
 	int tcp_nodelay;
 	int udp_cwndsize;

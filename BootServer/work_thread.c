@@ -48,7 +48,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			g_Valid = 0;
 			return 1;
 		}
-		if (!rpcFiberCoreInit(g_RpcFiberCore, thread_fiber, 0x4000, (void(*)(RpcFiberCore_t*, void*))msg_handler)) {
+		if (!rpcFiberCoreInit(g_RpcFiberCore, thread_fiber, g_Config.rpc_fiber_stack_size, (void(*)(RpcFiberCore_t*, void*))msg_handler)) {
 			fputs("rpcFiberCoreInit error", stderr);
 			g_Valid = 0;
 			return 1;

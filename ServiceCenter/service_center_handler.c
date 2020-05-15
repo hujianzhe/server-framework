@@ -85,15 +85,13 @@ void reqClusterList(UserMsg_t* ctrl) {
 	cjson_ret_array_cluster = cJSON_AddNewArray(cjson_ret_root, "cluster");
 	for (lnode = ptr_g_ClusterList()->head; lnode; lnode = lnode->next) {
 		Cluster_t* exist_cluster = pod_container_of(lnode, Cluster_t, m_listnode);
-		if (exist_cluster != cluster) {
-			cJSON* cjson_ret_object_cluster = cJSON_AddNewObject(cjson_ret_array_cluster, NULL);
-			if (!cjson_ret_object_cluster)
-				break;
-			cJSON_AddNewString(cjson_ret_object_cluster, "name", exist_cluster->name);
-			cJSON_AddNewString(cjson_ret_object_cluster, "ip", exist_cluster->ip);
-			cJSON_AddNewNumber(cjson_ret_object_cluster, "port", exist_cluster->port);
-			cJSON_AddNewString(cjson_ret_object_cluster, "socktype", if_socktype2tring(cluster->socktype));
-		}
+		cJSON* cjson_ret_object_cluster = cJSON_AddNewObject(cjson_ret_array_cluster, NULL);
+		if (!cjson_ret_object_cluster)
+			break;
+		cJSON_AddNewString(cjson_ret_object_cluster, "name", exist_cluster->name);
+		cJSON_AddNewString(cjson_ret_object_cluster, "ip", exist_cluster->ip);
+		cJSON_AddNewNumber(cjson_ret_object_cluster, "port", exist_cluster->port);
+		cJSON_AddNewString(cjson_ret_object_cluster, "socktype", if_socktype2tring(cluster->socktype));
 	}
 	if (lnode) {
 		cJSON_Delete(cjson_ret_root);
@@ -115,65 +113,86 @@ err:
 
 void retClusterList(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
-	int ok;
+	cJSON* cjson_session_id, *cjson_cluster_array, *cjson_cluster;
+	RpcItem_t* rpc_item;
+	SendMsg_t msg;
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
 		fputs("cJSON_Parse", stderr);
 		return;
 	}
-	printf("recv: %s\n", (char*)(ctrl->data));
+	printf("recv: %s\n", (char*)(ctrl->data));	
 
-	ok = 0;
-	do {
-		cJSON* cjson_session_id, *cjson_cluster_array, *cjson_cluster;
+	if (!cJSON_Field(cjson_req_root, "errno")) {
+		goto err;
+	}
 
-		if (!cJSON_Field(cjson_req_root, "errno")) {
+	cjson_session_id = cJSON_Field(cjson_req_root, "session_id");
+	if (!cjson_session_id) {
+		goto err;
+	}
+	cjson_cluster_array = cJSON_Field(cjson_req_root, "cluster");
+	if (!cjson_cluster_array) {
+		goto err;
+	}
+	for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
+		Cluster_t* cluster;
+		cJSON* name, *socktype, *ip, *port;
+		name = cJSON_Field(cjson_cluster, "name");
+		if (!name)
+			continue;
+		socktype = cJSON_Field(cjson_cluster, "socktype");
+		if (!socktype)
+			continue;
+		ip = cJSON_Field(cjson_cluster, "ip");
+		if (!ip)
+			continue;
+		port = cJSON_Field(cjson_cluster, "port");
+		if (!port)
+			continue;
+		if (!strcmp(ptr_g_ClusterSelf()->name, name->valuestring) &&
+			!strcmp(ptr_g_ClusterSelf()->ip, ip->valuestring) &&
+			ptr_g_ClusterSelf()->port == port->valueint)
+		{
+			ptr_g_ClusterSelf()->socktype = if_string2socktype(socktype->valuestring);
+			continue;
+		}
+		cluster = newCluster();
+		if (!cluster) {
 			break;
 		}
+		cluster->socktype = if_string2socktype(socktype->valuestring);
+		strcpy(cluster->ip, ip->valuestring);
+		cluster->port = port->valueint;
+		if (!regCluster(name->valuestring, cluster)) {
+			freeCluster(cluster);
+			break;
+		}
+	}
+	if (cjson_cluster) {
+		goto err;
+	}
+	cJSON_Delete(cjson_req_root);
+	cjson_req_root = NULL;
+	channelSessionId(ctrl->channel) = cjson_session_id->valueint;
 
-		cjson_session_id = cJSON_Field(cjson_req_root, "session_id");
-		if (!cjson_session_id) {
-			break;
-		}
-		cjson_cluster_array = cJSON_Field(cjson_req_root, "cluster");
-		if (!cjson_cluster_array) {
-			break;
-		}
-		for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
-			Cluster_t* cluster;
-			cJSON* name, *socktype, *ip, *port;
-			name = cJSON_Field(cjson_cluster, "name");
-			if (!name)
-				continue;
-			socktype = cJSON_Field(cjson_cluster, "socktype");
-			if (!socktype)
-				continue;
-			ip = cJSON_Field(cjson_cluster, "ip");
-			if (!ip)
-				continue;
-			port = cJSON_Field(cjson_cluster, "port");
-			if (!port)
-				continue;
-			cluster = newCluster();
-			if (!cluster) {
-				break;
-			}
-			cluster->socktype = if_string2socktype(socktype->valuestring);
-			strcpy(cluster->ip, ip->valuestring);
-			cluster->port = port->valueint;
-			if (!regCluster(name->valuestring, cluster)) {
-				freeCluster(cluster);
-				break;
-			}
-		}
-		if (cjson_cluster) {
-			break;
-		}
-		
-		channelSessionId(ctrl->channel) = cjson_session_id->valueint;
-		ok = 1;
-	} while (0);
+	rpc_item = newRpcItemFiberReady(ptr_g_RpcFiberCore(), ctrl->channel, 5000);
+	if (!rpc_item)
+		goto err;
+	makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_LOGIN, NULL, 0);
+	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
+	if (!rpc_item->ret_msg) {
+		goto err;
+	}
+	else {
+		ctrl = (UserMsg_t*)rpc_item->ret_msg;
+		if (ctrl->retcode)
+			goto err;
+	}
+	return;
+err:
 	cJSON_Delete(cjson_req_root);
 }
 

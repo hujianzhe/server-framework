@@ -146,6 +146,30 @@ void freeClusterTable(void) {
 	initClusterTable();
 }
 
+Cluster_t* targetCluster(int mode, const char* name, unsigned int key) {
+	ClusterGroup_t* grp = getClusterGroup(name);
+	if (grp) {
+		Cluster_t* cluster;
+		if (CLUSTER_TARGET_USE_HASH_RING == mode) {
+			cluster = (Cluster_t*)consistenthashSelect(&grp->consistent_hash, key);
+		}
+		else if (CLUSTER_TARGET_USE_HASH_MOD == mode) {
+			ListNode_t* cur;
+			unsigned int i;
+			key %= grp->clusterlistcnt;
+			for (i = 0, cur = grp->clusterlist.head; cur && i < key; cur = cur->next, ++i);
+			if (!cur)
+				return NULL;
+			cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
+		}
+		else {
+			return NULL;
+		}
+		return cluster;
+	}
+	return NULL;
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -33,6 +33,9 @@
     <ClCompile Include="req_cluster_connect_login.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="req_cluster_tell_self.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="service_center_handler.h">

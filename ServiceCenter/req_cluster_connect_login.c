@@ -6,7 +6,7 @@ void reqClusterConnectLogin(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	UserMsg_t dup_ctrl = *ctrl;
 	SendMsg_t msg;
-	cJSON* ip, *port, *cjson_socktype;
+	cJSON* name, *ip, *port, *cjson_socktype;
 	int socktype;
 	ReactorObject_t* o;
 	Channel_t* c;
@@ -22,6 +22,11 @@ void reqClusterConnectLogin(UserMsg_t* ctrl) {
 		goto err;
 	}
 
+	name = cJSON_Field(cjson_req_root, "name");
+	if (!name) {
+		retcode = 1;
+		goto err;
+	}
 	ip = cJSON_Field(cjson_req_root, "ip");
 	if (!ip) {
 		retcode = 1;

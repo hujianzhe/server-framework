@@ -146,6 +146,7 @@
     <ClCompile Include="req_cluster_list.c" />
     <ClCompile Include="req_cluster_list_http.c" />
     <ClCompile Include="req_cluster_login.c" />
+    <ClCompile Include="req_cluster_tell_self.c" />
     <ClCompile Include="service_center_handler.c" />
     <ClCompile Include="init.c" />
   </ItemGroup>

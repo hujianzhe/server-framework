@@ -19,7 +19,7 @@ int allocSessionId(void) {
 Session_t* initSession(Session_t* session) {
 	session->has_reg = 0;
 	session->persist = 0;
-	session->channel = NULL;
+	session->channel_client = NULL;
 	session->id = 0;
 	session->userdata = NULL;
 	session->destroy = NULL;
@@ -28,23 +28,56 @@ Session_t* initSession(Session_t* session) {
 	return session;
 }
 
-void sessionBindChannel(Session_t* session, Channel_t* channel) {
-	session->channel = channel;
-	channelSession(channel) = session;
-	channelSessionId(channel) = session->id;
+void sessionChannelReplaceClient(Session_t* session, Channel_t* channel) {
+	Channel_t* old_channel = session->channel_client;
+	if (old_channel == channel)
+		return;
+	if (old_channel) {
+		channelSession(old_channel) = NULL;
+		channelSessionId(old_channel) = 0;
+		channelSendv(old_channel, NULL, 0, NETPACKET_FIN);
+	}
+	session->channel_client = channel;
+	if (channel) {
+		channelSession(channel) = session;
+		channelSessionId(channel) = session->id;
+	}
 }
 
-Channel_t* sessionUnbindChannel(Session_t* session) {
-	if (session) {
-		Channel_t* channel = session->channel;
-		if (channel) {
-			channelSession(channel) = NULL;
-			channelSessionId(channel) = 0;
-		}
-		session->channel = NULL;
-		return channel;
+void sessionChannelReplaceServer(Session_t* session, Channel_t* channel) {
+	Channel_t* old_channel = session->channel_server;
+	if (old_channel == channel)
+		return;
+	if (old_channel) {
+		channelSession(old_channel) = NULL;
+		channelSessionId(old_channel) = 0;
+		channelSendv(old_channel, NULL, 0, NETPACKET_FIN);
 	}
-	return NULL;
+	session->channel_server = channel;
+	if (channel) {
+		channelSession(channel) = session;
+		channelSessionId(channel) = session->id;
+	}
+}
+
+void sessionUnbindChannel(Session_t* session, Channel_t* channel) {
+	if (channelSession(channel) == session) {
+		if (session->channel_client == channel)
+			session->channel_client = NULL;
+		if (session->channel_server == channel)
+			session->channel_server = NULL;
+		channelSession(channel) = NULL;
+		channelSessionId(channel) = 0;
+	}
+}
+
+Channel_t* sessionChannel(Session_t* session) {
+	if (session->channel_client)
+		return session->channel_client;
+	else if (session->channel_server)
+		return session->channel_server;
+	else
+		return NULL;
 }
 
 #ifdef __cplusplus

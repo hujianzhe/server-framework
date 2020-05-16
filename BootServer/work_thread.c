@@ -130,7 +130,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					Session_t* session = (Session_t*)channelSession(channel);
 					if (!session)
 						break;
-					sessionUnbindChannel(session);
+					sessionUnbindChannel(session, channel);
 					if (session->persist)
 						break;
 					if (session->expire_timeout_msec > 0) {

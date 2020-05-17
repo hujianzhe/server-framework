@@ -17,6 +17,11 @@ int defaultOnHeartbeat(Channel_t* c, int heartbeat_times) {
 	return 0;
 }
 
+void defaultOnSynAck(ChannelBase_t* c, long long ts_msec) {
+	Channel_t* channel = pod_container_of(c, Channel_t, _);
+	channelEnableHeartbeat(channel, ts_msec);
+}
+
 void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	Channel_t* channel = pod_container_of(c, Channel_t, _);
 	if (1 == c->connected_times) {

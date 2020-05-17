@@ -170,6 +170,30 @@ Cluster_t* targetCluster(int mode, const char* name, unsigned int key) {
 	return NULL;
 }
 
+Channel_t* clusterChannel(Cluster_t* cluster) {
+	Channel_t* channel = sessionChannel(&cluster->session);
+	if (!channel) {
+		Sockaddr_t saddr;
+		ReactorObject_t* o;
+		if (!sockaddrEncode(&saddr.st, ipstrFamily(cluster->ip), cluster->ip, cluster->port)) {
+			return NULL;
+		}
+		o = reactorobjectOpen(INVALID_FD_HANDLE, ipstrFamily(cluster->ip), cluster->socktype, 0);
+		if (!o)
+			return NULL;
+		channel = openChannel(o, CHANNEL_FLAG_CLIENT, &saddr);
+		if (!channel) {
+			reactorCommitCmd(NULL, &o->freecmd);
+			return NULL;
+		}
+		channel->_.on_syn_ack = defaultOnSynAck;
+		channel->on_heartbeat = defaultOnHeartbeat;
+		sessionChannelReplaceClient(&cluster->session, channel);
+		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
+	}
+	return channel;
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 __declspec_dll int defaultOnHeartbeat(Channel_t* c, int heartbeat_times);
+__declspec_dll void defaultOnSynAck(ChannelBase_t* c, long long ts_msec);
 __declspec_dll void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec);
 
 __declspec_dll Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr);

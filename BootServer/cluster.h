@@ -47,6 +47,7 @@ __declspec_dll void unregCluster(Cluster_t* cluster);
 void freeClusterTable(void);
 
 __declspec_dll Cluster_t* targetCluster(int mode, const char* name, unsigned int key);
+__declspec_dll Channel_t* clusterChannel(Cluster_t* cluster);
 
 #ifdef __cplusplus
 }

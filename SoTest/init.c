@@ -8,6 +8,36 @@
 #pragma comment(lib, "BootServer.lib")
 #endif
 
+static int start_req_upload_cluster(Channel_t* channel) {
+	SendMsg_t msg;
+	char* req_data;
+	int req_datalen;
+	req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}",
+		ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
+	if (!req_data) {
+		return 0;
+	}
+	makeSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, req_data, req_datalen);
+	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	free(req_data);
+	return 1;
+}
+
+static void rpc_async_req_upload_cluster(RpcItem_t* rpc_item) {
+	Channel_t* channel = (Channel_t*)rpc_item->originator;
+	if (rpc_item->ret_msg) {
+		if (start_req_upload_cluster(channel))
+			return;
+	}
+	else {
+		IPString_t ip;
+		unsigned short port;
+		sockaddrDecode(&channel->_.connect_addr.st, ip, &port);
+		printf("channel(%p) connect %s:%u failure\n", channel, ip, port);
+	}
+	g_Invalid();
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,32 +73,41 @@ __declspec_dllexport int init(int argc, char** argv) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			return 0;
 		}
-		c->_.on_syn_ack = defaultRpcOnSynAck;
 		c->on_heartbeat = defaultOnHeartbeat;
 		printf("channel(%p) connecting......\n", c);
-		if (!newRpcItemFiberReady(ptr_g_RpcFiberCore(), c, 5000)) {
-			reactorCommitCmd(NULL, &o->freecmd);
-			reactorCommitCmd(NULL, &c->_.freecmd);
-			return 1;
-		}
-		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
-		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
-		if (rpc_item->ret_msg) {
-			SendMsg_t msg;
-			char* req_data;
-			int req_datalen;
-			req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}",
-				ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
-			if (!req_data) {
-				return 0;
+		if (ptr_g_RpcFiberCore() || ptr_g_RpcAsyncCore()) {
+			c->_.on_syn_ack = defaultRpcOnSynAck;
+			if (ptr_g_RpcFiberCore()) {
+				if (!newRpcItemFiberReady(ptr_g_RpcFiberCore(), c, 5000)) {
+					reactorCommitCmd(NULL, &o->freecmd);
+					reactorCommitCmd(NULL, &c->_.freecmd);
+					return 1;
+				}
+				reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
+				rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
+				if (rpc_item->ret_msg) {
+					if (!start_req_upload_cluster(c))
+						return 0;
+				}
+				else {
+					printf("channel(%p) connect %s:%u failure\n", c, option->ip, option->port);
+					return 0;
+				}
 			}
-			makeSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, req_data, req_datalen);
-			channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-			free(req_data);
+			else {
+				if (!newRpcItemAsyncReady(ptr_g_RpcAsyncCore(), c, 5000, NULL, rpc_async_req_upload_cluster)) {
+					reactorCommitCmd(NULL, &o->freecmd);
+					reactorCommitCmd(NULL, &c->_.freecmd);
+					return 1;
+				}
+				reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
+			}
 		}
 		else {
-			printf("channel(%p) connect %s:%u failure\n", c, option->ip, option->port);
-			return 0;
+			c->_.on_syn_ack = defaultOnSynAck;
+			reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
+			if (!start_req_upload_cluster(c))
+				return 0;
 		}
 	}
 

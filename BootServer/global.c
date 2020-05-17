@@ -45,6 +45,7 @@ void freeGlobalResource(void) {
 	networkCleanEnv();
 }
 
+void g_Invalid(void) { g_Valid = 0; }
 Reactor_t* selectReactor(size_t key) { return &g_Reactors[key % g_ReactorCnt]; }
 DataQueue_t* ptr_g_DataQueue(void) { return &g_DataQueue; }
 RBTimer_t* ptr_g_Timer(void) { return &g_Timer; }

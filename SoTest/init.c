@@ -19,13 +19,8 @@ __declspec_dllexport int init(int argc, char** argv) {
 	regNumberDispatch(CMD_REQ_TEST, reqTest);
 	regNumberDispatch(CMD_NOTIFY_TEST, notifyTest);
 	regNumberDispatch(CMD_RET_TEST, retTest);
-	regNumberDispatch(CMD_REQ_RECONNECT, reqReconnectCluster);
-	regNumberDispatch(CMD_RET_RECONNECT, retReconnect);
 	regNumberDispatch(CMD_REQ_UPLOAD_CLUSTER, reqUploadCluster);
 	regNumberDispatch(CMD_RET_UPLOAD_CLUSTER, retUploadCluster);
-	regNumberDispatch(CMD_NOTIFY_NEW_CLUSTER, notifyNewCluster);
-	regNumberDispatch(CMD_REQ_REMOVE_CLUSTER, reqRemoveCluster);
-	regNumberDispatch(CMD_RET_REMOVE_CLUSTER, retRemoveCluster);
 	regStringDispatch("/reqHttpTest", reqHttpTest);
 	regStringDispatch("/reqSoTest", reqSoTest);
 

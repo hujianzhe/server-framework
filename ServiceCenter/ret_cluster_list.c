@@ -5,8 +5,6 @@
 void retClusterList(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	cJSON* cjson_session_id, *cjson_cluster_array, *cjson_cluster;
-	RpcItem_t* rpc_item;
-	SendMsg_t msg;
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
@@ -64,24 +62,8 @@ void retClusterList(UserMsg_t* ctrl) {
 	if (cjson_cluster) {
 		goto err;
 	}
-	cJSON_Delete(cjson_req_root);
-	cjson_req_root = NULL;
 	channelSessionId(ctrl->channel) = cjson_session_id->valueint;
-
-	rpc_item = newRpcItemFiberReady(ptr_g_RpcFiberCore(), ctrl->channel, 5000);
-	if (!rpc_item)
-		goto err;
-	makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_LOGIN, NULL, 0);
-	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-	rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
-	if (!rpc_item->ret_msg) {
-		goto err;
-	}
-	else {
-		ctrl = (UserMsg_t*)rpc_item->ret_msg;
-		if (ctrl->retcode)
-			goto err;
-	}
+	cJSON_Delete(cjson_req_root);
 	return;
 err:
 	cJSON_Delete(cjson_req_root);

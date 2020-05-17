@@ -5,10 +5,9 @@
 void reqClusterTellSelf(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 
-	if (!cJSON_Parse(NULL, ctrl->data)) {
+	cjson_req_root = cJSON_Parse(NULL, ctrl->data);
+	if (!cjson_req_root) {
 		fputs("cJSON_Parse", stderr);
 		return;
 	}
-
-	
 }

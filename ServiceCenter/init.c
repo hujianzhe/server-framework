@@ -69,7 +69,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 
 	regStringDispatch("/get_cluster_list", reqClusterList_http);
 	regNumberDispatch(CMD_REQ_CLUSTER_LIST, reqClusterList);
-	regNumberDispatch(CMD_REQ_CLUSTER_LOGIN, reqClusterLogin);
+	regNumberDispatch(CMD_REQ_CLUSTER_TELL_SELF, reqClusterTellSelf);
 
 	return 1;
 }

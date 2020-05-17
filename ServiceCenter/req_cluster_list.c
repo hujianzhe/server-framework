@@ -36,18 +36,12 @@ void reqClusterList(UserMsg_t* ctrl) {
 	}
 
 	cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
-	if (cluster) {
-		Channel_t* channel = sessionUnbindChannel(&cluster->session);
-		if (channel) {
-			channelSendv(channel, NULL, 0, NETPACKET_FIN);
-		}
-	}
-	else {
+	if (!cluster) {
 		retcode = 1;
 		goto err;
 	}
 	cluster->session.id = allocSessionId();
-	sessionBindChannel(&cluster->session, ctrl->channel);
+	sessionChannelReplaceServer(&cluster->session, ctrl->channel);
 
 	cjson_ret_root = cJSON_NewObject(NULL);
 	cJSON_AddNewNumber(cjson_ret_root, "session_id", cluster->session.id);

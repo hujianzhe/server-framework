@@ -1,5 +1,5 @@
-#ifndef MQ_HANDLER_H
-#define	MQ_HANDLER_H
+#ifndef TEST_HANDLER_H
+#define	TEST_HANDLER_H
 
 extern void unknowRequest(UserMsg_t* ctrl);
 
@@ -12,7 +12,7 @@ extern void retTest(UserMsg_t*);
 extern void reqHttpTest(UserMsg_t*);
 extern void reqSoTest(UserMsg_t* ctrl);
 
-extern void reqUploadCluster(UserMsg_t*);
-extern void retUploadCluster(UserMsg_t*);
+extern void reqLoginTest(UserMsg_t*);
+extern void retLoginTest(UserMsg_t*);
 
 #endif

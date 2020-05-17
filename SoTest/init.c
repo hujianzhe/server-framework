@@ -1,7 +1,7 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
-#include "mq_cmd.h"
-#include "mq_handler.h"
+#include "cmd.h"
+#include "test_handler.h"
 #include <stdio.h>
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -17,7 +17,7 @@ static int start_req_upload_cluster(Channel_t* channel) {
 	if (!req_data) {
 		return 0;
 	}
-	makeSendMsg(&msg, CMD_REQ_UPLOAD_CLUSTER, req_data, req_datalen);
+	makeSendMsg(&msg, CMD_REQ_LOGIN_TEST, req_data, req_datalen);
 	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	free(req_data);
 	return 1;
@@ -49,8 +49,8 @@ __declspec_dllexport int init(int argc, char** argv) {
 	regNumberDispatch(CMD_REQ_TEST, reqTest);
 	regNumberDispatch(CMD_NOTIFY_TEST, notifyTest);
 	regNumberDispatch(CMD_RET_TEST, retTest);
-	regNumberDispatch(CMD_REQ_UPLOAD_CLUSTER, reqUploadCluster);
-	regNumberDispatch(CMD_RET_UPLOAD_CLUSTER, retUploadCluster);
+	regNumberDispatch(CMD_REQ_LOGIN_TEST, reqLoginTest);
+	regNumberDispatch(CMD_RET_LOGIN_TEST, retLoginTest);
 	regStringDispatch("/reqHttpTest", reqHttpTest);
 	regStringDispatch("/reqSoTest", reqSoTest);
 

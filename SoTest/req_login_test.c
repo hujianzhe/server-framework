@@ -1,9 +1,9 @@
 #include "../BootServer/global.h"
-#include "mq_cmd.h"
-#include "mq_handler.h"
+#include "cmd.h"
+#include "test_handler.h"
 #include <stdio.h>
 
-void reqUploadCluster(UserMsg_t* ctrl) {
+void reqLoginTest(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	cJSON *cjson_ret_root;
 	SendMsg_t ret_msg;
@@ -64,12 +64,12 @@ void reqUploadCluster(UserMsg_t* ctrl) {
 	ret_data = cJSON_Print(cjson_ret_root);
 	cJSON_Delete(cjson_ret_root);
 
-	makeSendMsg(&ret_msg, CMD_RET_UPLOAD_CLUSTER, ret_data, strlen(ret_data));
+	makeSendMsg(&ret_msg, CMD_RET_LOGIN_TEST, ret_data, strlen(ret_data));
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	free(ret_data);
 }
 
-void retUploadCluster(UserMsg_t* ctrl) {
+void retLoginTest(UserMsg_t* ctrl) {
 	cJSON* cjson_ret_root;
 
 	cjson_ret_root = cJSON_Parse(NULL, (char*)ctrl->data);

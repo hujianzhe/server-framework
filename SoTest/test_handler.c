@@ -1,6 +1,6 @@
 #include "../BootServer/global.h"
-#include "mq_cmd.h"
-#include "mq_handler.h"
+#include "cmd.h"
+#include "test_handler.h"
 
 void frpc_test_code(Channel_t* channel) {
 	// test code

@@ -15,21 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="mq_cluster_handler.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="mq_test_handler.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="init.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="req_login_test.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="test_handler.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mq_cmd.h">
+    <ClInclude Include="test_handler.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="mq_handler.h">
+    <ClInclude Include="cmd.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

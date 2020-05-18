@@ -49,6 +49,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 				goto err;
 			}
 			reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
+			printf("cluster_self listen, ip:%s, port:%u\n", ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
 			continue;
 		}
 		cluster = newCluster();
@@ -154,6 +155,7 @@ int callReqClusterList(int socktype, const char* ip, unsigned short port) {
 	}
 	c->on_heartbeat = defaultOnHeartbeat;
 	c->_.on_syn_ack = defaultOnSynAck;
+	reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
 	printf("channel(%p) connecting ServiceCenter, ip:%s, port:%u ......\n", c, ip, port);
 	if (!start_req_cluster_list(c)) {
 		printf("start_req_cluster_list failure, ip:%s, port:%u ......\n", ip, port);

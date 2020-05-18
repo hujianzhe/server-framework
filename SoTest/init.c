@@ -8,7 +8,7 @@
 #pragma comment(lib, "BootServer.lib")
 #endif
 
-static int start_req_upload_cluster(Channel_t* channel) {
+static int start_req_login_test(Channel_t* channel) {
 	SendMsg_t msg;
 	char* req_data;
 	int req_datalen;
@@ -23,10 +23,10 @@ static int start_req_upload_cluster(Channel_t* channel) {
 	return 1;
 }
 
-static void rpc_async_req_upload_cluster(RpcItem_t* rpc_item) {
+static void rpc_async_req_login_test(RpcItem_t* rpc_item) {
 	Channel_t* channel = (Channel_t*)rpc_item->originator;
 	if (rpc_item->ret_msg) {
-		if (start_req_upload_cluster(channel))
+		if (start_req_login_test(channel))
 			return;
 	}
 	else {
@@ -86,7 +86,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 				reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
 				rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
 				if (rpc_item->ret_msg) {
-					if (!start_req_upload_cluster(c))
+					if (!start_req_login_test(c))
 						return 0;
 				}
 				else {
@@ -95,7 +95,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 				}
 			}
 			else {
-				if (!newRpcItemAsyncReady(ptr_g_RpcAsyncCore(), c, 5000, NULL, rpc_async_req_upload_cluster)) {
+				if (!newRpcItemAsyncReady(ptr_g_RpcAsyncCore(), c, 5000, NULL, rpc_async_req_login_test)) {
 					reactorCommitCmd(NULL, &o->freecmd);
 					reactorCommitCmd(NULL, &c->_.freecmd);
 					return 1;
@@ -106,7 +106,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 		else {
 			c->_.on_syn_ack = defaultOnSynAck;
 			reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
-			if (!start_req_upload_cluster(c))
+			if (!start_req_login_test(c))
 				return 0;
 		}
 	}

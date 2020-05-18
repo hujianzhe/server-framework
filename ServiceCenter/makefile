@@ -20,12 +20,12 @@ else
 COMPILER := gcc
 endif
 
-TARGET := $(TARGET_PATH)/ServiceCenter.so
+TARGET := $(TARGET_PATH)/libServiceCenter.so
 
 all:
 
 debug:
-	$(COMPILER) -fPIC -shared $(MACRO) -g $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DEFAULT_LINK)
+	$(COMPILER) -fPIC -shared $(MACRO) -g $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)
 
 reliease:
-	$(COMPILER) -fPIC -shared $(MACRO) $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DEFAULT_LINK)
+	$(COMPILER) -fPIC -shared $(MACRO) $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)

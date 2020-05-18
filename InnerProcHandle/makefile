@@ -20,7 +20,7 @@ else
 COMPILER := gcc
 endif
 
-TARGET := $(TARGET_PATH)/InnerProcHandle.so
+TARGET := $(TARGET_PATH)/libInnerProcHandle.so
 
 all:
 

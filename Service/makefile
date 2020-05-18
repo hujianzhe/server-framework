@@ -7,7 +7,7 @@ TARGET_PATH += .
 
 COMPILE_OPTION := -Wno-deprecated -Wno-parentheses
 MACRO := -D_REENTRANT
-DLL_PATH := -Wl,-rpath,./:$(TARGET_PATH)
+DLL_PATH := -Wl,-rpath,./:../InnerProcHandle:$(TARGET_PATH)
 
 DEFAULT_LINK := -lpthread -lm -ldl
 ifeq ($(shell uname), Linux)
@@ -25,7 +25,7 @@ TARGET := $(TARGET_PATH)/libService.so
 all:
 
 debug:
-	$(COMPILER) -fPIC -shared $(MACRO) -g $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)
+	$(COMPILER) -fPIC -shared $(MACRO) -g $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK) -L ../InnerProcHandle -lInnerProcHandle
 
 reliease:
-	$(COMPILER) -fPIC -shared $(MACRO) $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)
+	$(COMPILER) -fPIC -shared $(MACRO) $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK) -L ../InnerProcHandle -lInnerProcHandle

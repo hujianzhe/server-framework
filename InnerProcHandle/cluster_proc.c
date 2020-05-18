@@ -42,7 +42,13 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 			!strcmp(ptr_g_ClusterSelf()->ip, ip->valuestring) &&
 			ptr_g_ClusterSelf()->port == port->valueint)
 		{
+			ReactorObject_t* o;
 			ptr_g_ClusterSelf()->socktype = if_string2socktype(socktype->valuestring);
+			o = openListener(ipstrFamily(ip->valuestring), ptr_g_ClusterSelf()->socktype, ip->valuestring, port->valueint);
+			if (!o) {
+				goto err;
+			}
+			reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
 			continue;
 		}
 		cluster = newCluster();

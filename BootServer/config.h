@@ -37,7 +37,7 @@ extern "C" {
 
 int initConfig(const char* path);
 void freeConfig(void);
-__declspec_dll Config_t* ptr_g_Config(void);
+__declspec_dllexport Config_t* ptr_g_Config(void);
 
 #ifdef __cplusplus
 }

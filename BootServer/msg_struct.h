@@ -17,10 +17,10 @@ typedef struct SendMsg_t {
 extern "C" {
 #endif
 
-__declspec_dll SendMsg_t* makeSendMsgEmpty(SendMsg_t* msg);
-__declspec_dll SendMsg_t* makeSendMsg(SendMsg_t* msg, int cmdid, const void* data, unsigned int len);
-__declspec_dll SendMsg_t* makeSendMsgRpcReq(SendMsg_t* msg, int rpcid, int cmdid, const void* data, unsigned int len);
-__declspec_dll SendMsg_t* makeSendMsgRpcResp(SendMsg_t* msg, int rpcid, int retcode, const void* data, unsigned int len);
+__declspec_dllexport SendMsg_t* makeSendMsgEmpty(SendMsg_t* msg);
+__declspec_dllexport SendMsg_t* makeSendMsg(SendMsg_t* msg, int cmdid, const void* data, unsigned int len);
+__declspec_dllexport SendMsg_t* makeSendMsgRpcReq(SendMsg_t* msg, int rpcid, int cmdid, const void* data, unsigned int len);
+__declspec_dllexport SendMsg_t* makeSendMsgRpcResp(SendMsg_t* msg, int rpcid, int retcode, const void* data, unsigned int len);
 
 #ifdef __cplusplus
 }

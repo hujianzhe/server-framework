@@ -33,17 +33,17 @@ extern Hashtable_t g_ClusterGroupTable;
 extern "C" {
 #endif
 
-__declspec_dll List_t* ptr_g_ClusterList(void);
-__declspec_dll Hashtable_t* ptr_g_ClusterGroupTable(void);
-__declspec_dll Cluster_t* ptr_g_ClusterSelf(void);
+__declspec_dllexport List_t* ptr_g_ClusterList(void);
+__declspec_dllexport Hashtable_t* ptr_g_ClusterGroupTable(void);
+__declspec_dllexport Cluster_t* ptr_g_ClusterSelf(void);
 
 int initClusterTable(void);
-__declspec_dll Cluster_t* newCluster(void);
-__declspec_dll void freeCluster(Cluster_t* cluster);
-__declspec_dll ClusterGroup_t* getClusterGroup(const char* name);
-__declspec_dll Cluster_t* getCluster(const char* name, const IPString_t ip, unsigned short port);
-__declspec_dll int regCluster(const char* name, Cluster_t* cluster);
-__declspec_dll void unregCluster(Cluster_t* cluster);
+__declspec_dllexport Cluster_t* newCluster(void);
+__declspec_dllexport void freeCluster(Cluster_t* cluster);
+__declspec_dllexport ClusterGroup_t* getClusterGroup(const char* name);
+__declspec_dllexport Cluster_t* getCluster(const char* name, const IPString_t ip, unsigned short port);
+__declspec_dllexport int regCluster(const char* name, Cluster_t* cluster);
+__declspec_dllexport void unregCluster(Cluster_t* cluster);
 void freeClusterTable(void);
 
 __declspec_dll Cluster_t* targetCluster(int mode, const char* name, unsigned int key);

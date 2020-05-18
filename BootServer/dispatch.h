@@ -27,13 +27,13 @@ extern DispatchCallback_t g_DefaultDispatchCallback;
 extern "C" {
 #endif
 
-__declspec_dll UserMsg_t* newUserMsg(size_t datalen);
+__declspec_dllexport UserMsg_t* newUserMsg(size_t datalen);
 
-__declspec_dll void set_g_DefaultDispatchCallback(DispatchCallback_t fn);
+__declspec_dllexport void set_g_DefaultDispatchCallback(DispatchCallback_t fn);
 
 int initDispatch(void);
-__declspec_dll int regStringDispatch(const char* str, DispatchCallback_t func);
-__declspec_dll int regNumberDispatch(int cmd, DispatchCallback_t func);
+__declspec_dllexport int regStringDispatch(const char* str, DispatchCallback_t func);
+__declspec_dllexport int regNumberDispatch(int cmd, DispatchCallback_t func);
 DispatchCallback_t getStringDispatch(const char* str);
 DispatchCallback_t getNumberDispatch(int cmd);
 void freeDispatchCallback(void);

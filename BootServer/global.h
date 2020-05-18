@@ -30,10 +30,11 @@ extern "C" {
 
 int initGlobalResource(void);
 void freeGlobalResource(void);
-__declspec_dll void g_Invalid(void);
-__declspec_dll Reactor_t* selectReactor(size_t key);
-__declspec_dll DataQueue_t* ptr_g_DataQueue(void);
-__declspec_dll RBTimer_t* ptr_g_Timer(void);
+__declspec_dllexport void g_Invalid(void);
+__declspec_dllexport Reactor_t* selectReactor(size_t key);
+__declspec_dllexport Reactor_t* ptr_g_ReactorAccept(void);
+__declspec_dllexport DataQueue_t* ptr_g_DataQueue(void);
+__declspec_dllexport RBTimer_t* ptr_g_Timer(void);
 
 #ifdef __cplusplus
 }

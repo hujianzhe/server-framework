@@ -47,6 +47,7 @@ void freeGlobalResource(void) {
 
 void g_Invalid(void) { g_Valid = 0; }
 Reactor_t* selectReactor(size_t key) { return &g_Reactors[key % g_ReactorCnt]; }
+Reactor_t* ptr_g_ReactorAccept(void) { return g_ReactorAccept; }
 DataQueue_t* ptr_g_DataQueue(void) { return &g_DataQueue; }
 RBTimer_t* ptr_g_Timer(void) { return &g_Timer; }
 

@@ -15,22 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="init.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="req_cluster_list_http.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="req_cluster_list.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="req_cluster_tell_self.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="service_center_handler.h">
+    <ClInclude Include="cluster_proc.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="inner_proc_cmd.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="cluster_proc.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 #include "../BootServer/global.h"
+#include "../InnerProcHandle/inner_proc_cmd.h"
 #include "service_center_handler.h"
 #include <stdio.h>
 
@@ -64,12 +65,29 @@ void reqClusterList(UserMsg_t* ctrl) {
 	ret_data = cJSON_Print(cjson_ret_root);
 	cJSON_Delete(cjson_ret_root);
 
-	makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 0, ret_data, strlen(ret_data));
+	if (ctrl->rpc_status == 'R') {
+		makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 0, ret_data, strlen(ret_data));
+	}
+	else {
+		makeSendMsg(&ret_msg, CMD_RET_CLUSTER_LIST, ret_data, strlen(ret_data));
+	}
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	free(ret_data);
 	return;
 err:
 	cJSON_Delete(cjson_req_root);
-	makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, retcode, NULL, 0);
+	if (ctrl->rpc_status == 'R') {
+		makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, retcode, NULL, 0);
+		ret_data = NULL;
+	}
+	else {
+		int ret_datalen;
+		ret_data = strFormat(&ret_datalen, "{\"errno\":%d}", retcode);
+		if (!ret_data) {
+			return;
+		}
+		makeSendMsg(&ret_msg, CMD_RET_CLUSTER_LIST, ret_data, ret_datalen);
+	}
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
+	free(ret_data);
 }

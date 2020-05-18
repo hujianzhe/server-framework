@@ -1,5 +1,6 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
+#include "../InnerProcHandle/inner_proc_cmd.h"
 #include "service_center_handler.h"
 #include <stdio.h>
 #include <string.h>
@@ -69,7 +70,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 
 	regStringDispatch("/get_cluster_list", reqClusterList_http);
 	regNumberDispatch(CMD_REQ_CLUSTER_LIST, reqClusterList);
-	regNumberDispatch(CMD_REQ_CLUSTER_TELL_SELF, reqClusterTellSelf);
+	// regNumberDispatch(CMD_REQ_CLUSTER_TELL_SELF, reqClusterTellSelf);
 
 	return 1;
 }

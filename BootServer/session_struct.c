@@ -20,6 +20,7 @@ Session_t* initSession(Session_t* session) {
 	session->has_reg = 0;
 	session->persist = 0;
 	session->channel_client = NULL;
+	session->channel_server = NULL;
 	session->id = 0;
 	session->userdata = NULL;
 	session->destroy = NULL;

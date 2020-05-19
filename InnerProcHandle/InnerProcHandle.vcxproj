@@ -142,11 +142,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="cluster_proc.h" />
+    <ClInclude Include="inner_proc_cluster.h" />
     <ClInclude Include="inner_proc_cmd.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cluster_proc.c" />
+    <ClCompile Include="inner_proc_cluster.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

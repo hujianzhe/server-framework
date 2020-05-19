@@ -1,4 +1,4 @@
-#include "cluster_proc.h"
+#include "inner_proc_cluster.h"
 #include "inner_proc_cmd.h"
 
 static int ret_cluster_list(UserMsg_t* ctrl) {

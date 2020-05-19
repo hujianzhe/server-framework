@@ -1,5 +1,5 @@
-#ifndef CLUSTER_PROC_H
-#define	CLUSTER_PROC_H
+#ifndef INNER_PROC_CLUSTER_H
+#define	INNER_PROC_CLUSTER_H
 
 #include "../BootServer/global.h"
 
@@ -18,4 +18,4 @@ __declspec_dllexport void retClusterList(UserMsg_t* ctrl);
 }
 #endif
 
-#endif // !CLUSTER_PROC_H
+#endif // !INNER_PROC_CLUSTER_H

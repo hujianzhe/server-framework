@@ -15,15 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cluster_proc.h">
+    <ClInclude Include="inner_proc_cmd.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="inner_proc_cmd.h">
+    <ClInclude Include="inner_proc_cluster.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cluster_proc.c">
+    <ClCompile Include="inner_proc_cluster.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

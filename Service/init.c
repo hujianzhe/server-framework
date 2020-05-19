@@ -23,6 +23,10 @@ __declspec_dllexport int init(int argc, char** argv) {
 		puts("miss connect service config");
 		return 0;
 	}
+	if (!regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList)) {
+		puts("regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList) failure");
+		return 0;
+	}
 	if (!callReqClusterList(ipstrFamily(option->ip), option->ip, option->port)) {
 		fputs("req_cluster_list failure", stderr);
 		return 0;

@@ -24,7 +24,6 @@ int main(int argc, char** argv) {
 		taskthreadinitok = 0, socketloopinitokcnt = 0,
 		acceptthreadinitok = 0, acceptloopinitok = 0,
 		listensockinitokcnt = 0;
-	const char* conf_path;
 	// save boot arguments
 	g_MainArgc = argc;
 	g_MainArgv = argv;
@@ -32,22 +31,21 @@ int main(int argc, char** argv) {
 	initDispatch();
 	initClusterTable();
 	// load config
-	conf_path = argc > 1 ? argv[1] : "config.txt";
-	if (!initConfig(conf_path)) {
-		printf("initConfig(%s) error\n", conf_path);
+	if (!initConfig("config.txt")) {
+		puts("initConfig(\"config.txt\") error");
 		goto err;
 	}
 	configinitok = 1;
 	// load module
-	if (g_Config.module_path) {
-		g_ModulePtr = moduleLoad(g_Config.module_path);
+	if (argc > 1) {
+		g_ModulePtr = moduleLoad(argv[1]);
 		if (!g_ModulePtr) {
-			printf("moduleLoad(%s) failure\n", g_Config.module_path);
+			printf("moduleLoad(%s) failure\n", argv[1]);
 			goto err;
 		}
 		g_ModuleInitFunc = (int(*)(int, char**))moduleSymbolAddress(g_ModulePtr, "init");
 		if (!g_ModuleInitFunc) {
-			printf("moduleSymbolAddress(%s, \"init\") failure\n", g_Config.module_path);
+			printf("moduleSymbolAddress(%s, \"init\") failure\n", argv[1]);
 			goto err;
 		}
 	}

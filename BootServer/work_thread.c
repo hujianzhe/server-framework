@@ -5,7 +5,7 @@
 static void call_dispatch(UserMsg_t* ctrl) {
 	if (g_ModuleInitFunc) {
 		if (!g_ModuleInitFunc(g_MainArgc, g_MainArgv)) {
-			printf("(%s).init(argc, argv) return failure\n", g_Config.module_path);
+			printf("(%s).init(argc, argv) return failure\n", g_MainArgv[1]);
 			g_Valid = 0;
 		}
 		g_ModuleInitFunc = NULL;

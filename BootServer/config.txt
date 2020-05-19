@@ -1,6 +1,6 @@
 {
 	"cluster" : {
-		"group_name" : "game",
+		"socktype" : "SOCK_DGRAM",
 		"ip" : "127.0.0.1",
 		"port" : 50000
 	},

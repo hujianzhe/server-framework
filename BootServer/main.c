@@ -29,8 +29,8 @@ int main(int argc, char** argv) {
 	g_MainArgc = argc;
 	g_MainArgv = argv;
 	// init some datastruct
-	initClusterTable();
 	initDispatch();
+	initClusterTable();
 	// load config
 	conf_path = argc > 1 ? argv[1] : "config.txt";
 	if (!initConfig(conf_path)) {
@@ -51,18 +51,15 @@ int main(int argc, char** argv) {
 			goto err;
 		}
 	}
-	// reg cluster self
+	// init cluster self
 	g_ClusterSelf = newCluster();
-	if (!g_ClusterSelf) {
+	if (!g_ClusterSelf)
 		goto err;
-	}
+	g_ClusterSelf->socktype = g_Config.cluster.socktype;
 	strcpy(g_ClusterSelf->ip, g_Config.cluster.ip);
 	g_ClusterSelf->port = g_Config.cluster.port;
-	if (!regCluster(g_Config.cluster.group_name, g_ClusterSelf)) {
-		goto err;
-	}
 
-	printf("cluster_group_name:%s, pid:%zu\n", g_Config.cluster.group_name, processId());
+	printf("cluster ip:%s, port:%d, pid:%zu\n", g_ClusterSelf->ip, g_ClusterSelf->port, processId());
 	// init resource
 	if (!initGlobalResource()) {
 		goto err;
@@ -96,6 +93,27 @@ int main(int argc, char** argv) {
 			goto err;
 		}
 	}
+	// reg SIGINT signal
+	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR)
+		goto err;
+	// listen port
+	if (g_ClusterSelf->port) {
+		int domain = ipstrFamily(g_ClusterSelf->ip);
+		ReactorObject_t* o = openListener(domain, g_ClusterSelf->socktype, g_ClusterSelf->ip, g_ClusterSelf->port);
+		if (!o)
+			goto err;
+		reactorCommitCmd(g_ReactorAccept, &o->regcmd);
+	}
+	for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {
+		ConfigListenOption_t* option = g_Config.listen_options + listensockinitokcnt;
+		if (!strcmp(option->protocol, "http")) {
+			int domain = ipstrFamily(option->ip);
+			ReactorObject_t* o = openListenerHttp(domain, option->ip, option->port);
+			if (!o)
+				goto err;
+			reactorCommitCmd(g_ReactorAccept, &o->regcmd);
+		}
+	}
 	// start task thread
 	if (!threadCreate(&g_TaskThread, taskThreadEntry, NULL))
 		goto err;
@@ -106,27 +124,6 @@ int main(int argc, char** argv) {
 		if (!msg)
 			goto err;
 		dataqueuePush(&g_DataQueue, &msg->internal._);
-	}
-	// reg SIGINT signal
-	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR)
-		goto err;
-	// listen port
-	for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {
-		ConfigListenOption_t* option = g_Config.listen_options + listensockinitokcnt;
-		if (!strcmp(option->protocol, "inner")) {
-			int domain = ipstrFamily(option->ip);
-			ReactorObject_t* o = openListener(domain, option->socktype, option->ip, option->port);
-			if (!o)
-				goto err;
-			reactorCommitCmd(g_ReactorAccept, &o->regcmd);
-		}
-		else if (!strcmp(option->protocol, "http")) {
-			int domain = ipstrFamily(option->ip);
-			ReactorObject_t* o = openListenerHttp(domain, option->ip, option->port);
-			if (!o)
-				goto err;
-			reactorCommitCmd(g_ReactorAccept, &o->regcmd);
-		}
 	}
 	// wait thread exit
 	threadJoin(g_TaskThread, NULL);

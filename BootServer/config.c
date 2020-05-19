@@ -25,9 +25,9 @@ int initConfig(const char* path) {
 			break;
 		}
 		else {
-			cJSON* group_name, *ip, *port;
-			group_name = cJSON_Field(cjson, "group_name");
-			if (!group_name)
+			cJSON *socktype, *ip, *port;
+			socktype = cJSON_Field(cjson, "socktype");
+			if (!socktype)
 				break;
 			ip = cJSON_Field(cjson, "ip");
 			if (!ip)
@@ -35,9 +35,7 @@ int initConfig(const char* path) {
 			port = cJSON_Field(cjson, "port");
 			if (!port)
 				break;
-			g_Config.cluster.group_name = strdup(group_name->valuestring);
-			if (!g_Config.cluster.group_name)
-				break;
+			g_Config.cluster.socktype = if_string2socktype(socktype->valuestring);
 			strcpy(g_Config.cluster.ip, ip->valuestring);
 			g_Config.cluster.port = port->valueint;
 		}
@@ -170,9 +168,7 @@ void freeConfig(void) {
 	free(g_Config.connect_options);
 	g_Config.connect_options = NULL;
 	g_Config.connect_options_cnt = 0;
-	
-	free((char*)g_Config.cluster.group_name);
-	g_Config.cluster.group_name = NULL;
+
 	free((char*)g_Config.module_path);
 	g_Config.module_path = NULL;
 	g_Config.outer_ip[0] = 0;

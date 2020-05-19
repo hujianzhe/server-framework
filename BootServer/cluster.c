@@ -80,6 +80,19 @@ Cluster_t* newCluster(void) {
 	return cluster;
 }
 
+unsigned int* newClusterKeyArray(Cluster_t* cluster, unsigned int key_arraylen) {
+	unsigned int* key_array = (unsigned int*)malloc(sizeof(cluster->key_array[0]) * key_arraylen);
+	if (key_array) {
+		int i;
+		for (i = 0; i < key_arraylen; ++i) {
+			cluster->key_array[i] = 0;
+		}
+		cluster->key_array = key_array;
+		cluster->key_arraylen = key_arraylen;
+	}
+	return key_array;
+}
+
 void freeCluster(Cluster_t* cluster) {
 	free(cluster->key_array);
 	free(cluster);

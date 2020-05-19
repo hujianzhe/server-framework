@@ -48,14 +48,13 @@ static int loadClusterNode(const char* path) {
 				if (key_arraylen > 0) {
 					int i;
 					cJSON* key;
-					cluster->key_array = (unsigned int*)malloc(sizeof(unsigned int) * key_arraylen);
-					if (!cluster->key_array) {
+					unsigned int* ptr_key_array = newClusterKeyArray(cluster, key_arraylen);
+					if (!ptr_key_array) {
 						freeCluster(cluster);
 						continue;
 					}
-					cluster->key_arraylen = key_arraylen;
-					for (i = 0, key = key_array->child; key && i < cluster->key_arraylen; key = key->next, ++i) {
-						cluster->key_array[i] = key->valueint;
+					for (i = 0, key = key_array->child; key && i < key_arraylen; key = key->next, ++i) {
+						ptr_key_array[i] = key->valueint;
 					}
 				}
 			}

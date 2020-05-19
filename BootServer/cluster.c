@@ -54,6 +54,7 @@ Cluster_t* newCluster(void) {
 	Cluster_t* cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
 	if (cluster) {
 		initSession(&cluster->session);
+		cluster->session.persist = 1;
 		cluster->grp = NULL;
 		cluster->name = NULL;
 		cluster->socktype = 0;

@@ -40,6 +40,17 @@ int main(int argc, char** argv) {
 	// load module
 	if (argc > 1) {
 		module_path = argv[1];
+		if (module_path[0]) {
+			free((char*)g_Config.module_path);
+			g_Config.module_path = strdup(module_path);
+			if (!g_Config.module_path)
+				goto err;
+		}
+	}
+	if ('\0' == module_path[0] && g_Config.module_path) {
+		module_path = g_Config.module_path;
+	}
+	if (module_path[0]) {
 		g_ModulePtr = moduleLoad(module_path);
 		if (!g_ModulePtr) {
 			printf("moduleLoad(%s) failure\n", module_path);

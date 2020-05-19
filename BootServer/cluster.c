@@ -184,6 +184,7 @@ void freeClusterTable(void) {
 		}
 		free_cluster_group(grp);
 	}
+	freeCluster(g_ClusterSelf);
 	initClusterTable();
 }
 

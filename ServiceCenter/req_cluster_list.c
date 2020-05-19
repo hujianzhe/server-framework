@@ -6,11 +6,10 @@
 void reqClusterList(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	cJSON *cjson_ret_root, *cjson_ret_array_cluster;
-	cJSON* cjson_name, *cjson_ip, *cjson_port;
+	cJSON *cjson_ip, *cjson_port;
 	SendMsg_t ret_msg;
 	char* ret_data;
 	ListNode_t* lnode;
-	Cluster_t* cluster;
 	int retcode = 0;
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
@@ -20,11 +19,6 @@ void reqClusterList(UserMsg_t* ctrl) {
 	}
 	printf("req: %s\n", (char*)(ctrl->data));
 
-	cjson_name = cJSON_Field(cjson_req_root, "name");
-	if (!cjson_name) {
-		retcode = 1;
-		goto err;
-	}
 	cjson_ip = cJSON_Field(cjson_req_root, "ip");
 	if (!cjson_ip) {
 		retcode = 1;
@@ -36,16 +30,7 @@ void reqClusterList(UserMsg_t* ctrl) {
 		goto err;
 	}
 
-	cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
-	if (!cluster) {
-		retcode = 1;
-		goto err;
-	}
-	cluster->session.id = allocSessionId();
-	sessionChannelReplaceServer(&cluster->session, ctrl->channel);
-
 	cjson_ret_root = cJSON_NewObject(NULL);
-	cJSON_AddNewNumber(cjson_ret_root, "session_id", cluster->session.id);
 	cjson_ret_array_cluster = cJSON_AddNewArray(cjson_ret_root, "cluster");
 	for (lnode = ptr_g_ClusterList()->head; lnode; lnode = lnode->next) {
 		Cluster_t* exist_cluster = pod_container_of(lnode, Cluster_t, m_listnode);
@@ -55,7 +40,7 @@ void reqClusterList(UserMsg_t* ctrl) {
 		cJSON_AddNewString(cjson_ret_object_cluster, "name", exist_cluster->name);
 		cJSON_AddNewString(cjson_ret_object_cluster, "ip", exist_cluster->ip);
 		cJSON_AddNewNumber(cjson_ret_object_cluster, "port", exist_cluster->port);
-		cJSON_AddNewString(cjson_ret_object_cluster, "socktype", if_socktype2tring(cluster->socktype));
+		cJSON_AddNewString(cjson_ret_object_cluster, "socktype", if_socktype2tring(exist_cluster->socktype));
 	}
 	if (lnode) {
 		cJSON_Delete(cjson_ret_root);

@@ -60,11 +60,16 @@ __declspec_dllexport int init(int argc, char** argv) {
 		Sockaddr_t connect_addr;
 		Channel_t* c;
 		ReactorObject_t* o;
-		if (strcmp(option->protocol, "inner")) {
-			continue;
+		int domain = ipstrFamily(option->ip);
+
+		if (strcmp(ptr_g_ClusterSelf()->ip, option->ip)) {
+			if (!sockaddrEncode(&connect_addr.st, domain, option->ip, option->port))
+				return 0;
 		}
-		if (!sockaddrEncode(&connect_addr.st, ipstrFamily(option->ip), option->ip, option->port))
-			return 0;
+		else {
+			if (!sockaddrEncode(&connect_addr.st, domain, ipstrGetLoopback(domain), option->port))
+				return 0;
+		}
 		o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.st.ss_family, option->socktype, 0);
 		if (!o)
 			return 0;

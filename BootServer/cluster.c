@@ -95,8 +95,12 @@ unsigned int* newClusterKeyArray(Cluster_t* cluster, unsigned int key_arraylen) 
 }
 
 void freeCluster(Cluster_t* cluster) {
-	free(cluster->key_array);
-	free(cluster);
+	if (cluster) {
+		free(cluster->key_array);
+		free(cluster);
+		if (cluster == g_ClusterSelf)
+			g_ClusterSelf = NULL;
+	}
 }
 
 ClusterGroup_t* getClusterGroup(const char* name) {

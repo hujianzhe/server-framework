@@ -31,7 +31,7 @@ static int loadClusterNode(const char* path) {
 			continue;
 		for (node = cluster_array->child; node; node = node->next) {
 			Cluster_t* cluster;
-			cJSON* socktype, *ip, *port;
+			cJSON* socktype, *ip, *port, *key_array;
 			socktype = cJSON_Field(node, "socktype");
 			ip = cJSON_Field(node, "ip");
 			if (!ip)
@@ -42,6 +42,23 @@ static int loadClusterNode(const char* path) {
 			cluster = newCluster();
 			if (!cluster)
 				continue;
+			key_array = cJSON_Field(node, "key");
+			if (key_array) {
+				int key_arraylen = cJSON_Size(key_array);
+				if (key_arraylen > 0) {
+					int i;
+					cJSON* key;
+					cluster->key_array = (unsigned int*)malloc(sizeof(unsigned int) * key_arraylen);
+					if (!cluster->key_array) {
+						freeCluster(cluster);
+						continue;
+					}
+					cluster->key_arraylen = key_arraylen;
+					for (i = 0, key = key_array->child; key && i < cluster->key_arraylen; key = key->next, ++i) {
+						cluster->key_array[i] = key->valueint;
+					}
+				}
+			}
 			if (!socktype) {
 				cluster->socktype = SOCK_STREAM;
 			}

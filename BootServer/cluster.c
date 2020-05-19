@@ -24,6 +24,19 @@ static ClusterGroup_t* new_cluster_group(const char* name) {
 	return grp;
 }
 
+static int cluster_reg_consistenthash(ClusterGroup_t* grp, Cluster_t* cluster) {
+	int i;
+	for (i = 0; i < cluster->key_arraylen; ++i) {
+		if (!consistenthashReg(&grp->consistent_hash, cluster->key_array[i], cluster))
+			break;
+	}
+	if (i != cluster->key_arraylen) {
+		consistenthashDelValue(&grp->consistent_hash, cluster);
+		return 0;
+	}
+	return 1;
+}
+
 static void free_cluster_group(ClusterGroup_t* grp) {
 	free((void*)grp->m_htnode.key);
 	consistenthashFree(&grp->consistent_hash);
@@ -55,17 +68,20 @@ Cluster_t* newCluster(void) {
 	if (cluster) {
 		initSession(&cluster->session);
 		cluster->session.persist = 1;
+		cluster->session.destroy = cluster_session_destroy;
 		cluster->grp = NULL;
 		cluster->name = NULL;
 		cluster->socktype = 0;
 		cluster->ip[0] = 0;
 		cluster->port = 0;
-		cluster->session.destroy = cluster_session_destroy;
+		cluster->key_array = NULL;
+		cluster->key_arraylen = 0;
 	}
 	return cluster;
 }
 
 void freeCluster(Cluster_t* cluster) {
+	free(cluster->key_array);
 	free(cluster);
 }
 
@@ -97,11 +113,17 @@ int regCluster(const char* name, Cluster_t* cluster) {
 	htnode = hashtableSearchKey(&g_ClusterGroupTable, name);
 	if (htnode) {
 		grp = pod_container_of(htnode, ClusterGroup_t, m_htnode);
+		if (!cluster_reg_consistenthash(grp, cluster)) {
+			return 0;
+		}
 	}
 	else {
 		grp = new_cluster_group(name);
 		if (!grp)
 			return 0;
+		if (!cluster_reg_consistenthash(grp, cluster)) {
+			return 0;
+		}
 		hashtableInsertNode(&g_ClusterGroupTable, &grp->m_htnode);
 	}
 	cluster->name = (const char*)grp->m_htnode.key;

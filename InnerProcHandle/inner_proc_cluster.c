@@ -3,7 +3,7 @@
 
 static int ret_cluster_list(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
-	cJSON* cjson_session_id, *cjson_cluster_array, *cjson_cluster;
+	cJSON* cjson_cluster_array, *cjson_cluster;
 	int cluster_self_find;
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
@@ -16,10 +16,6 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	if (cJSON_Field(cjson_req_root, "errno"))
 		goto err;
 
-	cjson_session_id = cJSON_Field(cjson_req_root, "session_id");
-	if (!cjson_session_id) {
-		goto err;
-	}
 	cjson_cluster_array = cJSON_Field(cjson_req_root, "cluster");
 	if (!cjson_cluster_array) {
 		goto err;
@@ -66,11 +62,12 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	}
 	if (!cluster_self_find)
 		goto err;
-	channelSessionId(ctrl->channel) = cjson_session_id->valueint;
 	cJSON_Delete(cjson_req_root);
+	channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 	return 1;
 err:
 	cJSON_Delete(cjson_req_root);
+	channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 	return 0;
 }
 
@@ -88,8 +85,8 @@ static int start_req_cluster_list(Channel_t* channel) {
 	SendMsg_t msg;
 	char* req_data;
 	int req_datalen;
-	req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}",
-		ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
+	req_data = strFormat(&req_datalen, "{\"ip\":\"%s\",\"port\":%u}",
+		ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
 	if (!req_data) {
 		return 0;
 	}

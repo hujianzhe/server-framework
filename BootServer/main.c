@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 	strcpy(g_ClusterSelf->ip, g_Config.cluster.ip);
 	g_ClusterSelf->port = g_Config.cluster.port;
 
-	printf("cluster ip:%s, port:%d, pid:%zu\n", g_ClusterSelf->ip, g_ClusterSelf->port, processId());
+	printf("cluster ip:%s, port:%u, pid:%zu\n", g_ClusterSelf->ip, g_ClusterSelf->port, processId());
 	// init resource
 	if (!initGlobalResource()) {
 		goto err;

@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
 		taskthreadinitok = 0, socketloopinitokcnt = 0,
 		acceptthreadinitok = 0, acceptloopinitok = 0,
 		listensockinitokcnt = 0;
+	const char* module_path = "";
 	// save boot arguments
 	g_MainArgc = argc;
 	g_MainArgv = argv;
@@ -38,14 +39,15 @@ int main(int argc, char** argv) {
 	configinitok = 1;
 	// load module
 	if (argc > 1) {
-		g_ModulePtr = moduleLoad(argv[1]);
+		module_path = argv[1];
+		g_ModulePtr = moduleLoad(module_path);
 		if (!g_ModulePtr) {
-			printf("moduleLoad(%s) failure\n", argv[1]);
+			printf("moduleLoad(%s) failure\n", module_path);
 			goto err;
 		}
 		g_ModuleInitFunc = (int(*)(int, char**))moduleSymbolAddress(g_ModulePtr, "init");
 		if (!g_ModuleInitFunc) {
-			printf("moduleSymbolAddress(%s, \"init\") failure\n", argv[1]);
+			printf("moduleSymbolAddress(%s, \"init\") failure\n", module_path);
 			goto err;
 		}
 	}
@@ -57,7 +59,7 @@ int main(int argc, char** argv) {
 	strcpy(g_ClusterSelf->ip, g_Config.cluster.ip);
 	g_ClusterSelf->port = g_Config.cluster.port;
 
-	printf("cluster ip:%s, port:%u, pid:%zu\n", g_ClusterSelf->ip, g_ClusterSelf->port, processId());
+	printf("cluster(%s) ip:%s, port:%u, pid:%zu\n", module_path, g_ClusterSelf->ip, g_ClusterSelf->port, processId());
 	// init resource
 	if (!initGlobalResource()) {
 		goto err;

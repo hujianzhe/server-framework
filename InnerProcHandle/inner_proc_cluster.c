@@ -63,11 +63,9 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	if (!cluster_self_find)
 		goto err;
 	cJSON_Delete(cjson_req_root);
-	channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 	return 1;
 err:
 	cJSON_Delete(cjson_req_root);
-	channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 	return 0;
 }
 

@@ -80,6 +80,13 @@ int main(int argc, char** argv) {
 	if (!dataqueueInit(&g_DataQueue))
 		goto err;
 	dqinitok = 1;
+	// post module init_func message
+	if (g_ModuleInitFunc) {
+		UserMsg_t* msg = newUserMsg(0);
+		if (!msg)
+			goto err;
+		dataqueuePush(&g_DataQueue, &msg->internal._);
+	}
 	// init timer
 	if (!rbtimerInit(&g_Timer, TRUE))
 		goto err;
@@ -129,13 +136,6 @@ int main(int argc, char** argv) {
 	if (!threadCreate(&g_TaskThread, taskThreadEntry, NULL))
 		goto err;
 	taskthreadinitok = 1;
-	// post module init_func message
-	if (g_ModuleInitFunc) {
-		UserMsg_t* msg = newUserMsg(0);
-		if (!msg)
-			goto err;
-		dataqueuePush(&g_DataQueue, &msg->internal._);
-	}
 	// wait thread exit
 	threadJoin(g_TaskThread, NULL);
 	g_Valid = 0;

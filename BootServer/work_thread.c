@@ -31,7 +31,14 @@ static void call_dispatch(UserMsg_t* ctrl) {
 				reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
 			}
 			else {
-				channelSend(ctrl->channel, NULL, 0, NETPACKET_FRAGMENT);
+				SendMsg_t ret_msg;
+				if (ctrl->rpc_status == 'R') {
+					makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 0, NULL, 0);
+				}
+				else {
+					makeSendMsg(&ret_msg, 0, NULL, 0);
+				}
+				channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 			}
 		}
 	}

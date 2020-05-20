@@ -1,8 +1,6 @@
 #ifndef TEST_HANDLER_H
 #define	TEST_HANDLER_H
 
-extern void unknowRequest(UserMsg_t* ctrl);
-
 extern void frpc_test_code(Channel_t*);
 extern void arpc_test_code(Channel_t*);
 extern void reqTest(UserMsg_t*);

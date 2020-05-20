@@ -45,7 +45,6 @@ extern "C" {
 __declspec_dllexport int init(int argc, char** argv) {
 	int connectsockinitokcnt;
 
-	set_g_DefaultDispatchCallback(unknowRequest);
 	regNumberDispatch(CMD_REQ_TEST, reqTest);
 	regNumberDispatch(CMD_NOTIFY_TEST, notifyTest);
 	regNumberDispatch(CMD_RET_TEST, retTest);

@@ -138,14 +138,8 @@ int callReqClusterList(int socktype, const char* ip, unsigned short port) {
 	Channel_t* c;
 	int domain = ipstrFamily(ip);
 
-	if (strcmp(ptr_g_ClusterSelf()->ip, ip)) {
-		if (!sockaddrEncode(&connect_addr.st, domain, ip, port))
-			return 0;
-	}
-	else {
-		if (!sockaddrEncode(&connect_addr.st, domain, ipstrGetLoopback(domain), port))
-			return 0;
-	}
+	if (!sockaddrEncode(&connect_addr.st, domain, ip, port))
+		return 0;
 	o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.st.ss_family, socktype, 0);
 	if (!o)
 		return 0;

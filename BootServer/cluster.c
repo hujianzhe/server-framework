@@ -218,15 +218,8 @@ Channel_t* clusterChannel(Cluster_t* cluster) {
 		Sockaddr_t saddr;
 		ReactorObject_t* o;
 		int family = ipstrFamily(cluster->ip);
-		if (strcmp(g_Config.cluster.ip, cluster->ip)) {
-			if (!sockaddrEncode(&saddr.st, family, cluster->ip, cluster->port)) {
-				return NULL;
-			}
-		}
-		else {
-			if (!sockaddrEncode(&saddr.st, family, ipstrGetLoopback(family), cluster->port)) {
-				return NULL;
-			}
+		if (!sockaddrEncode(&saddr.st, family, cluster->ip, cluster->port)) {
+			return NULL;
 		}
 		o = reactorobjectOpen(INVALID_FD_HANDLE, family, cluster->socktype, 0);
 		if (!o)

@@ -7,8 +7,9 @@
 typedef struct ClusterGroup_t {
 	HashtableNode_t m_htnode;
 	List_t clusterlist;
-	size_t clusterlistcnt;
+	unsigned int clusterlistcnt;
 	ConsistentHash_t consistent_hash;
+	unsigned int target_loopcnt;
 } ClusterGroup_t;
 
 typedef struct Cluster_t {
@@ -30,6 +31,7 @@ extern Hashtable_t g_ClusterGroupTable;
 
 #define	CLUSTER_TARGET_USE_HASH_RING	0
 #define	CLUSTER_TARGET_USE_HASH_MOD		1
+#define	CLUSTER_TARGET_USE_LOOP			2
 
 #ifdef __cplusplus
 extern "C" {

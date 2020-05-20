@@ -22,6 +22,7 @@ static ClusterGroup_t* new_cluster_group(const char* name) {
 	grp->clusterlistcnt = 0;
 	listInit(&grp->clusterlist);
 	consistenthashInit(&grp->consistent_hash);
+	grp->target_loopcnt = 0;
 	return grp;
 }
 
@@ -200,6 +201,17 @@ Cluster_t* targetCluster(int mode, const char* name, unsigned int key) {
 			unsigned int i;
 			key %= grp->clusterlistcnt;
 			for (i = 0, cur = grp->clusterlist.head; cur && i < key; cur = cur->next, ++i);
+			if (!cur)
+				return NULL;
+			cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
+		}
+		else if (CLUSTER_TARGET_USE_LOOP == mode) {
+			ListNode_t* cur;
+			unsigned int i;
+			if (++grp->target_loopcnt >= grp->clusterlistcnt) {
+				grp->target_loopcnt = 0;
+			}
+			for (i = 0, cur = grp->clusterlist.head; cur && i < grp->target_loopcnt; cur = cur->next, ++i);
 			if (!cur)
 				return NULL;
 			cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);

@@ -13,7 +13,8 @@
 			"port" : 50001
 		}
 	],
-	"module_path" : "./Service.dll",
+	"module_path" : "",
+	"rpc_fiber_stack_size_kb" : 16,
 	"rpc_fiber" : 1,
 	"rpc_async" : 0,
 	"tcp_nodelay" : 1,
@@ -25,5 +26,6 @@
 			"ip" : "39.100.213.153",
 			"port" : 50000
 		}
-	]
+	],
+	"extra_data" : ""
 }

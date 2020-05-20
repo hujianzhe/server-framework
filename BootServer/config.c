@@ -130,9 +130,9 @@ int initConfig(const char* path) {
 			g_Config.rpc_fiber = cjson->valueint;
 		}
 
-		cjson = cJSON_Field(root, "rpc_fiber_stack_size");
+		cjson = cJSON_Field(root, "rpc_fiber_stack_size_kb");
 		if (cjson) {
-			g_Config.rpc_fiber_stack_size = cjson->valueint;
+			g_Config.rpc_fiber_stack_size = cjson->valueint * 1024;
 		}
 		else {
 			g_Config.rpc_fiber_stack_size = 0x4000;

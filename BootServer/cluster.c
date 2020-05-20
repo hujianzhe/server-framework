@@ -213,7 +213,10 @@ Cluster_t* targetCluster(int mode, const char* name, unsigned int key) {
 }
 
 Channel_t* clusterChannel(Cluster_t* cluster) {
-	Channel_t* channel = sessionChannel(&cluster->session);
+	Channel_t* channel;
+	if (cluster == g_ClusterSelf)
+		return NULL;
+	channel = sessionChannel(&cluster->session);
 	if (!channel) {
 		Sockaddr_t saddr;
 		ReactorObject_t* o;

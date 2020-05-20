@@ -25,6 +25,10 @@ int main(int argc, char** argv) {
 		acceptthreadinitok = 0, acceptloopinitok = 0,
 		listensockinitokcnt = 0;
 	const char* module_path = "";
+	//
+	if (argc < 2) {
+		return 1;
+	}
 	// save boot arguments
 	g_MainArgc = argc;
 	g_MainArgv = argv;
@@ -32,14 +36,14 @@ int main(int argc, char** argv) {
 	initDispatch();
 	initClusterTable();
 	// load config
-	if (!initConfig("config.txt")) {
-		puts("initConfig(\"config.txt\") error");
+	if (!initConfig(argv[1])) {
+		printf("initConfig(%s) error", argv[1]);
 		goto err;
 	}
 	configinitok = 1;
 	// load module
-	if (argc > 1) {
-		module_path = argv[1];
+	if (argc > 2) {
+		module_path = argv[2];
 		if (module_path[0]) {
 			free((char*)g_Config.module_path);
 			g_Config.module_path = strdup(module_path);

@@ -40,6 +40,13 @@ int initConfig(const char* path) {
 			g_Config.cluster.port = port->valueint;
 		}
 
+		cjson = cJSON_Field(root, "extra_data");
+		if (cjson) {
+			g_Config.extra_data_txt = strdup(cjson->valuestring);
+			if (!g_Config.extra_data_txt)
+				break;
+		}
+
 		cjson = cJSON_Field(root, "listen_options");
 		if (cjson) {
 			int i;
@@ -170,6 +177,9 @@ void freeConfig(void) {
 	free((char*)g_Config.module_path);
 	g_Config.module_path = NULL;
 	g_Config.outer_ip[0] = 0;
+	free((char*)g_Config.extra_data_txt);
+	g_Config.extra_data_txt = NULL;
+	g_Config.extra_data = NULL;
 }
 
 Config_t* ptr_g_Config(void) { return &g_Config; }

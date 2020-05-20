@@ -9,11 +9,11 @@
 #pragma comment(lib, "BootServer.lib")
 #endif
 
-static int loadClusterNode(const char* path) {
+static int loadClusterNode(const char* data) {
 	cJSON* cluster_grp_array, *cluster_grp;
-	cJSON* root = cJSON_ParseFromFile(NULL, path);
+	cJSON* root = cJSON_Parse(NULL, data);
 	if (!root) {
-		puts("ServiceConfig.txt parse error");
+		puts("Config parse extra data error");
 		return 0;
 	}
 	cluster_grp_array = cJSON_Field(root, "cluster_grouop");
@@ -81,7 +81,7 @@ extern "C" {
 #endif
 
 __declspec_dllexport int init(int argc, char** argv) {
-	if (!loadClusterNode("../ServiceCenter/ServiceConfig.txt"))
+	if (!loadClusterNode(ptr_g_Config()->extra_data_txt))
 		return 0;
 
 	regStringDispatch("/get_cluster_list", reqClusterList_http);

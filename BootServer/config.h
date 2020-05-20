@@ -27,6 +27,8 @@ typedef struct Config_t {
 	int rpc_async;
 	int tcp_nodelay;
 	int udp_cwndsize;
+	const char* extra_data_txt;
+	void* extra_data;
 } Config_t;
 
 extern Config_t g_Config;

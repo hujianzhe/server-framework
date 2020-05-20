@@ -80,13 +80,6 @@ int main(int argc, char** argv) {
 	if (!dataqueueInit(&g_DataQueue))
 		goto err;
 	dqinitok = 1;
-	// post module init_func message
-	if (g_ModuleInitFunc) {
-		UserMsg_t* msg = newUserMsg(0);
-		if (!msg)
-			goto err;
-		dataqueuePush(&g_DataQueue, &msg->internal._);
-	}
 	// init timer
 	if (!rbtimerInit(&g_Timer, TRUE))
 		goto err;
@@ -114,6 +107,17 @@ int main(int argc, char** argv) {
 	// reg SIGINT signal
 	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR)
 		goto err;
+	// start task thread
+	if (!threadCreate(&g_TaskThread, taskThreadEntry, NULL))
+		goto err;
+	taskthreadinitok = 1;
+	// post module init_func message
+	if (g_ModuleInitFunc) {
+		UserMsg_t* msg = newUserMsg(0);
+		if (!msg)
+			goto err;
+		dataqueuePush(&g_DataQueue, &msg->internal._);
+	}
 	// listen port
 	if (g_ClusterSelf->port) {
 		int domain = ipstrFamily(g_ClusterSelf->ip);
@@ -132,10 +136,6 @@ int main(int argc, char** argv) {
 			reactorCommitCmd(g_ReactorAccept, &o->regcmd);
 		}
 	}
-	// start task thread
-	if (!threadCreate(&g_TaskThread, taskThreadEntry, NULL))
-		goto err;
-	taskthreadinitok = 1;
 	// wait thread exit
 	threadJoin(g_TaskThread, NULL);
 	g_Valid = 0;

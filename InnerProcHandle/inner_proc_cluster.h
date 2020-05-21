@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-__declspec_dllexport int callReqClusterList(int socktype, const char* ip, unsigned short port);
+__declspec_dllexport int callReqClusterList(Cluster_t* sc_cluster);
 __declspec_dllexport void retClusterList(UserMsg_t* ctrl);
 
 #ifdef __cplusplus

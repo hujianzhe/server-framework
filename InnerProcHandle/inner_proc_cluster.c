@@ -6,7 +6,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	cJSON* cjson_cluster_array, *cjson_cluster;
 	int cluster_self_find;
 
-	logInfo(ptr_g_Log(), "recv: %s\n", (char*)(ctrl->data));
+	logInfo(ptr_g_Log(), "%s recv: %s\n", __FUNCTION__, (char*)(ctrl->data));
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
@@ -133,15 +133,15 @@ err:
 extern "C" {
 #endif
 
-int callReqClusterList(int socktype, const char* ip, unsigned short port) {
+int callReqClusterList(Cluster_t* sc_cluster) {
 	Sockaddr_t connect_addr;
 	ReactorObject_t* o;
 	Channel_t* c;
-	int domain = ipstrFamily(ip);
+	int domain = ipstrFamily(sc_cluster->ip);
 
-	if (!sockaddrEncode(&connect_addr.st, domain, ip, port))
+	if (!sockaddrEncode(&connect_addr.st, domain, sc_cluster->ip, sc_cluster->port))
 		return 0;
-	o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.st.ss_family, socktype, 0);
+	o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.st.ss_family, sc_cluster->socktype, 0);
 	if (!o)
 		return 0;
 	c = openChannel(o, CHANNEL_FLAG_CLIENT, &connect_addr);
@@ -151,10 +151,11 @@ int callReqClusterList(int socktype, const char* ip, unsigned short port) {
 	}
 	c->on_heartbeat = defaultOnHeartbeat;
 	c->_.on_syn_ack = defaultOnSynAck;
+	sessionChannelReplaceClient(&sc_cluster->session, c);
 	reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
-	logInfo(ptr_g_Log(), "channel(%p) connecting ServiceCenter, ip:%s, port:%u ......\n", c, ip, port);
+	logInfo(ptr_g_Log(), "channel connecting ServiceCenter, ip:%s, port:%u ......\n", sc_cluster->ip, sc_cluster->port);
 	if (!start_req_cluster_list(c)) {
-		logErr(ptr_g_Log(), "start_req_cluster_list failure, ip:%s, port:%u ......\n", ip, port);
+		logErr(ptr_g_Log(), "start_req_cluster_list failure, ip:%s, port:%u ......\n", sc_cluster->ip, sc_cluster->port);
 		return 0;
 	}
 	return 1;

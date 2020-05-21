@@ -5,7 +5,7 @@
 static void call_dispatch(UserMsg_t* ctrl) {
 	if (g_ModuleInitFunc) {
 		if (!g_ModuleInitFunc(g_MainArgc, g_MainArgv)) {
-			printf("(%s).init(argc, argv) return failure\n", g_MainArgv[1]);
+			fprintf(stderr, "(%s).init(argc, argv) return failure\n", g_MainArgv[1]);
 			g_Valid = 0;
 		}
 		g_ModuleInitFunc = NULL;
@@ -134,12 +134,13 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			}
 			else if (REACTOR_CHANNEL_FREE_CMD == internal->type) {
 				Channel_t* channel = pod_container_of(internal, Channel_t, _.freecmd);
-
-				printf("channel(%p) detach, reason:%d", channel, channel->_.detach_error);
-				if (channel->_.flag & CHANNEL_FLAG_CLIENT)
-					printf(", connected times: %u\n", channel->_.connected_times);
-				else
-					putchar('\n');
+				if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
+					logInfo(&g_Log, "channel(%p) detach, reason:%d, connected times: %u\n",
+						channel, channel->_.detach_error, channel->_.connected_times);
+				}
+				else {
+					logInfo(&g_Log, "channel(%p) detach, reason:%d\n", channel, channel->_.detach_error);
+				}
 
 				freeRpcItemWhenChannelDetach(channel);
 
@@ -245,7 +246,7 @@ unsigned int THREAD_CALL reactorThreadEntry(void* arg) {
 	while (g_Valid) {
 		int n = reactorHandle(reactor, e, sizeof(e)/sizeof(e[0]), gmtimeMillisecond(), wait_sec);
 		if (n < 0) {
-			printf("reactorHandle error:%d\n", errnoGet());
+			logErr(&g_Log, "reactorHandle error:%d\n", errnoGet());
 			break;
 		}
 	}

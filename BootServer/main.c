@@ -37,13 +37,13 @@ int main(int argc, char** argv) {
 	initClusterTable();
 	// load config
 	if (!initConfig(argv[1])) {
-		printf("initConfig(%s) error", argv[1]);
+		fprintf(stderr, "initConfig(%s) error", argv[1]);
 		goto err;
 	}
 	configinitok = 1;
 	// init log
 	if (!logInit(&g_Log, "", g_Config.log.pathname)) {
-		printf("logInit(%s) error", g_Config.log.pathname);
+		fprintf(stderr, "logInit(%s) error", g_Config.log.pathname);
 		goto err;
 	}
 	g_Log.m_maxfilesize = g_Config.log.maxfilesize;
@@ -64,12 +64,12 @@ int main(int argc, char** argv) {
 	if (module_path[0]) {
 		g_ModulePtr = moduleLoad(module_path);
 		if (!g_ModulePtr) {
-			printf("moduleLoad(%s) failure\n", module_path);
+			fprintf(stderr, "moduleLoad(%s) failure\n", module_path);
 			goto err;
 		}
 		g_ModuleInitFunc = (int(*)(int, char**))moduleSymbolAddress(g_ModulePtr, "init");
 		if (!g_ModuleInitFunc) {
-			printf("moduleSymbolAddress(%s, \"init\") failure\n", module_path);
+			fprintf(stderr, "moduleSymbolAddress(%s, \"init\") failure\n", module_path);
 			goto err;
 		}
 	}

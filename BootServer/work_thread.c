@@ -170,9 +170,6 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				channelDestroy(channel);
 				reactorCommitCmd(NULL, &channel->_.freecmd);
 			}
-			else {
-				printf("unknown message type: %d\n", internal->type);
-			}
 		}
 
 		// handle timer event

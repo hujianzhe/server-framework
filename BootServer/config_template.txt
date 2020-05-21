@@ -13,6 +13,7 @@
 			"port" : 50001
 		}
 	],
+	"log_pathname" : "",
 	"module_path" : "",
 	"rpc_fiber_stack_size_kb" : 16,
 	"rpc_fiber" : 1,

@@ -13,6 +13,7 @@ Reactor_t* g_ReactorAccept;
 DataQueue_t g_DataQueue;
 size_t g_ReactorCnt;
 RBTimer_t g_Timer;
+Log_t g_Log;
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,6 +51,7 @@ Reactor_t* selectReactor(size_t key) { return &g_Reactors[key % g_ReactorCnt]; }
 Reactor_t* ptr_g_ReactorAccept(void) { return g_ReactorAccept; }
 DataQueue_t* ptr_g_DataQueue(void) { return &g_DataQueue; }
 RBTimer_t* ptr_g_Timer(void) { return &g_Timer; }
+Log_t* ptr_g_Log(void) { return &g_Log; }
 
 #ifdef __cplusplus
 }

@@ -23,6 +23,7 @@ extern Reactor_t* g_ReactorAccept;
 extern DataQueue_t g_DataQueue;
 extern size_t g_ReactorCnt;
 extern RBTimer_t g_Timer;
+extern Log_t g_Log;
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,6 +36,7 @@ __declspec_dllexport Reactor_t* selectReactor(size_t key);
 __declspec_dllexport Reactor_t* ptr_g_ReactorAccept(void);
 __declspec_dllexport DataQueue_t* ptr_g_DataQueue(void);
 __declspec_dllexport RBTimer_t* ptr_g_Timer(void);
+__declspec_dllexport Log_t* ptr_g_Log(void);
 
 #ifdef __cplusplus
 }

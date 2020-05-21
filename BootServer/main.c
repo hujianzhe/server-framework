@@ -19,7 +19,7 @@ static void sigintHandler(int signo) {
 
 int main(int argc, char** argv) {
 	int i;
-	int configinitok = 0, globalresourceinitok = 0,
+	int configinitok = 0, loginitok = 0, globalresourceinitok = 0,
 		dqinitok = 0, timerinitok = 0, timerrpcinitok = 0,
 		taskthreadinitok = 0, socketloopinitokcnt = 0,
 		acceptthreadinitok = 0, acceptloopinitok = 0,
@@ -41,6 +41,12 @@ int main(int argc, char** argv) {
 		goto err;
 	}
 	configinitok = 1;
+	// init log
+	if (!logInit(&g_Log, "", g_Config.log_pathname)) {
+		printf("logInit(%s) error", g_Config.log_pathname);
+		goto err;
+	}
+	loginitok = 1;
 	// load module
 	if (argc > 2) {
 		module_path = argv[2];
@@ -178,6 +184,9 @@ end:
 	}
 	if (g_ModulePtr) {
 		moduleUnload(g_ModulePtr);
+	}
+	if (loginitok) {
+		logDestroy(&g_Log);
 	}
 	if (configinitok) {
 		freeConfig();

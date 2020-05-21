@@ -14,6 +14,8 @@ static int service_center_check_connection_timeout_callback(RBTimerEvent_t* e, v
 	sc_cluster = pod_container_of(sc_grp->clusterlist.head, Cluster_t, m_grp_listnode);
 	clusterChannel(sc_cluster);
 
+	logInfo(ptr_g_Log(), __FUNCTION__);
+
 	e->timestamp_msec = gmtimeMillisecond() + 1000 * 60;
 	rbtimerAddEvent(ptr_g_Timer(), e);
 	return 1;

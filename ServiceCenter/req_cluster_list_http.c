@@ -8,6 +8,8 @@ void reqClusterList_http(UserMsg_t* ctrl) {
 	char* ret_data, *reply;
 	int reply_len;
 
+	logInfo(ptr_g_Log(), "%s query:%s, data:%s\n", __FUNCTION__, ctrl->httpframe->query, (char*)ctrl->data);
+
 	root = cJSON_NewObject(NULL);
 	cluster_array = cJSON_AddNewArray(root, "clusters");
 	for (node = ptr_g_ClusterList()->head; node; node = node->next) {

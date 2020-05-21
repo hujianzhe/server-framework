@@ -125,12 +125,23 @@ int initConfig(const char* path) {
 				break;
 		}
 
-		cjson = cJSON_Field(root, "log_pathname");
+		cjson = cJSON_Field(root, "log");
 		if (!cjson)
 			break;
-		g_Config.log_pathname = strdup(cjson->valuestring);
-		if (!g_Config.log_pathname)
-			break;
+		else {
+			cJSON* pathname, *maxfilesize_mb;
+			pathname = cJSON_Field(cjson, "pathname");
+			if (!pathname)
+				break;
+			g_Config.log.pathname = strdup(pathname->valuestring);
+			if (!g_Config.log.pathname)
+				break;
+			maxfilesize_mb = cJSON_Field(cjson, "maxfilesize_mb");
+			if (maxfilesize_mb && maxfilesize_mb->valueint > 0)
+				g_Config.log.maxfilesize = maxfilesize_mb->valueint * 1024 * 1024;
+			else
+				g_Config.log.maxfilesize = ~0;
+		}
 
 		cjson = cJSON_Field(root, "rpc_fiber");
 		if (cjson) {
@@ -181,8 +192,8 @@ void freeConfig(void) {
 	free(g_Config.connect_options);
 	g_Config.connect_options = NULL;
 	g_Config.connect_options_cnt = 0;
-	free((char*)g_Config.log_pathname);
-	g_Config.log_pathname = NULL;
+	free((char*)g_Config.log.pathname);
+	g_Config.log.pathname = NULL;
 	free((char*)g_Config.module_path);
 	g_Config.module_path = NULL;
 	g_Config.outer_ip[0] = 0;

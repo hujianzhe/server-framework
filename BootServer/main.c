@@ -42,10 +42,11 @@ int main(int argc, char** argv) {
 	}
 	configinitok = 1;
 	// init log
-	if (!logInit(&g_Log, "", g_Config.log_pathname)) {
-		printf("logInit(%s) error", g_Config.log_pathname);
+	if (!logInit(&g_Log, "", g_Config.log.pathname)) {
+		printf("logInit(%s) error", g_Config.log.pathname);
 		goto err;
 	}
+	g_Log.m_maxfilesize = g_Config.log.maxfilesize;
 	loginitok = 1;
 	// load module
 	if (argc > 2) {

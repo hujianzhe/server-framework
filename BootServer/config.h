@@ -21,7 +21,10 @@ typedef struct Config_t {
 		IPString_t ip;
 		unsigned short port;
 	} cluster;
-	const char* log_pathname;
+	struct {
+		const char* pathname;
+		unsigned int maxfilesize;
+	} log;
 	const char* module_path;
 	int rpc_fiber;
 	unsigned int rpc_fiber_stack_size;

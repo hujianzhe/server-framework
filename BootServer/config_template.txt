@@ -13,7 +13,10 @@
 			"port" : 50001
 		}
 	],
-	"log_pathname" : "",
+	"log" : {
+		"pathname" : "",
+		"maxfilesize_mb" : 10
+	},
 	"module_path" : "",
 	"rpc_fiber_stack_size_kb" : 16,
 	"rpc_fiber" : 1,

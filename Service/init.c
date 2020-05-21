@@ -20,15 +20,15 @@ __declspec_dllexport int init(int argc, char** argv) {
 			break;
 	}
 	if (!option) {
-		puts("miss connect service config");
+		logErr(ptr_g_Log(), "miss connect service config");
 		return 0;
 	}
 	if (!regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList)) {
-		puts("regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList) failure");
+		logErr(ptr_g_Log(), "regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList) failure");
 		return 0;
 	}
 	if (!callReqClusterList(ipstrFamily(option->ip), option->ip, option->port)) {
-		fputs("req_cluster_list failure", stderr);
+		logErr(ptr_g_Log(), "req_cluster_list failure");
 		return 0;
 	}
 	return 1;

@@ -6,12 +6,13 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	cJSON* cjson_cluster_array, *cjson_cluster;
 	int cluster_self_find;
 
+	logInfo(ptr_g_Log(), "recv: %s\n", (char*)(ctrl->data));
+
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
-		fputs("cJSON_Parse", stderr);
+		logErr(ptr_g_Log(), "cJSON_Parse error");
 		return 0;
-	}
-	printf("recv: %s\n", (char*)(ctrl->data));
+	}	
 
 	if (cJSON_Field(cjson_req_root, "errno"))
 		goto err;
@@ -151,9 +152,9 @@ int callReqClusterList(int socktype, const char* ip, unsigned short port) {
 	c->on_heartbeat = defaultOnHeartbeat;
 	c->_.on_syn_ack = defaultOnSynAck;
 	reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
-	printf("channel(%p) connecting ServiceCenter, ip:%s, port:%u ......\n", c, ip, port);
+	logInfo(ptr_g_Log(), "channel(%p) connecting ServiceCenter, ip:%s, port:%u ......\n", c, ip, port);
 	if (!start_req_cluster_list(c)) {
-		printf("start_req_cluster_list failure, ip:%s, port:%u ......\n", ip, port);
+		logErr(ptr_g_Log(), "start_req_cluster_list failure, ip:%s, port:%u ......\n", ip, port);
 		return 0;
 	}
 	return 1;

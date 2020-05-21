@@ -33,7 +33,7 @@ static void rpc_async_req_login_test(RpcItem_t* rpc_item) {
 		IPString_t ip;
 		unsigned short port;
 		sockaddrDecode(&channel->_.connect_addr.st, ip, &port);
-		printf("channel(%p) connect %s:%u failure\n", channel, ip, port);
+		logErr(ptr_g_Log(), "%s channel(%p) connect %s:%hu failure\n", __FUNCTION__, channel, ip, port);
 	}
 	g_Invalid();
 }
@@ -72,7 +72,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 			return 0;
 		}
 		c->on_heartbeat = defaultOnHeartbeat;
-		printf("channel(%p) connecting......\n", c);
+		logInfo(ptr_g_Log(), "channel(%p) connecting......\n", c);
 		if (ptr_g_RpcFiberCore() || ptr_g_RpcAsyncCore()) {
 			c->_.on_syn_ack = defaultRpcOnSynAck;
 			if (ptr_g_RpcFiberCore()) {
@@ -88,7 +88,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 						return 0;
 				}
 				else {
-					printf("channel(%p) connect %s:%u failure\n", c, option->ip, option->port);
+					logErr(ptr_g_Log(), "channel(%p) connect %s:%u failure\n", c, option->ip, option->port);
 					return 0;
 				}
 			}

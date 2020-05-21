@@ -11,12 +11,13 @@ void reqLoginTest(UserMsg_t* ctrl) {
 	Cluster_t* cluster;
 	int ok;
 
+	logInfo(ptr_g_Log(), "req: %s\n", (char*)ctrl->data);
+
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
-		fputs("cJSON_Parse", stderr);
+		logErr(ptr_g_Log(), "cJSON_Parse error\n");
 		return;
 	}
-	printf("req: %s\n", (char*)(ctrl->data));
 
 	ok = 0;
 	do {
@@ -46,7 +47,7 @@ void reqLoginTest(UserMsg_t* ctrl) {
 			if (!regCluster(cjson_name->valuestring, cluster)) {
 				freeCluster(cluster);
 				channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
-				fputs("regCluster", stderr);
+				logErr(ptr_g_Log(), "%s regCluster, port:%s, port:%hu\n", __FUNCTION__, cluster->ip, cluster->port);
 				break;
 			}
 		}
@@ -72,9 +73,11 @@ void reqLoginTest(UserMsg_t* ctrl) {
 void retLoginTest(UserMsg_t* ctrl) {
 	cJSON* cjson_ret_root;
 
+	logInfo(ptr_g_Log(), "recv: %s\n", (char*)ctrl->data);
+
 	cjson_ret_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_ret_root) {
-		fputs("cJSON_Parse", stderr);
+		logErr(ptr_g_Log(), "cJSON_Parse error\n");
 		return;
 	}
 
@@ -83,14 +86,12 @@ void retLoginTest(UserMsg_t* ctrl) {
 
 		cjson_sessoin_id = cJSON_Field(cjson_ret_root, "session_id");
 		if (!cjson_sessoin_id) {
-			fputs("miss session id field", stderr);
+			logErr(ptr_g_Log(), "miss session id field\n");
 			break;
 		}
 		channelSessionId(ctrl->channel) = cjson_sessoin_id->valueint;
 	} while (0);
 	cJSON_Delete(cjson_ret_root);
-
-	printf("ret: %s\n", (char*)ctrl->data);
 
 	// test code
 	if (ptr_g_RpcFiberCore())

@@ -13,12 +13,12 @@ static int loadClusterNode(const char* data) {
 	cJSON* cluster_grp_array, *cluster_grp;
 	cJSON* root = cJSON_Parse(NULL, data);
 	if (!root) {
-		puts("Config parse extra data error");
+		logErr(ptr_g_Log(), "Config parse extra data error");
 		return 0;
 	}
 	cluster_grp_array = cJSON_Field(root, "cluster_grouop");
 	if (!cluster_grp_array) {
-		puts("miss field cluster");
+		logErr(ptr_g_Log(), "miss field cluster");
 		return 0;
 	}
 	for (cluster_grp = cluster_grp_array->child; cluster_grp; cluster_grp = cluster_grp->next) {

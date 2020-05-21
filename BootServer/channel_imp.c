@@ -143,7 +143,7 @@ static void channel_reg_handler(ChannelBase_t* c, long long timestamp_msec) {
 	unsigned short port = 0;
 	const char* socktype_str;
 	if (!sockaddrDecode(&c->to_addr.st, ip, &port)) {
-		logErr(&g_Log, "%s sockaddr decode error, ip:%s port:%hu", __FUNCTION__, ip, port);
+		logErr(&g_Log, "%s sockaddr decode error, ip:%s port:%hu\n", __FUNCTION__, ip, port);
 		return;
 	}
 

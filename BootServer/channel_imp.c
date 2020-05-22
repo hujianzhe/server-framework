@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-int defaultOnHeartbeat(Channel_t* c, int heartbeat_times) {
+static int defaultOnHeartbeat(Channel_t* c, int heartbeat_times) {
 	if (heartbeat_times < c->heartbeat_maxtimes) {
 		SendMsg_t msg;
 		makeSendMsgEmpty(&msg);
@@ -17,7 +17,7 @@ int defaultOnHeartbeat(Channel_t* c, int heartbeat_times) {
 	return 0;
 }
 
-void defaultOnSynAck(ChannelBase_t* c, long long ts_msec) {
+static void defaultOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	Channel_t* channel = pod_container_of(c, Channel_t, _);
 	channelEnableHeartbeat(channel, ts_msec);
 }
@@ -181,6 +181,8 @@ Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr) {
 	if (flag & CHANNEL_FLAG_CLIENT) {
 		c->heartbeat_timeout_sec = 10;
 		c->heartbeat_maxtimes = 3;
+		c->on_heartbeat = defaultOnHeartbeat;
+		c->_.on_syn_ack = defaultOnSynAck;
 	}
 	else if (flag & CHANNEL_FLAG_SERVER)
 		c->heartbeat_timeout_sec = 20;
@@ -196,10 +198,11 @@ Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr) {
 	return c;
 }
 
-ReactorObject_t* openListener(int domain, int socktype, const char* ip, unsigned short port) {
+ReactorObject_t* openListener(int socktype, const char* ip, unsigned short port) {
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
 	Channel_t* c;
+	int domain = ipstrFamily(ip);
 	if (!sockaddrEncode(&local_saddr.st, domain, ip, port))
 		return NULL;
 	o = reactorobjectOpen(INVALID_FD_HANDLE, domain, socktype, 0);
@@ -350,10 +353,11 @@ Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const void* saddr) {
 	return c;
 }
 
-ReactorObject_t* openListenerHttp(int domain, const char* ip, unsigned short port) {
+ReactorObject_t* openListenerHttp(const char* ip, unsigned short port) {
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
 	Channel_t* c;
+	int domain = ipstrFamily(ip);
 	if (!sockaddrEncode(&local_saddr.st, domain, ip, port))
 		return NULL;
 	o = reactorobjectOpen(INVALID_FD_HANDLE, domain, SOCK_STREAM, 0);

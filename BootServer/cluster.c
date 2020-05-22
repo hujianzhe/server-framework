@@ -244,8 +244,6 @@ Channel_t* clusterChannel(Cluster_t* cluster) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			return NULL;
 		}
-		channel->_.on_syn_ack = defaultOnSynAck;
-		channel->on_heartbeat = defaultOnHeartbeat;
 		sessionChannelReplaceClient(&cluster->session, channel);
 		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
 	}

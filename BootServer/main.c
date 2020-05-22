@@ -130,18 +130,10 @@ int main(int argc, char** argv) {
 		dataqueuePush(&g_DataQueue, &msg->internal._);
 	}
 	// listen port
-	if (g_ClusterSelf->port) {
-		int domain = ipstrFamily(g_ClusterSelf->ip);
-		ReactorObject_t* o = openListener(domain, g_ClusterSelf->socktype, g_ClusterSelf->ip, g_ClusterSelf->port);
-		if (!o)
-			goto err;
-		reactorCommitCmd(g_ReactorAccept, &o->regcmd);
-	}
 	for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {
 		ConfigListenOption_t* option = g_Config.listen_options + listensockinitokcnt;
 		if (!strcmp(option->protocol, "http")) {
-			int domain = ipstrFamily(option->ip);
-			ReactorObject_t* o = openListenerHttp(domain, option->ip, option->port);
+			ReactorObject_t* o = openListenerHttp(option->ip, option->port);
 			if (!o)
 				goto err;
 			reactorCommitCmd(g_ReactorAccept, &o->regcmd);

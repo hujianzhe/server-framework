@@ -144,7 +144,6 @@
   <ItemGroup>
     <ClCompile Include="req_cluster_list.c" />
     <ClCompile Include="req_cluster_list_http.c" />
-    <ClCompile Include="req_cluster_tell_self.c" />
     <ClCompile Include="init.c" />
   </ItemGroup>
   <ItemGroup>

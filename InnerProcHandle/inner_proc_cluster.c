@@ -64,6 +64,14 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	if (!cluster_self_find)
 		goto err;
 	cJSON_Delete(cjson_req_root);
+
+	if (ptr_g_ClusterSelf()->port) {
+		ReactorObject_t* o = openListener(ptr_g_ClusterSelf()->socktype, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
+		if (!o)
+			return 0;
+		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
+	}
+
 	return 1;
 err:
 	cJSON_Delete(cjson_req_root);
@@ -149,8 +157,6 @@ int callReqClusterList(Cluster_t* sc_cluster) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return 0;
 	}
-	c->on_heartbeat = defaultOnHeartbeat;
-	c->_.on_syn_ack = defaultOnSynAck;
 	sessionChannelReplaceClient(&sc_cluster->session, c);
 	reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
 	logInfo(ptr_g_Log(), "channel connecting ServiceCenter, ip:%s, port:%u ......", sc_cluster->ip, sc_cluster->port);

@@ -86,7 +86,13 @@ __declspec_dllexport int init(int argc, char** argv) {
 
 	regStringDispatch("/get_cluster_list", reqClusterList_http);
 	regNumberDispatch(CMD_REQ_CLUSTER_LIST, reqClusterList);
-	// regNumberDispatch(CMD_REQ_CLUSTER_TELL_SELF, reqClusterTellSelf);
+
+	if (ptr_g_ClusterSelf()->port) {
+		ReactorObject_t* o = openListener(ptr_g_ClusterSelf()->socktype, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
+		if (!o)
+			return 0;
+		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
+	}
 
 	return 1;
 }

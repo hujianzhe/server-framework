@@ -53,6 +53,13 @@ __declspec_dllexport int init(int argc, char** argv) {
 	regStringDispatch("/reqHttpTest", reqHttpTest);
 	regStringDispatch("/reqSoTest", reqSoTest);
 
+	if (ptr_g_ClusterSelf()->port) {
+		ReactorObject_t* o = openListener(ptr_g_ClusterSelf()->socktype, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
+		if (!o)
+			return 0;
+		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
+	}
+
 	for (connectsockinitokcnt = 0; connectsockinitokcnt < ptr_g_Config()->connect_options_cnt; ++connectsockinitokcnt) {
 		ConfigConnectOption_t* option = ptr_g_Config()->connect_options + connectsockinitokcnt;
 		RpcItem_t* rpc_item;
@@ -71,7 +78,6 @@ __declspec_dllexport int init(int argc, char** argv) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			return 0;
 		}
-		c->on_heartbeat = defaultOnHeartbeat;
 		logInfo(ptr_g_Log(), "channel(%p) connecting......", c);
 		if (ptr_g_RpcFiberCore() || ptr_g_RpcAsyncCore()) {
 			c->_.on_syn_ack = defaultRpcOnSynAck;
@@ -102,7 +108,6 @@ __declspec_dllexport int init(int argc, char** argv) {
 			}
 		}
 		else {
-			c->_.on_syn_ack = defaultOnSynAck;
 			reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
 			if (!start_req_login_test(c))
 				return 0;

@@ -6,7 +6,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	cJSON* cjson_cluster_array, *cjson_cluster;
 	int cluster_self_find;
 
-	logInfo(ptr_g_Log(), "%s recv: %s\n", __FUNCTION__, (char*)(ctrl->data));
+	logInfo(ptr_g_Log(), "%s recv: %s", __FUNCTION__, (char*)(ctrl->data));
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
@@ -153,9 +153,9 @@ int callReqClusterList(Cluster_t* sc_cluster) {
 	c->_.on_syn_ack = defaultOnSynAck;
 	sessionChannelReplaceClient(&sc_cluster->session, c);
 	reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
-	logInfo(ptr_g_Log(), "channel connecting ServiceCenter, ip:%s, port:%u ......\n", sc_cluster->ip, sc_cluster->port);
+	logInfo(ptr_g_Log(), "channel connecting ServiceCenter, ip:%s, port:%u ......", sc_cluster->ip, sc_cluster->port);
 	if (!start_req_cluster_list(c)) {
-		logErr(ptr_g_Log(), "start_req_cluster_list failure, ip:%s, port:%u ......\n", sc_cluster->ip, sc_cluster->port);
+		logErr(ptr_g_Log(), "start_req_cluster_list failure, ip:%s, port:%u ......", sc_cluster->ip, sc_cluster->port);
 		return 0;
 	}
 	return 1;

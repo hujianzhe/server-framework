@@ -94,7 +94,7 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 	}
 	reactorCommitCmd(selectReactor((size_t)newfd), &o->regcmd);
 	if (sockaddrDecode((struct sockaddr_storage*)peer_addr, ip, &port))
-		logInfo(&g_Log, "accept new socket(%p), ip:%s, port:%hu\n", o, ip, port);
+		logInfo(&g_Log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
 	else
 		logErr(&g_Log, "accept parse sockaddr error");
 }
@@ -143,7 +143,7 @@ static void channel_reg_handler(ChannelBase_t* c, long long timestamp_msec) {
 	unsigned short port = 0;
 	const char* socktype_str;
 	if (!sockaddrDecode(&c->to_addr.st, ip, &port)) {
-		logErr(&g_Log, "%s sockaddr decode error, ip:%s port:%hu\n", __FUNCTION__, ip, port);
+		logErr(&g_Log, "%s sockaddr decode error, ip:%s port:%hu", __FUNCTION__, ip, port);
 		return;
 	}
 
@@ -151,14 +151,14 @@ static void channel_reg_handler(ChannelBase_t* c, long long timestamp_msec) {
 	channel_flag = channel->_.flag;
 	socktype_str = (channel_flag & CHANNEL_FLAG_STREAM) ? "tcp" : "udp";
 	if (channel_flag & CHANNEL_FLAG_CLIENT) {
-		logInfo(&g_Log, "%s connect addr %s(%s:%hu)\n", __FUNCTION__, socktype_str, ip, port);
+		logInfo(&g_Log, "%s connect addr %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);
 		channelSendv(channel, NULL, 0, NETPACKET_SYN);
 	}
 	else if (channel_flag & CHANNEL_FLAG_LISTEN) {
-		logInfo(&g_Log, "%s listen addr %s(%s:%hu)\n", __FUNCTION__, socktype_str, ip, port);
+		logInfo(&g_Log, "%s listen addr %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);
 	}
 	else if (channel_flag & CHANNEL_FLAG_SERVER) {
-		logInfo(&g_Log, "%s server reg %s(%s:%hu)\n", __FUNCTION__, socktype_str, ip, port);
+		logInfo(&g_Log, "%s server reg %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);
 		channelEnableHeartbeat(channel, timestamp_msec);
 	}
 }
@@ -324,7 +324,7 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const void
 	}
 	reactorCommitCmd(selectReactor((size_t)newfd), &o->regcmd);
 	if (sockaddrDecode((struct sockaddr_storage*)peer_addr, ip, &port))
-		logInfo(&g_Log, "accept new socket(%p), ip:%s, port:%hu\n", o, ip, port);
+		logInfo(&g_Log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
 	else
 		logErr(&g_Log, "accept parse sockaddr error");
 }

@@ -11,11 +11,11 @@ void reqLoginTest(UserMsg_t* ctrl) {
 	Cluster_t* cluster;
 	int ok;
 
-	logInfo(ptr_g_Log(), "req: %s\n", (char*)ctrl->data);
+	logInfo(ptr_g_Log(), "req: %s", (char*)ctrl->data);
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
-		logErr(ptr_g_Log(), "cJSON_Parse error\n");
+		logErr(ptr_g_Log(), "cJSON_Parse error");
 		return;
 	}
 
@@ -47,7 +47,7 @@ void reqLoginTest(UserMsg_t* ctrl) {
 			if (!regCluster(cjson_name->valuestring, cluster)) {
 				freeCluster(cluster);
 				channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
-				logErr(ptr_g_Log(), "%s regCluster, port:%s, port:%hu\n", __FUNCTION__, cluster->ip, cluster->port);
+				logErr(ptr_g_Log(), "%s regCluster, port:%s, port:%hu", __FUNCTION__, cluster->ip, cluster->port);
 				break;
 			}
 		}
@@ -73,11 +73,11 @@ void reqLoginTest(UserMsg_t* ctrl) {
 void retLoginTest(UserMsg_t* ctrl) {
 	cJSON* cjson_ret_root;
 
-	logInfo(ptr_g_Log(), "recv: %s\n", (char*)ctrl->data);
+	logInfo(ptr_g_Log(), "recv: %s", (char*)ctrl->data);
 
 	cjson_ret_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_ret_root) {
-		logErr(ptr_g_Log(), "cJSON_Parse error\n");
+		logErr(ptr_g_Log(), "cJSON_Parse error");
 		return;
 	}
 
@@ -86,7 +86,7 @@ void retLoginTest(UserMsg_t* ctrl) {
 
 		cjson_sessoin_id = cJSON_Field(cjson_ret_root, "session_id");
 		if (!cjson_sessoin_id) {
-			logErr(ptr_g_Log(), "miss session id field\n");
+			logErr(ptr_g_Log(), "miss session id field");
 			break;
 		}
 		channelSessionId(ctrl->channel) = cjson_sessoin_id->valueint;

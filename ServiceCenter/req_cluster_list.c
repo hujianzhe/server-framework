@@ -12,7 +12,7 @@ void reqClusterList(UserMsg_t* ctrl) {
 	ListNode_t* lnode;
 	int retcode = 0;
 
-	logInfo(ptr_g_Log(), "req: %s\n", (char*)(ctrl->data));
+	logInfo(ptr_g_Log(), "req: %s", (char*)(ctrl->data));
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {

@@ -14,7 +14,7 @@ static int service_center_check_connection_timeout_callback(RBTimer_t* timer, RB
 	sc_cluster = pod_container_of(sc_grp->clusterlist.head, Cluster_t, m_grp_listnode);
 	clusterChannel(sc_cluster);
 
-	logInfo(ptr_g_Log(), "%s\n", __FUNCTION__);
+	logInfo(ptr_g_Log(), "__FUNCTION__");
 
 	e->timestamp_msec = gmtimeMillisecond() + 1000 * 60;
 	rbtimerAddEvent(timer, e);
@@ -37,19 +37,19 @@ __declspec_dllexport int init(int argc, char** argv) {
 			break;
 	}
 	if (!option) {
-		logErr(ptr_g_Log(), "miss connect service config\n");
+		logErr(ptr_g_Log(), "miss connect service config");
 		return 0;
 	}
 	cluster = newCluster();
 	if (!cluster) {
-		logErr(ptr_g_Log(), "ServiceCenter newCluster error\n");
+		logErr(ptr_g_Log(), "ServiceCenter newCluster error");
 		return 0;
 	}
 	cluster->socktype = option->socktype;
 	strcpy(cluster->ip, option->ip);
 	cluster->port = option->port;
 	if (!regCluster(option->protocol, cluster)) {
-		logErr(ptr_g_Log(), "ServiceCenter regCluster error\n");
+		logErr(ptr_g_Log(), "ServiceCenter regCluster error");
 		return 0;
 	}
 	if (!regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList)) {
@@ -62,7 +62,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 	}
 	timeout_ev = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
 	if (!timeout_ev) {
-		logErr(ptr_g_Log(), "malloc(sizeof(RBTimerEvent_t)) error\n");
+		logErr(ptr_g_Log(), "malloc(sizeof(RBTimerEvent_t)) error");
 		return 0;
 	}
 	timeout_ev->arg = NULL;

@@ -60,7 +60,7 @@ static RpcItem_t* readyRpcItem(RpcItem_t* rpc_item, Channel_t* channel, long lon
 	if (timeout_msec >= 0) {
 		RBTimerEvent_t* timeout_ev = (RBTimerEvent_t*)(rpc_item + 1);
 		timeout_ev->timestamp_msec = rpc_item->timestamp_msec + timeout_msec;
-		timeout_ev->callback = (int(*)(struct RBTimerEvent_t*, void*))(size_t)1;
+		timeout_ev->callback = NULL;
 		timeout_ev->arg = rpc_item;
 		if (!rbtimerAddEvent(&g_TimerRpcTimeout, timeout_ev)) {
 			return NULL;

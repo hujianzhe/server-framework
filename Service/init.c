@@ -7,7 +7,7 @@
 #pragma comment(lib, "InnerProcHandle.lib")
 #endif
 
-static int service_center_check_connection_timeout_callback(RBTimerEvent_t* e, void* arg) {
+static int service_center_check_connection_timeout_callback(RBTimer_t* timer, RBTimerEvent_t* e) {
 	ClusterGroup_t* sc_grp;
 	Cluster_t* sc_cluster;
 	sc_grp = getClusterGroup("ServiceCenter");
@@ -17,7 +17,7 @@ static int service_center_check_connection_timeout_callback(RBTimerEvent_t* e, v
 	logInfo(ptr_g_Log(), "%s\n", __FUNCTION__);
 
 	e->timestamp_msec = gmtimeMillisecond() + 1000 * 60;
-	rbtimerAddEvent(ptr_g_Timer(), e);
+	rbtimerAddEvent(timer, e);
 	return 1;
 }
 

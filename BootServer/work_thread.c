@@ -45,8 +45,8 @@ static void call_dispatch(UserMsg_t* ctrl) {
 	free(ctrl);
 }
 
-static int session_expire_timeout_callback(RBTimerEvent_t* e, void* arg) {
-	Session_t* session = (Session_t*)arg;
+static int session_expire_timeout_callback(RBTimer_t* timer, RBTimerEvent_t* e) {
+	Session_t* session = (Session_t*)e->arg;
 	if (session->destroy)
 		session->destroy(session);
 	return 0;
@@ -189,7 +189,7 @@ unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		for (cur = rbtimerTimeout(&g_Timer, cur_msec); cur; cur = next) {
 			RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
 			next = cur->next;
-			e->callback(e, e->arg);
+			e->callback(&g_Timer, e);
 		}
 		timer_min_msec[0] = rbtimerMiniumTimestamp(&g_Timer);
 		timer_min_msec[1] = rbtimerMiniumTimestamp(&g_TimerRpcTimeout);

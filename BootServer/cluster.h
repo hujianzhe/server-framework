@@ -27,7 +27,6 @@ typedef struct Cluster_t {
 
 extern Cluster_t* g_ClusterSelf;
 extern List_t g_ClusterList;
-extern Hashtable_t g_ClusterGroupTable;
 
 #define	CLUSTER_TARGET_USE_HASH_RING	0
 #define	CLUSTER_TARGET_USE_HASH_MOD		1
@@ -38,8 +37,9 @@ extern "C" {
 #endif
 
 __declspec_dllexport List_t* ptr_g_ClusterList(void);
-__declspec_dllexport Hashtable_t* ptr_g_ClusterGroupTable(void);
 __declspec_dllexport Cluster_t* ptr_g_ClusterSelf(void);
+__declspec_dllexport int getClusterVersion(void);
+__declspec_dllexport void setClusterVersion(int version);
 
 int initClusterTable(void);
 __declspec_dllexport Cluster_t* newCluster(void);

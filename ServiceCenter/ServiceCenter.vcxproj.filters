@@ -24,6 +24,9 @@
     <ClCompile Include="req_cluster_list.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="load_cluster_node.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="service_center_handler.h">

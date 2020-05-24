@@ -5,7 +5,9 @@
 
 Cluster_t* g_ClusterSelf;
 List_t g_ClusterList;
-Hashtable_t g_ClusterGroupTable;
+
+static int g_ClusterVersion;
+static Hashtable_t g_ClusterGroupTable;
 static HashtableNode_t* s_ClusterGroupBulk[32];
 static int __keycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
 static unsigned int __keyhash(const void* key) { return hashBKDR((const char*)key); }
@@ -56,8 +58,9 @@ extern "C" {
 #endif
 
 List_t* ptr_g_ClusterList(void) { return &g_ClusterList; }
-Hashtable_t* ptr_g_ClusterGroupTable(void) { return &g_ClusterGroupTable; }
 Cluster_t* ptr_g_ClusterSelf(void) { return g_ClusterSelf; }
+int getClusterVersion(void) { return g_ClusterVersion; }
+void setClusterVersion(int version) { g_ClusterVersion = version; }
 
 int initClusterTable(void) {
 	hashtableInit(&g_ClusterGroupTable, s_ClusterGroupBulk, sizeof(s_ClusterGroupBulk) / sizeof(s_ClusterGroupBulk[0]), __keycmp, __keyhash);

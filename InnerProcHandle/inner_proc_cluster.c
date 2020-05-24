@@ -3,7 +3,7 @@
 
 static int ret_cluster_list(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
-	cJSON* cjson_cluster_array, *cjson_cluster;
+	cJSON* cjson_cluster_array, *cjson_cluster, *cjson_version;
 	int cluster_self_find;
 
 	logInfo(ptr_g_Log(), "%s recv: %s", __FUNCTION__, (char*)(ctrl->data));
@@ -17,7 +17,11 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	if (cJSON_Field(cjson_req_root, "errno"))
 		goto err;
 
-	cjson_cluster_array = cJSON_Field(cjson_req_root, "cluster");
+	cjson_version = cJSON_Field(cjson_req_root, "version");
+	if (!cjson_version) {
+		goto err;
+	}
+	cjson_cluster_array = cJSON_Field(cjson_req_root, "clusters");
 	if (!cjson_cluster_array) {
 		goto err;
 	}
@@ -63,6 +67,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	}
 	if (!cluster_self_find)
 		goto err;
+	setClusterVersion(cjson_version->valueint);
 	cJSON_Delete(cjson_req_root);
 
 	if (ptr_g_ClusterSelf()->port) {

@@ -32,7 +32,8 @@ void reqClusterList(UserMsg_t* ctrl) {
 	}
 
 	cjson_ret_root = cJSON_NewObject(NULL);
-	cjson_ret_array_cluster = cJSON_AddNewArray(cjson_ret_root, "cluster");
+	cJSON_AddNewNumber(cjson_ret_root, "version", getClusterVersion());
+	cjson_ret_array_cluster = cJSON_AddNewArray(cjson_ret_root, "clusters");
 	for (lnode = ptr_g_ClusterList()->head; lnode; lnode = lnode->next) {
 		Cluster_t* exist_cluster = pod_container_of(lnode, Cluster_t, m_listnode);
 		cJSON* cjson_ret_object_cluster = cJSON_AddNewObject(cjson_ret_array_cluster, NULL);

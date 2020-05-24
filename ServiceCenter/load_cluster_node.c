@@ -7,17 +7,17 @@ int loadClusterNode(const char* data) {
 	cJSON* root = cJSON_Parse(NULL, data);
 	if (!root) {
 		logErr(ptr_g_Log(), "Config parse extra data error");
-		return 0;
+		goto err;
 	}
 	cjson_version = cJSON_Field(root, "version");
 	if (!cjson_version) {
 		logErr(ptr_g_Log(), "miss field version");
-		return 0;
+		goto err;
 	}
 	cjson_cluster_array = cJSON_Field(root, "clusters");
 	if (!cjson_cluster_array) {
 		logErr(ptr_g_Log(), "miss field cluster");
-		return 0;
+		goto err;
 	}
 	for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
 		Cluster_t* cluster;
@@ -43,7 +43,7 @@ int loadClusterNode(const char* data) {
 			if (hashkey_arraylen > 0) {
 				int i;
 				cJSON* key;
-				unsigned int* ptr_key_array = newClusterKeyArray(cluster, hashkey_arraylen);
+				unsigned int* ptr_key_array = reallocClusterHashKey(cluster, hashkey_arraylen);
 				if (!ptr_key_array) {
 					freeCluster(cluster);
 					continue;
@@ -69,4 +69,7 @@ int loadClusterNode(const char* data) {
 	setClusterVersion(cjson_version->valueint);
 	cJSON_Delete(root);
 	return 1;
+err:
+	cJSON_Delete(root);
+	return 0;
 }

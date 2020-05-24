@@ -62,6 +62,21 @@ Cluster_t* ptr_g_ClusterSelf(void) { return g_ClusterSelf; }
 int getClusterVersion(void) { return g_ClusterVersion; }
 void setClusterVersion(int version) { g_ClusterVersion = version; }
 
+unsigned int* reallocClusterHashKey(Cluster_t* cluster, unsigned int key_arraylen) {
+	unsigned int* key_array = (unsigned int*)realloc(cluster->key_array, sizeof(cluster->key_array[0]) * key_arraylen);
+	if (key_array) {
+		if (!cluster->key_array) {
+			unsigned int i;
+			for (i = cluster->key_arraylen; i < key_arraylen; ++i) {
+				key_array[i] = 0;
+			}
+		}
+		cluster->key_array = key_array;
+		cluster->key_arraylen = key_arraylen;
+	}
+	return key_array;
+}
+
 int initClusterTable(void) {
 	hashtableInit(&g_ClusterGroupTable, s_ClusterGroupBulk, sizeof(s_ClusterGroupBulk) / sizeof(s_ClusterGroupBulk[0]), __keycmp, __keyhash);
 	listInit(&g_ClusterList);
@@ -83,19 +98,6 @@ Cluster_t* newCluster(void) {
 		cluster->key_arraylen = 0;
 	}
 	return cluster;
-}
-
-unsigned int* newClusterKeyArray(Cluster_t* cluster, unsigned int key_arraylen) {
-	unsigned int* key_array = (unsigned int*)malloc(sizeof(cluster->key_array[0]) * key_arraylen);
-	if (key_array) {
-		int i;
-		for (i = 0; i < key_arraylen; ++i) {
-			cluster->key_array[i] = 0;
-		}
-		cluster->key_array = key_array;
-		cluster->key_arraylen = key_arraylen;
-	}
-	return key_array;
 }
 
 void freeCluster(Cluster_t* cluster) {

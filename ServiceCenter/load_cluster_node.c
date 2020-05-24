@@ -35,6 +35,9 @@ int loadClusterNode(const char* data) {
 		socktype = cJSON_Field(cjson_cluster, "socktype");
 		hashkey_array = cJSON_Field(cjson_cluster, "hash_key");
 
+		cluster = getCluster(name->valuestring, ip->valuestring, port->valueint);
+		if (cluster)
+			continue;
 		cluster = newCluster();
 		if (!cluster)
 			continue;

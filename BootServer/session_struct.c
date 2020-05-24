@@ -1,7 +1,6 @@
 #include "global.h"
 #include "session_struct.h"
 
-static HashtableNode_t* s_SessionBulk[1024];
 static Atom32_t CHANNEL_SESSION_ID = 0;
 
 #ifdef __cplusplus

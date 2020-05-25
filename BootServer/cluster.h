@@ -52,8 +52,8 @@ __declspec_dllexport int regCluster(const char* name, Cluster_t* cluster);
 __declspec_dllexport void unregCluster(Cluster_t* cluster);
 void freeClusterTable(void);
 
-__declspec_dll Cluster_t* targetCluster(int mode, const char* name, unsigned int key);
-__declspec_dll Channel_t* clusterChannel(Cluster_t* cluster);
+__declspec_dllexport Cluster_t* targetCluster(int mode, const char* name, unsigned int key);
+__declspec_dllexport Channel_t* clusterChannel(Cluster_t* cluster);
 
 #ifdef __cplusplus
 }

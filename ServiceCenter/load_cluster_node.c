@@ -37,7 +37,7 @@ int loadClusterNode(const char* data) {
 			continue;
 		hashkey_array = cJSON_Field(cjson_cluster, "hash_key");
 
-		cluster = getCluster(name->valuestring, ip->valuestring, port->valueint);
+		cluster = getCluster(ptr_g_ClusterTable(), name->valuestring, ip->valuestring, port->valueint);
 		if (cluster)
 			continue;
 		cluster = newCluster(if_string2socktype(socktype->valuestring), ip->valuestring, port->valueint);
@@ -58,12 +58,12 @@ int loadClusterNode(const char* data) {
 				}
 			}
 		}
-		if (!regCluster(name->valuestring, cluster)) {
+		if (!regCluster(ptr_g_ClusterTable(), name->valuestring, cluster)) {
 			freeCluster(cluster);
 			continue;
 		}
 	}
-	setClusterVersion(cjson_version->valueint);
+	setClusterTableVersion(cjson_version->valueint);
 	cJSON_Delete(root);
 	return 1;
 err:

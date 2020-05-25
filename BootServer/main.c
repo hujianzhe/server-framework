@@ -34,7 +34,9 @@ int main(int argc, char** argv) {
 	g_MainArgv = argv;
 	// init some datastruct
 	initDispatch();
-	initClusterTable();
+	g_ClusterTable = newClusterTable();
+	if (!g_ClusterTable)
+		goto err;
 	// load config
 	if (!initConfig(argv[1])) {
 		fprintf(stderr, "initConfig(%s) error", argv[1]);
@@ -185,6 +187,6 @@ end:
 		freeGlobalResource();
 	}
 	freeDispatchCallback();
-	freeClusterTable();
+	freeClusterTable(g_ClusterTable);
 	return 0;
 }

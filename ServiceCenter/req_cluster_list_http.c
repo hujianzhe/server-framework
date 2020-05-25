@@ -11,9 +11,9 @@ void reqClusterList_http(UserMsg_t* ctrl) {
 	logInfo(ptr_g_Log(), "%s query:%s, data:%s", __FUNCTION__, ctrl->httpframe->query, (char*)ctrl->data);
 
 	root = cJSON_NewObject(NULL);
-	cJSON_AddNewNumber(root, "version", getClusterVersion());
+	cJSON_AddNewNumber(root, "version", getClusterTableVersion());
 	cluster_array = cJSON_AddNewArray(root, "clusters");
-	for (node = ptr_g_ClusterList()->head; node; node = node->next) {
+	for (node = getClusterList(ptr_g_ClusterTable())->head; node; node = node->next) {
 		Cluster_t* cluster = pod_container_of(node, Cluster_t, m_listnode);
 		cJSON* cjson_cluster = cJSON_AddNewObject(cluster_array, NULL);
 		cJSON_AddNewString(cjson_cluster, "name", cluster->name);

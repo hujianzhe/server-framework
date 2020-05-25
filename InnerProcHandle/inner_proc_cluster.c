@@ -41,11 +41,11 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 		port = cJSON_Field(cjson_cluster, "port");
 		if (!port)
 			continue;
-		if (!strcmp(if_socktype2tring(ptr_g_ClusterSelf()->socktype), socktype->valuestring) &&
-			!strcmp(ptr_g_ClusterSelf()->ip, ip->valuestring) &&
-			ptr_g_ClusterSelf()->port == port->valueint)
+		if (!strcmp(if_socktype2tring(getClusterSelf()->socktype), socktype->valuestring) &&
+			!strcmp(getClusterSelf()->ip, ip->valuestring) &&
+			getClusterSelf()->port == port->valueint)
 		{
-			cluster = ptr_g_ClusterSelf();
+			cluster = getClusterSelf();
 			cluster_self_find = 1;
 		}
 		else {
@@ -54,7 +54,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 				break;
 			}
 		}
-		if (!regCluster(name->valuestring, cluster)) {
+		if (!regCluster(ptr_g_ClusterTable(), name->valuestring, cluster)) {
 			freeCluster(cluster);
 			break;
 		}
@@ -64,11 +64,11 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	}
 	if (!cluster_self_find)
 		goto err;
-	setClusterVersion(cjson_version->valueint);
+	setClusterTableVersion(cjson_version->valueint);
 	cJSON_Delete(cjson_req_root);
 
-	if (ptr_g_ClusterSelf()->port) {
-		ReactorObject_t* o = openListener(ptr_g_ClusterSelf()->socktype, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
+	if (getClusterSelf()->port) {
+		ReactorObject_t* o = openListener(getClusterSelf()->socktype, getClusterSelf()->ip, getClusterSelf()->port);
 		if (!o)
 			return 0;
 		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
@@ -95,7 +95,7 @@ static int start_req_cluster_list(Channel_t* channel) {
 	char* req_data;
 	int req_datalen;
 	req_data = strFormat(&req_datalen, "{\"ip\":\"%s\",\"port\":%u}",
-		ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
+		getClusterSelf()->ip, getClusterSelf()->port);
 	if (!req_data) {
 		return 0;
 	}

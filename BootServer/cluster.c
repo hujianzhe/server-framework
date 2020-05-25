@@ -3,12 +3,16 @@
 #include "cluster.h"
 #include <string.h>
 
-Cluster_t* g_ClusterSelf;
-List_t g_ClusterList;
+typedef struct ClusterTable_t {
+	List_t cluster_list;
+	Hashtable_t grp_table;
+	HashtableNode_t* grp_bulk[32];
+} ClusterTable_t;
 
-static int g_ClusterVersion;
-static Hashtable_t g_ClusterGroupTable;
-static HashtableNode_t* s_ClusterGroupBulk[32];
+Cluster_t* g_ClusterSelf;
+struct ClusterTable_t* g_ClusterTable;
+int g_ClusterTableVersion;
+
 static int __keycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
 static unsigned int __keyhash(const void* key) { return hashBKDR((const char*)key); }
 
@@ -47,48 +51,24 @@ static void free_cluster_group(ClusterGroup_t* grp) {
 	free(grp);
 }
 
-static void cluster_session_destroy(Session_t* session) {
-	Cluster_t* cluster = pod_container_of(session, Cluster_t, session);
-	unregCluster(cluster);
-	freeCluster(cluster);
-}
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-List_t* ptr_g_ClusterList(void) { return &g_ClusterList; }
-Cluster_t* ptr_g_ClusterSelf(void) { return g_ClusterSelf; }
-int getClusterVersion(void) { return g_ClusterVersion; }
-void setClusterVersion(int version) { g_ClusterVersion = version; }
+Cluster_t* getClusterSelf(void) { return g_ClusterSelf; }
+void setClusterSelf(Cluster_t* cluster) { g_ClusterSelf = cluster; }
+struct ClusterTable_t* ptr_g_ClusterTable(void) { return g_ClusterTable; }
+void set_g_ClusterTable(struct ClusterTable_t* t) { g_ClusterTable = t; }
+int getClusterTableVersion(void) { return g_ClusterTableVersion; }
+void setClusterTableVersion(int version) { g_ClusterTableVersion = version; }
 
-unsigned int* reallocClusterHashKey(Cluster_t* cluster, unsigned int hashkey_cnt) {
-	unsigned int* hashkey = (unsigned int*)realloc(cluster->hashkey, sizeof(cluster->hashkey[0]) * hashkey_cnt);
-	if (hashkey) {
-		if (!cluster->hashkey) {
-			unsigned int i;
-			for (i = cluster->hashkey_cnt; i < hashkey_cnt; ++i) {
-				hashkey[i] = 0;
-			}
-		}
-		cluster->hashkey = hashkey;
-		cluster->hashkey_cnt = hashkey_cnt;
-	}
-	return hashkey;
-}
-
-int initClusterTable(void) {
-	hashtableInit(&g_ClusterGroupTable, s_ClusterGroupBulk, sizeof(s_ClusterGroupBulk) / sizeof(s_ClusterGroupBulk[0]), __keycmp, __keyhash);
-	listInit(&g_ClusterList);
-	return 1;
-}
+/**************************************************/
 
 Cluster_t* newCluster(int socktype, IPString_t ip, unsigned short port) {
 	Cluster_t* cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
 	if (cluster) {
 		initSession(&cluster->session);
 		cluster->session.persist = 1;
-		cluster->session.destroy = cluster_session_destroy;
 		cluster->grp = NULL;
 		cluster->name = "";
 		cluster->socktype = socktype;
@@ -110,126 +90,6 @@ void freeCluster(Cluster_t* cluster) {
 		if (cluster == g_ClusterSelf)
 			g_ClusterSelf = NULL;
 	}
-}
-
-ClusterGroup_t* getClusterGroup(const char* name) {
-	HashtableNode_t* htnode = hashtableSearchKey(&g_ClusterGroupTable, name);
-	return htnode ? pod_container_of(htnode, ClusterGroup_t, m_htnode) : NULL;
-}
-
-Cluster_t* getCluster(const char* name, const IPString_t ip, unsigned short port) {
-	ClusterGroup_t* grp = getClusterGroup(name);
-	if (grp) {
-		ListNode_t* cur;
-		for (cur = grp->clusterlist.head; cur; cur = cur->next) {
-			Cluster_t* exist_cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
-			if (!strcmp(exist_cluster->ip, ip) && exist_cluster->port == port) {
-				return exist_cluster;
-			}
-		}
-	}
-	return NULL;
-}
-
-int regCluster(const char* name, Cluster_t* cluster) {
-	ClusterGroup_t* grp;
-	HashtableNode_t* htnode;
-	if (cluster->session.has_reg) {
-		return 1;
-	}
-	htnode = hashtableSearchKey(&g_ClusterGroupTable, name);
-	if (htnode) {
-		grp = pod_container_of(htnode, ClusterGroup_t, m_htnode);
-		if (!cluster_reg_consistenthash(grp, cluster)) {
-			return 0;
-		}
-	}
-	else {
-		grp = new_cluster_group(name);
-		if (!grp)
-			return 0;
-		if (!cluster_reg_consistenthash(grp, cluster)) {
-			return 0;
-		}
-		hashtableInsertNode(&g_ClusterGroupTable, &grp->m_htnode);
-	}
-	cluster->name = (const char*)grp->m_htnode.key;
-	cluster->grp = grp;
-	grp->clusterlistcnt++;
-	listPushNodeBack(&grp->clusterlist, &cluster->m_grp_listnode);
-	listPushNodeBack(&g_ClusterList, &cluster->m_listnode);
-	cluster->session.has_reg = 1;
-	return 1;
-}
-
-void unregCluster(Cluster_t* cluster) {
-	if (cluster->session.has_reg && cluster->grp) {
-		ClusterGroup_t* grp = cluster->grp;
-		listRemoveNode(&grp->clusterlist, &cluster->m_grp_listnode);
-		grp->clusterlistcnt--;
-		if (grp->clusterlist.head) {
-			consistenthashDelValue(&grp->consistent_hash, cluster);
-		}
-		else {
-			hashtableRemoveNode(&g_ClusterGroupTable, &grp->m_htnode);
-			free_cluster_group(grp);
-		}
-		listRemoveNode(&g_ClusterList, &cluster->m_listnode);
-		cluster->session.has_reg = 0;
-		cluster->grp = NULL;
-	}
-}
-
-void freeClusterTable(void) {
-	HashtableNode_t* curhtnode, *nexthtnode;
-	for (curhtnode = hashtableFirstNode(&g_ClusterGroupTable); curhtnode; curhtnode = nexthtnode) {
-		ListNode_t* curlistnode, *nextlistnode;
-		ClusterGroup_t* grp = pod_container_of(curhtnode, ClusterGroup_t, m_htnode);
-		nexthtnode = hashtableNextNode(curhtnode);
-		for (curlistnode = grp->clusterlist.head; curlistnode; curlistnode = nextlistnode) {
-			Cluster_t* cluster = pod_container_of(curlistnode, Cluster_t, m_grp_listnode);
-			nextlistnode = curlistnode->next;
-			freeCluster(cluster);
-		}
-		free_cluster_group(grp);
-	}
-	freeCluster(g_ClusterSelf);
-	initClusterTable();
-}
-
-Cluster_t* targetCluster(int mode, const char* name, unsigned int key) {
-	ClusterGroup_t* grp = getClusterGroup(name);
-	if (grp) {
-		Cluster_t* cluster;
-		if (CLUSTER_TARGET_USE_HASH_RING == mode) {
-			cluster = (Cluster_t*)consistenthashSelect(&grp->consistent_hash, key);
-		}
-		else if (CLUSTER_TARGET_USE_HASH_MOD == mode) {
-			ListNode_t* cur;
-			unsigned int i;
-			key %= grp->clusterlistcnt;
-			for (i = 0, cur = grp->clusterlist.head; cur && i < key; cur = cur->next, ++i);
-			if (!cur)
-				return NULL;
-			cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
-		}
-		else if (CLUSTER_TARGET_USE_LOOP == mode) {
-			ListNode_t* cur;
-			unsigned int i;
-			if (++grp->target_loopcnt >= grp->clusterlistcnt) {
-				grp->target_loopcnt = 0;
-			}
-			for (i = 0, cur = grp->clusterlist.head; cur && i < grp->target_loopcnt; cur = cur->next, ++i);
-			if (!cur)
-				return NULL;
-			cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
-		}
-		else {
-			return NULL;
-		}
-		return cluster;
-	}
-	return NULL;
 }
 
 Channel_t* clusterChannel(Cluster_t* cluster) {
@@ -256,6 +116,154 @@ Channel_t* clusterChannel(Cluster_t* cluster) {
 		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
 	}
 	return channel;
+}
+
+unsigned int* reallocClusterHashKey(Cluster_t* cluster, unsigned int hashkey_cnt) {
+	unsigned int* hashkey = (unsigned int*)realloc(cluster->hashkey, sizeof(cluster->hashkey[0]) * hashkey_cnt);
+	if (hashkey) {
+		if (!cluster->hashkey) {
+			unsigned int i;
+			for (i = cluster->hashkey_cnt; i < hashkey_cnt; ++i) {
+				hashkey[i] = 0;
+			}
+		}
+		cluster->hashkey = hashkey;
+		cluster->hashkey_cnt = hashkey_cnt;
+	}
+	return hashkey;
+}
+
+/**************************************************/
+
+struct ClusterTable_t* newClusterTable(void) {
+	ClusterTable_t* t = (ClusterTable_t*)malloc(sizeof(ClusterTable_t));
+	if (t) {
+		hashtableInit(&t->grp_table, t->grp_bulk, sizeof(t->grp_bulk) / sizeof(t->grp_bulk[0]), __keycmp, __keyhash);
+		listInit(&t->cluster_list);
+	}
+	return t;
+}
+
+ClusterGroup_t* getClusterGroup(struct ClusterTable_t* t, const char* name) {
+	HashtableNode_t* htnode = hashtableSearchKey(&t->grp_table, name);
+	return htnode ? pod_container_of(htnode, ClusterGroup_t, m_htnode) : NULL;
+}
+
+Cluster_t* getCluster(struct ClusterTable_t* t, const char* name, const IPString_t ip, unsigned short port) {
+	ClusterGroup_t* grp = getClusterGroup(t, name);
+	if (grp) {
+		ListNode_t* cur;
+		for (cur = grp->clusterlist.head; cur; cur = cur->next) {
+			Cluster_t* exist_cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
+			if (!strcmp(exist_cluster->ip, ip) && exist_cluster->port == port) {
+				return exist_cluster;
+			}
+		}
+	}
+	return NULL;
+}
+
+List_t* getClusterList(struct ClusterTable_t* t) { return &t->cluster_list; }
+
+int regCluster(struct ClusterTable_t* t, const char* name, Cluster_t* cluster) {
+	ClusterGroup_t* grp;
+	if (cluster->session.has_reg) {
+		return 1;
+	}
+	grp = getClusterGroup(t, name);
+	if (grp) {
+		if (!cluster_reg_consistenthash(grp, cluster)) {
+			return 0;
+		}
+	}
+	else {
+		grp = new_cluster_group(name);
+		if (!grp)
+			return 0;
+		if (!cluster_reg_consistenthash(grp, cluster)) {
+			return 0;
+		}
+		hashtableInsertNode(&t->grp_table, &grp->m_htnode);
+	}
+	cluster->name = (const char*)grp->m_htnode.key;
+	cluster->grp = grp;
+	grp->clusterlistcnt++;
+	listPushNodeBack(&grp->clusterlist, &cluster->m_grp_listnode);
+
+	listPushNodeBack(&t->cluster_list, &cluster->m_listnode);
+	cluster->session.has_reg = 1;
+	return 1;
+}
+
+void unregCluster(struct ClusterTable_t* t, Cluster_t* cluster) {
+	if (cluster->session.has_reg && cluster->grp) {
+		ClusterGroup_t* grp = cluster->grp;
+		listRemoveNode(&grp->clusterlist, &cluster->m_grp_listnode);
+		grp->clusterlistcnt--;
+		if (grp->clusterlist.head) {
+			consistenthashDelValue(&grp->consistent_hash, cluster);
+		}
+		else {
+			hashtableRemoveNode(&t->grp_table, &grp->m_htnode);
+			free_cluster_group(grp);
+		}
+		listRemoveNode(&t->cluster_list, &cluster->m_listnode);
+		cluster->session.has_reg = 0;
+		cluster->grp = NULL;
+	}
+}
+
+void freeClusterTable(struct ClusterTable_t* t) {
+	HashtableNode_t* curhtnode, *nexthtnode;
+	if (!t)
+		return;
+	for (curhtnode = hashtableFirstNode(&t->grp_table); curhtnode; curhtnode = nexthtnode) {
+		ListNode_t* curlistnode, *nextlistnode;
+		ClusterGroup_t* grp = pod_container_of(curhtnode, ClusterGroup_t, m_htnode);
+		nexthtnode = hashtableNextNode(curhtnode);
+		for (curlistnode = grp->clusterlist.head; curlistnode; curlistnode = nextlistnode) {
+			Cluster_t* cluster = pod_container_of(curlistnode, Cluster_t, m_grp_listnode);
+			nextlistnode = curlistnode->next;
+			freeCluster(cluster);
+		}
+		free_cluster_group(grp);
+	}
+	free(t);
+	if (t == g_ClusterTable)
+		g_ClusterTable = NULL;
+}
+
+Cluster_t* targetCluster(ClusterGroup_t* grp, int mode, unsigned int key) {
+	Cluster_t* cluster;
+	if (!grp)
+		return NULL;
+	if (CLUSTER_TARGET_USE_HASH_RING == mode) {
+		cluster = (Cluster_t*)consistenthashSelect(&grp->consistent_hash, key);
+	}
+	else if (CLUSTER_TARGET_USE_HASH_MOD == mode) {
+		ListNode_t* cur;
+		unsigned int i;
+		key %= grp->clusterlistcnt;
+		for (i = 0, cur = grp->clusterlist.head; cur && i < key; cur = cur->next, ++i);
+		if (!cur)
+			return NULL;
+		cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
+	}
+	else if (CLUSTER_TARGET_USE_LOOP == mode) {
+		ListNode_t* cur;
+		unsigned int i;
+		if (++grp->target_loopcnt >= grp->clusterlistcnt) {
+			grp->target_loopcnt = 0;
+		}
+		for (i = 0, cur = grp->clusterlist.head; cur && i < grp->target_loopcnt; cur = cur->next, ++i);
+		if (!cur)
+			return NULL;
+		cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
+	}
+	else {
+		return NULL;
+	}
+	return cluster;
 }
 
 #ifdef __cplusplus

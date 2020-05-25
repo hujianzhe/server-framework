@@ -10,7 +10,7 @@
 static int service_center_check_connection_timeout_callback(RBTimer_t* timer, RBTimerEvent_t* e) {
 	ClusterGroup_t* sc_grp;
 	Cluster_t* sc_cluster;
-	sc_grp = getClusterGroup("ServiceCenter");
+	sc_grp = getClusterGroup(ptr_g_ClusterTable() , "ServiceCenter");
 	sc_cluster = pod_container_of(sc_grp->clusterlist.head, Cluster_t, m_grp_listnode);
 	clusterChannel(sc_cluster);
 
@@ -45,7 +45,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 		logErr(ptr_g_Log(), "ServiceCenter newCluster error");
 		return 0;
 	}
-	if (!regCluster(option->protocol, cluster)) {
+	if (!regCluster(ptr_g_ClusterTable(), option->protocol, cluster)) {
 		logErr(ptr_g_Log(), "ServiceCenter regCluster error");
 		return 0;
 	}

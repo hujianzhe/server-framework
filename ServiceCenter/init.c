@@ -21,8 +21,8 @@ __declspec_dllexport int init(int argc, char** argv) {
 	regStringDispatch("/change_cluster_list", reqChangeClusterNode_http);
 	regNumberDispatch(CMD_REQ_CLUSTER_LIST, reqClusterList);
 
-	if (ptr_g_ClusterSelf()->port) {
-		ReactorObject_t* o = openListener(ptr_g_ClusterSelf()->socktype, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
+	if (getClusterSelf()->port) {
+		ReactorObject_t* o = openListener(getClusterSelf()->socktype, getClusterSelf()->ip, getClusterSelf()->port);
 		if (!o)
 			return 0;
 		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);

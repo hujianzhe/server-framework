@@ -30,11 +30,11 @@ static ClusterGroup_t* new_cluster_group(const char* name) {
 
 static int cluster_reg_consistenthash(ClusterGroup_t* grp, Cluster_t* cluster) {
 	int i;
-	for (i = 0; i < cluster->key_arraylen; ++i) {
-		if (!consistenthashReg(&grp->consistent_hash, cluster->key_array[i], cluster))
+	for (i = 0; i < cluster->hashkey_cnt; ++i) {
+		if (!consistenthashReg(&grp->consistent_hash, cluster->hashkey[i], cluster))
 			break;
 	}
-	if (i != cluster->key_arraylen) {
+	if (i != cluster->hashkey_cnt) {
 		consistenthashDelValue(&grp->consistent_hash, cluster);
 		return 0;
 	}
@@ -62,19 +62,19 @@ Cluster_t* ptr_g_ClusterSelf(void) { return g_ClusterSelf; }
 int getClusterVersion(void) { return g_ClusterVersion; }
 void setClusterVersion(int version) { g_ClusterVersion = version; }
 
-unsigned int* reallocClusterHashKey(Cluster_t* cluster, unsigned int key_arraylen) {
-	unsigned int* key_array = (unsigned int*)realloc(cluster->key_array, sizeof(cluster->key_array[0]) * key_arraylen);
-	if (key_array) {
-		if (!cluster->key_array) {
+unsigned int* reallocClusterHashKey(Cluster_t* cluster, unsigned int hashkey_cnt) {
+	unsigned int* hashkey = (unsigned int*)realloc(cluster->hashkey, sizeof(cluster->hashkey[0]) * hashkey_cnt);
+	if (hashkey) {
+		if (!cluster->hashkey) {
 			unsigned int i;
-			for (i = cluster->key_arraylen; i < key_arraylen; ++i) {
-				key_array[i] = 0;
+			for (i = cluster->hashkey_cnt; i < hashkey_cnt; ++i) {
+				hashkey[i] = 0;
 			}
 		}
-		cluster->key_array = key_array;
-		cluster->key_arraylen = key_arraylen;
+		cluster->hashkey = hashkey;
+		cluster->hashkey_cnt = hashkey_cnt;
 	}
-	return key_array;
+	return hashkey;
 }
 
 int initClusterTable(void) {
@@ -97,15 +97,15 @@ Cluster_t* newCluster(int socktype, IPString_t ip, unsigned short port) {
 		else
 			cluster->ip[0] = 0;
 		cluster->port = port;
-		cluster->key_array = NULL;
-		cluster->key_arraylen = 0;
+		cluster->hashkey = NULL;
+		cluster->hashkey_cnt = 0;
 	}
 	return cluster;
 }
 
 void freeCluster(Cluster_t* cluster) {
 	if (cluster) {
-		free(cluster->key_array);
+		free(cluster->hashkey);
 		free(cluster);
 		if (cluster == g_ClusterSelf)
 			g_ClusterSelf = NULL;

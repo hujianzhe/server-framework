@@ -21,8 +21,8 @@ typedef struct Cluster_t {
 	int socktype;
 	IPString_t ip;
 	unsigned short port;
-	unsigned int* key_array;
-	unsigned int key_arraylen;
+	unsigned int* hashkey;
+	unsigned int hashkey_cnt;
 } Cluster_t;
 
 extern Cluster_t* g_ClusterSelf;

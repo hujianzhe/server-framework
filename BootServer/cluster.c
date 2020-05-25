@@ -92,7 +92,10 @@ Cluster_t* newCluster(int socktype, IPString_t ip, unsigned short port) {
 		cluster->grp = NULL;
 		cluster->name = "";
 		cluster->socktype = socktype;
-		strcpy(cluster->ip, ip);
+		if (ip)
+			strcpy(cluster->ip, ip);
+		else
+			cluster->ip[0] = 0;
 		cluster->port = port;
 		cluster->key_array = NULL;
 		cluster->key_arraylen = 0;

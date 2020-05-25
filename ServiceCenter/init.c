@@ -14,8 +14,17 @@ extern "C" {
 #endif
 
 __declspec_dllexport int init(int argc, char** argv) {
-	if (!loadClusterNode(ptr_g_Config()->extra_data_txt))
+	const char* path = ptr_g_Config()->extra_data_txt;
+	char* file_data = fileReadAllData(path, NULL);
+	if (!file_data) {
+		logErr(ptr_g_Log(), "fdOpen(%s) error", path);
 		return 0;
+	}
+	if (!loadClusterNode(file_data)) {
+		free(file_data);
+		return 0;
+	}
+	free(file_data);
 
 	regStringDispatch("/get_cluster_list", reqClusterList_http);
 	regStringDispatch("/change_cluster_list", reqChangeClusterNode_http);

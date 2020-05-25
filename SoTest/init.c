@@ -10,16 +10,8 @@
 
 static int start_req_login_test(Channel_t* channel) {
 	SendMsg_t msg;
-	char* req_data;
-	int req_datalen;
-	req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u}",
-		ptr_g_ClusterSelf()->name, ptr_g_ClusterSelf()->ip, ptr_g_ClusterSelf()->port);
-	if (!req_data) {
-		return 0;
-	}
-	makeSendMsg(&msg, CMD_REQ_LOGIN_TEST, req_data, req_datalen);
+	makeSendMsg(&msg, CMD_REQ_LOGIN_TEST, NULL, 0);
 	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-	free(req_data);
 	return 1;
 }
 

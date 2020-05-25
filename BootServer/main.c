@@ -74,12 +74,9 @@ int main(int argc, char** argv) {
 		}
 	}
 	// init cluster self
-	g_ClusterSelf = newCluster();
+	g_ClusterSelf = newCluster(g_Config.cluster.socktype, g_Config.cluster.ip, g_Config.cluster.port);
 	if (!g_ClusterSelf)
 		goto err;
-	g_ClusterSelf->socktype = g_Config.cluster.socktype;
-	strcpy(g_ClusterSelf->ip, g_Config.cluster.ip);
-	g_ClusterSelf->port = g_Config.cluster.port;
 
 	printf("cluster(%s) ip:%s, port:%u, pid:%zu\n", module_path, g_ClusterSelf->ip, g_ClusterSelf->port, processId());
 	// init resource

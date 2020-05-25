@@ -44,7 +44,7 @@ __declspec_dllexport void setClusterVersion(int version);
 __declspec_dllexport unsigned int* reallocClusterHashKey(Cluster_t* cluster, unsigned int key_arraylen);
 
 int initClusterTable(void);
-__declspec_dllexport Cluster_t* newCluster(void);
+__declspec_dllexport Cluster_t* newCluster(int socktype, IPString_t ip, unsigned short port);
 __declspec_dllexport void freeCluster(Cluster_t* cluster);
 __declspec_dllexport ClusterGroup_t* getClusterGroup(const char* name);
 __declspec_dllexport Cluster_t* getCluster(const char* name, const IPString_t ip, unsigned short port);

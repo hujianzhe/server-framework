@@ -33,12 +33,14 @@ int loadClusterNode(const char* data) {
 		if (!port)
 			continue;
 		socktype = cJSON_Field(cjson_cluster, "socktype");
+		if (!socktype)
+			continue;
 		hashkey_array = cJSON_Field(cjson_cluster, "hash_key");
 
 		cluster = getCluster(name->valuestring, ip->valuestring, port->valueint);
 		if (cluster)
 			continue;
-		cluster = newCluster();
+		cluster = newCluster(if_string2socktype(socktype->valuestring), ip->valuestring, port->valueint);
 		if (!cluster)
 			continue;
 		if (hashkey_array) {
@@ -56,14 +58,6 @@ int loadClusterNode(const char* data) {
 				}
 			}
 		}
-		if (!socktype) {
-			cluster->socktype = SOCK_STREAM;
-		}
-		else {
-			cluster->socktype = if_string2socktype(socktype->valuestring);
-		}
-		strcpy(cluster->ip, ip->valuestring);
-		cluster->port = port->valueint;
 		if (!regCluster(name->valuestring, cluster)) {
 			freeCluster(cluster);
 			continue;

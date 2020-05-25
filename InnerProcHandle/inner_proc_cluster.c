@@ -49,13 +49,10 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 			cluster_self_find = 1;
 		}
 		else {
-			cluster = newCluster();
+			cluster = newCluster(if_string2socktype(socktype->valuestring), ip->valuestring, port->valueint);
 			if (!cluster) {
 				break;
 			}
-			cluster->socktype = if_string2socktype(socktype->valuestring);
-			strcpy(cluster->ip, ip->valuestring);
-			cluster->port = port->valueint;
 		}
 		if (!regCluster(name->valuestring, cluster)) {
 			freeCluster(cluster);

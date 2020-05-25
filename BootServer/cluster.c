@@ -83,17 +83,17 @@ int initClusterTable(void) {
 	return 1;
 }
 
-Cluster_t* newCluster(void) {
+Cluster_t* newCluster(int socktype, IPString_t ip, unsigned short port) {
 	Cluster_t* cluster = (Cluster_t*)malloc(sizeof(Cluster_t));
 	if (cluster) {
 		initSession(&cluster->session);
 		cluster->session.persist = 1;
 		cluster->session.destroy = cluster_session_destroy;
 		cluster->grp = NULL;
-		cluster->name = NULL;
-		cluster->socktype = 0;
-		cluster->ip[0] = 0;
-		cluster->port = 0;
+		cluster->name = "";
+		cluster->socktype = socktype;
+		strcpy(cluster->ip, ip);
+		cluster->port = port;
 		cluster->key_array = NULL;
 		cluster->key_arraylen = 0;
 	}

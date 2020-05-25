@@ -40,14 +40,11 @@ __declspec_dllexport int init(int argc, char** argv) {
 		logErr(ptr_g_Log(), "miss connect service config");
 		return 0;
 	}
-	cluster = newCluster();
+	cluster = newCluster(option->socktype, option->ip, option->port);
 	if (!cluster) {
 		logErr(ptr_g_Log(), "ServiceCenter newCluster error");
 		return 0;
 	}
-	cluster->socktype = option->socktype;
-	strcpy(cluster->ip, option->ip);
-	cluster->port = option->port;
 	if (!regCluster(option->protocol, cluster)) {
 		logErr(ptr_g_Log(), "ServiceCenter regCluster error");
 		return 0;

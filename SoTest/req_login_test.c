@@ -4,64 +4,16 @@
 #include <stdio.h>
 
 void reqLoginTest(UserMsg_t* ctrl) {
-	cJSON* cjson_req_root;
 	cJSON *cjson_ret_root;
 	SendMsg_t ret_msg;
 	char* ret_data;
-	Cluster_t* cluster;
-	int ok;
 
-	logInfo(ptr_g_Log(), "req: %s", (char*)ctrl->data);
+	logInfo(ptr_g_Log(), "%s recv: %s", __FUNCTION__, (char*)ctrl->data);
 
-	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
-	if (!cjson_req_root) {
-		logErr(ptr_g_Log(), "cJSON_Parse error");
-		return;
-	}
-
-	ok = 0;
-	do {
-		cJSON* cjson_name, *cjson_ip, *cjson_port;
-
-		cjson_name = cJSON_Field(cjson_req_root, "name");
-		if (!cjson_name) {
-			break;
-		}
-		cjson_ip = cJSON_Field(cjson_req_root, "ip");
-		if (!cjson_ip) {
-			break;
-		}
-		cjson_port = cJSON_Field(cjson_req_root, "port");
-		if (!cjson_port) {
-			break;
-		}
-
-		cluster = getCluster(cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
-		if (!cluster) {
-			cluster = newCluster();
-			if (!cluster) {
-				break;
-			}
-			strcpy(cluster->ip, cjson_ip->valuestring);
-			cluster->port = cjson_port->valueint;
-			if (!regCluster(cjson_name->valuestring, cluster)) {
-				freeCluster(cluster);
-				channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
-				logErr(ptr_g_Log(), "%s regCluster, port:%s, port:%hu", __FUNCTION__, cluster->ip, cluster->port);
-				break;
-			}
-		}
-		cluster->session.id = allocSessionId();
-		sessionChannelReplaceServer(&cluster->session, ctrl->channel);
-		ok = 1;
-	} while (0);
-	cJSON_Delete(cjson_req_root);
-	if (!ok) {
-		return;
-	}
+	channelSessionId(ctrl->channel) = allocSessionId();
 
 	cjson_ret_root = cJSON_NewObject(NULL);
-	cJSON_AddNewNumber(cjson_ret_root, "session_id", cluster->session.id);
+	cJSON_AddNewNumber(cjson_ret_root, "session_id", channelSessionId(ctrl->channel));
 	ret_data = cJSON_Print(cjson_ret_root);
 	cJSON_Delete(cjson_ret_root);
 

@@ -7,6 +7,7 @@ void reqChangeClusterNode_http(UserMsg_t* ctrl) {
 	cJSON* root;
 	char* save_data = NULL;
 	size_t save_datalen;
+	ListNode_t* cur;
 	struct ClusterTable_t* table = NULL;
 	int retcode = 0;
 
@@ -85,7 +86,31 @@ void reqChangeClusterNode_http(UserMsg_t* ctrl) {
 	save_datalen = strlen(save_data);
 	if (fileWriteCoverData(ptr_g_Config()->extra_data_txt, save_data, save_datalen) != save_datalen)
 		goto err;
-	// TODO swap cluster table, update version, free old cluster table
+
+	for (cur = getClusterList(ptr_g_ClusterTable())->head; cur; cur = cur->next) {
+		Cluster_t* old_cluster = pod_container_of(cur, Cluster_t, m_listnode);
+		Cluster_t* new_cluster = getCluster(table, old_cluster->name, old_cluster->ip, old_cluster->port);
+		if (new_cluster) {
+			Channel_t* channel;
+			channel = old_cluster->session.channel_client;
+			if (channel) {
+				sessionUnbindChannel(&old_cluster->session, channel);
+				sessionChannelReplaceClient(&new_cluster->session, channel);
+			}
+			channel = old_cluster->session.channel_server;
+			if (channel) {
+				sessionUnbindChannel(&old_cluster->session, channel);
+				sessionChannelReplaceServer(&new_cluster->session, channel);
+			}
+		}
+		if (getClusterSelf() == old_cluster) {
+			setClusterSelf(new_cluster);
+		}
+	}
+
+	freeClusterTable(ptr_g_ClusterTable());
+	set_g_ClusterTable(table);
+	setClusterTableVersion(getClusterTableVersion() + 1);
 	return;
 err:
 	cJSON_Delete(root);

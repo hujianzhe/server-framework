@@ -10,6 +10,8 @@ void reqChangeClusterNode_http(UserMsg_t* ctrl) {
 	ListNode_t* cur;
 	struct ClusterTable_t* table = NULL;
 	int retcode = 0;
+	char* reply;
+	int reply_len;
 
 	root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!root) {
@@ -111,9 +113,17 @@ void reqChangeClusterNode_http(UserMsg_t* ctrl) {
 	freeClusterTable(ptr_g_ClusterTable());
 	set_g_ClusterTable(table);
 	setClusterTableVersion(getClusterTableVersion() + 1);
+	reply = "{\"retcode\":0, \"desc\":\"ok\"}";
+	reply = strFormat(&reply_len, HTTP_SIMPLE_RESP_FMT, HTTP_SIMPLE_RESP_VALUE(200, reply, strlen(reply)));
+	channelSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
+	reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
 	return;
 err:
 	cJSON_Delete(root);
 	free(save_data);
 	freeClusterTable(table);
+	reply = "{\"retcode\":1, \"desc\":\"failure\"}";
+	reply = strFormat(&reply_len, HTTP_SIMPLE_RESP_FMT, HTTP_SIMPLE_RESP_VALUE(200, reply, strlen(reply)));
+	channelSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
+	reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
 }

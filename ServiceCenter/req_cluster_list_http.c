@@ -22,15 +22,7 @@ void reqClusterList_http(UserMsg_t* ctrl) {
 		cJSON_AddNewNumber(cjson_cluster, "is_online", sessionChannel(&cluster->session) != NULL);
 	}
 	ret_data = cJSON_PrintFormatted(root);
-	reply = strFormat(&reply_len,
-		"HTTP/1.1 %u %s\r\n"
-		"Access-Control-Allow-Origin: *\r\n"
-		"Connection: close\r\n"
-		"Content-Length:%u\r\n"
-		"\r\n"
-		"%s",
-		200, httpframeStatusDesc(200), strlen(ret_data), ret_data
-	);
+	reply = strFormat(&reply_len, HTTP_SIMPLE_RESP_FMT, HTTP_SIMPLE_RESP_VALUE(200, ret_data, strlen(ret_data)));
 	free(ret_data);
 	channelSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
 	reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);

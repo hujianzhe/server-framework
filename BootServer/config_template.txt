@@ -14,10 +14,10 @@
 		}
 	],
 	"log" : {
-		"pathname" : "",
+		"pathname" : "./SoTest",
 		"maxfilesize_mb" : 10
 	},
-	"module_path" : "",
+	"module_path" : "./SoTest.dll",
 	"rpc_fiber_stack_size_kb" : 16,
 	"rpc_fiber" : 1,
 	"rpc_async" : 0,
@@ -28,7 +28,7 @@
 			"protocol" : "ServiceCenter",
 			"socktype" : "SOCK_DGRAM",
 			"ip" : "39.100.213.153",
-			"port" : 50000
+			"port" : 40000
 		}
 	],
 	"extra_data" : ""

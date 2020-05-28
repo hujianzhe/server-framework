@@ -49,12 +49,12 @@ __declspec_dllexport int init(int argc, char** argv) {
 		logErr(ptr_g_Log(), "ServiceCenter regCluster error");
 		return 0;
 	}
-	if (!regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList)) {
-		logErr(ptr_g_Log(), "regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList) failure");
+	if (!regNumberDispatch(CMD_DISTRIBUTE_CLUSTER_LIST, distributeClusterList)) {
+		logErr(ptr_g_Log(), "regNumberDispatch(CMD_DISTRIBUTE_CLUSTER_LIST, distributeClusterList) failure");
 		return 0;
 	}
-	if (!callReqClusterList(cluster)) {
-		logErr(ptr_g_Log(), "req_cluster_list failure");
+	if (!rpcReqClusterList(cluster)) {
+		logErr(ptr_g_Log(), "rpcReqClusterList failure, ip:%s, port:%u ......", cluster->ip, cluster->port);
 		return 0;
 	}
 	timeout_ev = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));

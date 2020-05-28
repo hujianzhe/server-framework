@@ -147,7 +147,8 @@
     <ClInclude Include="inner_proc_cmd.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="inner_proc_cluster.c" />
+    <ClCompile Include="rpc_req_cluster_list.c" />
+    <ClCompile Include="distribute_cluster_list.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

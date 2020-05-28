@@ -90,6 +90,10 @@ static void rpc_ret_cluster_list(RpcItem_t* rpc_item) {
 	g_Invalid();
 }
 
+static void retClusterList(UserMsg_t* ctrl) {
+	ret_cluster_list(ctrl);
+}
+
 static int start_req_cluster_list(Channel_t* channel) {
 	SendMsg_t msg;
 	char* req_data;
@@ -143,12 +147,27 @@ err:
 extern "C" {
 #endif
 
-int callReqClusterList(Cluster_t* sc_cluster) {
+int rpcReqClusterList(Cluster_t* sc_cluster) {
 	Sockaddr_t connect_addr;
 	ReactorObject_t* o;
 	Channel_t* c;
-	int domain = ipstrFamily(sc_cluster->ip);
+	SendMsg_t msg;
+	char* req_data;
+	int req_datalen;
+	int domain;
 
+	if (!regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList)) {
+		logErr(ptr_g_Log(), "regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList) failure");
+		return 0;
+	}
+	req_data = strFormat(&req_datalen, "{\"ip\":\"%s\",\"port\":%u}",
+		getClusterSelf()->ip, getClusterSelf()->port);
+	if (!req_data) {
+		return 0;
+	}
+
+
+	domain = ipstrFamily(sc_cluster->ip);
 	if (!sockaddrEncode(&connect_addr.st, domain, sc_cluster->ip, sc_cluster->port))
 		return 0;
 	o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.st.ss_family, sc_cluster->socktype, 0);
@@ -161,16 +180,49 @@ int callReqClusterList(Cluster_t* sc_cluster) {
 	}
 	sessionChannelReplaceClient(&sc_cluster->session, c);
 	reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
-	logInfo(ptr_g_Log(), "channel connecting ServiceCenter, ip:%s, port:%u ......", sc_cluster->ip, sc_cluster->port);
-	if (!start_req_cluster_list(c)) {
-		logErr(ptr_g_Log(), "start_req_cluster_list failure, ip:%s, port:%u ......", sc_cluster->ip, sc_cluster->port);
-		return 0;
+
+	logInfo(ptr_g_Log(), "channel connecting ServiceCenter, ip:%s, port:%u, and ReqClusterList ......",
+		sc_cluster->ip, sc_cluster->port);
+
+	if (!ptr_g_RpcFiberCore() && !ptr_g_RpcAsyncCore()) {
+		makeSendMsg(&msg, CMD_REQ_CLUSTER_LIST, req_data, req_datalen);
+		channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		free(req_data);
+	}
+	else {
+		RpcItem_t* rpc_item;
+		if (ptr_g_RpcFiberCore()) {
+			rpc_item = newRpcItemFiberReady(ptr_g_RpcFiberCore(), c, 5000);
+			if (!rpc_item) {
+				free(req_data);
+				return 0;
+			}
+		}
+		else {
+			rpc_item = newRpcItemAsyncReady(ptr_g_RpcAsyncCore(), c, 5000, NULL, rpc_ret_cluster_list);
+			if (!rpc_item) {
+				free(req_data);
+				return 0;
+			}
+		}
+		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_LIST, req_data, req_datalen);
+		channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		free(req_data);
+		if (ptr_g_RpcAsyncCore())
+			return 1;
+		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
+		if (rpc_item->ret_msg) {
+			UserMsg_t* ctrl = (UserMsg_t*)rpc_item->ret_msg;
+			if (ctrl->retcode)
+				return 0;
+			if (!ret_cluster_list(ctrl))
+				return 0;
+		}
+		else {
+			return 0;
+		}
 	}
 	return 1;
-}
-
-void retClusterList(UserMsg_t* ctrl) {
-	ret_cluster_list(ctrl);
 }
 
 #ifdef __cplusplus

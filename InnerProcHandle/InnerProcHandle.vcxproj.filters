@@ -23,7 +23,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="inner_proc_cluster.c">
+    <ClCompile Include="distribute_cluster_list.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="rpc_req_cluster_list.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

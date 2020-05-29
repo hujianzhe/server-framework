@@ -1,6 +1,46 @@
 #include "global.h"
 #include "config.h"
+#include "work_thread.h"
 #include <stdio.h>
+
+TaskThread_t* newTaskThread(void) {
+	int dq_ok = 0, timer_ok = 0, rpc_timer_ok = 0;
+	TaskThread_t* t = (TaskThread_t*)malloc(sizeof(TaskThread_t));
+	if (!t)
+		return NULL;
+
+	if (!dataqueueInit(&t->dq))
+		goto err;
+	dq_ok = 1;
+
+	if (!rbtimerInit(&t->timer, TRUE))
+		goto err;
+	timer_ok = 1;
+
+	if (!rbtimerInit(&t->rpc_timer, TRUE))
+		goto err;
+	rpc_timer_ok = 1;
+
+	t->f_rpc = NULL;
+	t->a_rpc = NULL;
+	return t;
+err:
+	if (dq_ok)
+		dataqueueDestroy(&t->dq);
+	if (timer_ok)
+		rbtimerDestroy(&t->timer);
+	if (rpc_timer_ok)
+		rbtimerDestroy(&t->rpc_timer);
+	free(t);
+	return NULL;
+}
+
+void freeTaskThread(TaskThread_t* t) {
+	dataqueueDestroy(&t->dq);
+	rbtimerDestroy(&t->timer);
+	rbtimerDestroy(&t->rpc_timer);
+	free(t);
+}
 
 static void call_dispatch(UserMsg_t* ctrl) {
 	if (g_ModuleInitFunc) {

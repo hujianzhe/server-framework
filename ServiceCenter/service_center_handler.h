@@ -3,9 +3,9 @@
 
 int loadClusterNode(const char* data);
 
-void reqClusterList_http(UserMsg_t* ctrl);
-void reqChangeClusterNode_http(UserMsg_t* ctrl);
-void reqDistributeClusterNode_http(UserMsg_t* ctrl);
-void reqClusterList(UserMsg_t* ctrl);
+void reqClusterList_http(TaskThread_t*, UserMsg_t* ctrl);
+void reqChangeClusterNode_http(TaskThread_t*, UserMsg_t* ctrl);
+void reqDistributeClusterNode_http(TaskThread_t*, UserMsg_t* ctrl);
+void reqClusterList(TaskThread_t*, UserMsg_t* ctrl);
 
 #endif // !SERVICE_CENTER_HANDLER_H

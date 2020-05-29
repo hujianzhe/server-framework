@@ -11,8 +11,8 @@
 extern "C" {
 #endif
 
-__declspec_dllexport int rpcReqClusterList(Cluster_t* sc_cluster);
-__declspec_dllexport void distributeClusterList(UserMsg_t* ctrl);
+__declspec_dllexport int rpcReqClusterList(TaskThread_t* thrd, Cluster_t* sc_cluster);
+__declspec_dllexport void distributeClusterList(TaskThread_t* thrd, UserMsg_t* ctrl);
 
 #ifdef __cplusplus
 }

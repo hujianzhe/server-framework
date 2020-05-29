@@ -25,7 +25,7 @@ static int service_center_check_connection_timeout_callback(RBTimer_t* timer, RB
 extern "C" {
 #endif
 
-__declspec_dllexport int init(int argc, char** argv) {
+__declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	ConfigConnectOption_t* option = NULL;
 	Cluster_t* cluster;
 	RBTimerEvent_t* timeout_ev;
@@ -53,7 +53,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 		logErr(ptr_g_Log(), "regNumberDispatch(CMD_DISTRIBUTE_CLUSTER_LIST, distributeClusterList) failure");
 		return 0;
 	}
-	if (!rpcReqClusterList(cluster)) {
+	if (!rpcReqClusterList(thrd, cluster)) {
 		logErr(ptr_g_Log(), "rpcReqClusterList failure, ip:%s, port:%u ......", cluster->ip, cluster->port);
 		return 0;
 	}
@@ -65,7 +65,7 @@ __declspec_dllexport int init(int argc, char** argv) {
 	timeout_ev->arg = NULL;
 	timeout_ev->timestamp_msec = gmtimeMillisecond() + 1000 * 60;
 	timeout_ev->callback = service_center_check_connection_timeout_callback;
-	rbtimerAddEvent(ptr_g_Timer(), timeout_ev);
+	rbtimerAddEvent(&thrd->timer, timeout_ev);
 	return 1;
 }
 

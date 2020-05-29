@@ -32,7 +32,7 @@ void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 			msg->channel = channel;
 			msg->rpcid = rpc_item->id;
 			msg->rpc_status = 'T';
-			dataqueuePush(&g_DataQueue, &msg->internal._);
+			dataqueuePush(&g_TaskThread->dq, &msg->internal._);
 		}
 	}
 }
@@ -123,7 +123,7 @@ static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecode
 		if (message->datalen) {
 			memcpy(message->data, decode_result->bodyptr + cmdid_rpcid_sz, message->datalen);
 		}
-		dataqueuePush(&g_DataQueue, &message->internal._);
+		dataqueuePush(&g_TaskThread->dq, &message->internal._);
 	}
 	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
 		SendMsg_t packet;
@@ -133,7 +133,7 @@ static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecode
 }
 
 static void channel_detach(ChannelBase_t* channel) {
-	dataqueuePush(&g_DataQueue, &channel->freecmd._);
+	dataqueuePush(&g_TaskThread->dq, &channel->freecmd._);
 }
 
 static void channel_reg_handler(ChannelBase_t* c, long long timestamp_msec) {
@@ -307,7 +307,7 @@ static void httpframe_recv(Channel_t* c, const void* addr, ChannelInbufDecodeRes
 	if (message->datalen) {
 		memcpy(message->data, decode_result->bodyptr, message->datalen);
 	}
-	dataqueuePush(&g_DataQueue, &message->internal._);
+	dataqueuePush(&g_TaskThread->dq, &message->internal._);
 }
 
 static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const void* peer_addr, long long ts_msec) {

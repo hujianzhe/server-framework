@@ -14,7 +14,20 @@ typedef struct TaskThread_t {
 	RpcAsyncCore_t* a_rpc;
 } TaskThread_t;
 
+extern TaskThread_t* g_TaskThread;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+__declspec_dllexport TaskThread_t* ptr_g_TaskThread(void);
+
 TaskThread_t* newTaskThread(void);
+BOOL runTaskThread(TaskThread_t* t);
 void freeTaskThread(TaskThread_t* t);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !WORK_THREAD_H

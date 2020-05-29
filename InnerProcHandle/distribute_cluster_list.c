@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-void distributeClusterList(UserMsg_t* ctrl) {
+void distributeClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON* cjson_cluster_array, *cjson_cluster;
 	cJSON* root;
 	struct ClusterTable_t* table = NULL;

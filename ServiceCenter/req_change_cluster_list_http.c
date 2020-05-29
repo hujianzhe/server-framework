@@ -2,7 +2,7 @@
 #include "../BootServer/global.h"
 #include "service_center_handler.h"
 
-void reqChangeClusterNode_http(UserMsg_t* ctrl) {
+void reqChangeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON* cjson_cluster_array, *cjson_cluster;
 	cJSON* root;
 	char* save_data = NULL;

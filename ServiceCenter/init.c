@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-__declspec_dllexport int init(int argc, char** argv) {
+__declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	const char* path = ptr_g_Config()->extra_data_txt;
 	char* file_data = fileReadAllData(path, NULL);
 	if (!file_data) {

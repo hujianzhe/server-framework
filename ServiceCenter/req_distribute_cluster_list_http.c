@@ -2,7 +2,7 @@
 #include "../InnerProcHandle/inner_proc_cmd.h"
 #include "service_center_handler.h"
 
-void reqDistributeClusterNode_http(UserMsg_t* ctrl) {
+void reqDistributeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON* root, *cluster_array;
 	ListNode_t* node;
 	SendMsg_t msg;

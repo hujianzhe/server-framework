@@ -3,7 +3,7 @@
 #include "service_center_handler.h"
 #include <stdio.h>
 
-void reqClusterList(UserMsg_t* ctrl) {
+void reqClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	cJSON *cjson_ret_root, *cjson_ret_array_cluster;
 	cJSON *cjson_ip, *cjson_port;

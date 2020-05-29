@@ -3,6 +3,7 @@
 
 #include "util/inc/component/channel.h"
 #include "util/inc/component/httpframe.h"
+#include "work_thread.h"
 
 typedef struct UserMsg_t {
 	ReactorCmd_t internal;
@@ -19,7 +20,7 @@ typedef struct UserMsg_t {
 	unsigned char data[1];
 } UserMsg_t;
 
-typedef void(*DispatchCallback_t)(UserMsg_t*);
+typedef void(*DispatchCallback_t)(TaskThread_t*, UserMsg_t*);
 
 extern DispatchCallback_t g_DefaultDispatchCallback;
 

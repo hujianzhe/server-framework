@@ -2,7 +2,7 @@
 #include "service_center_handler.h"
 #include <stdio.h>
 
-void reqClusterList_http(UserMsg_t* ctrl) {
+void reqClusterList_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON* root, *cluster_array;
 	ListNode_t* node;
 	char* ret_data, *reply;

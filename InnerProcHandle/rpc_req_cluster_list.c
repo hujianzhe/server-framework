@@ -80,7 +80,7 @@ err:
 	return 0;
 }
 
-static void rpc_ret_cluster_list(RpcItem_t* rpc_item) {
+static void rpc_ret_cluster_list(RpcAsyncCore_t* rpc, RpcItem_t* rpc_item) {
 	if (rpc_item->ret_msg) {
 		UserMsg_t* ctrl = (UserMsg_t*)rpc_item->ret_msg;
 		if (0 == ctrl->retcode && ret_cluster_list(ctrl)) {
@@ -90,11 +90,11 @@ static void rpc_ret_cluster_list(RpcItem_t* rpc_item) {
 	g_Invalid();
 }
 
-static void retClusterList(UserMsg_t* ctrl) {
+static void retClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	ret_cluster_list(ctrl);
 }
 
-static int start_req_cluster_list(Channel_t* channel) {
+static int start_req_cluster_list(TaskThread_t* thrd, Channel_t* channel) {
 	SendMsg_t msg;
 	char* req_data;
 	int req_datalen;
@@ -103,29 +103,29 @@ static int start_req_cluster_list(Channel_t* channel) {
 	if (!req_data) {
 		return 0;
 	}
-	if (!ptr_g_RpcFiberCore() && !ptr_g_RpcAsyncCore()) {
+	if (!thrd->f_rpc && !thrd->a_rpc) {
 		makeSendMsg(&msg, CMD_REQ_CLUSTER_LIST, req_data, req_datalen);
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		free(req_data);
 	}
 	else {
 		RpcItem_t* rpc_item;
-		if (ptr_g_RpcFiberCore()) {
-			rpc_item = newRpcItemFiberReady(ptr_g_RpcFiberCore(), channel, 5000);
+		if (thrd->f_rpc) {
+			rpc_item = newRpcItemFiberReady(thrd, channel, 5000);
 			if (!rpc_item)
 				goto err;
 		}
 		else {
-			rpc_item = newRpcItemAsyncReady(ptr_g_RpcAsyncCore(), channel, 5000, NULL, rpc_ret_cluster_list);
+			rpc_item = newRpcItemAsyncReady(thrd, channel, 5000, NULL, rpc_ret_cluster_list);
 			if (!rpc_item)
 				goto err;
 		}
 		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_LIST, req_data, req_datalen);
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		free(req_data);
-		if (ptr_g_RpcAsyncCore())
+		if (thrd->a_rpc)
 			return 1;
-		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
+		rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 		if (rpc_item->ret_msg) {
 			UserMsg_t* ctrl = (UserMsg_t*)rpc_item->ret_msg;
 			if (ctrl->retcode)
@@ -147,7 +147,7 @@ err:
 extern "C" {
 #endif
 
-int rpcReqClusterList(Cluster_t* sc_cluster) {
+int rpcReqClusterList(TaskThread_t* thrd, Cluster_t* sc_cluster) {
 	Sockaddr_t connect_addr;
 	ReactorObject_t* o;
 	Channel_t* c;
@@ -184,22 +184,22 @@ int rpcReqClusterList(Cluster_t* sc_cluster) {
 	logInfo(ptr_g_Log(), "channel connecting ServiceCenter, ip:%s, port:%u, and ReqClusterList ......",
 		sc_cluster->ip, sc_cluster->port);
 
-	if (!ptr_g_RpcFiberCore() && !ptr_g_RpcAsyncCore()) {
+	if (!thrd->f_rpc && !thrd->a_rpc) {
 		makeSendMsg(&msg, CMD_REQ_CLUSTER_LIST, req_data, req_datalen);
 		channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		free(req_data);
 	}
 	else {
 		RpcItem_t* rpc_item;
-		if (ptr_g_RpcFiberCore()) {
-			rpc_item = newRpcItemFiberReady(ptr_g_RpcFiberCore(), c, 5000);
+		if (thrd->f_rpc) {
+			rpc_item = newRpcItemFiberReady(thrd, c, 5000);
 			if (!rpc_item) {
 				free(req_data);
 				return 0;
 			}
 		}
 		else {
-			rpc_item = newRpcItemAsyncReady(ptr_g_RpcAsyncCore(), c, 5000, NULL, rpc_ret_cluster_list);
+			rpc_item = newRpcItemAsyncReady(thrd, c, 5000, NULL, rpc_ret_cluster_list);
 			if (!rpc_item) {
 				free(req_data);
 				return 0;
@@ -208,9 +208,9 @@ int rpcReqClusterList(Cluster_t* sc_cluster) {
 		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_CLUSTER_LIST, req_data, req_datalen);
 		channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		free(req_data);
-		if (ptr_g_RpcAsyncCore())
+		if (!thrd->f_rpc)
 			return 1;
-		rpc_item = rpcFiberCoreYield(ptr_g_RpcFiberCore());
+		rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 		if (rpc_item->ret_msg) {
 			UserMsg_t* ctrl = (UserMsg_t*)rpc_item->ret_msg;
 			if (ctrl->retcode)

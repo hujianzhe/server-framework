@@ -3,7 +3,7 @@
 #include "test_handler.h"
 #include <stdio.h>
 
-void reqLoginTest(UserMsg_t* ctrl) {
+void reqLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON *cjson_ret_root;
 	SendMsg_t ret_msg;
 	char* ret_data;
@@ -22,7 +22,7 @@ void reqLoginTest(UserMsg_t* ctrl) {
 	free(ret_data);
 }
 
-void retLoginTest(UserMsg_t* ctrl) {
+void retLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON* cjson_ret_root;
 
 	logInfo(ptr_g_Log(), "recv: %s", (char*)ctrl->data);
@@ -46,8 +46,8 @@ void retLoginTest(UserMsg_t* ctrl) {
 	cJSON_Delete(cjson_ret_root);
 
 	// test code
-	if (ptr_g_RpcFiberCore())
-		frpc_test_code(ctrl->channel);
-	else if (ptr_g_RpcAsyncCore())
-		arpc_test_code(ctrl->channel);
+	if (thrd->f_rpc)
+		frpc_test_code(thrd, ctrl->channel);
+	else if (thrd->a_rpc)
+		arpc_test_code(thrd, ctrl->channel);
 }

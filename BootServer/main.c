@@ -4,13 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-unsigned int THREAD_CALL reactorThreadEntry(void* arg);
-unsigned int THREAD_CALL taskThreadEntry(void* arg);
+extern unsigned int THREAD_CALL reactorThreadEntry(void* arg);
 
 static void sigintHandler(int signo) {
 	int i;
 	g_Valid = 0;
-	dataqueueWake(&g_DataQueue);
+	dataqueueWake(&g_TaskThread->dq);
 	reactorWake(g_ReactorAccept);
 	for (i = 0; i < g_ReactorCnt; ++i) {
 		reactorWake(g_Reactors + i);
@@ -20,8 +19,7 @@ static void sigintHandler(int signo) {
 int main(int argc, char** argv) {
 	int i;
 	int configinitok = 0, loginitok = 0, globalresourceinitok = 0,
-		dqinitok = 0, timerinitok = 0, timerrpcinitok = 0,
-		taskthreadinitok = 0, socketloopinitokcnt = 0,
+		taskthreadinitok = 0, taskthreadrunok = 0, socketloopinitokcnt = 0,
 		acceptthreadinitok = 0, acceptloopinitok = 0,
 		listensockinitokcnt = 0;
 	const char* module_path = "";
@@ -69,7 +67,7 @@ int main(int argc, char** argv) {
 			fprintf(stderr, "moduleLoad(%s) failure\n", module_path);
 			goto err;
 		}
-		g_ModuleInitFunc = (int(*)(int, char**))moduleSymbolAddress(g_ModulePtr, "init");
+		g_ModuleInitFunc = (int(*)(TaskThread_t*, int, char**))moduleSymbolAddress(g_ModulePtr, "init");
 		if (!g_ModuleInitFunc) {
 			fprintf(stderr, "moduleSymbolAddress(%s, \"init\") failure\n", module_path);
 			goto err;
@@ -86,17 +84,11 @@ int main(int argc, char** argv) {
 		goto err;
 	}
 	globalresourceinitok = 1;
-	// init queue
-	if (!dataqueueInit(&g_DataQueue))
+	// init task thread
+	g_TaskThread = newTaskThread();
+	if (!g_TaskThread)
 		goto err;
-	dqinitok = 1;
-	// init timer
-	if (!rbtimerInit(&g_Timer, TRUE))
-		goto err;
-	timerinitok = 1;
-	if (!rbtimerInit(&g_TimerRpcTimeout, TRUE))
-		goto err;
-	timerrpcinitok = 1;
+	taskthreadinitok = 1;
 	// init reactor and start reactor thread
 	if (!reactorInit(g_ReactorAccept))
 		goto err;
@@ -117,16 +109,16 @@ int main(int argc, char** argv) {
 	// reg SIGINT signal
 	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR)
 		goto err;
-	// start task thread
-	if (!threadCreate(&g_TaskThread, taskThreadEntry, NULL))
+	// run task thread
+	if (!runTaskThread(g_TaskThread))
 		goto err;
-	taskthreadinitok = 1;
+	taskthreadrunok = 1;
 	// post module init_func message
 	if (g_ModuleInitFunc) {
 		UserMsg_t* msg = newUserMsg(0);
 		if (!msg)
 			goto err;
-		dataqueuePush(&g_DataQueue, &msg->internal._);
+		dataqueuePush(&g_TaskThread->dq, &msg->internal._);
 	}
 	// listen port
 	for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {
@@ -139,7 +131,7 @@ int main(int argc, char** argv) {
 		}
 	}
 	// wait thread exit
-	threadJoin(g_TaskThread, NULL);
+	threadJoin(g_TaskThread->tid, NULL);
 	g_Valid = 0;
 	threadJoin(*g_ReactorAcceptThread, NULL);
 	reactorDestroy(g_ReactorAccept);
@@ -160,19 +152,13 @@ err:
 		threadJoin(g_ReactorThreads[socketloopinitokcnt], NULL);
 		reactorDestroy(g_Reactors + socketloopinitokcnt);
 	}
-	if (taskthreadinitok) {
-		dataqueueWake(&g_DataQueue);
-		threadJoin(g_TaskThread, NULL);
+	if (taskthreadrunok) {
+		dataqueueWake(&g_TaskThread->dq);
+		threadJoin(g_TaskThread->tid, NULL);
 	}
 end:
-	if (dqinitok) {
-		dataqueueDestroy(&g_DataQueue);
-	}
-	if (timerinitok) {
-		rbtimerDestroy(&g_Timer);
-	}
-	if (timerrpcinitok) {
-		rbtimerDestroy(&g_TimerRpcTimeout);
+	if (taskthreadinitok) {
+		freeTaskThread(g_TaskThread);
 	}
 	if (g_ModulePtr) {
 		moduleUnload(g_ModulePtr);

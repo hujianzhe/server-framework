@@ -7,7 +7,9 @@ enum {
 
 	CMD_REQ_TEST,
 	CMD_NOTIFY_TEST,
-	CMD_RET_TEST
+	CMD_RET_TEST,
+
+	CMD_REQ_WEBSOCKET_TEST
 };
 
 #endif // !CMD_H

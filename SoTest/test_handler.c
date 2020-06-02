@@ -135,5 +135,7 @@ void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 }
 
 void reqWebsocketTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
+	const char reply[] = "This text is from Server &.&, [reply websocket]";
 	printf("%s recv: %s\n", __FUNCTION__, ctrl->data);
+	channelSend(ctrl->channel, reply, strlen(reply), NETPACKET_FRAGMENT);
 }

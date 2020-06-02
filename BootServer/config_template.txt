@@ -19,6 +19,7 @@
 			"port" : 50002
 		}
 	],
+	"module_path" : "./SoTest.dll",
 	"log" : {
 		"pathname" : "./SoTest",
 		"maxfilesize_mb" : 10

@@ -379,15 +379,21 @@ ReactorObject_t* openListenerHttp(const char* ip, unsigned short port) {
 /**************************************************************************/
 
 static unsigned int websocket_hdrsize(Channel_t* c, unsigned int bodylen) {
-	return websocketframeEncodeHeadLength(bodylen);
+	if (c->decode_userdata > (void*)(size_t)1)
+		return websocketframeEncodeHeadLength(bodylen);
+	else
+		return 0;
 }
 
 static void websocket_encode(Channel_t* c, unsigned char* hdr, unsigned int bodylen, unsigned char pktype, unsigned int pkseq) {
-	websocketframeEncode(hdr, 1, WEBSOCKET_BINARY_FRAME, bodylen);
+	if (c->decode_userdata > (void*)(size_t)1)
+		websocketframeEncode(hdr, 1, WEBSOCKET_BINARY_FRAME, bodylen);
+	else
+		c->decode_userdata = (void*)(size_t)2;
 }
 
 static void websocket_decode(Channel_t* c, unsigned char* buf, size_t buflen, ChannelInbufDecodeResult_t* decode_result) {
-	if (c->decode_userdata) {
+	if (c->decode_userdata >= (void*)(size_t)1) {
 		unsigned char* data;
 		unsigned long long datalen;
 		int is_fin, type;
@@ -433,21 +439,41 @@ static void websocket_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 }
 
 static void websocket_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResult_t* decode_result) {
-	UserMsg_t* message = newUserMsg(decode_result->bodylen);
-	if (!message) {
-		return;
+	if (decode_result->bodylen > 0) {
+		UserMsg_t* message;
+		char* cmdstr;
+		int cmdid;
+
+		cmdstr = strstr((char*)decode_result->bodyptr, "cmd");
+		if (!cmdstr) {
+			return;
+		}
+		cmdstr += 3;
+		cmdstr = strchr(cmdstr, ':');
+		if (!cmdstr) {
+			return;
+		}
+		cmdstr++;
+		if (sscanf(cmdstr, "%d", &cmdid) != 1) {
+			return;
+		}
+
+		message = newUserMsg(decode_result->bodylen);
+		if (!message) {
+			return;
+		}
+		message->channel = c;
+		if (!(c->_.flag & CHANNEL_FLAG_STREAM)) {
+			memcpy(&message->peer_addr, addr, sockaddrLength(addr));
+		}
+		message->rpc_status = 0;
+		message->cmdid = cmdid;
+		message->rpcid = 0;
+		if (message->datalen) {
+			memcpy(message->data, decode_result->bodyptr, message->datalen);
+		}
+		dataqueuePush(&g_TaskThread->dq, &message->internal._);
 	}
-	message->channel = c;
-	if (!(c->_.flag & CHANNEL_FLAG_STREAM)) {
-		memcpy(&message->peer_addr, addr, sockaddrLength(addr));
-	}
-	message->rpc_status = 0;
-	message->cmdid = 0;
-	message->rpcid = 0;
-	if (message->datalen) {
-		memcpy(message->data, decode_result->bodyptr, message->datalen);
-	}
-	dataqueuePush(&g_TaskThread->dq, &message->internal._);
 }
 
 static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const void* peer_addr, long long ts_msec) {

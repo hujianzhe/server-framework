@@ -16,6 +16,9 @@ __declspec_dllexport ReactorObject_t* openListener(int socktype, const char* ip,
 __declspec_dllexport Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const void* saddr);
 __declspec_dllexport ReactorObject_t* openListenerHttp(const char* ip, unsigned short port);
 
+__declspec_dllexport Channel_t* openChannelWebsocketServer(ReactorObject_t* o, const void* saddr);
+__declspec_dllexport ReactorObject_t* openListenerWebsocket(const char* ip, unsigned short port);
+
 #ifdef __cplusplus
 }
 #endif

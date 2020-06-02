@@ -401,7 +401,7 @@ static void websocket_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 		else {
 			decode_result->decodelen = res;
 			if (WEBSOCKET_CLOSE_FRAME == type) {
-				decode_result->err = 1;
+				decode_result->ignore = 1;
 				return;
 			}
 			decode_result->bodyptr = data;
@@ -424,6 +424,7 @@ static void websocket_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 				decode_result->err = 1;
 				return;
 			}
+			decode_result->ignore = 1;
 			decode_result->decodelen = res;
 			channelSend(c, txt, strlen(txt), NETPACKET_NO_ACK_FRAGMENT);
 			c->decode_userdata = (void*)(size_t)1;

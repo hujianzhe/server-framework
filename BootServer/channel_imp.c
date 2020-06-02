@@ -372,6 +372,7 @@ ReactorObject_t* openListenerHttp(const char* ip, unsigned short port) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
+	c->_.on_reg = channel_reg_handler;
 	c->_.on_ack_halfconn = http_accept_callback;
 	return o;
 }
@@ -536,6 +537,7 @@ ReactorObject_t* openListenerWebsocket(const char* ip, unsigned short port) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
+	c->_.on_reg = channel_reg_handler;
 	c->_.on_ack_halfconn = websocket_accept_callback;
 	return o;
 }

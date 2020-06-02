@@ -44,6 +44,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	regNumberDispatch(CMD_RET_LOGIN_TEST, retLoginTest);
 	regStringDispatch("/reqHttpTest", reqHttpTest);
 	regStringDispatch("/reqSoTest", reqSoTest);
+	regStringDispatch("/reqWebsocketTest", reqWebsocketTest);
 
 	if (getClusterSelf()->port) {
 		ReactorObject_t* o = openListener(getClusterSelf()->socktype, getClusterSelf()->ip, getClusterSelf()->port);

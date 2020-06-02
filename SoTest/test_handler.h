@@ -9,6 +9,7 @@ extern void rpcRetTest(RpcAsyncCore_t*, RpcItem_t*);
 extern void retTest(TaskThread_t*, UserMsg_t*);
 extern void reqHttpTest(TaskThread_t*, UserMsg_t*);
 extern void reqSoTest(TaskThread_t*, UserMsg_t*);
+extern void reqWebsocketTest(TaskThread_t*, UserMsg_t*);
 
 extern void reqLoginTest(TaskThread_t*, UserMsg_t*);
 extern void retLoginTest(TaskThread_t*, UserMsg_t*);

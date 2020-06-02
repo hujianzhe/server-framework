@@ -134,13 +134,6 @@ void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	free(reply);
 }
 
-void unknowRequest(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	if (ctrl->httpframe) {
-		char reply[] = "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n";
-		channelSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
-		reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
-	}
-	else {
-		channelSend(ctrl->channel, NULL, 0, NETPACKET_FRAGMENT);
-	}
+void reqWebsocketTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
+	printf("%s recv: %s\n", __FUNCTION__, ctrl->data);
 }

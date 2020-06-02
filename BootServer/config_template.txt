@@ -11,13 +11,18 @@
 			"socktype" : "SOCK_STREAM",
 			"ip" : "127.0.0.1",
 			"port" : 50001
+		},
+		{
+			"protocol" : "websocket",
+			"socktype" : "SOCK_STREAM",
+			"ip" : "127.0.0.1",
+			"port" : 50002
 		}
 	],
 	"log" : {
 		"pathname" : "./SoTest",
 		"maxfilesize_mb" : 10
 	},
-	"module_path" : "./SoTest.dll",
 	"rpc_fiber_stack_size_kb" : 16,
 	"rpc_fiber" : 1,
 	"rpc_async" : 0,

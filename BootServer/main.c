@@ -123,12 +123,19 @@ int main(int argc, char** argv) {
 	// listen port
 	for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {
 		ConfigListenOption_t* option = g_Config.listen_options + listensockinitokcnt;
+		ReactorObject_t* o;
 		if (!strcmp(option->protocol, "http")) {
-			ReactorObject_t* o = openListenerHttp(option->ip, option->port);
-			if (!o)
-				goto err;
-			reactorCommitCmd(g_ReactorAccept, &o->regcmd);
+			o = openListenerHttp(option->ip, option->port);
 		}
+		else if (!strcmp(option->protocol, "websocket")) {
+			o = openListenerWebsocket(option->ip, option->port);
+		}
+		else {
+			continue;
+		}
+		if (!o)
+			goto err;
+		reactorCommitCmd(g_ReactorAccept, &o->regcmd);
 	}
 	// wait thread exit
 	threadJoin(g_TaskThread->tid, NULL);

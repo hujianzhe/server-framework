@@ -344,11 +344,7 @@ Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const void* saddr) {
 	c->on_encode = httpframe_encode;
 	c->on_recv = httpframe_recv;
 	flag = c->_.flag;
-	if (flag & CHANNEL_FLAG_CLIENT) {
-		c->heartbeat_timeout_sec = 10;
-		c->heartbeat_maxtimes = 3;
-	}
-	else if (flag & CHANNEL_FLAG_SERVER)
+	if (flag & CHANNEL_FLAG_SERVER)
 		c->heartbeat_timeout_sec = 20;
 	return c;
 }
@@ -371,8 +367,7 @@ ReactorObject_t* openListenerHttp(const char* ip, unsigned short port) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
-	// TODO optimized
-	c = openChannelHttp(o, CHANNEL_FLAG_LISTEN, &local_saddr);
+	c = reactorobjectOpenChannel(o, CHANNEL_FLAG_LISTEN, 0, &local_saddr);
 	if (!c) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
@@ -404,9 +399,13 @@ static void websocket_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 			decode_result->incomplete = 1;
 		}
 		else {
+			decode_result->decodelen = res;
+			if (WEBSOCKET_CLOSE_FRAME == type) {
+				decode_result->err = 1;
+				return;
+			}
 			decode_result->bodyptr = data;
 			decode_result->bodylen = datalen;
-			decode_result->decodelen = res;
 		}
 	}
 	else {
@@ -482,7 +481,7 @@ Channel_t* openChannelWebsocketServer(ReactorObject_t* o, const void* saddr) {
 	c->on_hdrsize = websocket_hdrsize;
 	c->on_decode = websocket_decode;
 	c->on_encode = websocket_encode;
-	c->on_recv = httpframe_recv;
+	c->on_recv = websocket_recv;
 	c->heartbeat_timeout_sec = 20;
 	return c;
 }
@@ -505,8 +504,7 @@ ReactorObject_t* openListenerWebsocket(const char* ip, unsigned short port) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
-	// TODO optimized
-	c = openChannelWebsocketServer(o, &local_saddr);
+	c = reactorobjectOpenChannel(o, CHANNEL_FLAG_LISTEN, 0, &local_saddr);
 	if (!c) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;

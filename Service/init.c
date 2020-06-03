@@ -31,6 +31,24 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	RBTimerEvent_t* timeout_ev;
 	unsigned int i;
 
+	// listen port
+	for (i = 0; i < ptr_g_Config()->listen_options_cnt; ++i) {
+		ConfigListenOption_t* option = ptr_g_Config()->listen_options + i;
+		ReactorObject_t* o;
+		if (!strcmp(option->protocol, "http")) {
+			o = openListenerHttp(option->ip, option->port, NULL);
+		}
+		else {
+			continue;
+		}
+		if (!o) {
+			logErr(ptr_g_Log(), "listen failure, ip:%s, port:%u ......", option->ip, option->port);
+			return 0;
+		}
+		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
+	}
+	//
+
 	for (i = 0; i < ptr_g_Config()->connect_options_cnt; ++i) {
 		option = ptr_g_Config()->connect_options + i;
 		if (!strcmp(option->protocol, "ServiceCenter"))

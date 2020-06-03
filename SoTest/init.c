@@ -30,12 +30,50 @@ static void rpc_async_req_login_test(RpcAsyncCore_t* rpc, RpcItem_t* rpc_item) {
 	g_Invalid();
 }
 
+static void websocket_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResult_t* decode_result) {
+	if (decode_result->bodylen > 0) {
+		UserMsg_t* message;
+		char* cmdstr;
+		int cmdid;
+
+		cmdstr = strstr((char*)decode_result->bodyptr, "cmd");
+		if (!cmdstr) {
+			return;
+		}
+		cmdstr += 3;
+		cmdstr = strchr(cmdstr, ':');
+		if (!cmdstr) {
+			return;
+		}
+		cmdstr++;
+		if (sscanf(cmdstr, "%d", &cmdid) != 1) {
+			return;
+		}
+
+		message = newUserMsg(decode_result->bodylen);
+		if (!message) {
+			return;
+		}
+		message->channel = c;
+		if (!(c->_.flag & CHANNEL_FLAG_STREAM)) {
+			memcpy(&message->peer_addr, addr, sockaddrLength(addr));
+		}
+		message->rpc_status = 0;
+		message->cmdid = cmdid;
+		message->rpcid = 0;
+		if (message->datalen) {
+			memcpy(message->data, decode_result->bodyptr, message->datalen);
+		}
+		dataqueuePush(&ptr_g_TaskThread()->dq, &message->internal._);
+	}
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
-	int connectsockinitokcnt;
+	int i;
 
 	regNumberDispatch(CMD_REQ_TEST, reqTest);
 	regNumberDispatch(CMD_NOTIFY_TEST, notifyTest);
@@ -53,8 +91,27 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
 	}
 
-	for (connectsockinitokcnt = 0; connectsockinitokcnt < ptr_g_Config()->connect_options_cnt; ++connectsockinitokcnt) {
-		ConfigConnectOption_t* option = ptr_g_Config()->connect_options + connectsockinitokcnt;
+	for (i = 0; i < ptr_g_Config()->listen_options_cnt; ++i) {
+		ConfigListenOption_t* option = ptr_g_Config()->listen_options + i;
+		ReactorObject_t* o;
+		if (!strcmp(option->protocol, "http")) {
+			o = openListenerHttp(option->ip, option->port, NULL);
+		}
+		else if (!strcmp(option->protocol, "websocket")) {
+			o = openListenerWebsocket(option->ip, option->port, websocket_recv);
+		}
+		else {
+			continue;
+		}
+		if (!o) {
+			logErr(ptr_g_Log(), "listen failure, ip:%s, port:%u ......", option->ip, option->port);
+			return 0;
+		}
+		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
+	}
+
+	for (i = 0; i < ptr_g_Config()->connect_options_cnt; ++i) {
+		ConfigConnectOption_t* option = ptr_g_Config()->connect_options + i;
 		RpcItem_t* rpc_item;
 		Sockaddr_t connect_addr;
 		Channel_t* c;

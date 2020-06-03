@@ -120,23 +120,6 @@ int main(int argc, char** argv) {
 			goto err;
 		dataqueuePush(&g_TaskThread->dq, &msg->internal._);
 	}
-	// listen port
-	for (listensockinitokcnt = 0; listensockinitokcnt < g_Config.listen_options_cnt; ++listensockinitokcnt) {
-		ConfigListenOption_t* option = g_Config.listen_options + listensockinitokcnt;
-		ReactorObject_t* o;
-		if (!strcmp(option->protocol, "http")) {
-			o = openListenerHttp(option->ip, option->port);
-		}
-		else if (!strcmp(option->protocol, "websocket")) {
-			o = openListenerWebsocket(option->ip, option->port);
-		}
-		else {
-			continue;
-		}
-		if (!o)
-			goto err;
-		reactorCommitCmd(g_ReactorAccept, &o->regcmd);
-	}
 	// wait thread exit
 	threadJoin(g_TaskThread->tid, NULL);
 	g_Valid = 0;

@@ -29,6 +29,7 @@ UserMsg_t* newUserMsg(size_t datalen) {
 		msg->channel = NULL;
 		msg->peer_addr.sa.sa_family = AF_UNSPEC;
 		msg->httpframe = NULL;
+		msg->cmdstr = NULL;
 		msg->datalen = datalen;
 		msg->data[msg->datalen] = 0;
 	}

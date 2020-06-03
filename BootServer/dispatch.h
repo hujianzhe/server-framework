@@ -10,6 +10,7 @@ typedef struct UserMsg_t {
 	Channel_t* channel;
 	Sockaddr_t peer_addr;
 	HttpFrame_t* httpframe;
+	const char* cmdstr;
 	char rpc_status;
 	union {
 		int cmdid;

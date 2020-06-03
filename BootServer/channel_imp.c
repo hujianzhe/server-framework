@@ -300,7 +300,9 @@ static void httpframe_recv(Channel_t* c, const void* addr, ChannelInbufDecodeRes
 	if (!(c->_.flag & CHANNEL_FLAG_STREAM)) {
 		memcpy(&message->peer_addr, addr, sockaddrLength(addr));
 	}
+	httpframe->uri[httpframe->pathlen] = 0;
 	message->httpframe = httpframe;
+	message->cmdstr = httpframe->uri;
 	message->rpc_status = 0;
 	message->cmdid = 0;
 	message->rpcid = 0;

@@ -13,10 +13,8 @@ static void call_dispatch(TaskThread_t* thread, UserMsg_t* ctrl) {
 	}
 	else {
 		DispatchCallback_t callback;
-		if (ctrl->httpframe) {
-			char* path = ctrl->httpframe->uri;
-			path[ctrl->httpframe->pathlen] = 0;
-			callback = getStringDispatch(path);
+		if (ctrl->cmdstr) {
+			callback = getStringDispatch(ctrl->cmdstr);
 		}
 		else {
 			callback = getNumberDispatch(ctrl->cmdid);

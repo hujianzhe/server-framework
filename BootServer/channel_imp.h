@@ -10,8 +10,8 @@ extern "C" {
 
 __declspec_dllexport void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec);
 
-__declspec_dllexport Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr);
-__declspec_dllexport ReactorObject_t* openListener(int socktype, const char* ip, unsigned short port);
+__declspec_dllexport Channel_t* openChannelInner(ReactorObject_t* o, int flag, const void* saddr);
+__declspec_dllexport ReactorObject_t* openListenerInner(int socktype, const char* ip, unsigned short port);
 
 __declspec_dllexport Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const void* saddr);
 __declspec_dllexport ReactorObject_t* openListenerHttp(const char* ip, unsigned short port);

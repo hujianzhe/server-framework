@@ -68,7 +68,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	cJSON_Delete(cjson_req_root);
 
 	if (getClusterSelf()->port) {
-		ReactorObject_t* o = openListener(getClusterSelf()->socktype, getClusterSelf()->ip, getClusterSelf()->port);
+		ReactorObject_t* o = openListenerInner(getClusterSelf()->socktype, getClusterSelf()->ip, getClusterSelf()->port);
 		if (!o)
 			return 0;
 		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
@@ -173,7 +173,7 @@ int rpcReqClusterList(TaskThread_t* thrd, Cluster_t* sc_cluster) {
 	o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.st.ss_family, sc_cluster->socktype, 0);
 	if (!o)
 		return 0;
-	c = openChannel(o, CHANNEL_FLAG_CLIENT, &connect_addr);
+	c = openChannelInner(o, CHANNEL_FLAG_CLIENT, &connect_addr);
 	if (!c) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return 0;

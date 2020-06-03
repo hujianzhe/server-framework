@@ -107,7 +107,7 @@ Channel_t* clusterChannel(Cluster_t* cluster) {
 		o = reactorobjectOpen(INVALID_FD_HANDLE, family, cluster->socktype, 0);
 		if (!o)
 			return NULL;
-		channel = openChannel(o, CHANNEL_FLAG_CLIENT, &saddr);
+		channel = openChannelInner(o, CHANNEL_FLAG_CLIENT, &saddr);
 		if (!channel) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			return NULL;

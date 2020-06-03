@@ -118,7 +118,7 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 		socketClose(newfd);
 		return;
 	}
-	listen_channel = openChannel(o, CHANNEL_FLAG_SERVER, peer_addr);
+	listen_channel = openChannelInner(o, CHANNEL_FLAG_SERVER, peer_addr);
 	if (!listen_channel) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return;
@@ -165,7 +165,7 @@ static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecode
 
 /**************************************************************************/
 
-Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr) {
+Channel_t* openChannelInner(ReactorObject_t* o, int flag, const void* saddr) {
 	Channel_t* c = reactorobjectOpenChannel(o, flag, 0, saddr);
 	if (!c)
 		return NULL;
@@ -198,7 +198,7 @@ Channel_t* openChannel(ReactorObject_t* o, int flag, const void* saddr) {
 	return c;
 }
 
-ReactorObject_t* openListener(int socktype, const char* ip, unsigned short port) {
+ReactorObject_t* openListenerInner(int socktype, const char* ip, unsigned short port) {
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
 	Channel_t* c;
@@ -218,7 +218,7 @@ ReactorObject_t* openListener(int socktype, const char* ip, unsigned short port)
 			return NULL;
 		}
 	}
-	c = openChannel(o, CHANNEL_FLAG_LISTEN, &local_saddr);
+	c = openChannelInner(o, CHANNEL_FLAG_LISTEN, &local_saddr);
 	if (!c) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;

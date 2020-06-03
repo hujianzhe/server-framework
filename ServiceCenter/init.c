@@ -31,7 +31,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	regNumberDispatch(CMD_REQ_CLUSTER_LIST, reqClusterList);
 
 	if (getClusterSelf()->port) {
-		ReactorObject_t* o = openListener(getClusterSelf()->socktype, getClusterSelf()->ip, getClusterSelf()->port);
+		ReactorObject_t* o = openListenerInner(getClusterSelf()->socktype, getClusterSelf()->ip, getClusterSelf()->port);
 		if (!o)
 			return 0;
 		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);

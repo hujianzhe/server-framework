@@ -167,16 +167,12 @@ static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecode
 /**************************************************************************/
 
 Channel_t* openChannelInner(ReactorObject_t* o, int flag, const void* saddr) {
-	Channel_t* c;
-	ChannelUserData_t* ud = (ChannelUserData_t*)malloc(sizeof(ChannelUserData_t));
-	if (!ud)
+	ChannelUserData_t* ud;
+	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserData_t), saddr);
+	if (!c)
 		return NULL;
-	c = reactorobjectOpenChannel(o, flag, 0, saddr);
-	if (!c) {
-		free(ud);
-		return NULL;
-	}
 	//
+	ud = (ChannelUserData_t*)(c + 1);
 	ud->session = NULL;
 	ud->fn_new_msg = NULL;
 	ud->ws_handshake_state = 0;
@@ -349,16 +345,12 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const void
 }
 
 Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const void* saddr) {
-	Channel_t* c;
-	ChannelUserData_t* ud = (ChannelUserData_t*)malloc(sizeof(ChannelUserData_t));
-	if (!ud)
+	ChannelUserData_t* ud;
+	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserData_t), saddr);
+	if (!c)
 		return NULL;
-	c = reactorobjectOpenChannel(o, flag, 0, saddr);
-	if (!c) {
-		free(ud);
-		return NULL;
-	}
 	//
+	ud = (ChannelUserData_t*)(c + 1);
 	ud->session = NULL;
 	ud->fn_new_msg = NULL;
 	ud->ws_handshake_state = 0;
@@ -532,16 +524,12 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 }
 
 Channel_t* openChannelWebsocketServer(ReactorObject_t* o, const void* saddr) {
-	Channel_t* c;
-	ChannelUserData_t* ud = (ChannelUserData_t*)malloc(sizeof(ChannelUserData_t));
-	if (!ud)
+	ChannelUserData_t* ud;
+	Channel_t* c = reactorobjectOpenChannel(o, CHANNEL_FLAG_SERVER, sizeof(ChannelUserData_t), saddr);
+	if (!c)
 		return NULL;
-	c = reactorobjectOpenChannel(o, CHANNEL_FLAG_SERVER, 0, saddr);
-	if (!c) {
-		free(ud);
-		return NULL;
-	}
 	//
+	ud = (ChannelUserData_t*)(c + 1);
 	ud->session = NULL;
 	ud->fn_new_msg = NULL;
 	ud->ws_handshake_state = 0;

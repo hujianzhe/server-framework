@@ -146,31 +146,35 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					logInfo(&g_Log, "channel(%p) detach, reason:%d", channel, channel->_.detach_error);
 				}
 
-				freeRpcItemWhenChannelDetach(thread, channel);
+				if ((channel->_.flag & CHANNEL_FLAG_CLIENT) ||
+					(channel->_.flag & CHANNEL_FLAG_SERVER))
+				{
+					freeRpcItemWhenChannelDetach(thread, channel);
 
-				do {
-					Session_t* session = channelSession(channel);
-					if (!session)
-						break;
-					sessionUnbindChannel(session, channel);
-					if (session->persist)
-						break;
-					if (session->expire_timeout_msec > 0) {
-						RBTimerEvent_t* e = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
-						if (e) {
-							e->arg = session;
-							e->callback = session_expire_timeout_callback;
-							e->timestamp_msec = gmtimeMillisecond() + session->expire_timeout_msec;
-							session->expire_timeout_ev = e;
-							if (rbtimerAddEvent(&thread->timer, e)) {
-								break;
+					do {
+						Session_t* session = channelSession(channel);
+						if (!session)
+							break;
+						sessionUnbindChannel(session, channel);
+						if (session->persist)
+							break;
+						if (session->expire_timeout_msec > 0) {
+							RBTimerEvent_t* e = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
+							if (e) {
+								e->arg = session;
+								e->callback = session_expire_timeout_callback;
+								e->timestamp_msec = gmtimeMillisecond() + session->expire_timeout_msec;
+								session->expire_timeout_ev = e;
+								if (rbtimerAddEvent(&thread->timer, e)) {
+									break;
+								}
+								free(e);
 							}
-							free(e);
 						}
-					}
-					if (session->destroy)
-						session->destroy(session);
-				} while (0);
+						if (session->destroy)
+							session->destroy(session);
+					} while (0);
+				}
 
 				channelDestroy(channel);
 				reactorCommitCmd(NULL, &channel->_.freecmd);

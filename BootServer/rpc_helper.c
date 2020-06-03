@@ -16,13 +16,15 @@ static RpcItem_t* newRpcItem(void) {
 
 void freeRpcItemWhenTimeout(TaskThread_t* thrd, RpcItem_t* rpc_item) {
 	Channel_t* channel = (Channel_t*)rpc_item->originator;
-	listRemoveNode(&channel->rpc_itemlist, &rpc_item->listnode);
+	ChannelUserData_t* ud = (ChannelUserData_t*)channel->userdata;
+	listRemoveNode(&ud->rpc_itemlist, &rpc_item->listnode);
 	free(rpc_item);
 }
 
 void freeRpcItemWhenNormal(TaskThread_t* thrd, Channel_t* channel, RpcItem_t* rpc_item) {
 	if (channel == rpc_item->originator) {
-		listRemoveNode(&channel->rpc_itemlist, &rpc_item->listnode);
+		ChannelUserData_t* ud = (ChannelUserData_t*)channel->userdata;
+		listRemoveNode(&ud->rpc_itemlist, &rpc_item->listnode);
 		if (rpc_item->timeout_ev)
 			rbtimerDelEvent(&thrd->rpc_timer, (RBTimerEvent_t*)rpc_item->timeout_ev);
 		free(rpc_item);
@@ -30,8 +32,9 @@ void freeRpcItemWhenNormal(TaskThread_t* thrd, Channel_t* channel, RpcItem_t* rp
 }
 
 void freeRpcItemWhenChannelDetach(TaskThread_t* thrd, Channel_t* channel) {
+	ChannelUserData_t* ud = (ChannelUserData_t*)channel->userdata;
 	ListNode_t* cur, *next;
-	for (cur = channel->rpc_itemlist.head; cur; cur = next) {
+	for (cur = ud->rpc_itemlist.head; cur; cur = next) {
 		RpcItem_t* rpc_item = pod_container_of(cur, RpcItem_t, listnode);
 		next = cur->next;
 
@@ -45,10 +48,11 @@ void freeRpcItemWhenChannelDetach(TaskThread_t* thrd, Channel_t* channel) {
 
 		free(rpc_item);
 	}
-	listInit(&channel->rpc_itemlist);
+	listInit(&ud->rpc_itemlist);
 }
 
 static RpcItem_t* readyRpcItem(TaskThread_t* thrd, RpcItem_t* rpc_item, Channel_t* channel, long long timeout_msec) {
+	ChannelUserData_t* ud = (ChannelUserData_t*)channel->userdata;
 	rpc_item->timestamp_msec = gmtimeMillisecond();
 	if (timeout_msec >= 0) {
 		RBTimerEvent_t* timeout_ev = (RBTimerEvent_t*)(rpc_item + 1);
@@ -60,7 +64,7 @@ static RpcItem_t* readyRpcItem(TaskThread_t* thrd, RpcItem_t* rpc_item, Channel_
 		}
 		rpc_item->timeout_ev = timeout_ev;
 	}
-	listPushNodeBack(&channel->rpc_itemlist, &rpc_item->listnode);
+	listPushNodeBack(&ud->rpc_itemlist, &rpc_item->listnode);
 	rpc_item->originator = channel;
 	return rpc_item;
 }
@@ -98,7 +102,8 @@ RpcItem_t* newRpcItemAsyncReady(TaskThread_t* thrd, Channel_t* channel, long lon
 void freeRpcItem(TaskThread_t* thrd, RpcItem_t* rpc_item) {
 	if (rpc_item->originator) {
 		Channel_t* channel = (Channel_t*)rpc_item->originator;
-		listRemoveNode(&channel->rpc_itemlist, &rpc_item->listnode);
+		ChannelUserData_t* ud = (ChannelUserData_t*)channel->userdata;
+		listRemoveNode(&ud->rpc_itemlist, &rpc_item->listnode);
 	}
 	if (rpc_item->timeout_ev)
 		rbtimerDelEvent(&thrd->rpc_timer, (RBTimerEvent_t*)rpc_item->timeout_ev);

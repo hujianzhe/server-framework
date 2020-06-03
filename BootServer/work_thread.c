@@ -149,7 +149,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				freeRpcItemWhenChannelDetach(thread, channel);
 
 				do {
-					Session_t* session = (Session_t*)channelSession(channel);
+					Session_t* session = channelSession(channel);
 					if (!session)
 						break;
 					sessionUnbindChannel(session, channel);

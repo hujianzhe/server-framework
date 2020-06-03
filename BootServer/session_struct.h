@@ -15,9 +15,6 @@ typedef struct Session_t {
 	RBTimerEvent_t* expire_timeout_ev;
 } Session_t;
 
-#define	channelSession(channel)		((channel)->userdata)
-#define	channelSessionId(channel)	((channel)->userid32)
-
 #ifdef __cplusplus
 extern "C" {
 #endif

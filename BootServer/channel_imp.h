@@ -4,6 +4,19 @@
 #include "util/inc/component/reactor.h"
 #include "util/inc/component/channel.h"
 
+struct Session_t;
+struct UserMsg_t;
+typedef struct ChannelUserData_t {
+	int session_id;
+	struct Session_t* session;
+	struct UserMsg_t*(*fn_new_msg)(ChannelInbufDecodeResult_t*);
+	List_t rpc_itemlist;
+	int ws_handshake_state;
+} ChannelUserData_t;
+
+#define	channelSession(channel)		(((ChannelUserData_t*)((channel)->userdata))->session)
+#define	channelSessionId(channel)	(((ChannelUserData_t*)((channel)->userdata))->session_id)
+
 #ifdef __cplusplus
 extern "C" {
 #endif

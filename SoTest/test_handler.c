@@ -59,7 +59,7 @@ void reqTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 }
 
 void notifyTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	Session_t* session = (Session_t*)channelSession(ctrl->channel);
+	Session_t* session = channelSession(ctrl->channel);
 	printf("recv server test notify, recv msec = %lld\n", gmtimeMillisecond());
 	// test code
 	if (thrd->f_rpc)

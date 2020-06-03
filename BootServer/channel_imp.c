@@ -24,10 +24,11 @@ static void defaultOnSynAck(ChannelBase_t* c, long long ts_msec) {
 
 void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	Channel_t* channel = pod_container_of(c, Channel_t, _);
+	ChannelUserData_t* ud = (ChannelUserData_t*)channel->userdata;
 	if (1 == c->connected_times) {
 		channelEnableHeartbeat(channel, ts_msec);
-		if (channel->rpc_itemlist.head) {
-			RpcItem_t* rpc_item = pod_container_of(channel->rpc_itemlist.head, RpcItem_t, listnode);
+		if (ud->rpc_itemlist.head) {
+			RpcItem_t* rpc_item = pod_container_of(ud->rpc_itemlist.head, RpcItem_t, listnode);
 			UserMsg_t* msg = newUserMsg(0);
 			msg->channel = channel;
 			msg->rpcid = rpc_item->id;
@@ -166,9 +167,22 @@ static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecode
 /**************************************************************************/
 
 Channel_t* openChannelInner(ReactorObject_t* o, int flag, const void* saddr) {
-	Channel_t* c = reactorobjectOpenChannel(o, flag, 0, saddr);
-	if (!c)
+	Channel_t* c;
+	ChannelUserData_t* ud = (ChannelUserData_t*)malloc(sizeof(ChannelUserData_t));
+	if (!ud)
 		return NULL;
+	c = reactorobjectOpenChannel(o, flag, 0, saddr);
+	if (!c) {
+		free(ud);
+		return NULL;
+	}
+	//
+	ud->session = NULL;
+	ud->fn_new_msg = NULL;
+	ud->ws_handshake_state = 0;
+	listInit(&ud->rpc_itemlist);
+	//
+	c->userdata = ud;
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
@@ -335,9 +349,22 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const void
 }
 
 Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const void* saddr) {
-	Channel_t* c = reactorobjectOpenChannel(o, flag, 0, saddr);
-	if (!c)
+	Channel_t* c;
+	ChannelUserData_t* ud = (ChannelUserData_t*)malloc(sizeof(ChannelUserData_t));
+	if (!ud)
 		return NULL;
+	c = reactorobjectOpenChannel(o, flag, 0, saddr);
+	if (!c) {
+		free(ud);
+		return NULL;
+	}
+	//
+	ud->session = NULL;
+	ud->fn_new_msg = NULL;
+	ud->ws_handshake_state = 0;
+	listInit(&ud->rpc_itemlist);
+	//
+	c->userdata = ud;
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
@@ -382,21 +409,24 @@ ReactorObject_t* openListenerHttp(const char* ip, unsigned short port) {
 /**************************************************************************/
 
 static unsigned int websocket_hdrsize(Channel_t* c, unsigned int bodylen) {
-	if (c->decode_userdata > (void*)(size_t)1)
+	ChannelUserData_t* ud = (ChannelUserData_t*)c->userdata;
+	if (ud->ws_handshake_state > 1)
 		return websocketframeEncodeHeadLength(bodylen);
 	else
 		return 0;
 }
 
 static void websocket_encode(Channel_t* c, unsigned char* hdr, unsigned int bodylen, unsigned char pktype, unsigned int pkseq) {
-	if (c->decode_userdata > (void*)(size_t)1)
+	ChannelUserData_t* ud = (ChannelUserData_t*)c->userdata;
+	if (ud->ws_handshake_state > 1)
 		websocketframeEncode(hdr, 1, WEBSOCKET_BINARY_FRAME, bodylen);
 	else
-		c->decode_userdata = (void*)(size_t)2;
+		ud->ws_handshake_state = 2;
 }
 
 static void websocket_decode(Channel_t* c, unsigned char* buf, size_t buflen, ChannelInbufDecodeResult_t* decode_result) {
-	if (c->decode_userdata >= (void*)(size_t)1) {
+	ChannelUserData_t* ud = (ChannelUserData_t*)c->userdata;
+	if (ud->ws_handshake_state >= 1) {
 		unsigned char* data;
 		unsigned long long datalen;
 		int is_fin, type;
@@ -436,7 +466,7 @@ static void websocket_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 			decode_result->ignore = 1;
 			decode_result->decodelen = res;
 			channelSend(c, txt, strlen(txt), NETPACKET_NO_ACK_FRAGMENT);
-			c->decode_userdata = (void*)(size_t)1;
+			ud->ws_handshake_state = 1;
 		}
 	}
 }
@@ -502,9 +532,22 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 }
 
 Channel_t* openChannelWebsocketServer(ReactorObject_t* o, const void* saddr) {
-	Channel_t* c = reactorobjectOpenChannel(o, CHANNEL_FLAG_SERVER, 0, saddr);
-	if (!c)
+	Channel_t* c;
+	ChannelUserData_t* ud = (ChannelUserData_t*)malloc(sizeof(ChannelUserData_t));
+	if (!ud)
 		return NULL;
+	c = reactorobjectOpenChannel(o, CHANNEL_FLAG_SERVER, 0, saddr);
+	if (!c) {
+		free(ud);
+		return NULL;
+	}
+	//
+	ud->session = NULL;
+	ud->fn_new_msg = NULL;
+	ud->ws_handshake_state = 0;
+	listInit(&ud->rpc_itemlist);
+	//
+	c->userdata = ud;
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;

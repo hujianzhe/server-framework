@@ -27,5 +27,5 @@ all:
 debug:
 	$(COMPILER) -fPIC -shared $(MACRO) -g $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)
 
-reliease:
+release:
 	$(COMPILER) -fPIC -shared $(MACRO) $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)

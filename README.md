@@ -20,7 +20,7 @@ TODO：
 
 编译:  
 windows直接VS编译，然后把需要的dll拷贝到对应服务目录下  
-linux下使用make debug 或 make reliease  
+linux下使用make debug 或 make release  
 
 启动：  
 编辑好服务启动需要的配置文件之后  

@@ -1,5 +1,5 @@
 #include "../BootServer/global.h"
-#include "../InnerProcHandle/inner_proc_cmd.h"
+#include "../ServiceCommCode/service_comm_cmd.h"
 #include "service_center_handler.h"
 
 void reqDistributeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {

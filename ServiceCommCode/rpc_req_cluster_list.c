@@ -1,5 +1,5 @@
-#include "inner_proc_cluster.h"
-#include "inner_proc_cmd.h"
+#include "service_comm_cmd.h"
+#include "service_comm_proc.h"
 
 static int ret_cluster_list(UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;

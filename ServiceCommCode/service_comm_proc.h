@@ -1,5 +1,5 @@
-#ifndef INNER_PROC_CLUSTER_H
-#define	INNER_PROC_CLUSTER_H
+#ifndef SERVICE_COMM_PROC_H
+#define	SERVICE_COMM_PROC_H
 
 #include "../BootServer/global.h"
 
@@ -18,4 +18,4 @@ __declspec_dllexport void distributeClusterList(TaskThread_t* thrd, UserMsg_t* c
 }
 #endif
 
-#endif // !INNER_PROC_CLUSTER_H
+#endif // !SERVICE_COMM_PROC_H

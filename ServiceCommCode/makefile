@@ -7,11 +7,14 @@ TARGET_PATH += .
 
 COMPILE_OPTION := -Wno-deprecated -Wno-parentheses
 MACRO := -D_REENTRANT
-DLL_PATH := -Wl,-E,-rpath,./:$(TARGET_PATH)
+#DLL_PATH := -Wl,-E,-rpath,./:$(TARGET_PATH)
 
 DEFAULT_LINK := -lpthread -lm -ldl
 ifeq ($(shell uname), Linux)
 DEFAULT_LINK += -lrt
+DLL_PATH := -Wl,-E,-rpath,./:$(TARGET_PATH)
+else
+DLL_PATH := -Wl,-rpath,./:$(TARGET_PATH)
 endif
 
 ifeq ($(SOURCE_CPP_FILE), "")
@@ -20,7 +23,7 @@ else
 COMPILER := gcc
 endif
 
-TARGET := $(TARGET_PATH)/libInnerProcHandle.so
+TARGET := $(TARGET_PATH)/libServiceCommCode.so
 
 all:
 

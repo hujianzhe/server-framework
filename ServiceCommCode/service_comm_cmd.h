@@ -1,5 +1,5 @@
-#ifndef INNER_PROC_CMD_H
-#define	INNER_PROC_CMD_H
+#ifndef SERVICE_COMM_CMD_H
+#define	SERVICE_COMM_CMD_H
 
 enum {
 	CMD_REQ_CLUSTER_LIST = -1,
@@ -7,4 +7,4 @@ enum {
 	CMD_DISTRIBUTE_CLUSTER_LIST = -3,
 };
 
-#endif // !INNER_PROC_CMD_H
+#endif // !SERVICE_COMM_CMD_H

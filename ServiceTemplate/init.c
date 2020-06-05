@@ -1,10 +1,10 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
-#include "../InnerProcHandle/inner_proc_cmd.h"
-#include "../InnerProcHandle/inner_proc_cluster.h"
+#include "../ServiceCommCode/service_comm_cmd.h"
+#include "../ServiceCommCode/service_comm_proc.h"
 
 #if defined(_WIN32) || defined(_WIN64)
-#pragma comment(lib, "InnerProcHandle.lib")
+#pragma comment(lib, "ServiceCommCode.lib")
 #endif
 
 static int service_center_check_connection_timeout_callback(RBTimer_t* timer, RBTimerEvent_t* e) {

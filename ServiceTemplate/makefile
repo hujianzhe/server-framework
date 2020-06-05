@@ -20,7 +20,7 @@ else
 COMPILER := gcc
 endif
 
-TARGET := $(TARGET_PATH)/libService.so
+TARGET := $(TARGET_PATH)/libServiceTemplate.so
 
 all:
 

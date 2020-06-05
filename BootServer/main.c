@@ -151,7 +151,7 @@ end:
 		freeTaskThread(g_TaskThread);
 	}
 	if (g_ModulePtr) {
-		moduleUnload(g_ModulePtr);
+		(void)moduleUnload(g_ModulePtr);
 	}
 	if (loginitok) {
 		logDestroy(&g_Log);

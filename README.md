@@ -18,6 +18,13 @@ TODO：
 4、有状态服务节点的扩容与缩容  
 5、利用本地消息表实现消息幂等  
 
+模块介绍：
+1、BootServer：进程启动的必备和重复操作  
+2、InnerProcHandler：简单集群节点启动后的操作，拉取整体集群整体信息的过程  
+3、Service：服务节点代码模板，包含了启动之后的必备操作，如拉取整体集群列表等  
+4、ServiceCenter：用于服务节点注册与修改下发  
+5、SoTest：测试节点，用于测试功能  
+
 编译:  
 windows直接VS编译，然后把需要的dll拷贝到对应服务目录下  
 linux下使用make debug 或 make release  

@@ -444,7 +444,7 @@ static void websocket_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 	else {
 		char* key;
 		unsigned int keylen;
-		int res = websocketframeDecodeHandshake(buf, buflen, &key, &keylen);
+		int res = websocketframeDecodeHandshake((char*)buf, buflen, &key, &keylen);
 		if (res < 0) {
 			decode_result->err = 1;
 		}

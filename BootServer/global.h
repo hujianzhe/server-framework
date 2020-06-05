@@ -10,6 +10,7 @@
 #include "session_struct.h"
 #include "work_thread.h"
 #include <stdlib.h>
+#include <string.h>
 
 extern int g_MainArgc;
 extern char** g_MainArgv;

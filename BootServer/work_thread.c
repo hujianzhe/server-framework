@@ -156,6 +156,8 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						if (!session)
 							break;
 						sessionUnbindChannel(session, channel);
+						if (session->disconnect)
+							session->disconnect(session);
 						if (session->persist)
 							break;
 						if (session->expire_timeout_msec > 0) {

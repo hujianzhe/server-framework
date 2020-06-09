@@ -10,6 +10,7 @@ typedef struct Session_t {
 	Channel_t* channel_server;
 	int id;
 	void* userdata;
+	void(*disconnect)(struct Session_t*);
 	void(*destroy)(struct Session_t*);
 	unsigned int expire_timeout_msec;
 	RBTimerEvent_t* expire_timeout_ev;

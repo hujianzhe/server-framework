@@ -22,6 +22,7 @@ Session_t* initSession(Session_t* session) {
 	session->channel_server = NULL;
 	session->id = 0;
 	session->userdata = NULL;
+	session->disconnect = NULL;
 	session->destroy = NULL;
 	session->expire_timeout_msec = 0;
 	session->expire_timeout_ev = NULL;

@@ -249,7 +249,7 @@ Cluster_t* targetCluster(ClusterGroup_t* grp, int mode, unsigned int key) {
 			return NULL;
 		cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
 	}
-	else if (CLUSTER_TARGET_USE_LOOP == mode) {
+	else if (CLUSTER_TARGET_USE_ROUND_ROBIN == mode) {
 		ListNode_t* cur;
 		unsigned int i;
 		if (++grp->target_loopcnt >= grp->clusterlistcnt) {

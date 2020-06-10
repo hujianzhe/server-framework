@@ -33,7 +33,7 @@ extern int g_ClusterTableVersion;
 
 #define	CLUSTER_TARGET_USE_HASH_RING	0
 #define	CLUSTER_TARGET_USE_HASH_MOD		1
-#define	CLUSTER_TARGET_USE_LOOP			2
+#define	CLUSTER_TARGET_USE_ROUND_ROBIN	2
 
 #ifdef __cplusplus
 extern "C" {

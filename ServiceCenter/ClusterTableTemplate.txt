@@ -1,0 +1,17 @@
+{
+	"version" : 1,
+	"clusters" : [
+		{
+			"name" : "test",
+			"socktype" : "SOCK_DGRAM",
+			"ip" : "172.26.164.17",
+			"port" : 51000
+		},
+		{
+			"name" : "test",
+			"socktype" : "SOCK_DGRAM",
+			"ip" : "172.26.164.17",
+			"port" : 52000
+		}
+	]
+}

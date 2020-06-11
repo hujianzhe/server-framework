@@ -31,7 +31,7 @@ void distributeClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 
 	for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
 		Cluster_t* cluster;
-		cJSON* name, *socktype, *ip, *port, *hashkey_array;
+		cJSON* name, *socktype, *ip, *port, *hashkey_array, *weight_num;
 
 		name = cJSON_Field(cjson_cluster, "name");
 		if (!name || !name->valuestring || !name->valuestring[0])
@@ -45,11 +45,15 @@ void distributeClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		socktype = cJSON_Field(cjson_cluster, "socktype");
 		if (!socktype)
 			continue;
+		weight_num = cJSON_Field(cjson_cluster, "weight_num");
 		hashkey_array = cJSON_Field(cjson_cluster, "hash_key");
 
 		cluster = newCluster(if_string2socktype(socktype->valuestring), ip->valuestring, port->valueint);
 		if (!cluster)
 			goto err;
+		if (weight_num) {
+			cluster->weight_num = weight_num->valueint;
+		}
 		if (hashkey_array) {
 			int hashkey_arraylen = cJSON_Size(hashkey_array);
 			if (hashkey_arraylen > 0) {
@@ -89,8 +93,11 @@ void distributeClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 			}
 		}
 		if (getClusterSelf() == old_cluster) {
-			if (new_cluster)
+			if (new_cluster) {
+				new_cluster->weight_num = old_cluster->weight_num;
+				new_cluster->connection_num = old_cluster->connection_num;
 				setClusterSelf(new_cluster);
+			}
 			else
 				unregCluster(ptr_g_ClusterTable(), old_cluster);
 		}

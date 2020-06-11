@@ -79,6 +79,8 @@ Cluster_t* newCluster(int socktype, IPString_t ip, unsigned short port) {
 		cluster->port = port;
 		cluster->hashkey = NULL;
 		cluster->hashkey_cnt = 0;
+		cluster->weight_num = 0;
+		cluster->connection_num = 0;
 	}
 	return cluster;
 }
@@ -234,11 +236,11 @@ void freeClusterTable(struct ClusterTable_t* t) {
 }
 
 Cluster_t* targetCluster(ClusterGroup_t* grp, int mode, unsigned int key) {
-	Cluster_t* cluster;
+	Cluster_t* dst_cluster;
 	if (!grp)
 		return NULL;
 	if (CLUSTER_TARGET_USE_HASH_RING == mode) {
-		cluster = (Cluster_t*)consistenthashSelect(&grp->consistent_hash, key);
+		dst_cluster = (Cluster_t*)consistenthashSelect(&grp->consistent_hash, key);
 	}
 	else if (CLUSTER_TARGET_USE_HASH_MOD == mode) {
 		ListNode_t* cur;
@@ -247,7 +249,7 @@ Cluster_t* targetCluster(ClusterGroup_t* grp, int mode, unsigned int key) {
 		for (i = 0, cur = grp->clusterlist.head; cur && i < key; cur = cur->next, ++i);
 		if (!cur)
 			return NULL;
-		cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
+		dst_cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
 	}
 	else if (CLUSTER_TARGET_USE_ROUND_ROBIN == mode) {
 		ListNode_t* cur;
@@ -258,12 +260,50 @@ Cluster_t* targetCluster(ClusterGroup_t* grp, int mode, unsigned int key) {
 		for (i = 0, cur = grp->clusterlist.head; cur && i < grp->target_loopcnt; cur = cur->next, ++i);
 		if (!cur)
 			return NULL;
-		cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
+		dst_cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
+	}
+	else if (CLUSTER_TARGET_USE_WEIGHT_NUM == mode) {
+		static int mt_seedval = 1;
+		int random_val;
+		RandMT19937_t mt_ctx;
+		int weight_num = 0;
+		ListNode_t* cur;
+		for (cur = grp->clusterlist.head; cur; cur = cur->next) {
+			Cluster_t* exist_cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
+			if (exist_cluster->weight_num <= 0)
+				continue;
+			weight_num += exist_cluster->weight_num;
+		}
+		if (0 == weight_num)
+			return NULL;
+		mt19937Seed(&mt_ctx, mt_seedval++);
+		random_val = mt19937Range(&mt_ctx, 0, weight_num);
+		weight_num = 0;
+		dst_cluster = NULL;
+		for (cur = grp->clusterlist.head; cur; cur = cur->next) {
+			Cluster_t* exist_cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
+			if (exist_cluster->weight_num <= 0)
+				continue;
+			weight_num += exist_cluster->weight_num;
+			if (random_val < weight_num) {
+				dst_cluster = exist_cluster;
+				break;
+			}
+		}
+	}
+	else if (CLUSTER_TARGET_USE_CONNECT_NUM == mode) {
+		ListNode_t* cur;
+		dst_cluster = NULL;
+		for (cur = grp->clusterlist.head; cur; cur = cur->next) {
+			Cluster_t* exist_cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
+			if (!dst_cluster || dst_cluster->connection_num > exist_cluster->connection_num)
+				dst_cluster = exist_cluster;
+		}
 	}
 	else {
 		return NULL;
 	}
-	return cluster;
+	return dst_cluster;
 }
 
 #ifdef __cplusplus

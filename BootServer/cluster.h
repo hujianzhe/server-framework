@@ -23,6 +23,8 @@ typedef struct Cluster_t {
 	unsigned short port;
 	unsigned int* hashkey;
 	unsigned int hashkey_cnt;
+	int weight_num;
+	int connection_num;
 } Cluster_t;
 
 struct ClusterTable_t;
@@ -31,9 +33,11 @@ extern Cluster_t* g_ClusterSelf;
 extern struct ClusterTable_t* g_ClusterTable;
 extern int g_ClusterTableVersion;
 
-#define	CLUSTER_TARGET_USE_HASH_RING	0
 #define	CLUSTER_TARGET_USE_HASH_MOD		1
-#define	CLUSTER_TARGET_USE_ROUND_ROBIN	2
+#define	CLUSTER_TARGET_USE_HASH_RING	2
+#define	CLUSTER_TARGET_USE_ROUND_ROBIN	3
+#define	CLUSTER_TARGET_USE_WEIGHT_NUM	4
+#define	CLUSTER_TARGET_USE_CONNECT_NUM	5
 
 #ifdef __cplusplus
 extern "C" {

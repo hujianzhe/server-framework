@@ -21,6 +21,7 @@ void reqDistributeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		cJSON_AddNewString(cjson_cluster, "ip", cluster->ip);
 		cJSON_AddNewNumber(cjson_cluster, "port", cluster->port);
 		cJSON_AddNewString(cjson_cluster, "socktype", if_socktype2tring(cluster->socktype));
+		cJSON_AddNewNumber(cjson_cluster, "weight_num", cluster->weight_num);
 	}
 	ret_data = cJSON_Print(root);
 	cJSON_Delete(root);

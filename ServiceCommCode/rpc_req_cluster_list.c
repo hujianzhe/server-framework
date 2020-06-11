@@ -28,7 +28,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	cluster_self_find = 0;
 	for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
 		Cluster_t* cluster;
-		cJSON* name, *socktype, *ip, *port;
+		cJSON* name, *socktype, *ip, *port, *weight_num;
 		name = cJSON_Field(cjson_cluster, "name");
 		if (!name)
 			continue;
@@ -41,6 +41,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 		port = cJSON_Field(cjson_cluster, "port");
 		if (!port)
 			continue;
+		weight_num = cJSON_Field(cjson_cluster, "weight_num");
 		if (!strcmp(if_socktype2tring(getClusterSelf()->socktype), socktype->valuestring) &&
 			!strcmp(getClusterSelf()->ip, ip->valuestring) &&
 			getClusterSelf()->port == port->valueint)
@@ -53,6 +54,9 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 			if (!cluster) {
 				break;
 			}
+		}
+		if (weight_num) {
+			cluster->weight_num = weight_num;
 		}
 		if (!regCluster(ptr_g_ClusterTable(), name->valuestring, cluster)) {
 			freeCluster(cluster);

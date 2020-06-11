@@ -43,6 +43,7 @@ void reqClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		cJSON_AddNewString(cjson_ret_object_cluster, "ip", exist_cluster->ip);
 		cJSON_AddNewNumber(cjson_ret_object_cluster, "port", exist_cluster->port);
 		cJSON_AddNewString(cjson_ret_object_cluster, "socktype", if_socktype2tring(exist_cluster->socktype));
+		cJSON_AddNewNumber(cjson_ret_object_cluster, "weight_num", exist_cluster->weight_num);
 	}
 	if (lnode) {
 		cJSON_Delete(cjson_ret_root);

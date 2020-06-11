@@ -35,7 +35,7 @@ void reqChangeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 
 	for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
 		Cluster_t* cluster;
-		cJSON* name, *socktype, *ip, *port, *hashkey_array;
+		cJSON* name, *socktype, *ip, *port, *hashkey_array, *weight_num;
 
 		name = cJSON_Field(cjson_cluster, "name");
 		if (!name || !name->valuestring || !name->valuestring[0])
@@ -49,6 +49,7 @@ void reqChangeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		socktype = cJSON_Field(cjson_cluster, "socktype");
 		if (!socktype)
 			continue;
+		weight_num = cJSON_Field(cjson_cluster, "weight_num");
 		hashkey_array = cJSON_Field(cjson_cluster, "hash_key");
 
 		cluster = newCluster(if_string2socktype(socktype->valuestring), ip->valuestring, port->valueint);
@@ -68,6 +69,9 @@ void reqChangeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 					ptr_key_array[i] = key->valueint;
 				}
 			}
+		}
+		if (weight_num) {
+			cluster->weight_num = weight_num->valueint;
 		}
 		if (!regCluster(table, name->valuestring, cluster)) {
 			freeCluster(cluster);

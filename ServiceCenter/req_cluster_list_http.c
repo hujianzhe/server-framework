@@ -14,6 +14,8 @@ void reqClusterList_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON_AddNewNumber(root, "version", getClusterTableVersion());
 	cluster_array = cJSON_AddNewArray(root, "clusters");
 	for (node = getClusterList(ptr_g_ClusterTable())->head; node; node = node->next) {
+		unsigned int i;
+		cJSON* cjson_hashkey_arr;
 		Cluster_t* cluster = pod_container_of(node, Cluster_t, m_listnode);
 		cJSON* cjson_cluster = cJSON_AddNewObject(cluster_array, NULL);
 		cJSON_AddNewString(cjson_cluster, "name", cluster->name);
@@ -21,6 +23,12 @@ void reqClusterList_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		cJSON_AddNewNumber(cjson_cluster, "port", cluster->port);
 		cJSON_AddNewNumber(cjson_cluster, "weight_num", cluster->weight_num);
 		cJSON_AddNewNumber(cjson_cluster, "is_online", sessionChannel(&cluster->session) != NULL);
+		cjson_hashkey_arr = cJSON_AddNewArray(cjson_cluster, "hash_key");
+		if (cjson_hashkey_arr) {
+			for (i = 0; i < cluster->hashkey_cnt; ++i) {
+				cJSON_AddNewNumber(cjson_hashkey_arr, NULL, cluster->hashkey[i]);
+			}
+		}
 	}
 	ret_data = cJSON_PrintFormatted(root);
 	reply = strFormat(&reply_len, HTTP_SIMPLE_RESP_FMT, HTTP_SIMPLE_RESP_VALUE(200, ret_data, strlen(ret_data)));

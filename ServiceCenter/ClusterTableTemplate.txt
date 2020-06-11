@@ -5,13 +5,17 @@
 			"name" : "test",
 			"socktype" : "SOCK_DGRAM",
 			"ip" : "172.26.164.17",
-			"port" : 51000
+			"port" : 51000,
+			"weight_num" : 1,
+			"hash_key" : []
 		},
 		{
 			"name" : "test",
 			"socktype" : "SOCK_DGRAM",
 			"ip" : "172.26.164.17",
-			"port" : 52000
+			"port" : 52000,
+			"weight_num" : 1,
+			"hash_key" : []
 		}
 	]
 }

@@ -16,6 +16,7 @@ void reqClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {
+		logErr(ptr_g_Log(), "%s: cJSON_Parse err", __FUNCTION__);
 		retcode = 1;
 		goto err;
 	}

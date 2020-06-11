@@ -115,7 +115,7 @@ int rpcReqClusterList(TaskThread_t* thrd, Cluster_t* sc_cluster) {
 		logErr(ptr_g_Log(), "regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList) failure");
 		return 0;
 	}
-	req_data = strFormat(&req_datalen, "{\"ip\":\"%s\",\"port\":%u, \"socktype\":%s}",
+	req_data = strFormat(&req_datalen, "{\"ip\":\"%s\",\"port\":%u, \"socktype\":\"%s\"}",
 		getClusterSelf()->ip, getClusterSelf()->port, if_socktype2string(getClusterSelf()->socktype));
 	if (!req_data) {
 		return 0;

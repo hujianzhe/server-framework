@@ -15,6 +15,7 @@ void reqDistributeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON_AddNewNumber(root, "version", getClusterTableVersion());
 	cluster_array = cJSON_AddNewArray(root, "clusters");
 	for (node = getClusterList(ptr_g_ClusterTable())->head; node; node = node->next) {
+		cJSON* cjson_hashkey_arr;
 		Cluster_t* cluster = pod_container_of(node, Cluster_t, m_listnode);
 		cJSON* cjson_cluster = cJSON_AddNewObject(cluster_array, NULL);
 		cJSON_AddNewString(cjson_cluster, "name", cluster->name);
@@ -22,6 +23,13 @@ void reqDistributeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		cJSON_AddNewNumber(cjson_cluster, "port", cluster->port);
 		cJSON_AddNewString(cjson_cluster, "socktype", if_socktype2string(cluster->socktype));
 		cJSON_AddNewNumber(cjson_cluster, "weight_num", cluster->weight_num);
+		cjson_hashkey_arr = cJSON_AddNewArray(cjson_cluster, "hash_key");
+		if (cjson_hashkey_arr) {
+			unsigned int i;
+			for (i = 0; i < cluster->hashkey_cnt; ++i) {
+				cJSON_AddNewNumber(cjson_hashkey_arr, NULL, cluster->hashkey[i]);
+			}
+		}
 	}
 	ret_data = cJSON_Print(root);
 	cJSON_Delete(root);

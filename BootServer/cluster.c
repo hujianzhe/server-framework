@@ -244,20 +244,18 @@ Cluster_t* targetCluster(ClusterGroup_t* grp, int mode, unsigned int key) {
 	}
 	else if (CLUSTER_TARGET_USE_HASH_MOD == mode) {
 		ListNode_t* cur;
-		unsigned int i;
 		key %= grp->clusterlistcnt;
-		for (i = 0, cur = grp->clusterlist.head; cur && i < key; cur = cur->next, ++i);
+		cur = listAt(&grp->clusterlist, key);
 		if (!cur)
 			return NULL;
 		dst_cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
 	}
 	else if (CLUSTER_TARGET_USE_ROUND_ROBIN == mode) {
 		ListNode_t* cur;
-		unsigned int i;
 		if (++grp->target_loopcnt >= grp->clusterlistcnt) {
 			grp->target_loopcnt = 0;
 		}
-		for (i = 0, cur = grp->clusterlist.head; cur && i < grp->target_loopcnt; cur = cur->next, ++i);
+		cur = listAt(&grp->clusterlist, grp->target_loopcnt);
 		if (!cur)
 			return NULL;
 		dst_cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);

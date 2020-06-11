@@ -21,7 +21,7 @@ int loadClusterNode(const char* data) {
 	}
 	for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
 		Cluster_t* cluster;
-		cJSON* name, *socktype, *ip, *port, *hashkey_array;
+		cJSON* name, *socktype, *ip, *port, *hashkey_array, *weight_num;
 
 		name = cJSON_Field(cjson_cluster, "name");
 		if (!name || !name->valuestring || !name->valuestring[0])
@@ -35,6 +35,7 @@ int loadClusterNode(const char* data) {
 		socktype = cJSON_Field(cjson_cluster, "socktype");
 		if (!socktype)
 			continue;
+		weight_num = cJSON_Field(cjson_cluster, "weight_num");
 		hashkey_array = cJSON_Field(cjson_cluster, "hash_key");
 
 		cluster = getCluster(ptr_g_ClusterTable(), name->valuestring, ip->valuestring, port->valueint);
@@ -43,6 +44,9 @@ int loadClusterNode(const char* data) {
 		cluster = newCluster(if_string2socktype(socktype->valuestring), ip->valuestring, port->valueint);
 		if (!cluster)
 			continue;
+		if (weight_num) {
+			cluster->weight_num = weight_num->valueint;
+		}
 		if (hashkey_array) {
 			int hashkey_arraylen = cJSON_Size(hashkey_array);
 			if (hashkey_arraylen > 0) {

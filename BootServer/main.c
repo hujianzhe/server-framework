@@ -163,6 +163,7 @@ end:
 		freeGlobalResource();
 	}
 	freeDispatchCallback();
-	freeClusterTable(g_ClusterTable);
+	if (g_ClusterTable)
+		freeClusterTable(g_ClusterTable);
 	return 0;
 }

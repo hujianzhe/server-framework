@@ -28,7 +28,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	cluster_self_find = 0;
 	for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
 		Cluster_t* cluster;
-		cJSON* name, *socktype, *ip, *port, *weight_num;
+		cJSON* name, *socktype, *ip, *port, *hashkey_array, *weight_num;
 		name = cJSON_Field(cjson_cluster, "name");
 		if (!name)
 			continue;
@@ -42,6 +42,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 		if (!port)
 			continue;
 		weight_num = cJSON_Field(cjson_cluster, "weight_num");
+		hashkey_array = cJSON_Field(cjson_cluster, "hash_key");
 		if (!strcmp(if_socktype2string(getClusterSelf()->socktype), socktype->valuestring) &&
 			!strcmp(getClusterSelf()->ip, ip->valuestring) &&
 			getClusterSelf()->port == port->valueint)
@@ -57,6 +58,21 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 		}
 		if (weight_num) {
 			cluster->weight_num = weight_num->valueint;
+		}
+		if (hashkey_array) {
+			int hashkey_arraylen = cJSON_Size(hashkey_array);
+			if (hashkey_arraylen > 0) {
+				int i;
+				cJSON* key;
+				unsigned int* ptr_key_array = reallocClusterHashKey(cluster, hashkey_arraylen);
+				if (!ptr_key_array) {
+					goto err;
+					continue;
+				}
+				for (i = 0, key = hashkey_array->child; key && i < hashkey_arraylen; key = key->next, ++i) {
+					ptr_key_array[i] = key->valueint;
+				}
+			}
 		}
 		if (!regCluster(ptr_g_ClusterTable(), name->valuestring, cluster)) {
 			freeCluster(cluster);

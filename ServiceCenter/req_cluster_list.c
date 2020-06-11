@@ -6,7 +6,7 @@
 void reqClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
 	cJSON *cjson_ret_root, *cjson_ret_array_cluster;
-	cJSON *cjson_ip, *cjson_port;
+	cJSON *cjson_ip, *cjson_port, *cjson_socktype;
 	SendMsg_t ret_msg;
 	char* ret_data;
 	ListNode_t* lnode;
@@ -30,20 +30,31 @@ void reqClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		retcode = 1;
 		goto err;
 	}
+	cjson_socktype = cJSON_Field(cjson_req_root, "socktype");
+	if (!cjson_socktype) {
+		retcode = 1;
+		goto err;
+	}
 
 	cjson_ret_root = cJSON_NewObject(NULL);
 	cJSON_AddNewNumber(cjson_ret_root, "version", getClusterTableVersion());
 	cjson_ret_array_cluster = cJSON_AddNewArray(cjson_ret_root, "clusters");
 	for (lnode = getClusterList(ptr_g_ClusterTable())->head; lnode; lnode = lnode->next) {
-		Cluster_t* exist_cluster = pod_container_of(lnode, Cluster_t, m_listnode);
+		Cluster_t* cluster = pod_container_of(lnode, Cluster_t, m_listnode);
 		cJSON* cjson_ret_object_cluster = cJSON_AddNewObject(cjson_ret_array_cluster, NULL);
 		if (!cjson_ret_object_cluster)
 			break;
-		cJSON_AddNewString(cjson_ret_object_cluster, "name", exist_cluster->name);
-		cJSON_AddNewString(cjson_ret_object_cluster, "ip", exist_cluster->ip);
-		cJSON_AddNewNumber(cjson_ret_object_cluster, "port", exist_cluster->port);
-		cJSON_AddNewString(cjson_ret_object_cluster, "socktype", if_socktype2tring(exist_cluster->socktype));
-		cJSON_AddNewNumber(cjson_ret_object_cluster, "weight_num", exist_cluster->weight_num);
+		cJSON_AddNewString(cjson_ret_object_cluster, "name", cluster->name);
+		cJSON_AddNewString(cjson_ret_object_cluster, "ip", cluster->ip);
+		cJSON_AddNewNumber(cjson_ret_object_cluster, "port", cluster->port);
+		cJSON_AddNewString(cjson_ret_object_cluster, "socktype", if_socktype2string(cluster->socktype));
+		cJSON_AddNewNumber(cjson_ret_object_cluster, "weight_num", cluster->weight_num);
+		if (!strcmp(cluster->ip, cjson_ip->valuestring) &&
+			cluster->port == cjson_port->valueint &&
+			cluster->socktype == if_string2socktype(cjson_socktype->valuestring))
+		{
+			sessionChannelReplaceServer(&cluster->session, ctrl->channel);
+		}
 	}
 	if (lnode) {
 		cJSON_Delete(cjson_ret_root);

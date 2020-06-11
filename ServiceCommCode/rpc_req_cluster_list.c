@@ -42,7 +42,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 		if (!port)
 			continue;
 		weight_num = cJSON_Field(cjson_cluster, "weight_num");
-		if (!strcmp(if_socktype2tring(getClusterSelf()->socktype), socktype->valuestring) &&
+		if (!strcmp(if_socktype2string(getClusterSelf()->socktype), socktype->valuestring) &&
 			!strcmp(getClusterSelf()->ip, ip->valuestring) &&
 			getClusterSelf()->port == port->valueint)
 		{
@@ -102,8 +102,8 @@ static int start_req_cluster_list(TaskThread_t* thrd, Channel_t* channel) {
 	SendMsg_t msg;
 	char* req_data;
 	int req_datalen;
-	req_data = strFormat(&req_datalen, "{\"ip\":\"%s\",\"port\":%u}",
-		getClusterSelf()->ip, getClusterSelf()->port);
+	req_data = strFormat(&req_datalen, "{\"ip\":\"%s\",\"port\":%u, \"socktype\":%s}",
+		getClusterSelf()->ip, getClusterSelf()->port, if_socktype2string(getClusterSelf()->socktype));
 	if (!req_data) {
 		return 0;
 	}

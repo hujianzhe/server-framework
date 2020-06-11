@@ -56,7 +56,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 			}
 		}
 		if (weight_num) {
-			cluster->weight_num = weight_num;
+			cluster->weight_num = weight_num->valueint;
 		}
 		if (!regCluster(ptr_g_ClusterTable(), name->valuestring, cluster)) {
 			freeCluster(cluster);

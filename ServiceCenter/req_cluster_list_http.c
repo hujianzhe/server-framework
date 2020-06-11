@@ -19,6 +19,7 @@ void reqClusterList_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		cJSON_AddNewString(cjson_cluster, "name", cluster->name);
 		cJSON_AddNewString(cjson_cluster, "ip", cluster->ip);
 		cJSON_AddNewNumber(cjson_cluster, "port", cluster->port);
+		cJSON_AddNewNumber(cjson_cluster, "weight_num", cluster->weight_num);
 		cJSON_AddNewNumber(cjson_cluster, "is_online", sessionChannel(&cluster->session) != NULL);
 	}
 	ret_data = cJSON_PrintFormatted(root);

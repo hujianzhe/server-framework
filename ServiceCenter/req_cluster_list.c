@@ -1,7 +1,6 @@
 #include "../BootServer/global.h"
 #include "../ServiceCommCode/service_comm_cmd.h"
 #include "service_center_handler.h"
-#include <stdio.h>
 
 void reqClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON* cjson_req_root;
@@ -12,7 +11,7 @@ void reqClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	ListNode_t* lnode;
 	int retcode = 0;
 
-	logInfo(ptr_g_Log(), "req: %s", (char*)(ctrl->data));
+	logInfo(ptr_g_Log(), "%s req: %s", __FUNCTION__, (char*)(ctrl->data));
 
 	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_req_root) {

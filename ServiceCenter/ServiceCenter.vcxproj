@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="req_change_cluster_list_http.c" />
     <ClCompile Include="load_cluster_node.c" />
+    <ClCompile Include="req_cluster_heartbeat.c" />
     <ClCompile Include="req_cluster_list.c" />
     <ClCompile Include="req_cluster_list_http.c" />
     <ClCompile Include="init.c" />

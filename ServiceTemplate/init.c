@@ -7,14 +7,33 @@
 #pragma comment(lib, "ServiceCommCode.lib")
 #endif
 
-static int service_center_check_connection_timeout_callback(RBTimer_t* timer, RBTimerEvent_t* e) {
-	ClusterGroup_t* sc_grp;
-	Cluster_t* sc_cluster;
-	sc_grp = getClusterGroup(ptr_g_ClusterTable() , "ServiceCenter");
-	sc_cluster = pod_container_of(sc_grp->clusterlist.head, Cluster_t, m_grp_listnode);
-	clusterChannel(sc_cluster);
-
+static int service_center_check_connection_timeout_callback(RBTimer_t* timer, RBTimerEvent_t* e) {	
 	logInfo(ptr_g_Log(), __FUNCTION__);
+
+	do {
+		SendMsg_t msg;
+		Channel_t* sc_channel;
+		ClusterGroup_t* sc_grp;
+		Cluster_t* sc_cluster;
+
+		char* req_data;
+		int req_datalen;
+
+		sc_grp = getClusterGroup(ptr_g_ClusterTable(), "ServiceCenter");
+		if (!sc_grp)
+			break;
+		sc_cluster = pod_container_of(sc_grp->clusterlist.head, Cluster_t, m_grp_listnode);
+		sc_channel = clusterChannel(sc_cluster);
+		if (!sc_channel)
+			break;
+		req_data = strFormat(&req_datalen, "{\"ip\":\"%s\",\"port\":%u,\"weight_num\":%d,\"connection_num\":%d}",
+			getClusterSelf()->ip, getClusterSelf()->port, getClusterSelf()->weight_num, getClusterSelf()->connection_num);
+		if (!req_data)
+			break;
+		makeSendMsg(&msg, CMD_CLUSTER_HEARTBEAT, req_data, req_datalen);
+		channelSendv(sc_channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		free(req_data);
+	} while (0);
 
 	e->timestamp_msec = gmtimeMillisecond() + 1000 * 60;
 	rbtimerAddEvent(timer, e);

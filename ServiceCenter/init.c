@@ -30,6 +30,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	regStringDispatch("/get_cluster_list", reqClusterList_http);
 	regStringDispatch("/change_cluster_list", reqChangeClusterNode_http);
 	regNumberDispatch(CMD_REQ_CLUSTER_LIST, reqClusterList);
+	regNumberDispatch(CMD_CLUSTER_HEARTBEAT, reqClusterHeartbeat);
 
 	// listen port
 	if (getClusterSelf()->port) {

@@ -119,13 +119,10 @@ extern "C" {
 #endif
 
 int rpcReqClusterList(TaskThread_t* thrd, Cluster_t* sc_cluster) {
-	Sockaddr_t connect_addr;
-	ReactorObject_t* o;
 	Channel_t* c;
 	SendMsg_t msg;
 	char* req_data;
 	int req_datalen;
-	int domain;
 
 	if (!regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList)) {
 		logErr(ptr_g_Log(), "regNumberDispatch(CMD_RET_CLUSTER_LIST, retClusterList) failure");
@@ -137,20 +134,12 @@ int rpcReqClusterList(TaskThread_t* thrd, Cluster_t* sc_cluster) {
 		return 0;
 	}
 
-
-	domain = ipstrFamily(sc_cluster->ip);
-	if (!sockaddrEncode(&connect_addr.st, domain, sc_cluster->ip, sc_cluster->port))
-		return 0;
-	o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.st.ss_family, sc_cluster->socktype, 0);
-	if (!o)
-		return 0;
-	c = openChannelInner(o, CHANNEL_FLAG_CLIENT, &connect_addr);
+	c = clusterConnect(sc_cluster);
 	if (!c) {
-		reactorCommitCmd(NULL, &o->freecmd);
+		logErr(ptr_g_Log(), "channel connecting ServiceCenter, ip:%s, port:%u err ......",
+			sc_cluster->ip, sc_cluster->port);
 		return 0;
 	}
-	sessionChannelReplaceClient(&sc_cluster->session, c);
-	reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
 
 	logInfo(ptr_g_Log(), "channel connecting ServiceCenter, ip:%s, port:%u, and ReqClusterList ......",
 		sc_cluster->ip, sc_cluster->port);

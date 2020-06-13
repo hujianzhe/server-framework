@@ -94,7 +94,7 @@ void freeCluster(Cluster_t* cluster) {
 	}
 }
 
-Channel_t* clusterChannel(Cluster_t* cluster) {
+Channel_t* clusterConnect(Cluster_t* cluster) {
 	Channel_t* channel;
 	if (cluster == g_ClusterSelf)
 		return NULL;

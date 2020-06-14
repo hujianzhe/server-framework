@@ -28,6 +28,7 @@ UserMsg_t* newUserMsg(size_t datalen) {
 		msg->internal.type = REACTOR_USER_CMD;
 		msg->channel = NULL;
 		msg->peer_addr.sa.sa_family = AF_UNSPEC;
+		msg->be_from_cluster = 0;
 		msg->httpframe = NULL;
 		msg->cmdstr = NULL;
 		msg->datalen = datalen;

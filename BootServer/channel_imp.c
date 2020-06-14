@@ -145,6 +145,7 @@ static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecode
 		if (!message) {
 			return;
 		}
+		message->be_from_cluster = 1;
 		message->channel = c;
 		if (!(c->_.flag & CHANNEL_FLAG_STREAM)) {
 			memcpy(&message->peer_addr, addr, sockaddrLength(addr));

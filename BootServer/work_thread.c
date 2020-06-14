@@ -144,7 +144,12 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					}
 					continue;
 				}
-				else if (thread->f_rpc) {
+				if (ctrl->be_from_cluster) {
+					Session_t* session = channelSession(ctrl->channel);
+					if (session && session->channel_client)
+						ctrl->channel = session->channel_client;
+				}
+				if (thread->f_rpc) {
 					if ('T' == ctrl->rpc_status) {
 						RpcItem_t* rpc_item = rpcFiberCoreResume(thread->f_rpc, ctrl->rpcid, ctrl);
 						free(ctrl);

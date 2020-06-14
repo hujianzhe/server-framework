@@ -9,6 +9,7 @@ typedef struct UserMsg_t {
 	ReactorCmd_t internal;
 	Channel_t* channel;
 	Sockaddr_t peer_addr;
+	int be_from_cluster;
 	HttpFrame_t* httpframe;
 	const char* cmdstr;
 	char rpc_status;

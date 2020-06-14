@@ -25,7 +25,10 @@ int initConfig(const char* path) {
 			break;
 		}
 		else {
-			cJSON *socktype, *ip, *port;
+			cJSON *name, *socktype, *ip, *port;
+			name = cJSON_Field(cjson, "name");
+			if (!name)
+				break;
 			socktype = cJSON_Field(cjson, "socktype");
 			if (!socktype)
 				break;
@@ -34,6 +37,9 @@ int initConfig(const char* path) {
 				break;
 			port = cJSON_Field(cjson, "port");
 			if (!port)
+				break;
+			g_Config.cluster.name = strdup(name->valuestring);
+			if (!g_Config.cluster.name)
 				break;
 			g_Config.cluster.socktype = if_string2socktype(socktype->valuestring);
 			strcpy(g_Config.cluster.ip, ip->valuestring);
@@ -189,6 +195,8 @@ void freeConfig(void) {
 	for (i = 0; i < g_Config.connect_options_cnt; ++i) {
 		free((char*)g_Config.connect_options[i].protocol);
 	}
+	free((char*)g_Config.cluster.name);
+	g_Config.cluster.name = NULL;
 	free(g_Config.connect_options);
 	g_Config.connect_options = NULL;
 	g_Config.connect_options_cnt = 0;

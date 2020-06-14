@@ -107,7 +107,7 @@ Channel_t* clusterConnect(Cluster_t* cluster) {
 		ReactorObject_t* o;
 
 		hs_data = strFormat(&hs_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"socktype\":\"%s\"}",
-			g_ClusterSelf->name, g_ClusterSelf->ip, g_ClusterSelf->port, if_socktype2string(g_ClusterSelf->socktype));
+			g_Config.cluster.name, g_ClusterSelf->ip, g_ClusterSelf->port, if_socktype2string(g_ClusterSelf->socktype));
 		if (!hs_data)
 			return NULL;
 

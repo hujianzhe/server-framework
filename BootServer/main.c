@@ -78,7 +78,8 @@ int main(int argc, char** argv) {
 	if (!g_ClusterSelf)
 		goto err;
 
-	printf("cluster(%s) ip:%s, port:%u, pid:%zu\n", module_path, g_ClusterSelf->ip, g_ClusterSelf->port, processId());
+	printf("cluster(%s) name:%s, ip:%s, port:%u, pid:%zu\n",
+		module_path, g_Config.cluster.name, g_ClusterSelf->ip, g_ClusterSelf->port, processId());
 	// init resource
 	if (!initGlobalResource()) {
 		goto err;

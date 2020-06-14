@@ -61,14 +61,16 @@ void sessionChannelReplaceServer(Session_t* session, Channel_t* channel) {
 	}
 }
 
-void sessionUnbindChannel(Session_t* session, Channel_t* channel) {
-	if (channelSession(channel) == session) {
-		if (session->channel_client == channel)
-			session->channel_client = NULL;
-		if (session->channel_server == channel)
-			session->channel_server = NULL;
-		channelSession(channel) = NULL;
-		channelSessionId(channel) = 0;
+void sessionUnbindChannel(Session_t* session) {
+	if (session->channel_client) {
+		channelSession(session->channel_client) = NULL;
+		channelSessionId(session->channel_client) = 0;
+		session->channel_client = NULL;
+	}
+	if (session->channel_server) {
+		channelSession(session->channel_server) = NULL;
+		channelSessionId(session->channel_server) = 0;
+		session->channel_server = NULL;
 	}
 }
 

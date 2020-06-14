@@ -92,17 +92,12 @@ void reqChangeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		Cluster_t* old_cluster = pod_container_of(cur, Cluster_t, m_listnode);
 		Cluster_t* new_cluster = getCluster(table, old_cluster->name, old_cluster->ip, old_cluster->port);
 		if (new_cluster) {
-			Channel_t* channel;
-			channel = old_cluster->session.channel_client;
-			if (channel) {
-				sessionUnbindChannel(&old_cluster->session, channel);
-				sessionChannelReplaceClient(&new_cluster->session, channel);
-			}
-			channel = old_cluster->session.channel_server;
-			if (channel) {
-				sessionUnbindChannel(&old_cluster->session, channel);
-				sessionChannelReplaceServer(&new_cluster->session, channel);
-			}
+			Channel_t* client_channel, *server_channel;
+			client_channel = old_cluster->session.channel_client;
+			server_channel = old_cluster->session.channel_server;
+			sessionUnbindChannel(&old_cluster->session);
+			sessionChannelReplaceClient(&new_cluster->session, client_channel);
+			sessionChannelReplaceServer(&new_cluster->session, server_channel);
 		}
 		if (getClusterSelf() == old_cluster) {
 			if (new_cluster)

@@ -100,22 +100,38 @@ Channel_t* clusterConnect(Cluster_t* cluster) {
 		return NULL;
 	channel = sessionChannel(&cluster->session);
 	if (!channel) {
+		SendMsg_t msg;
+		char* hs_data;
+		int hs_datalen;
 		Sockaddr_t saddr;
 		ReactorObject_t* o;
-		int family = ipstrFamily(cluster->ip);
-		if (!sockaddrEncode(&saddr.st, family, cluster->ip, cluster->port)) {
+
+		hs_data = strFormat(&hs_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"socktype\":\"%s\"}",
+			g_ClusterSelf->name, g_ClusterSelf->ip, g_ClusterSelf->port, if_socktype2string(g_ClusterSelf->socktype));
+		if (!hs_data)
+			return NULL;
+
+		if (!sockaddrEncode(&saddr.st, ipstrFamily(cluster->ip), cluster->ip, cluster->port)) {
+			free(hs_data);
 			return NULL;
 		}
-		o = reactorobjectOpen(INVALID_FD_HANDLE, family, cluster->socktype, 0);
-		if (!o)
+		o = reactorobjectOpen(INVALID_FD_HANDLE, saddr.sa.sa_family, cluster->socktype, 0);
+		if (!o) {
+			free(hs_data);
 			return NULL;
+		}
 		channel = openChannelInner(o, CHANNEL_FLAG_CLIENT, &saddr);
 		if (!channel) {
 			reactorCommitCmd(NULL, &o->freecmd);
+			free(hs_data);
 			return NULL;
 		}
 		sessionChannelReplaceClient(&cluster->session, channel);
 		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
+		// handshake
+		makeSendMsg(&msg, 0, hs_data, hs_datalen)->rpc_status = 'S';
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		free(hs_data);
 	}
 	return channel;
 }

@@ -25,7 +25,7 @@ __declspec_dllexport Session_t* initSession(Session_t* session);
 
 __declspec_dllexport void sessionChannelReplaceClient(Session_t* session, Channel_t* channel);
 __declspec_dllexport void sessionChannelReplaceServer(Session_t* session, Channel_t* channel);
-__declspec_dllexport void sessionUnbindChannel(Session_t* session, Channel_t* channel);
+__declspec_dllexport void sessionUnbindChannel(Session_t* session);
 __declspec_dllexport Channel_t* sessionChannel(Session_t* session);
 
 #ifdef __cplusplus

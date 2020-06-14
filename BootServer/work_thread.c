@@ -106,7 +106,45 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			next = cur->next;
 			if (REACTOR_USER_CMD == internal->type) {
 				UserMsg_t* ctrl = pod_container_of(internal , UserMsg_t, internal);
-				if (thread->f_rpc) {
+				if ('S' == ctrl->rpc_status) {
+					int handshake_ok = 0;
+					do {
+						cJSON* root, *cjson_name, *cjson_ip, *cjson_port;
+						Cluster_t* cluster;
+
+						root = cJSON_Parse(NULL, ctrl->data);
+						if (!root) {
+							break;
+						}
+						cjson_name = cJSON_Field(root, "name");
+						if (!cjson_name) {
+							break;
+						}
+						cjson_ip = cJSON_Field(root, "ip");
+						if (!cjson_ip) {
+							break;
+						}
+						cjson_port = cJSON_Field(root, "port");
+						if (!cjson_port) {
+							break;
+						}
+						cluster = getCluster(g_ClusterTable, cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
+						if (!cluster) {
+							break;
+						}
+						handshake_ok = 1;
+						if (cluster->session.channel_server != ctrl->channel)
+							sessionChannelReplaceServer(&cluster->session, ctrl->channel);
+						if (cluster->session.channel_client)
+							ctrl->channel = cluster->session.channel_client;
+					} while (0);
+					free(ctrl);
+					if (!handshake_ok) {
+						channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+					}
+					continue;
+				}
+				else if (thread->f_rpc) {
 					if ('T' == ctrl->rpc_status) {
 						RpcItem_t* rpc_item = rpcFiberCoreResume(thread->f_rpc, ctrl->rpcid, ctrl);
 						free(ctrl);
@@ -155,7 +193,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						Session_t* session = channelSession(channel);
 						if (!session)
 							break;
-						sessionUnbindChannel(session, channel);
+						sessionUnbindChannel(session);
 						if (session->disconnect)
 							session->disconnect(session);
 						if (session->persist)

@@ -136,8 +136,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							handshake_ok = 1;
 							if (cluster->session.channel_server != ctrl->channel)
 								sessionChannelReplaceServer(&cluster->session, ctrl->channel);
-							if (cluster->session.channel_client)
-								ctrl->channel = cluster->session.channel_client;
 						} while (0);
 						free(ctrl);
 						if (!handshake_ok) {

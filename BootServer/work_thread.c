@@ -200,7 +200,14 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						Session_t* session = channelSession(channel);
 						if (!session)
 							break;
-						sessionUnbindChannel(session);
+						else if (session->channel_client == channel)
+							session->channel_client = NULL;
+						else if (session->channel_server == channel)
+							session->channel_server = NULL;
+						channelSession(channel) = NULL;
+						channelSessionId(channel) = 0;
+						if (session->channel_client || session->channel_server)
+							break;
 						if (session->disconnect)
 							session->disconnect(session);
 						if (session->persist)

@@ -108,9 +108,10 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				UserMsg_t* ctrl = pod_container_of(internal , UserMsg_t, internal);
 				if (ctrl->be_from_cluster) {
 					if ('S' == ctrl->rpc_status) {
+						cJSON* root;
 						int handshake_ok = 0;
 						do {
-							cJSON* root, *cjson_name, *cjson_ip, *cjson_port;
+							cJSON *cjson_name, *cjson_ip, *cjson_port;
 							Cluster_t* cluster;
 
 							root = cJSON_Parse(NULL, ctrl->data);
@@ -138,6 +139,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 								sessionChannelReplaceServer(&cluster->session, ctrl->channel);
 						} while (0);
 						free(ctrl);
+						cJSON_Delete(root);
 						if (!handshake_ok) {
 							channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 						}

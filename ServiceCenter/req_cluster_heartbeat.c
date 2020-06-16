@@ -4,7 +4,8 @@
 
 void reqClusterHeartbeat(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON* cjson_root;
-	cJSON *cjson_name, *cjson_ip, *cjson_port, *cjson_weight_num, *cjson_connection_num;
+	cJSON *cjson_socktype, *cjson_ip, *cjson_port, *cjson_weight_num, *cjson_connection_num;
+	int socktype;
 	Cluster_t* cluster;
 
 	logInfo(ptr_g_Log(), "%s req: %s", __FUNCTION__, (char*)(ctrl->data));
@@ -15,10 +16,11 @@ void reqClusterHeartbeat(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		return;
 	}
 
-	cjson_name = cJSON_Field(cjson_root, "name");
-	if (!cjson_name) {
+	cjson_socktype = cJSON_Field(cjson_root, "socktype");
+	if (!cjson_socktype) {
 		return;
 	}
+	socktype = if_string2socktype(cjson_socktype->valuestring);
 	cjson_ip = cJSON_Field(cjson_root, "ip");
 	if (!cjson_ip) {
 		return;
@@ -36,7 +38,7 @@ void reqClusterHeartbeat(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		return;
 	}
 
-	cluster = getCluster(ptr_g_ClusterTable(), cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
+	cluster = getClusterNode(ptr_g_ClusterTable(), socktype, cjson_ip->valuestring, cjson_port->valueint);
 	if (cluster) {
 		cluster->weight_num = cjson_weight_num->valueint;
 		cluster->connection_num = cjson_connection_num->valueint;

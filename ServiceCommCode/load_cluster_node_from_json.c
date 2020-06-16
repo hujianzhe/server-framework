@@ -27,7 +27,8 @@ int loadClusterNodeFromJsonData(struct ClusterTable_t* table, const char* data) 
 	}
 	for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
 		Cluster_t* cluster;
-		cJSON* name, *socktype, *ip, *port, *hashkey_array, *weight_num;
+		cJSON* name, *cjson_socktype, *ip, *port, *hashkey_array, *weight_num;
+		int socktype;
 
 		name = cJSON_Field(cjson_cluster, "name");
 		if (!name || !name->valuestring || !name->valuestring[0])
@@ -38,16 +39,17 @@ int loadClusterNodeFromJsonData(struct ClusterTable_t* table, const char* data) 
 		port = cJSON_Field(cjson_cluster, "port");
 		if (!port)
 			continue;
-		socktype = cJSON_Field(cjson_cluster, "socktype");
-		if (!socktype)
+		cjson_socktype = cJSON_Field(cjson_cluster, "socktype");
+		if (!cjson_socktype)
 			continue;
+		socktype = if_string2socktype(cjson_socktype->valuestring);
 		weight_num = cJSON_Field(cjson_cluster, "weight_num");
 		hashkey_array = cJSON_Field(cjson_cluster, "hash_key");
 
-		cluster = getCluster(table, name->valuestring, ip->valuestring, port->valueint);
+		cluster = getClusterNode(table, socktype, ip->valuestring, port->valueint);
 		if (cluster)
 			continue;
-		cluster = newCluster(if_string2socktype(socktype->valuestring), ip->valuestring, port->valueint);
+		cluster = newCluster(socktype, ip->valuestring, port->valueint);
 		if (!cluster)
 			continue;
 		if (weight_num) {

@@ -57,7 +57,8 @@ __declspec_dllexport unsigned int* reallocClusterHashKey(Cluster_t* cluster, uns
 
 __declspec_dllexport struct ClusterTable_t* newClusterTable(void);
 __declspec_dllexport ClusterGroup_t* getClusterGroup(struct ClusterTable_t* t, const char* name);
-__declspec_dllexport Cluster_t* getCluster(struct ClusterTable_t* t, const char* name, const IPString_t ip, unsigned short port);
+__declspec_dllexport Cluster_t* getClusterGroupNode(ClusterGroup_t* grp, int socktype, const IPString_t ip, unsigned short port);
+__declspec_dllexport Cluster_t* getClusterNode(struct ClusterTable_t* t, int socktype, const IPString_t ip, unsigned short port);
 __declspec_dllexport List_t* getClusterList(struct ClusterTable_t* t);
 __declspec_dllexport int regCluster(struct ClusterTable_t* t, const char* name, Cluster_t* cluster);
 __declspec_dllexport void unregCluster(struct ClusterTable_t* t, Cluster_t* cluster);

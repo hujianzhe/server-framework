@@ -23,7 +23,7 @@ void distributeClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 
 	for (cur = getClusterList(ptr_g_ClusterTable())->head; cur; cur = cur->next) {
 		Cluster_t* old_cluster = pod_container_of(cur, Cluster_t, m_listnode);
-		Cluster_t* new_cluster = getCluster(table, old_cluster->name, old_cluster->ip, old_cluster->port);
+		Cluster_t* new_cluster = getClusterNode(table, old_cluster->socktype, old_cluster->ip, old_cluster->port);
 		if (new_cluster) {
 			Channel_t* client_channel, *server_channel;
 			client_channel = old_cluster->session.channel_client;

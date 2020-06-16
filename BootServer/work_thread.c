@@ -111,17 +111,19 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						cJSON* root;
 						int handshake_ok = 0;
 						do {
-							cJSON *cjson_name, *cjson_ip, *cjson_port;
+							cJSON *cjson_socktype, *cjson_ip, *cjson_port;
 							Cluster_t* cluster;
+							int socktype;
 
 							root = cJSON_Parse(NULL, ctrl->data);
 							if (!root) {
 								break;
 							}
-							cjson_name = cJSON_Field(root, "name");
-							if (!cjson_name) {
+							cjson_socktype = cJSON_Field(root, "socktype");
+							if (!cjson_socktype) {
 								break;
 							}
+							socktype = if_string2socktype(cjson_socktype->valuestring);
 							cjson_ip = cJSON_Field(root, "ip");
 							if (!cjson_ip) {
 								break;
@@ -130,7 +132,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							if (!cjson_port) {
 								break;
 							}
-							cluster = getCluster(g_ClusterTable, cjson_name->valuestring, cjson_ip->valuestring, cjson_port->valueint);
+							cluster = getClusterNode(g_ClusterTable, socktype, cjson_ip->valuestring, cjson_port->valueint);
 							if (!cluster) {
 								break;
 							}

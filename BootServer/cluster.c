@@ -106,8 +106,8 @@ Channel_t* clusterConnect(Cluster_t* cluster) {
 		Sockaddr_t saddr;
 		ReactorObject_t* o;
 
-		hs_data = strFormat(&hs_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"socktype\":\"%s\"}",
-			g_Config.cluster.name, g_ClusterSelf->ip, g_ClusterSelf->port, if_socktype2string(g_ClusterSelf->socktype));
+		hs_data = strFormat(&hs_datalen, "{\"ip\":\"%s\",\"port\":%u,\"socktype\":\"%s\"}",
+			g_ClusterSelf->ip, g_ClusterSelf->port, if_socktype2string(g_ClusterSelf->socktype));
 		if (!hs_data)
 			return NULL;
 
@@ -167,15 +167,25 @@ ClusterGroup_t* getClusterGroup(struct ClusterTable_t* t, const char* name) {
 	return htnode ? pod_container_of(htnode, ClusterGroup_t, m_htnode) : NULL;
 }
 
-Cluster_t* getCluster(struct ClusterTable_t* t, const char* name, const IPString_t ip, unsigned short port) {
-	ClusterGroup_t* grp = getClusterGroup(t, name);
+Cluster_t* getClusterGroupNode(ClusterGroup_t* grp, int socktype, const IPString_t ip, unsigned short port) {
 	if (grp) {
 		ListNode_t* cur;
 		for (cur = grp->clusterlist.head; cur; cur = cur->next) {
 			Cluster_t* exist_cluster = pod_container_of(cur, Cluster_t, m_grp_listnode);
-			if (!strcmp(exist_cluster->ip, ip) && exist_cluster->port == port) {
+			if (!strcmp(exist_cluster->ip, ip) && exist_cluster->port == port && exist_cluster->socktype == socktype) {
 				return exist_cluster;
 			}
+		}
+	}
+	return NULL;
+}
+
+Cluster_t* getClusterNode(struct ClusterTable_t* t, int socktype, const IPString_t ip, unsigned short port) {
+	ListNode_t* cur;
+	for (cur = t->cluster_list.head; cur; cur = cur->next) {
+		Cluster_t* exist_cluster = pod_container_of(cur, Cluster_t, m_listnode);
+		if (!strcmp(exist_cluster->ip, ip) && exist_cluster->port == port && exist_cluster->socktype == socktype) {
+			return exist_cluster;
 		}
 	}
 	return NULL;

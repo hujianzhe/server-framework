@@ -20,6 +20,7 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 			cluster->port == getClusterSelf()->port &&
 			cluster->socktype == getClusterSelf()->socktype)
 		{
+			setClusterSelf(cluster);
 			cluster_self_find = 1;
 			break;
 		}

@@ -77,6 +77,7 @@ int main(int argc, char** argv) {
 	g_ClusterSelf = newCluster(g_Config.cluster.socktype, g_Config.cluster.ip, g_Config.cluster.port);
 	if (!g_ClusterSelf)
 		goto err;
+	g_ClusterSelf->name = g_Config.cluster.name;
 
 	printf("cluster(%s) name:%s, ip:%s, port:%u, pid:%zu\n",
 		module_path, g_Config.cluster.name, g_ClusterSelf->ip, g_ClusterSelf->port, processId());

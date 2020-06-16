@@ -1,12 +1,18 @@
-#include "../BootServer/global.h"
-#include "service_center_handler.h"
-#include <string.h>
+#include "service_comm_proc.h"
 
-int loadClusterNode(const char* data) {
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int loadClusterNodeFromJsonData(struct ClusterTable_t* table, const char* data) {
 	cJSON* cjson_cluster_array, *cjson_cluster, *cjson_version;
 	cJSON* root = cJSON_Parse(NULL, data);
 	if (!root) {
 		logErr(ptr_g_Log(), "Config parse extra data error");
+		goto err;
+	}
+	if (cJSON_Field(root, "errno")) {
+		logErr(ptr_g_Log(), "request errno");
 		goto err;
 	}
 	cjson_version = cJSON_Field(root, "version");
@@ -38,7 +44,7 @@ int loadClusterNode(const char* data) {
 		weight_num = cJSON_Field(cjson_cluster, "weight_num");
 		hashkey_array = cJSON_Field(cjson_cluster, "hash_key");
 
-		cluster = getCluster(ptr_g_ClusterTable(), name->valuestring, ip->valuestring, port->valueint);
+		cluster = getCluster(table, name->valuestring, ip->valuestring, port->valueint);
 		if (cluster)
 			continue;
 		cluster = newCluster(if_string2socktype(socktype->valuestring), ip->valuestring, port->valueint);
@@ -62,7 +68,7 @@ int loadClusterNode(const char* data) {
 				}
 			}
 		}
-		if (!regCluster(ptr_g_ClusterTable(), name->valuestring, cluster)) {
+		if (!regCluster(table, name->valuestring, cluster)) {
 			freeCluster(cluster);
 			continue;
 		}
@@ -74,3 +80,7 @@ err:
 	cJSON_Delete(root);
 	return 0;
 }
+
+#ifdef __cplusplus
+}
+#endif

@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 
+__declspec_dllexport int loadClusterNodeFromJsonData(struct ClusterTable_t* table, const char* data);
 __declspec_dllexport int rpcReqClusterList(TaskThread_t* thrd, Cluster_t* sc_cluster);
 __declspec_dllexport void distributeClusterList(TaskThread_t* thrd, UserMsg_t* ctrl);
 

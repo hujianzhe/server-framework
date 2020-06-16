@@ -24,9 +24,6 @@
     <ClCompile Include="req_cluster_list.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="load_cluster_node.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="req_change_cluster_list_http.c">
       <Filter>源文件</Filter>
     </ClCompile>

@@ -29,5 +29,8 @@
     <ClCompile Include="rpc_req_cluster_list.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="load_cluster_node_from_json.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,12 +1,14 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
 #include "../ServiceCommCode/service_comm_cmd.h"
+#include "../ServiceCommCode/service_comm_proc.h"
 #include "service_center_handler.h"
 #include <stdio.h>
 #include <string.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #pragma comment(lib, "BootServer.lib")
+#pragma comment(lib, "ServiceCommCode.lib")
 #endif
 
 #ifdef __cplusplus
@@ -21,7 +23,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		logErr(ptr_g_Log(), "fdOpen(%s) error", path);
 		return 0;
 	}
-	if (!loadClusterNode(file_data)) {
+	if (!loadClusterNodeFromJsonData(ptr_g_ClusterTable(), file_data)) {
 		free(file_data);
 		return 0;
 	}

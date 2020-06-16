@@ -2,90 +2,32 @@
 #include "service_comm_proc.h"
 
 static int ret_cluster_list(UserMsg_t* ctrl) {
-	cJSON* cjson_req_root;
-	cJSON* cjson_cluster_array, *cjson_cluster, *cjson_version;
+	ListNode_t* lcur;
 	int cluster_self_find;
 
-	logInfo(ptr_g_Log(), "%s recv: %s", __FUNCTION__, (char*)(ctrl->data));
+	logInfo(ptr_g_Log(), "%s recv: %s", __FUNCTION__, (char*)ctrl->data);
 
-	cjson_req_root = cJSON_Parse(NULL, (char*)ctrl->data);
-	if (!cjson_req_root) {
-		logErr(ptr_g_Log(), "cJSON_Parse error");
+	if (!loadClusterNodeFromJsonData(ptr_g_ClusterTable(), (char*)ctrl->data)) {
+		logErr(ptr_g_Log(), "%s.loadClusterNodeFromJsonData error", __FUNCTION__);
 		return 0;
-	}	
-
-	if (cJSON_Field(cjson_req_root, "errno"))
-		goto err;
-
-	cjson_version = cJSON_Field(cjson_req_root, "version");
-	if (!cjson_version) {
-		goto err;
 	}
-	cjson_cluster_array = cJSON_Field(cjson_req_root, "clusters");
-	if (!cjson_cluster_array) {
-		goto err;
-	}
+
 	cluster_self_find = 0;
-	for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
-		Cluster_t* cluster;
-		cJSON* name, *socktype, *ip, *port, *hashkey_array, *weight_num;
-		name = cJSON_Field(cjson_cluster, "name");
-		if (!name)
-			continue;
-		socktype = cJSON_Field(cjson_cluster, "socktype");
-		if (!socktype)
-			continue;
-		ip = cJSON_Field(cjson_cluster, "ip");
-		if (!ip)
-			continue;
-		port = cJSON_Field(cjson_cluster, "port");
-		if (!port)
-			continue;
-		weight_num = cJSON_Field(cjson_cluster, "weight_num");
-		hashkey_array = cJSON_Field(cjson_cluster, "hash_key");
-		if (!strcmp(if_socktype2string(getClusterSelf()->socktype), socktype->valuestring) &&
-			!strcmp(getClusterSelf()->ip, ip->valuestring) &&
-			getClusterSelf()->port == port->valueint)
+	for (lcur = getClusterList(ptr_g_ClusterTable())->head; lcur; lcur = lcur->next) {
+		Cluster_t* cluster = pod_container_of(lcur, Cluster_t, m_listnode);
+		if (!strcmp(cluster->name, getClusterSelf()->name) &&
+			!strcmp(cluster->ip, getClusterSelf()->ip) &&
+			cluster->port == getClusterSelf()->port &&
+			cluster->socktype == getClusterSelf()->socktype)
 		{
-			cluster = getClusterSelf();
 			cluster_self_find = 1;
-		}
-		else {
-			cluster = newCluster(if_string2socktype(socktype->valuestring), ip->valuestring, port->valueint);
-			if (!cluster) {
-				break;
-			}
-		}
-		if (weight_num) {
-			cluster->weight_num = weight_num->valueint;
-		}
-		if (hashkey_array) {
-			int hashkey_arraylen = cJSON_Size(hashkey_array);
-			if (hashkey_arraylen > 0) {
-				int i;
-				cJSON* key;
-				unsigned int* ptr_key_array = reallocClusterHashKey(cluster, hashkey_arraylen);
-				if (!ptr_key_array) {
-					goto err;
-					continue;
-				}
-				for (i = 0, key = hashkey_array->child; key && i < hashkey_arraylen; key = key->next, ++i) {
-					ptr_key_array[i] = key->valueint;
-				}
-			}
-		}
-		if (!regCluster(ptr_g_ClusterTable(), name->valuestring, cluster)) {
-			freeCluster(cluster);
 			break;
 		}
 	}
-	if (cjson_cluster) {
-		goto err;
+	if (!cluster_self_find) {
+		logErr(ptr_g_Log(), "%s cluster self not find", __FUNCTION__);
+		return 0;
 	}
-	if (!cluster_self_find)
-		goto err;
-	setClusterTableVersion(cjson_version->valueint);
-	cJSON_Delete(cjson_req_root);
 
 	if (getClusterSelf()->port) {
 		ReactorObject_t* o = openListenerInner(getClusterSelf()->socktype, getClusterSelf()->ip, getClusterSelf()->port);
@@ -95,9 +37,6 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	}
 
 	return 1;
-err:
-	cJSON_Delete(cjson_req_root);
-	return 0;
 }
 
 static void rpc_ret_cluster_list(RpcAsyncCore_t* rpc, RpcItem_t* rpc_item) {

@@ -74,6 +74,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
 	}
 
+	logInfo(ptr_g_Log(), "init ok ......");
 	return 1;
 }
 

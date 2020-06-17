@@ -74,7 +74,7 @@ int rpcReqClusterList(TaskThread_t* thrd, Cluster_t* sc_cluster) {
 		return 0;
 	}
 
-	c = clusterConnect(sc_cluster);
+	c = connectClusterNode(sc_cluster);
 	if (!c) {
 		logErr(ptr_g_Log(), "channel connecting ServiceCenter, ip:%s, port:%u err ......",
 			sc_cluster->ip, sc_cluster->port);

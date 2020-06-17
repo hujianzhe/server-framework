@@ -52,7 +52,7 @@ __declspec_dllexport void setClusterTableVersion(int version);
 
 __declspec_dllexport Cluster_t* newCluster(int socktype, IPString_t ip, unsigned short port);
 __declspec_dllexport void freeCluster(Cluster_t* cluster);
-__declspec_dllexport Channel_t* clusterConnect(Cluster_t* cluster);
+__declspec_dllexport Channel_t* connectClusterNode(Cluster_t* cluster);
 __declspec_dllexport unsigned int* reallocClusterHashKey(Cluster_t* cluster, unsigned int key_arraylen);
 
 __declspec_dllexport struct ClusterTable_t* newClusterTable(void);
@@ -65,7 +65,6 @@ __declspec_dllexport void unregCluster(struct ClusterTable_t* t, Cluster_t* clus
 __declspec_dllexport void freeClusterTable(struct ClusterTable_t* t);
 
 __declspec_dllexport Cluster_t* targetCluster(ClusterGroup_t* grp, int mode, unsigned int key);
-
 
 #ifdef __cplusplus
 }

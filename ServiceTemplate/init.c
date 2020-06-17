@@ -24,7 +24,7 @@ static int service_center_check_connection_timeout_callback(RBTimer_t* timer, RB
 		if (!sc_grp)
 			break;
 		sc_cluster = pod_container_of(sc_grp->clusterlist.head, Cluster_t, m_grp_listnode);
-		sc_channel = clusterConnect(sc_cluster);
+		sc_channel = connectClusterNode(sc_cluster);
 		if (!sc_channel)
 			break;
 		req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"weight_num\":%d,\"connection_num\":%d}",

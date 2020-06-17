@@ -84,8 +84,8 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	regStringDispatch("/reqSoTest", reqSoTest);
 	regNumberDispatch(CMD_REQ_WEBSOCKET_TEST, reqWebsocketTest);
 
-	if (getClusterSelf()->port) {
-		ReactorObject_t* o = openListenerInner(getClusterSelf()->socktype, getClusterSelf()->ip, getClusterSelf()->port);
+	if (getClusterNodeSelf()->port) {
+		ReactorObject_t* o = openListenerInner(getClusterNodeSelf()->socktype, getClusterNodeSelf()->ip, getClusterNodeSelf()->port);
 		if (!o)
 			return 0;
 		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);

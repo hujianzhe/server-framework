@@ -13,23 +13,23 @@ static int service_center_check_connection_timeout_callback(RBTimer_t* timer, RB
 	do {
 		SendMsg_t msg;
 		Channel_t* sc_channel;
-		ClusterGroup_t* sc_grp;
-		Cluster_t* sc_cluster;
+		ClusterNodeGroup_t* sc_grp;
+		ClusterNode_t* sc_clsnd;
 		char* req_data;
 		int req_datalen;
 
-		if ('\0' == getClusterSelf()->name[0])
+		if ('\0' == getClusterNodeSelf()->name[0])
 			break;
-		sc_grp = getClusterGroup(ptr_g_ClusterTable(), "ServiceCenter");
+		sc_grp = getClusterNodeGroup(ptr_g_ClusterTable(), "ServiceCenter");
 		if (!sc_grp)
 			break;
-		sc_cluster = pod_container_of(sc_grp->clusterlist.head, Cluster_t, m_grp_listnode);
-		sc_channel = connectClusterNode(sc_cluster);
+		sc_clsnd = pod_container_of(sc_grp->nodelist.head, ClusterNode_t, m_grp_listnode);
+		sc_channel = connectClusterNode(sc_clsnd);
 		if (!sc_channel)
 			break;
 		req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"weight_num\":%d,\"connection_num\":%d}",
-			getClusterSelf()->name, getClusterSelf()->ip, getClusterSelf()->port,
-			getClusterSelf()->weight_num, getClusterSelf()->connection_num);
+			getClusterNodeSelf()->name, getClusterNodeSelf()->ip, getClusterNodeSelf()->port,
+			getClusterNodeSelf()->weight_num, getClusterNodeSelf()->connection_num);
 		if (!req_data)
 			break;
 		makeSendMsg(&msg, CMD_CLUSTER_HEARTBEAT, req_data, req_datalen);
@@ -48,7 +48,7 @@ extern "C" {
 
 __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	ConfigConnectOption_t* option = NULL;
-	Cluster_t* cluster;
+	ClusterNode_t* clsnd;
 	RBTimerEvent_t* timeout_ev;
 	unsigned int i;
 
@@ -79,12 +79,12 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		logErr(ptr_g_Log(), "miss connect service config");
 		return 0;
 	}
-	cluster = newCluster(option->socktype, option->ip, option->port);
-	if (!cluster) {
+	clsnd = newClusterNode(option->socktype, option->ip, option->port);
+	if (!clsnd) {
 		logErr(ptr_g_Log(), "ServiceCenter newCluster error");
 		return 0;
 	}
-	if (!regCluster(ptr_g_ClusterTable(), option->protocol, cluster)) {
+	if (!regClusterNode(ptr_g_ClusterTable(), option->protocol, clsnd)) {
 		logErr(ptr_g_Log(), "ServiceCenter regCluster error");
 		return 0;
 	}
@@ -92,8 +92,8 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		logErr(ptr_g_Log(), "regNumberDispatch(CMD_DISTRIBUTE_CLUSTER_LIST, distributeClusterList) failure");
 		return 0;
 	}
-	if (!rpcReqClusterList(thrd, cluster)) {
-		logErr(ptr_g_Log(), "rpcReqClusterList failure, ip:%s, port:%u ......", cluster->ip, cluster->port);
+	if (!rpcReqClusterList(thrd, clsnd)) {
+		logErr(ptr_g_Log(), "rpcReqClusterList failure, ip:%s, port:%u ......", clsnd->ip, clsnd->port);
 		return 0;
 	}
 	timeout_ev = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));

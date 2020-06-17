@@ -3,7 +3,7 @@
 #include "service_center_handler.h"
 
 void reqChangeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	cJSON* cjson_cluster_array, *cjson_cluster;
+	cJSON* cjson_cluster_nodes, *cjson_clsnd;
 	cJSON* root;
 	char* save_data = NULL;
 	size_t save_datalen;
@@ -27,42 +27,42 @@ void reqChangeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		goto err;
 	}
 
-	cjson_cluster_array = cJSON_Field(root, "clusters");
-	if (!cjson_cluster_array) {
+	cjson_cluster_nodes = cJSON_Field(root, "cluster_nodes");
+	if (!cjson_cluster_nodes) {
 		logErr(ptr_g_Log(), "miss field cluster");
 		goto err;
 	}
 
-	for (cjson_cluster = cjson_cluster_array->child; cjson_cluster; cjson_cluster = cjson_cluster->next) {
-		Cluster_t* cluster;
+	for (cjson_clsnd = cjson_cluster_nodes->child; cjson_clsnd; cjson_clsnd = cjson_clsnd->next) {
+		ClusterNode_t* clsnd;
 		cJSON* name, *socktype, *ip, *port, *hashkey_array, *weight_num;
 
-		name = cJSON_Field(cjson_cluster, "name");
+		name = cJSON_Field(cjson_clsnd, "name");
 		if (!name || !name->valuestring || !name->valuestring[0])
 			continue;
-		ip = cJSON_Field(cjson_cluster, "ip");
+		ip = cJSON_Field(cjson_clsnd, "ip");
 		if (!ip)
 			continue;
-		port = cJSON_Field(cjson_cluster, "port");
+		port = cJSON_Field(cjson_clsnd, "port");
 		if (!port)
 			continue;
-		socktype = cJSON_Field(cjson_cluster, "socktype");
+		socktype = cJSON_Field(cjson_clsnd, "socktype");
 		if (!socktype)
 			continue;
-		weight_num = cJSON_Field(cjson_cluster, "weight_num");
-		hashkey_array = cJSON_Field(cjson_cluster, "hash_key");
+		weight_num = cJSON_Field(cjson_clsnd, "weight_num");
+		hashkey_array = cJSON_Field(cjson_clsnd, "hash_key");
 
-		cluster = newCluster(if_string2socktype(socktype->valuestring), ip->valuestring, port->valueint);
-		if (!cluster)
+		clsnd = newClusterNode(if_string2socktype(socktype->valuestring), ip->valuestring, port->valueint);
+		if (!clsnd)
 			goto err;
 		if (hashkey_array) {
 			int hashkey_arraylen = cJSON_Size(hashkey_array);
 			if (hashkey_arraylen > 0) {
 				int i;
 				cJSON* key;
-				unsigned int* ptr_key_array = reallocClusterHashKey(cluster, hashkey_arraylen);
+				unsigned int* ptr_key_array = reallocClusterNodeHashKey(clsnd, hashkey_arraylen);
 				if (!ptr_key_array) {
-					freeCluster(cluster);
+					freeClusterNode(clsnd);
 					goto err;
 				}
 				for (i = 0, key = hashkey_array->child; key && i < hashkey_arraylen; key = key->next, ++i) {
@@ -71,10 +71,10 @@ void reqChangeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 			}
 		}
 		if (weight_num) {
-			cluster->weight_num = weight_num->valueint;
+			clsnd->weight_num = weight_num->valueint;
 		}
-		if (!regCluster(table, name->valuestring, cluster)) {
-			freeCluster(cluster);
+		if (!regClusterNode(table, name->valuestring, clsnd)) {
+			freeClusterNode(clsnd);
 			goto err;
 		}
 	}
@@ -88,22 +88,22 @@ void reqChangeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (fileWriteCoverData(ptr_g_Config()->extra_data_txt, save_data, save_datalen) != save_datalen)
 		goto err;
 
-	for (cur = getClusterList(ptr_g_ClusterTable())->head; cur; cur = cur->next) {
-		Cluster_t* old_cluster = pod_container_of(cur, Cluster_t, m_listnode);
-		Cluster_t* new_cluster = getClusterNode(table, old_cluster->socktype, old_cluster->ip, old_cluster->port);
-		if (new_cluster) {
+	for (cur = getClusterNodeList(ptr_g_ClusterTable())->head; cur; cur = cur->next) {
+		ClusterNode_t* old_clsnd = pod_container_of(cur, ClusterNode_t, m_listnode);
+		ClusterNode_t* new_clsnd = getClusterNode(table, old_clsnd->socktype, old_clsnd->ip, old_clsnd->port);
+		if (new_clsnd) {
 			Channel_t* client_channel, *server_channel;
-			client_channel = old_cluster->session.channel_client;
-			server_channel = old_cluster->session.channel_server;
-			sessionUnbindChannel(&old_cluster->session);
-			sessionChannelReplaceClient(&new_cluster->session, client_channel);
-			sessionChannelReplaceServer(&new_cluster->session, server_channel);
+			client_channel = old_clsnd->session.channel_client;
+			server_channel = old_clsnd->session.channel_server;
+			sessionUnbindChannel(&old_clsnd->session);
+			sessionChannelReplaceClient(&new_clsnd->session, client_channel);
+			sessionChannelReplaceServer(&new_clsnd->session, server_channel);
 		}
-		if (getClusterSelf() == old_cluster) {
-			if (new_cluster)
-				setClusterSelf(new_cluster);
+		if (getClusterNodeSelf() == old_clsnd) {
+			if (new_clsnd)
+				setClusterNodeSelf(new_clsnd);
 			else
-				unregCluster(ptr_g_ClusterTable(), old_cluster);
+				unregClusterNode(ptr_g_ClusterTable(), old_clsnd);
 		}
 	}
 	freeClusterTable(ptr_g_ClusterTable());

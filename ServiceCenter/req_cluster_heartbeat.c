@@ -6,7 +6,7 @@ void reqClusterHeartbeat(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON* cjson_root;
 	cJSON *cjson_socktype, *cjson_ip, *cjson_port, *cjson_weight_num, *cjson_connection_num;
 	int socktype;
-	Cluster_t* cluster;
+	ClusterNode_t* clsnd;
 
 	logInfo(ptr_g_Log(), "%s req: %s", __FUNCTION__, (char*)(ctrl->data));
 
@@ -38,11 +38,11 @@ void reqClusterHeartbeat(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		return;
 	}
 
-	cluster = getClusterNode(ptr_g_ClusterTable(), socktype, cjson_ip->valuestring, cjson_port->valueint);
-	if (cluster) {
-		cluster->weight_num = cjson_weight_num->valueint;
-		cluster->connection_num = cjson_connection_num->valueint;
+	clsnd = getClusterNode(ptr_g_ClusterTable(), socktype, cjson_ip->valuestring, cjson_port->valueint);
+	if (clsnd) {
+		clsnd->weight_num = cjson_weight_num->valueint;
+		clsnd->connection_num = cjson_connection_num->valueint;
 		logInfo(ptr_g_Log(), "%s flush name(%s) ip(%s) port(%u) weight_num(%d) connection_num(%d)", __FUNCTION__,
-			cluster->name, cluster->ip, cluster->port, cluster->weight_num, cluster->connection_num);
+			clsnd->name, clsnd->ip, clsnd->port, clsnd->weight_num, clsnd->connection_num);
 	}
 }

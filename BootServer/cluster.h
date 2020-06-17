@@ -4,19 +4,19 @@
 #include "util/inc/component/consistent_hash.h"
 #include "session_struct.h"
 
-typedef struct ClusterGroup_t {
+typedef struct ClusterNodeGroup_t {
 	HashtableNode_t m_htnode;
-	List_t clusterlist;
-	unsigned int clusterlistcnt;
+	List_t nodelist;
+	unsigned int nodelistcnt;
 	ConsistentHash_t consistent_hash;
 	unsigned int target_loopcnt;
-} ClusterGroup_t;
+} ClusterNodeGroup_t;
 
-typedef struct Cluster_t {
+typedef struct ClusterNode_t {
 	Session_t session;
 	ListNode_t m_listnode;
 	ListNode_t m_grp_listnode;
-	ClusterGroup_t* grp;
+	ClusterNodeGroup_t* grp;
 	const char* name;
 	int socktype;
 	IPString_t ip;
@@ -25,11 +25,11 @@ typedef struct Cluster_t {
 	unsigned int hashkey_cnt;
 	int weight_num;
 	int connection_num;
-} Cluster_t;
+} ClusterNode_t;
 
 struct ClusterTable_t;
 
-extern Cluster_t* g_ClusterSelf;
+extern ClusterNode_t* g_ClusterNodeSelf;
 extern struct ClusterTable_t* g_ClusterTable;
 extern int g_ClusterTableVersion;
 
@@ -43,28 +43,28 @@ extern int g_ClusterTableVersion;
 extern "C" {
 #endif
 
-__declspec_dllexport Cluster_t* getClusterSelf(void);
-__declspec_dllexport void setClusterSelf(Cluster_t* cluster);
+__declspec_dllexport ClusterNode_t* getClusterNodeSelf(void);
+__declspec_dllexport void setClusterNodeSelf(ClusterNode_t* clsnd);
 __declspec_dllexport struct ClusterTable_t* ptr_g_ClusterTable(void);
 __declspec_dllexport void set_g_ClusterTable(struct ClusterTable_t* t);
 __declspec_dllexport int getClusterTableVersion(void);
 __declspec_dllexport void setClusterTableVersion(int version);
 
-__declspec_dllexport Cluster_t* newCluster(int socktype, IPString_t ip, unsigned short port);
-__declspec_dllexport void freeCluster(Cluster_t* cluster);
-__declspec_dllexport Channel_t* connectClusterNode(Cluster_t* cluster);
-__declspec_dllexport unsigned int* reallocClusterHashKey(Cluster_t* cluster, unsigned int key_arraylen);
+__declspec_dllexport ClusterNode_t* newClusterNode(int socktype, IPString_t ip, unsigned short port);
+__declspec_dllexport void freeClusterNode(ClusterNode_t* clsnd);
+__declspec_dllexport Channel_t* connectClusterNode(ClusterNode_t* clsnd);
+__declspec_dllexport unsigned int* reallocClusterNodeHashKey(ClusterNode_t* clsnd, unsigned int key_arraylen);
 
 __declspec_dllexport struct ClusterTable_t* newClusterTable(void);
-__declspec_dllexport ClusterGroup_t* getClusterGroup(struct ClusterTable_t* t, const char* name);
-__declspec_dllexport Cluster_t* getClusterGroupNode(ClusterGroup_t* grp, int socktype, const IPString_t ip, unsigned short port);
-__declspec_dllexport Cluster_t* getClusterNode(struct ClusterTable_t* t, int socktype, const IPString_t ip, unsigned short port);
-__declspec_dllexport List_t* getClusterList(struct ClusterTable_t* t);
-__declspec_dllexport int regCluster(struct ClusterTable_t* t, const char* name, Cluster_t* cluster);
-__declspec_dllexport void unregCluster(struct ClusterTable_t* t, Cluster_t* cluster);
+__declspec_dllexport ClusterNodeGroup_t* getClusterNodeGroup(struct ClusterTable_t* t, const char* name);
+__declspec_dllexport ClusterNode_t* getClusterNodeFromGroup(ClusterNodeGroup_t* grp, int socktype, const IPString_t ip, unsigned short port);
+__declspec_dllexport ClusterNode_t* getClusterNode(struct ClusterTable_t* t, int socktype, const IPString_t ip, unsigned short port);
+__declspec_dllexport List_t* getClusterNodeList(struct ClusterTable_t* t);
+__declspec_dllexport int regClusterNode(struct ClusterTable_t* t, const char* name, ClusterNode_t* clsnd);
+__declspec_dllexport void unregClusterNode(struct ClusterTable_t* t, ClusterNode_t* clsnd);
 __declspec_dllexport void freeClusterTable(struct ClusterTable_t* t);
 
-__declspec_dllexport Cluster_t* targetCluster(ClusterGroup_t* grp, int mode, unsigned int key);
+__declspec_dllexport ClusterNode_t* targetClusterNode(ClusterNodeGroup_t* grp, int mode, unsigned int key);
 
 #ifdef __cplusplus
 }

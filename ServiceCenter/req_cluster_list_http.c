@@ -13,20 +13,20 @@ void reqClusterList_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	root = cJSON_NewObject(NULL);
 	cJSON_AddNewNumber(root, "version", getClusterTableVersion());
 	cluster_array = cJSON_AddNewArray(root, "clusters");
-	for (node = getClusterList(ptr_g_ClusterTable())->head; node; node = node->next) {
+	for (node = getClusterNodeList(ptr_g_ClusterTable())->head; node; node = node->next) {
 		cJSON* cjson_hashkey_arr;
-		Cluster_t* cluster = pod_container_of(node, Cluster_t, m_listnode);
+		ClusterNode_t* clsnd = pod_container_of(node, ClusterNode_t, m_listnode);
 		cJSON* cjson_cluster = cJSON_AddNewObject(cluster_array, NULL);
-		cJSON_AddNewString(cjson_cluster, "name", cluster->name);
-		cJSON_AddNewString(cjson_cluster, "ip", cluster->ip);
-		cJSON_AddNewNumber(cjson_cluster, "port", cluster->port);
-		cJSON_AddNewNumber(cjson_cluster, "weight_num", cluster->weight_num);
-		cJSON_AddNewNumber(cjson_cluster, "is_online", sessionChannel(&cluster->session) != NULL);
+		cJSON_AddNewString(cjson_cluster, "name", clsnd->name);
+		cJSON_AddNewString(cjson_cluster, "ip", clsnd->ip);
+		cJSON_AddNewNumber(cjson_cluster, "port", clsnd->port);
+		cJSON_AddNewNumber(cjson_cluster, "weight_num", clsnd->weight_num);
+		cJSON_AddNewNumber(cjson_cluster, "is_online", sessionChannel(&clsnd->session) != NULL);
 		cjson_hashkey_arr = cJSON_AddNewArray(cjson_cluster, "hash_key");
 		if (cjson_hashkey_arr) {
 			unsigned int i;
-			for (i = 0; i < cluster->hashkey_cnt; ++i) {
-				cJSON_AddNewNumber(cjson_hashkey_arr, NULL, cluster->hashkey[i]);
+			for (i = 0; i < clsnd->hashkey_cnt; ++i) {
+				cJSON_AddNewNumber(cjson_hashkey_arr, NULL, clsnd->hashkey[i]);
 			}
 		}
 	}

@@ -21,25 +21,25 @@ void distributeClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		return;
 	}
 
-	for (cur = getClusterList(ptr_g_ClusterTable())->head; cur; cur = cur->next) {
-		Cluster_t* old_cluster = pod_container_of(cur, Cluster_t, m_listnode);
-		Cluster_t* new_cluster = getClusterNode(table, old_cluster->socktype, old_cluster->ip, old_cluster->port);
-		if (new_cluster) {
+	for (cur = getClusterNodeList(ptr_g_ClusterTable())->head; cur; cur = cur->next) {
+		ClusterNode_t* old_clsnd = pod_container_of(cur, ClusterNode_t, m_listnode);
+		ClusterNode_t* new_clsnd = getClusterNode(table, old_clsnd->socktype, old_clsnd->ip, old_clsnd->port);
+		if (new_clsnd) {
 			Channel_t* client_channel, *server_channel;
-			client_channel = old_cluster->session.channel_client;
-			server_channel = old_cluster->session.channel_server;
-			sessionUnbindChannel(&old_cluster->session);
-			sessionChannelReplaceClient(&new_cluster->session, client_channel);
-			sessionChannelReplaceServer(&new_cluster->session, server_channel);
+			client_channel = old_clsnd->session.channel_client;
+			server_channel = old_clsnd->session.channel_server;
+			sessionUnbindChannel(&old_clsnd->session);
+			sessionChannelReplaceClient(&new_clsnd->session, client_channel);
+			sessionChannelReplaceServer(&new_clsnd->session, server_channel);
 		}
-		if (getClusterSelf() == old_cluster) {
-			if (new_cluster) {
-				new_cluster->weight_num = old_cluster->weight_num;
-				new_cluster->connection_num = old_cluster->connection_num;
-				setClusterSelf(new_cluster);
+		if (getClusterNodeSelf() == old_clsnd) {
+			if (new_clsnd) {
+				new_clsnd->weight_num = old_clsnd->weight_num;
+				new_clsnd->connection_num = old_clsnd->connection_num;
+				setClusterNodeSelf(new_clsnd);
 			}
 			else
-				unregCluster(ptr_g_ClusterTable(), old_cluster);
+				unregClusterNode(ptr_g_ClusterTable(), old_clsnd);
 		}
 	}
 	freeClusterTable(ptr_g_ClusterTable());

@@ -13,25 +13,25 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	}
 
 	cluster_self_find = 0;
-	for (lcur = getClusterList(ptr_g_ClusterTable())->head; lcur; lcur = lcur->next) {
-		Cluster_t* cluster = pod_container_of(lcur, Cluster_t, m_listnode);
-		if (!strcmp(cluster->name, getClusterSelf()->name) &&
-			!strcmp(cluster->ip, getClusterSelf()->ip) &&
-			cluster->port == getClusterSelf()->port &&
-			cluster->socktype == getClusterSelf()->socktype)
+	for (lcur = getClusterNodeList(ptr_g_ClusterTable())->head; lcur; lcur = lcur->next) {
+		ClusterNode_t* clsnd = pod_container_of(lcur, ClusterNode_t, m_listnode);
+		if (!strcmp(clsnd->name, getClusterNodeSelf()->name) &&
+			!strcmp(clsnd->ip, getClusterNodeSelf()->ip) &&
+			clsnd->port == getClusterNodeSelf()->port &&
+			clsnd->socktype == getClusterNodeSelf()->socktype)
 		{
-			setClusterSelf(cluster);
+			setClusterNodeSelf(clsnd);
 			cluster_self_find = 1;
 			break;
 		}
 	}
 	if (!cluster_self_find) {
-		logErr(ptr_g_Log(), "%s cluster self not find", __FUNCTION__);
+		logErr(ptr_g_Log(), "%s cluster node self not find", __FUNCTION__);
 		return 0;
 	}
 
-	if (getClusterSelf()->port) {
-		ReactorObject_t* o = openListenerInner(getClusterSelf()->socktype, getClusterSelf()->ip, getClusterSelf()->port);
+	if (getClusterNodeSelf()->port) {
+		ReactorObject_t* o = openListenerInner(getClusterNodeSelf()->socktype, getClusterNodeSelf()->ip, getClusterNodeSelf()->port);
 		if (!o)
 			return 0;
 		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
@@ -58,7 +58,7 @@ static void retClusterList(TaskThread_t* thrd, UserMsg_t* ctrl) {
 extern "C" {
 #endif
 
-int rpcReqClusterList(TaskThread_t* thrd, Cluster_t* sc_cluster) {
+int rpcReqClusterList(TaskThread_t* thrd, ClusterNode_t* sc_clsnd) {
 	Channel_t* c;
 	SendMsg_t msg;
 	char* req_data;
@@ -69,20 +69,20 @@ int rpcReqClusterList(TaskThread_t* thrd, Cluster_t* sc_cluster) {
 		return 0;
 	}
 	req_data = strFormat(&req_datalen, "{\"ip\":\"%s\",\"port\":%u, \"socktype\":\"%s\"}",
-		getClusterSelf()->ip, getClusterSelf()->port, if_socktype2string(getClusterSelf()->socktype));
+		getClusterNodeSelf()->ip, getClusterNodeSelf()->port, if_socktype2string(getClusterNodeSelf()->socktype));
 	if (!req_data) {
 		return 0;
 	}
 
-	c = connectClusterNode(sc_cluster);
+	c = connectClusterNode(sc_clsnd);
 	if (!c) {
 		logErr(ptr_g_Log(), "channel connecting ServiceCenter, ip:%s, port:%u err ......",
-			sc_cluster->ip, sc_cluster->port);
+			sc_clsnd->ip, sc_clsnd->port);
 		return 0;
 	}
 
 	logInfo(ptr_g_Log(), "channel connecting ServiceCenter, ip:%s, port:%u, and ReqClusterList ......",
-		sc_cluster->ip, sc_cluster->port);
+		sc_clsnd->ip, sc_clsnd->port);
 
 	if (!thrd->f_rpc && !thrd->a_rpc) {
 		makeSendMsg(&msg, CMD_REQ_CLUSTER_LIST, req_data, req_datalen);

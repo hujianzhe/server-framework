@@ -14,20 +14,20 @@ void reqDistributeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	root = cJSON_NewObject(NULL);
 	cJSON_AddNewNumber(root, "version", getClusterTableVersion());
 	cluster_array = cJSON_AddNewArray(root, "clusters");
-	for (node = getClusterList(ptr_g_ClusterTable())->head; node; node = node->next) {
+	for (node = getClusterNodeList(ptr_g_ClusterTable())->head; node; node = node->next) {
 		cJSON* cjson_hashkey_arr;
-		Cluster_t* cluster = pod_container_of(node, Cluster_t, m_listnode);
+		ClusterNode_t* clsnd = pod_container_of(node, ClusterNode_t, m_listnode);
 		cJSON* cjson_cluster = cJSON_AddNewObject(cluster_array, NULL);
-		cJSON_AddNewString(cjson_cluster, "name", cluster->name);
-		cJSON_AddNewString(cjson_cluster, "ip", cluster->ip);
-		cJSON_AddNewNumber(cjson_cluster, "port", cluster->port);
-		cJSON_AddNewString(cjson_cluster, "socktype", if_socktype2string(cluster->socktype));
-		cJSON_AddNewNumber(cjson_cluster, "weight_num", cluster->weight_num);
+		cJSON_AddNewString(cjson_cluster, "name", clsnd->name);
+		cJSON_AddNewString(cjson_cluster, "ip", clsnd->ip);
+		cJSON_AddNewNumber(cjson_cluster, "port", clsnd->port);
+		cJSON_AddNewString(cjson_cluster, "socktype", if_socktype2string(clsnd->socktype));
+		cJSON_AddNewNumber(cjson_cluster, "weight_num", clsnd->weight_num);
 		cjson_hashkey_arr = cJSON_AddNewArray(cjson_cluster, "hash_key");
 		if (cjson_hashkey_arr) {
 			unsigned int i;
-			for (i = 0; i < cluster->hashkey_cnt; ++i) {
-				cJSON_AddNewNumber(cjson_hashkey_arr, NULL, cluster->hashkey[i]);
+			for (i = 0; i < clsnd->hashkey_cnt; ++i) {
+				cJSON_AddNewNumber(cjson_hashkey_arr, NULL, clsnd->hashkey[i]);
 			}
 		}
 	}
@@ -35,9 +35,9 @@ void reqDistributeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON_Delete(root);
 	makeSendMsg(&msg, CMD_DISTRIBUTE_CLUSTER_LIST, ret_data, strlen(ret_data));
 
-	for (cur = getClusterList(ptr_g_ClusterTable())->head; cur; cur = cur->next) {
-		Cluster_t* cluster = pod_container_of(cur, Cluster_t, m_listnode);
-		Channel_t* channel = sessionChannel(&cluster->session);
+	for (cur = getClusterNodeList(ptr_g_ClusterTable())->head; cur; cur = cur->next) {
+		ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_listnode);
+		Channel_t* channel = sessionChannel(&clsnd->session);
 		if (!channel)
 			continue;
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);

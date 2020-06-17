@@ -18,7 +18,7 @@ static int service_center_check_connection_timeout_callback(RBTimer_t* timer, RB
 		char* req_data;
 		int req_datalen;
 
-		if ('\0' == getClusterNodeSelf()->name[0])
+		if ('\0' == selfClusterNode()->name[0])
 			break;
 		sc_grp = getClusterNodeGroup(ptr_g_ClusterTable(), "ServiceCenter");
 		if (!sc_grp)
@@ -28,8 +28,8 @@ static int service_center_check_connection_timeout_callback(RBTimer_t* timer, RB
 		if (!sc_channel)
 			break;
 		req_data = strFormat(&req_datalen, "{\"name\":\"%s\",\"ip\":\"%s\",\"port\":%u,\"weight_num\":%d,\"connection_num\":%d}",
-			getClusterNodeSelf()->name, getClusterNodeSelf()->ip, getClusterNodeSelf()->port,
-			getClusterNodeSelf()->weight_num, getClusterNodeSelf()->connection_num);
+			selfClusterNode()->name, selfClusterNode()->ip, selfClusterNode()->port,
+			selfClusterNode()->weight_num, selfClusterNode()->connection_num);
 		if (!req_data)
 			break;
 		makeSendMsg(&msg, CMD_CLUSTER_HEARTBEAT, req_data, req_datalen);

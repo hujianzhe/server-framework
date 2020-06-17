@@ -29,7 +29,7 @@ typedef struct ClusterNode_t {
 
 struct ClusterTable_t;
 
-extern ClusterNode_t* g_ClusterNodeSelf;
+extern ClusterNode_t* g_SelfClusterNode;
 extern struct ClusterTable_t* g_ClusterTable;
 extern int g_ClusterTableVersion;
 
@@ -43,8 +43,8 @@ extern int g_ClusterTableVersion;
 extern "C" {
 #endif
 
-__declspec_dllexport ClusterNode_t* getClusterNodeSelf(void);
-__declspec_dllexport void setClusterNodeSelf(ClusterNode_t* clsnd);
+__declspec_dllexport ClusterNode_t* selfClusterNode(void);
+__declspec_dllexport void setSelfClusterNode(ClusterNode_t* clsnd);
 __declspec_dllexport struct ClusterTable_t* ptr_g_ClusterTable(void);
 __declspec_dllexport void set_g_ClusterTable(struct ClusterTable_t* t);
 __declspec_dllexport int getClusterTableVersion(void);

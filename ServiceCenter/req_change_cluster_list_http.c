@@ -99,9 +99,9 @@ void reqChangeClusterNode_http(TaskThread_t* thrd, UserMsg_t* ctrl) {
 			sessionChannelReplaceClient(&new_clsnd->session, client_channel);
 			sessionChannelReplaceServer(&new_clsnd->session, server_channel);
 		}
-		if (getClusterNodeSelf() == old_clsnd) {
+		if (selfClusterNode() == old_clsnd) {
 			if (new_clsnd)
-				setClusterNodeSelf(new_clsnd);
+				setSelfClusterNode(new_clsnd);
 			else
 				unregClusterNode(ptr_g_ClusterTable(), old_clsnd);
 		}

@@ -35,10 +35,10 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	regNumberDispatch(CMD_CLUSTER_HEARTBEAT, reqClusterHeartbeat);
 
 	// listen port
-	if (getClusterNodeSelf()->port) {
-		ReactorObject_t* o = openListenerInner(getClusterNodeSelf()->socktype, getClusterNodeSelf()->ip, getClusterNodeSelf()->port);
+	if (selfClusterNode()->port) {
+		ReactorObject_t* o = openListenerInner(selfClusterNode()->socktype, selfClusterNode()->ip, selfClusterNode()->port);
 		if (!o) {
-			logErr(ptr_g_Log(), "listen failure, ip:%s, port:%u ......", getClusterNodeSelf()->ip, getClusterNodeSelf()->port);
+			logErr(ptr_g_Log(), "listen failure, ip:%s, port:%u ......", selfClusterNode()->ip, selfClusterNode()->port);
 			return 0;
 		}
 		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);

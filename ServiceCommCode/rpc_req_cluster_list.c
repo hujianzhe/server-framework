@@ -15,12 +15,12 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 	cluster_self_find = 0;
 	for (lcur = getClusterNodeList(ptr_g_ClusterTable())->head; lcur; lcur = lcur->next) {
 		ClusterNode_t* clsnd = pod_container_of(lcur, ClusterNode_t, m_listnode);
-		if (!strcmp(clsnd->name, getClusterNodeSelf()->name) &&
-			!strcmp(clsnd->ip, getClusterNodeSelf()->ip) &&
-			clsnd->port == getClusterNodeSelf()->port &&
-			clsnd->socktype == getClusterNodeSelf()->socktype)
+		if (!strcmp(clsnd->name, selfClusterNode()->name) &&
+			!strcmp(clsnd->ip, selfClusterNode()->ip) &&
+			clsnd->port == selfClusterNode()->port &&
+			clsnd->socktype == selfClusterNode()->socktype)
 		{
-			setClusterNodeSelf(clsnd);
+			setSelfClusterNode(clsnd);
 			cluster_self_find = 1;
 			break;
 		}
@@ -30,8 +30,8 @@ static int ret_cluster_list(UserMsg_t* ctrl) {
 		return 0;
 	}
 
-	if (getClusterNodeSelf()->port) {
-		ReactorObject_t* o = openListenerInner(getClusterNodeSelf()->socktype, getClusterNodeSelf()->ip, getClusterNodeSelf()->port);
+	if (selfClusterNode()->port) {
+		ReactorObject_t* o = openListenerInner(selfClusterNode()->socktype, selfClusterNode()->ip, selfClusterNode()->port);
 		if (!o)
 			return 0;
 		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
@@ -69,7 +69,7 @@ int rpcReqClusterList(TaskThread_t* thrd, ClusterNode_t* sc_clsnd) {
 		return 0;
 	}
 	req_data = strFormat(&req_datalen, "{\"ip\":\"%s\",\"port\":%u, \"socktype\":\"%s\"}",
-		getClusterNodeSelf()->ip, getClusterNodeSelf()->port, if_socktype2string(getClusterNodeSelf()->socktype));
+		selfClusterNode()->ip, selfClusterNode()->port, if_socktype2string(selfClusterNode()->socktype));
 	if (!req_data) {
 		return 0;
 	}

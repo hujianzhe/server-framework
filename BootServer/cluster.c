@@ -9,7 +9,7 @@ typedef struct ClusterTable_t {
 	HashtableNode_t* grp_bulk[32];
 } ClusterTable_t;
 
-ClusterNode_t* g_ClusterNodeSelf;
+ClusterNode_t* g_SelfClusterNode;
 struct ClusterTable_t* g_ClusterTable;
 int g_ClusterTableVersion;
 
@@ -55,8 +55,8 @@ static void free_cluster_node_group(ClusterNodeGroup_t* grp) {
 extern "C" {
 #endif
 
-ClusterNode_t* getClusterNodeSelf(void) { return g_ClusterNodeSelf; }
-void setClusterNodeSelf(ClusterNode_t* cluster) { g_ClusterNodeSelf = cluster; }
+ClusterNode_t* selfClusterNode(void) { return g_SelfClusterNode; }
+void setSelfClusterNode(ClusterNode_t* cluster) { g_SelfClusterNode = cluster; }
 struct ClusterTable_t* ptr_g_ClusterTable(void) { return g_ClusterTable; }
 void set_g_ClusterTable(struct ClusterTable_t* t) { g_ClusterTable = t; }
 int getClusterTableVersion(void) { return g_ClusterTableVersion; }
@@ -89,14 +89,14 @@ void freeClusterNode(ClusterNode_t* clsnd) {
 	if (clsnd) {
 		free(clsnd->hashkey);
 		free(clsnd);
-		if (clsnd == g_ClusterNodeSelf)
-			g_ClusterNodeSelf = NULL;
+		if (clsnd == g_SelfClusterNode)
+			g_SelfClusterNode = NULL;
 	}
 }
 
 Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 	Channel_t* channel;
-	if (clsnd == g_ClusterNodeSelf)
+	if (clsnd == g_SelfClusterNode)
 		return NULL;
 	channel = sessionChannel(&clsnd->session);
 	if (!channel) {
@@ -107,7 +107,7 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 		ReactorObject_t* o;
 
 		hs_data = strFormat(&hs_datalen, "{\"ip\":\"%s\",\"port\":%u,\"socktype\":\"%s\"}",
-			g_ClusterNodeSelf->ip, g_ClusterNodeSelf->port, if_socktype2string(g_ClusterNodeSelf->socktype));
+			g_SelfClusterNode->ip, g_SelfClusterNode->port, if_socktype2string(g_SelfClusterNode->socktype));
 		if (!hs_data)
 			return NULL;
 

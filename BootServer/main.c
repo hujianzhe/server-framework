@@ -74,13 +74,13 @@ int main(int argc, char** argv) {
 		}
 	}
 	// init cluster self
-	g_ClusterNodeSelf = newClusterNode(g_Config.cluster.socktype, g_Config.cluster.ip, g_Config.cluster.port);
-	if (!g_ClusterNodeSelf)
+	g_SelfClusterNode = newClusterNode(g_Config.cluster.socktype, g_Config.cluster.ip, g_Config.cluster.port);
+	if (!g_SelfClusterNode)
 		goto err;
-	g_ClusterNodeSelf->name = g_Config.cluster.name;
+	g_SelfClusterNode->name = g_Config.cluster.name;
 
 	printf("cluster(%s) name:%s, ip:%s, port:%u, pid:%zu\n",
-		module_path, g_Config.cluster.name, g_ClusterNodeSelf->ip, g_ClusterNodeSelf->port, processId());
+		module_path, g_Config.cluster.name, g_SelfClusterNode->ip, g_SelfClusterNode->port, processId());
 	// init resource
 	if (!initGlobalResource()) {
 		goto err;

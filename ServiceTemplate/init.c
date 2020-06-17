@@ -20,6 +20,10 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 
 	//
 	path = ptr_g_Config()->extra_data_txt;
+	if (!path) {
+		logErr(ptr_g_Log(), "miss cluster table path");
+		return 0;
+	}
 	file_data = fileReadAllData(path, NULL);
 	if (!file_data) {
 		logErr(ptr_g_Log(), "fdOpen(%s) error", path);

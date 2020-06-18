@@ -2,7 +2,7 @@
 #define	CLUSTER_H
 
 #include "util/inc/component/consistent_hash.h"
-#include "session_struct.h"
+#include "cluster_node.h"
 
 typedef struct ClusterNodeGroup_t {
 	HashtableNode_t m_htnode;
@@ -12,48 +12,24 @@ typedef struct ClusterNodeGroup_t {
 	unsigned int target_loopcnt;
 } ClusterNodeGroup_t;
 
-typedef struct ClusterNode_t {
-	Session_t session;
-	ListNode_t m_listnode;
-	ListNode_t m_grp_listnode;
-	ClusterNodeGroup_t* grp;
-	const char* name;
-	int socktype;
-	IPString_t ip;
-	unsigned short port;
-	unsigned int* hashkey;
-	unsigned int hashkey_cnt;
-	int weight_num;
-	int connection_num;
-} ClusterNode_t;
-
-struct ClusterTable_t;
-
-extern ClusterNode_t* g_SelfClusterNode;
-extern struct ClusterTable_t* g_ClusterTable;
-extern int g_ClusterTableVersion;
-
 #define	CLUSTER_TARGET_USE_HASH_MOD		1
 #define	CLUSTER_TARGET_USE_HASH_RING	2
 #define	CLUSTER_TARGET_USE_ROUND_ROBIN	3
 #define	CLUSTER_TARGET_USE_WEIGHT_NUM	4
 #define	CLUSTER_TARGET_USE_CONNECT_NUM	5
 
+struct ClusterTable_t;
+extern struct ClusterTable_t* g_ClusterTable;
+extern int g_ClusterTableVersion;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-__declspec_dllexport ClusterNode_t* selfClusterNode(void);
-__declspec_dllexport void setSelfClusterNode(ClusterNode_t* clsnd);
 __declspec_dllexport struct ClusterTable_t* ptr_g_ClusterTable(void);
 __declspec_dllexport void set_g_ClusterTable(struct ClusterTable_t* t);
 __declspec_dllexport int getClusterTableVersion(void);
 __declspec_dllexport void setClusterTableVersion(int version);
-
-__declspec_dllexport ClusterNode_t* newClusterNode(int socktype, IPString_t ip, unsigned short port);
-__declspec_dllexport void freeClusterNode(ClusterNode_t* clsnd);
-__declspec_dllexport Channel_t* connectClusterNode(ClusterNode_t* clsnd);
-__declspec_dllexport unsigned int* reallocClusterNodeHashKey(ClusterNode_t* clsnd, unsigned int key_arraylen);
 
 __declspec_dllexport struct ClusterTable_t* newClusterTable(void);
 __declspec_dllexport ClusterNodeGroup_t* getClusterNodeGroup(struct ClusterTable_t* t, const char* name);
@@ -70,4 +46,4 @@ __declspec_dllexport ClusterNode_t* targetClusterNode(ClusterNodeGroup_t* grp, i
 }
 #endif
 
-#endif // !CLUSTER_H
+#endif

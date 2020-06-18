@@ -3,6 +3,7 @@
 
 #include "util/inc/all.h"
 #include "channel_imp.h"
+#include "cluster_node.h"
 #include "cluster.h"
 #include "dispatch.h"
 #include "msg_struct.h"

@@ -177,10 +177,13 @@
     <ClInclude Include="util\inc\component\consistent_hash.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="cluster.h">
+    <ClInclude Include="work_thread.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="work_thread.h">
+    <ClInclude Include="cluster_node.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -336,6 +339,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\consistent_hash.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster_node.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="cluster.c">

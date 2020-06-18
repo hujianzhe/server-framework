@@ -18,6 +18,9 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="init.c" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D3B26236-9FF6-4CD3-866A-9E045C22D55B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -142,17 +145,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="req_change_cluster_list_http.c" />
-    <ClCompile Include="req_cluster_heartbeat.c" />
-    <ClCompile Include="req_cluster_list.c" />
-    <ClCompile Include="req_cluster_list_http.c" />
-    <ClCompile Include="init.c" />
-    <ClCompile Include="req_distribute_cluster_list_http.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="service_center_handler.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

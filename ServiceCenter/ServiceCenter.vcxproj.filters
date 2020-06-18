@@ -18,25 +18,5 @@
     <ClCompile Include="init.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="req_cluster_list_http.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="req_cluster_list.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="req_change_cluster_list_http.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="req_distribute_cluster_list_http.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="req_cluster_heartbeat.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="service_center_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

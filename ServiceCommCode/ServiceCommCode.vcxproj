@@ -144,12 +144,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="service_comm_proc.h" />
-    <ClInclude Include="service_comm_cmd.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="distribute_cluster_list.c" />
     <ClCompile Include="load_cluster_node_from_json.c" />
-    <ClCompile Include="rpc_req_cluster_list.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

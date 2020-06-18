@@ -1,6 +1,5 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
-#include "../ServiceCommCode/service_comm_cmd.h"
 #include "../ServiceCommCode/service_comm_proc.h"
 
 #if defined(_WIN32) || defined(_WIN64)

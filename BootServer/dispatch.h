@@ -28,6 +28,7 @@ typedef struct Dispatch_t {
 	HashtableNode_t* s_StringDispatchBulk[1024];
 } Dispatch_t;
 
+struct TaskThread_t;
 typedef void(*DispatchCallback_t)(struct TaskThread_t*, UserMsg_t*);
 
 extern DispatchCallback_t g_DefaultDispatchCallback;

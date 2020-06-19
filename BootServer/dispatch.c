@@ -6,13 +6,9 @@ typedef struct DispatchItem_t {
 	DispatchCallback_t func;
 } DispatchItem_t;
 
-static Hashtable_t s_NumberDispatchTable;
-static HashtableNode_t* s_NumberDispatchBulk[1024];
 static int __numkeycmp(const void* node_key, const void* key) { return node_key != key; }
 static unsigned int __numkeyhash(const void* key) { return (ptrlen_t)key; }
 
-static Hashtable_t s_StringDispatchTable;
-static HashtableNode_t* s_StringDispatchBulk[1024];
 static int __strkeycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
 static unsigned int __strkeyhash(const void* key) { return hashBKDR((const char*)key); }
 
@@ -39,26 +35,29 @@ UserMsg_t* newUserMsg(size_t datalen) {
 
 void set_g_DefaultDispatchCallback(DispatchCallback_t fn) { g_DefaultDispatchCallback = fn; }
 
-int initDispatch(void) {
-	hashtableInit(
-		&s_NumberDispatchTable,
-		s_NumberDispatchBulk,
-		sizeof(s_NumberDispatchBulk) / sizeof(s_NumberDispatchBulk[0]),
-		__numkeycmp,
-		__numkeyhash
-	);
+Dispatch_t* newDispatch(void) {
+	Dispatch_t* dispatch = (Dispatch_t*)malloc(sizeof(Dispatch_t));
+	if (dispatch) {
+		hashtableInit(
+			&dispatch->s_NumberDispatchTable,
+			dispatch->s_NumberDispatchBulk,
+			sizeof(dispatch->s_NumberDispatchBulk) / sizeof(dispatch->s_NumberDispatchBulk[0]),
+			__numkeycmp,
+			__numkeyhash
+		);
 
-	hashtableInit(
-		&s_StringDispatchTable,
-		s_StringDispatchBulk,
-		sizeof(s_StringDispatchBulk) / sizeof(s_StringDispatchBulk[0]),
-		__strkeycmp,
-		__strkeyhash
-	);
-	return 1;
+		hashtableInit(
+			&dispatch->s_StringDispatchTable,
+			dispatch->s_StringDispatchBulk,
+			sizeof(dispatch->s_StringDispatchBulk) / sizeof(dispatch->s_StringDispatchBulk[0]),
+			__strkeycmp,
+			__strkeyhash
+		);
+	}
+	return dispatch;
 }
 
-int regStringDispatch(const char* str, DispatchCallback_t func) {
+int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchCallback_t func) {
 	DispatchItem_t* item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
 	if (!item)
 		return 0;
@@ -71,7 +70,7 @@ int regStringDispatch(const char* str, DispatchCallback_t func) {
 		HashtableNode_t* exist_node;
 		item->m_hashnode.key = str;
 		item->func = func;
-		exist_node = hashtableInsertNode(&s_StringDispatchTable, &item->m_hashnode);
+		exist_node = hashtableInsertNode(&dispatch->s_StringDispatchTable, &item->m_hashnode);
 		if (exist_node != &item->m_hashnode) {
 			hashtableReplaceNode(exist_node, &item->m_hashnode);
 			free(pod_container_of(exist_node, DispatchItem_t, m_hashnode));
@@ -80,13 +79,13 @@ int regStringDispatch(const char* str, DispatchCallback_t func) {
 	}
 }
 
-int regNumberDispatch(int cmd, DispatchCallback_t func) {
+int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchCallback_t func) {
 	DispatchItem_t* item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
 	if (item) {
 		HashtableNode_t* exist_node;
 		item->m_hashnode.key = (void*)(size_t)cmd;
 		item->func = func;
-		exist_node = hashtableInsertNode(&s_NumberDispatchTable, &item->m_hashnode);
+		exist_node = hashtableInsertNode(&dispatch->s_NumberDispatchTable, &item->m_hashnode);
 		if (exist_node != &item->m_hashnode) {
 			hashtableReplaceNode(exist_node, &item->m_hashnode);
 			free(pod_container_of(exist_node, DispatchItem_t, m_hashnode));
@@ -96,40 +95,40 @@ int regNumberDispatch(int cmd, DispatchCallback_t func) {
 	return 0;
 }
 
-DispatchCallback_t getStringDispatch(const char* str) {
-	HashtableNode_t* node = hashtableSearchKey(&s_StringDispatchTable, str);
+DispatchCallback_t getStringDispatch(Dispatch_t* dispatch, const char* str) {
+	HashtableNode_t* node = hashtableSearchKey(&dispatch->s_StringDispatchTable, str);
 	if (node) {
 		return pod_container_of(node, DispatchItem_t, m_hashnode)->func;
 	}
 	return NULL;
 }
 
-DispatchCallback_t getNumberDispatch(int cmd) {
-	HashtableNode_t* node = hashtableSearchKey(&s_NumberDispatchTable, (void*)(size_t)cmd);
+DispatchCallback_t getNumberDispatch(Dispatch_t* dispatch, int cmd) {
+	HashtableNode_t* node = hashtableSearchKey(&dispatch->s_NumberDispatchTable, (void*)(size_t)cmd);
 	if (node) {
 		return pod_container_of(node, DispatchItem_t, m_hashnode)->func;
 	}
 	return NULL;
 }
 
-void freeDispatchCallback(void) {
-	HashtableNode_t* cur;
-	cur = hashtableFirstNode(&s_NumberDispatchTable);
-	while (cur) {
-		HashtableNode_t* next = hashtableNextNode(cur);
-		free(pod_container_of(cur, DispatchItem_t, m_hashnode));
-		cur = next;
+void freeDispatch(Dispatch_t* dispatch) {
+	if (dispatch) {
+		HashtableNode_t* cur;
+		cur = hashtableFirstNode(&dispatch->s_NumberDispatchTable);
+		while (cur) {
+			HashtableNode_t* next = hashtableNextNode(cur);
+			free(pod_container_of(cur, DispatchItem_t, m_hashnode));
+			cur = next;
+		}
+		cur = hashtableFirstNode(&dispatch->s_StringDispatchTable);
+		while (cur) {
+			HashtableNode_t* next = hashtableNextNode(cur);
+			free((void*)cur->key);
+			free(pod_container_of(cur, DispatchItem_t, m_hashnode));
+			cur = next;
+		}
+		free(dispatch);
 	}
-	hashtableInit(&s_NumberDispatchTable, s_NumberDispatchBulk, sizeof(s_NumberDispatchBulk) / sizeof(s_NumberDispatchBulk[0]), NULL, NULL);
-
-	cur = hashtableFirstNode(&s_StringDispatchTable);
-	while (cur) {
-		HashtableNode_t* next = hashtableNextNode(cur);
-		free((void*)cur->key);
-		free(pod_container_of(cur, DispatchItem_t, m_hashnode));
-		cur = next;
-	}
-	hashtableInit(&s_StringDispatchTable, s_StringDispatchBulk, sizeof(s_StringDispatchBulk) / sizeof(s_StringDispatchBulk[0]), NULL, NULL);
 }
 
 #ifdef __cplusplus

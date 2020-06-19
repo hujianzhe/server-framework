@@ -75,14 +75,14 @@ extern "C" {
 __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	int i;
 
-	regNumberDispatch(CMD_REQ_TEST, reqTest);
-	regNumberDispatch(CMD_NOTIFY_TEST, notifyTest);
-	regNumberDispatch(CMD_RET_TEST, retTest);
-	regNumberDispatch(CMD_REQ_LOGIN_TEST, reqLoginTest);
-	regNumberDispatch(CMD_RET_LOGIN_TEST, retLoginTest);
-	regStringDispatch("/reqHttpTest", reqHttpTest);
-	regStringDispatch("/reqSoTest", reqSoTest);
-	regNumberDispatch(CMD_REQ_WEBSOCKET_TEST, reqWebsocketTest);
+	regNumberDispatch(thrd->dispatch, CMD_REQ_TEST, reqTest);
+	regNumberDispatch(thrd->dispatch, CMD_NOTIFY_TEST, notifyTest);
+	regNumberDispatch(thrd->dispatch, CMD_RET_TEST, retTest);
+	regNumberDispatch(thrd->dispatch, CMD_REQ_LOGIN_TEST, reqLoginTest);
+	regNumberDispatch(thrd->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
+	regStringDispatch(thrd->dispatch, "/reqHttpTest", reqHttpTest);
+	regStringDispatch(thrd->dispatch, "/reqSoTest", reqSoTest);
+	regNumberDispatch(thrd->dispatch, CMD_REQ_WEBSOCKET_TEST, reqWebsocketTest);
 
 	if (selfClusterNode()->port) {
 		ReactorObject_t* o = openListenerInner(selfClusterNode()->socktype, selfClusterNode()->ip, selfClusterNode()->port);

@@ -5,11 +5,14 @@
 #include "util/inc/component/rbtimer.h"
 #include "util/inc/component/rpc_core.h"
 
+struct Dispatch_t;
+
 typedef struct TaskThread_t {
 	Thread_t tid;
 	DataQueue_t dq;
 	RBTimer_t timer;
 	RBTimer_t rpc_timer;
+	struct Dispatch_t* dispatch;
 	RpcFiberCore_t* f_rpc;
 	RpcAsyncCore_t* a_rpc;
 } TaskThread_t;

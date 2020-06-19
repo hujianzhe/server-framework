@@ -3,9 +3,9 @@
 #include "work_thread.h"
 #include <stdio.h>
 
-static void call_dispatch(TaskThread_t* thread, UserMsg_t* ctrl) {
+static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (g_ModuleInitFunc) {
-		if (!g_ModuleInitFunc(thread, g_MainArgc, g_MainArgv)) {
+		if (!g_ModuleInitFunc(thrd, g_MainArgc, g_MainArgv)) {
 			fprintf(stderr, "(%s).init(argc, argv) return failure\n", g_MainArgv[1]);
 			g_Valid = 0;
 		}
@@ -14,15 +14,15 @@ static void call_dispatch(TaskThread_t* thread, UserMsg_t* ctrl) {
 	else {
 		DispatchCallback_t callback;
 		if (ctrl->cmdstr) {
-			callback = getStringDispatch(ctrl->cmdstr);
+			callback = getStringDispatch(thrd->dispatch, ctrl->cmdstr);
 		}
 		else {
-			callback = getNumberDispatch(ctrl->cmdid);
+			callback = getNumberDispatch(thrd->dispatch, ctrl->cmdid);
 		}
 		if (callback)
-			callback(thread, ctrl);
+			callback(thrd, ctrl);
 		else if (g_DefaultDispatchCallback)
-			g_DefaultDispatchCallback(thread, ctrl);
+			g_DefaultDispatchCallback(thrd, ctrl);
 		else {
 			if (ctrl->httpframe) {
 				char reply[] = "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n";
@@ -334,7 +334,7 @@ extern "C" {
 TaskThread_t* ptr_g_TaskThread(void) { return g_TaskThread; }
 
 TaskThread_t* newTaskThread(void) {
-	int dq_ok = 0, timer_ok = 0, rpc_timer_ok = 0;
+	int dq_ok = 0, timer_ok = 0, rpc_timer_ok = 0, dispatch_ok = 0;
 	TaskThread_t* t = (TaskThread_t*)malloc(sizeof(TaskThread_t));
 	if (!t)
 		return NULL;
@@ -351,6 +351,11 @@ TaskThread_t* newTaskThread(void) {
 		goto err;
 	rpc_timer_ok = 1;
 
+	t->dispatch = newDispatch();
+	if (!t->dispatch)
+		goto err;
+	dispatch_ok = 1;
+
 	t->f_rpc = NULL;
 	t->a_rpc = NULL;
 	return t;
@@ -361,6 +366,9 @@ err:
 		rbtimerDestroy(&t->timer);
 	if (rpc_timer_ok)
 		rbtimerDestroy(&t->rpc_timer);
+	if (dispatch_ok) {
+		freeDispatch(t->dispatch);
+	}
 	free(t);
 	return NULL;
 }
@@ -376,6 +384,7 @@ void freeTaskThread(TaskThread_t* t) {
 		dataqueueDestroy(&t->dq);
 		rbtimerDestroy(&t->timer);
 		rbtimerDestroy(&t->rpc_timer);
+		freeDispatch(t->dispatch);
 		free(t);
 	}
 }

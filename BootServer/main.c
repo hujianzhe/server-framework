@@ -31,7 +31,6 @@ int main(int argc, char** argv) {
 	g_MainArgc = argc;
 	g_MainArgv = argv;
 	// init some datastruct
-	initDispatch();
 	g_ClusterTable = newClusterTable();
 	if (!g_ClusterTable)
 		goto err;
@@ -164,7 +163,6 @@ end:
 	if (globalresourceinitok) {
 		freeGlobalResource();
 	}
-	freeDispatchCallback();
 	if (g_ClusterTable)
 		freeClusterTable(g_ClusterTable);
 	return 0;

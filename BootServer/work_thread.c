@@ -115,7 +115,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							ClusterNode_t* clsnd;
 							int socktype;
 
-							root = cJSON_Parse(NULL, ctrl->data);
+							root = cJSON_Parse(NULL, (char*)ctrl->data);
 							if (!root) {
 								break;
 							}

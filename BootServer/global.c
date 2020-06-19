@@ -9,9 +9,7 @@ Thread_t* g_ReactorThreads;
 Thread_t* g_ReactorAcceptThread;
 Reactor_t* g_Reactors;
 Reactor_t* g_ReactorAccept;
-DataQueue_t g_DataQueue;
 size_t g_ReactorCnt;
-RBTimer_t g_Timer;
 Log_t g_Log;
 
 #ifdef __cplusplus

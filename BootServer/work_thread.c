@@ -142,7 +142,10 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						} while (0);
 						free(ctrl);
 						cJSON_Delete(root);
-						if (!handshake_ok) {
+						if (handshake_ok) {
+							g_SelfClusterNode->connection_num++;
+						}
+						else {
 							channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 						}
 						continue;
@@ -192,6 +195,9 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				else {
 					logInfo(&g_Log, "channel(%p) detach, reason:%d", channel, channel->_.detach_error);
 				}
+
+				if (g_SelfClusterNode->connection_num > 0)
+					g_SelfClusterNode->connection_num--;
 
 				if ((channel->_.flag & CHANNEL_FLAG_CLIENT) ||
 					(channel->_.flag & CHANNEL_FLAG_SERVER))

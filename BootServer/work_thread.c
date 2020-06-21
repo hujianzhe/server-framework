@@ -111,7 +111,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						cJSON* root;
 						int handshake_ok = 0;
 						do {
-							cJSON *cjson_socktype, *cjson_ip, *cjson_port;
+							cJSON *cjson_socktype, *cjson_ip, *cjson_port, *cjson_conn_num;
 							ClusterNode_t* clsnd;
 							int socktype;
 
@@ -132,11 +132,15 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							if (!cjson_port) {
 								break;
 							}
+							cjson_conn_num = cJSON_Field(root, "connection_num");
+
 							clsnd = getClusterNode(g_ClusterTable, socktype, cjson_ip->valuestring, cjson_port->valueint);
 							if (!clsnd) {
 								break;
 							}
 							handshake_ok = 1;
+							if (cjson_conn_num && cjson_conn_num->valueint > 0)
+								clsnd->connection_num = cjson_conn_num->valueint;
 							if (clsnd->session.channel_server != ctrl->channel)
 								sessionChannelReplaceServer(&clsnd->session, ctrl->channel);
 						} while (0);

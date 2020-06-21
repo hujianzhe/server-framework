@@ -234,6 +234,46 @@ ClusterNode_t* targetClusterNode(ClusterNodeGroup_t* grp, int mode, unsigned int
 	return dst_clsnd;
 }
 
+ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char* json_data) {
+	cJSON* root;
+	ClusterNode_t* clsnd = NULL;
+	do {
+		cJSON *cjson_socktype, *cjson_ip, *cjson_port, *cjson_conn_num, *cjson_weight_num;
+		int socktype;
+
+		root = cJSON_Parse(NULL, json_data);
+		if (!root) {
+			break;
+		}
+		cjson_socktype = cJSON_Field(root, "socktype");
+		if (!cjson_socktype) {
+			break;
+		}
+		socktype = if_string2socktype(cjson_socktype->valuestring);
+		cjson_ip = cJSON_Field(root, "ip");
+		if (!cjson_ip) {
+			break;
+		}
+		cjson_port = cJSON_Field(root, "port");
+		if (!cjson_port) {
+			break;
+		}
+		cjson_conn_num = cJSON_Field(root, "connection_num");
+		cjson_weight_num = cJSON_Field(root, "weight_num");
+
+		clsnd = getClusterNode(t, socktype, cjson_ip->valuestring, cjson_port->valueint);
+		if (!clsnd) {
+			break;
+		}
+		if (cjson_conn_num && cjson_conn_num->valueint > 0)
+			clsnd->connection_num = cjson_conn_num->valueint;
+		if (cjson_weight_num && cjson_weight_num->valueint >= 0)
+			clsnd->weight_num = cjson_weight_num->valueint;
+	} while (0);
+	cJSON_Delete(root);
+	return clsnd;
+}
+
 #ifdef __cplusplus
 }
 #endif

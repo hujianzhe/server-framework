@@ -108,49 +108,16 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				UserMsg_t* ctrl = pod_container_of(internal , UserMsg_t, internal);
 				if (ctrl->be_from_cluster) {
 					if ('S' == ctrl->rpc_status) {
-						cJSON* root;
-						int handshake_ok = 0;
-						do {
-							cJSON *cjson_socktype, *cjson_ip, *cjson_port, *cjson_conn_num;
-							ClusterNode_t* clsnd;
-							int socktype;
-
-							root = cJSON_Parse(NULL, (char*)ctrl->data);
-							if (!root) {
-								break;
-							}
-							cjson_socktype = cJSON_Field(root, "socktype");
-							if (!cjson_socktype) {
-								break;
-							}
-							socktype = if_string2socktype(cjson_socktype->valuestring);
-							cjson_ip = cJSON_Field(root, "ip");
-							if (!cjson_ip) {
-								break;
-							}
-							cjson_port = cJSON_Field(root, "port");
-							if (!cjson_port) {
-								break;
-							}
-							cjson_conn_num = cJSON_Field(root, "connection_num");
-
-							clsnd = getClusterNode(g_ClusterTable, socktype, cjson_ip->valuestring, cjson_port->valueint);
-							if (!clsnd) {
-								break;
-							}
-							handshake_ok = 1;
-							if (cjson_conn_num && cjson_conn_num->valueint > 0)
-								clsnd->connection_num = cjson_conn_num->valueint;
-							if (clsnd->session.channel_server != ctrl->channel)
-								sessionChannelReplaceServer(&clsnd->session, ctrl->channel);
-						} while (0);
+						Channel_t* channel = ctrl->channel;
+						ClusterNode_t* clsnd = flushClusterNodeFromJsonData(g_ClusterTable, (char*)ctrl->data);
 						free(ctrl);
-						cJSON_Delete(root);
-						if (handshake_ok) {
+						if (clsnd) {
+							if (clsnd->session.channel_server != channel)
+								sessionChannelReplaceServer(&clsnd->session, channel);
 							g_SelfClusterNode->connection_num++;
 						}
 						else {
-							channelSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
+							channelSendv(channel, NULL, 0, NETPACKET_FIN);
 						}
 						continue;
 					}

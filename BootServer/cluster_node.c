@@ -76,6 +76,7 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 			free(hs_data);
 			return NULL;
 		}
+		clsnd->connection_num++;
 		sessionChannelReplaceClient(&clsnd->session, channel);
 		reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
 		// handshake

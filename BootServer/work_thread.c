@@ -280,20 +280,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	return 0;
 }
 
-unsigned int THREAD_CALL reactorThreadEntry(void* arg) {
-	Reactor_t* reactor = (Reactor_t*)arg;
-	NioEv_t e[4096];
-	int wait_sec = 1000;
-	while (g_Valid) {
-		int n = reactorHandle(reactor, e, sizeof(e)/sizeof(e[0]), gmtimeMillisecond(), wait_sec);
-		if (n < 0) {
-			logErr(&g_Log, "reactorHandle error:%d", errnoGet());
-			break;
-		}
-	}
-	return 0;
-}
-
 /**************************************************************************************/
 
 TaskThread_t* g_TaskThread;

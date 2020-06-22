@@ -7,21 +7,14 @@
 extern unsigned int THREAD_CALL reactorThreadEntry(void* arg);
 
 static void sigintHandler(int signo) {
-	int i;
 	g_Valid = 0;
 	dataqueueWake(&g_TaskThread->dq);
-	reactorWake(g_ReactorAccept);
-	for (i = 0; i < g_ReactorCnt; ++i) {
-		reactorWake(g_Reactors + i);
-	}
+	wakeupNetThreads();
 }
 
 int main(int argc, char** argv) {
-	int i;
 	int configinitok = 0, loginitok = 0, netthreadresourceinitok = 0,
-		taskthreadinitok = 0, taskthreadrunok = 0, socketloopinitokcnt = 0,
-		acceptthreadinitok = 0, acceptloopinitok = 0,
-		listensockinitokcnt = 0;
+		taskthreadinitok = 0, taskthreadrunok = 0;
 	const char* module_path = "";
 	//
 	if (argc < 2) {
@@ -90,23 +83,9 @@ int main(int argc, char** argv) {
 	if (!g_TaskThread)
 		goto err;
 	taskthreadinitok = 1;
-	// init reactor and start reactor thread
-	if (!reactorInit(g_ReactorAccept))
+	// run reactor thread
+	if (!runNetThreads())
 		goto err;
-	acceptloopinitok = 1;
-
-	if (!threadCreate(g_ReactorAcceptThread, reactorThreadEntry, g_ReactorAccept))
-		goto err;
-	acceptthreadinitok = 1;
-
-	for (; socketloopinitokcnt < g_ReactorCnt; ++socketloopinitokcnt) {
-		if (!reactorInit(g_Reactors + socketloopinitokcnt)) {
-			goto err;
-		}
-		if (!threadCreate(g_ReactorThreads + socketloopinitokcnt, reactorThreadEntry, g_Reactors + socketloopinitokcnt)) {
-			goto err;
-		}
-	}
 	// reg SIGINT signal
 	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR)
 		goto err;
@@ -124,25 +103,11 @@ int main(int argc, char** argv) {
 	// wait thread exit
 	threadJoin(g_TaskThread->tid, NULL);
 	g_Valid = 0;
-	threadJoin(*g_ReactorAcceptThread, NULL);
-	reactorDestroy(g_ReactorAccept);
-	for (i = 0; i < g_ReactorCnt; ++i) {
-		threadJoin(g_ReactorThreads[i], NULL);
-		reactorDestroy(g_Reactors + i);
-	}
+	joinNetThreads();
 	goto end;
 err:
 	g_Valid = 0;
-	if (acceptthreadinitok) {
-		threadJoin(*g_ReactorAcceptThread, NULL);
-	}
-	if (acceptloopinitok) {
-		reactorDestroy(g_ReactorAccept);
-	}
-	while (socketloopinitokcnt--) {
-		threadJoin(g_ReactorThreads[socketloopinitokcnt], NULL);
-		reactorDestroy(g_Reactors + socketloopinitokcnt);
-	}
+	joinNetThreads();
 	if (taskthreadrunok) {
 		dataqueueWake(&g_TaskThread->dq);
 		threadJoin(g_TaskThread->tid, NULL);

@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern unsigned int THREAD_CALL reactorThreadEntry(void* arg);
-
 static void sigintHandler(int signo) {
 	g_Valid = 0;
 	dataqueueWake(&g_TaskThread->dq);

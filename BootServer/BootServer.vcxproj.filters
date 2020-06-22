@@ -186,6 +186,9 @@
     <ClInclude Include="cluster.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="net_thread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="util\src\component\channel.c">
@@ -345,6 +348,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="cluster.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="net_thread.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

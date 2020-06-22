@@ -18,7 +18,7 @@ static void sigintHandler(int signo) {
 
 int main(int argc, char** argv) {
 	int i;
-	int configinitok = 0, loginitok = 0, globalresourceinitok = 0,
+	int configinitok = 0, loginitok = 0, netthreadresourceinitok = 0,
 		taskthreadinitok = 0, taskthreadrunok = 0, socketloopinitokcnt = 0,
 		acceptthreadinitok = 0, acceptloopinitok = 0,
 		listensockinitokcnt = 0;
@@ -80,11 +80,11 @@ int main(int argc, char** argv) {
 
 	printf("cluster(%s) name:%s, ip:%s, port:%u, pid:%zu\n",
 		module_path, g_Config.cluster.name, g_SelfClusterNode->ip, g_SelfClusterNode->port, processId());
-	// init resource
-	if (!initGlobalResource()) {
+	// init net thread resource
+	if (!newNetThreadResource()) {
 		goto err;
 	}
-	globalresourceinitok = 1;
+	netthreadresourceinitok = 1;
 	// init task thread
 	g_TaskThread = newTaskThread();
 	if (!g_TaskThread)
@@ -160,8 +160,8 @@ end:
 	if (configinitok) {
 		freeConfig();
 	}
-	if (globalresourceinitok) {
-		freeGlobalResource();
+	if (netthreadresourceinitok) {
+		freeNetThreadResource();
 	}
 	if (g_ClusterTable)
 		freeClusterTable(g_ClusterTable);

@@ -149,6 +149,7 @@
     <ClInclude Include="dispatch.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="msg_struct.h" />
+    <ClInclude Include="net_thread.h" />
     <ClInclude Include="rpc_helper.h" />
     <ClInclude Include="session_struct.h" />
     <ClInclude Include="util\inc\all.h" />
@@ -209,6 +210,7 @@
     <ClCompile Include="global.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="msg_struct.c" />
+    <ClCompile Include="net_thread.c" />
     <ClCompile Include="rpc_helper.c" />
     <ClCompile Include="session_struct.c" />
     <ClCompile Include="util\src\component\channel.c" />

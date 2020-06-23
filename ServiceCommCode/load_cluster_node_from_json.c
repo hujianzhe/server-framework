@@ -63,7 +63,7 @@ int loadClusterTableFromJsonData(struct ClusterTable_t* table, const char* data)
 					unsigned int* ptr_key_array = reallocClusterNodeHashKey(clsnd, hashkey_arraylen);
 					if (!ptr_key_array) {
 						freeClusterNode(clsnd);
-						continue;
+						break;
 					}
 					for (i = 0, key = hashkey_array->child; key && i < hashkey_arraylen; key = key->next, ++i) {
 						ptr_key_array[i] = key->valueint;
@@ -76,6 +76,7 @@ int loadClusterTableFromJsonData(struct ClusterTable_t* table, const char* data)
 			}
 		}
 		if (cjson_clsnd) {
+			logErr(ptr_g_Log(), "reg cluster node error");
 			break;
 		}
 		setClusterTableVersion(cjson_version->valueint);

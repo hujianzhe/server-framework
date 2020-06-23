@@ -75,7 +75,7 @@ int loadClusterTableFromJsonData(struct ClusterTable_t* table, const char* data)
 				break;
 			}
 		}
-		if (!cjson_clsnd) {
+		if (cjson_clsnd) {
 			break;
 		}
 		setClusterTableVersion(cjson_version->valueint);

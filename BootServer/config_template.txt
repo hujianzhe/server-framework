@@ -20,16 +20,6 @@
 			"port" : 50002
 		}
 	],
-	"module_path" : "./SoTest.dll",
-	"log" : {
-		"pathname" : "./SoTest",
-		"maxfilesize_mb" : 10
-	},
-	"rpc_fiber_stack_size_kb" : 16,
-	"rpc_fiber" : 1,
-	"rpc_async" : 0,
-	"tcp_nodelay" : 1,
-	"udp_cwndsize" : 40,
 	"connect_options" : [
 		{
 			"protocol" : "ServiceCenter",
@@ -38,5 +28,16 @@
 			"port" : 40000
 		}
 	],
+	"log" : {
+		"pathname" : "./SoTest",
+		"maxfilesize_mb" : 10
+	},
+	"module_path" : "./SoTest.dll",
+	"cluster_table_path" : "./cluster_table_config_template.txt",
+	"rpc_fiber_stack_size_kb" : 16,
+	"rpc_fiber" : 1,
+	"rpc_async" : 0,
+	"tcp_nodelay" : 1,
+	"udp_cwndsize" : 40,
 	"extra_data" : ""
 }

@@ -1,9 +1,8 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
-#include "../ServiceCommCode/service_comm_proc.h"
 
 #if defined(_WIN32) || defined(_WIN64)
-#pragma comment(lib, "ServiceCommCode.lib")
+#pragma comment(lib, "BootServer.lib")
 #endif
 
 #ifdef __cplusplus
@@ -15,6 +14,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	ClusterNode_t* clsnd;
 	unsigned int i;
 	char* file_data;
+	const char* load_cluster_table_errmsg;
 
 	//
 	if (!ptr_g_Config()->cluster_table_path) {
@@ -26,11 +26,12 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		logErr(ptr_g_Log(), "fdOpen(%s) error", ptr_g_Config()->cluster_table_path);
 		return 0;
 	}
-	if (!loadClusterTableFromJsonData(ptr_g_ClusterTable(), file_data)) {
-		free(file_data);
+	load_cluster_table_errmsg = loadClusterTableFromJsonData(ptr_g_ClusterTable(), file_data);
+	free(file_data);
+	if (load_cluster_table_errmsg && load_cluster_table_errmsg[0]) {
+		logErr(ptr_g_Log(), "loadClusterTableFromJsonData err: %s", load_cluster_table_errmsg);
 		return 0;
 	}
-	free(file_data);
 
 	clsnd = getClusterNodeFromGroup(
 		getClusterNodeGroup(ptr_g_ClusterTable(), selfClusterNode()->name),

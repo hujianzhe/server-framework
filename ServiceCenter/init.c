@@ -1,6 +1,5 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
-#include "../ServiceCommCode/service_comm_proc.h"
 #include <stdio.h>
 #include <string.h>
 

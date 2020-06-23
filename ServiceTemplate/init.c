@@ -15,20 +15,18 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	ClusterNode_t* clsnd;
 	unsigned int i;
 	char* file_data;
-	const char* path;
 
 	//
-	path = ptr_g_Config()->extra_data_txt;
-	if (!path) {
+	if (!ptr_g_Config()->cluster_table_path) {
 		logErr(ptr_g_Log(), "miss cluster table path");
 		return 0;
 	}
-	file_data = fileReadAllData(path, NULL);
+	file_data = fileReadAllData(ptr_g_Config()->cluster_table_path, NULL);
 	if (!file_data) {
-		logErr(ptr_g_Log(), "fdOpen(%s) error", path);
+		logErr(ptr_g_Log(), "fdOpen(%s) error", ptr_g_Config()->cluster_table_path);
 		return 0;
 	}
-	if (!loadClusterNodeFromJsonData(ptr_g_ClusterTable(), file_data)) {
+	if (!loadClusterTableFromJsonData(ptr_g_ClusterTable(), file_data)) {
 		free(file_data);
 		return 0;
 	}

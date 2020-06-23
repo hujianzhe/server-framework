@@ -27,6 +27,7 @@ typedef struct Config_t {
 		unsigned int maxfilesize;
 	} log;
 	const char* module_path;
+	const char* cluster_table_path;
 	int rpc_fiber;
 	unsigned int rpc_fiber_stack_size;
 	int rpc_async;

@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-__declspec_dllexport int loadClusterNodeFromJsonData(struct ClusterTable_t* table, const char* data);
+__declspec_dllexport int loadClusterTableFromJsonData(struct ClusterTable_t* table, const char* data);
 
 #ifdef __cplusplus
 }

@@ -131,6 +131,13 @@ int initConfig(const char* path) {
 				break;
 		}
 
+		cjson = cJSON_Field(root, "cluster_table_path");
+		if (cjson) {
+			g_Config.cluster_table_path = strdup(cjson->valuestring);
+			if (!g_Config.cluster_table_path)
+				break;
+		}
+
 		cjson = cJSON_Field(root, "log");
 		if (!cjson)
 			break;
@@ -204,6 +211,8 @@ void freeConfig(void) {
 	g_Config.log.pathname = NULL;
 	free((char*)g_Config.module_path);
 	g_Config.module_path = NULL;
+	free((char*)g_Config.cluster_table_path);
+	g_Config.cluster_table_path = NULL;
 	g_Config.outer_ip[0] = 0;
 	free((char*)g_Config.extra_data_txt);
 	g_Config.extra_data_txt = NULL;

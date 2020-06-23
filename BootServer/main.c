@@ -39,15 +39,6 @@ int main(int argc, char** argv) {
 	g_Log.m_maxfilesize = g_Config.log.maxfilesize;
 	loginitok = 1;
 	// load module
-	if (argc > 2) {
-		module_path = argv[2];
-		if (module_path[0]) {
-			free((char*)g_Config.module_path);
-			g_Config.module_path = strdup(module_path);
-			if (!g_Config.module_path)
-				goto err;
-		}
-	}
 	if ('\0' == module_path[0] && g_Config.module_path) {
 		module_path = g_Config.module_path;
 	}

@@ -13,16 +13,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	ConfigConnectOption_t* option = NULL;
 	unsigned int i;
 
-	// listen port
-	if (selfClusterNode()->port) {
-		ReactorObject_t* o = openListenerInner(selfClusterNode()->socktype, selfClusterNode()->ip, selfClusterNode()->port);
-		if (!o) {
-			logErr(ptr_g_Log(), "listen failure, ip:%s, port:%u ......", selfClusterNode()->ip, selfClusterNode()->port);
-			return 0;
-		}
-		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
-	}
-
+	// listen extra port
 	for (i = 0; i < ptr_g_Config()->listen_options_cnt; ++i) {
 		ConfigListenOption_t* option = ptr_g_Config()->listen_options + i;
 		ReactorObject_t* o;

@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
 			g_Config.cluster.ip,
 			g_Config.cluster.port
 		);
-		logErr(ptr_g_Log(), "self cluster node isn't find, name:%s, socktype:%s, ip:%s, port:%u",
+		logErr(&g_Log, "self cluster node isn't find, name:%s, socktype:%s, ip:%s, port:%u",
 			g_Config.cluster.name,
 			if_socktype2string(g_Config.cluster.socktype),
 			g_Config.cluster.ip,
@@ -105,6 +105,16 @@ int main(int argc, char** argv) {
 		goto err;
 	}
 	netthreadresourceinitok = 1;
+	// listen self cluster node port
+	if (g_SelfClusterNode->port) {
+		ReactorObject_t* o = openListenerInner(selfClusterNode()->socktype, selfClusterNode()->ip, selfClusterNode()->port);
+		if (!o) {
+			fprintf(stderr, "listen self cluster node err, ip:%s, port:%u\n", selfClusterNode()->ip, selfClusterNode()->port);
+			logErr(&g_Log, "listen self cluster node err, ip:%s, port:%u", selfClusterNode()->ip, selfClusterNode()->port);
+			goto err;
+		}
+		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
+	}
 	// init task thread
 	g_TaskThread = newTaskThread();
 	if (!g_TaskThread)

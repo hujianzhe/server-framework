@@ -106,11 +106,11 @@ int main(int argc, char** argv) {
 	}
 	netthreadresourceinitok = 1;
 	// listen self cluster node port
-	if (g_SelfClusterNode->port) {
-		ReactorObject_t* o = openListenerInner(selfClusterNode()->socktype, selfClusterNode()->ip, selfClusterNode()->port);
+	if (g_Config.cluster.port) {
+		ReactorObject_t* o = openListenerInner(g_Config.cluster.socktype, g_Config.cluster.ip, g_Config.cluster.port);
 		if (!o) {
-			fprintf(stderr, "listen self cluster node err, ip:%s, port:%u\n", selfClusterNode()->ip, selfClusterNode()->port);
-			logErr(&g_Log, "listen self cluster node err, ip:%s, port:%u", selfClusterNode()->ip, selfClusterNode()->port);
+			fprintf(stderr, "listen self cluster node err, ip:%s, port:%u\n", g_Config.cluster.ip, g_Config.cluster.port);
+			logErr(&g_Log, "listen self cluster node err, ip:%s, port:%u", g_Config.cluster.ip, g_Config.cluster.port);
 			goto err;
 		}
 		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);

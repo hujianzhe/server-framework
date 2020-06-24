@@ -13,48 +13,12 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	ConfigConnectOption_t* option = NULL;
 	ClusterNode_t* clsnd;
 	unsigned int i;
-	char* file_data;
-	const char* load_cluster_table_errmsg;
-
-	//
-	if (!ptr_g_Config()->cluster_table_path) {
-		logErr(ptr_g_Log(), "miss cluster table path");
-		return 0;
-	}
-	file_data = fileReadAllData(ptr_g_Config()->cluster_table_path, NULL);
-	if (!file_data) {
-		logErr(ptr_g_Log(), "fdOpen(%s) error", ptr_g_Config()->cluster_table_path);
-		return 0;
-	}
-	load_cluster_table_errmsg = loadClusterTableFromJsonData(ptr_g_ClusterTable(), file_data);
-	free(file_data);
-	if (load_cluster_table_errmsg && load_cluster_table_errmsg[0]) {
-		logErr(ptr_g_Log(), "loadClusterTableFromJsonData err: %s", load_cluster_table_errmsg);
-		return 0;
-	}
-
-	clsnd = getClusterNodeFromGroup(
-		getClusterNodeGroup(ptr_g_ClusterTable(), selfClusterNode()->name),
-		selfClusterNode()->socktype,
-		selfClusterNode()->ip,
-		selfClusterNode()->port
-	);
-	if (!clsnd) {
-		logErr(ptr_g_Log(), "%s cluster node self not find, name:%s, socktype:%s, ip:%s, port:%u",
-			__FUNCTION__,
-			selfClusterNode()->name,
-			if_socktype2string(selfClusterNode()->socktype),
-			selfClusterNode()->ip,
-			selfClusterNode()->port
-		);
-		return 0;
-	}
 
 	// listen port
 	if (selfClusterNode()->port) {
 		ReactorObject_t* o = openListenerInner(selfClusterNode()->socktype, selfClusterNode()->ip, selfClusterNode()->port);
 		if (!o) {
-			logErr(ptr_g_Log(), "listen failure, ip:%s, port:%u ......", option->ip, option->port);
+			logErr(ptr_g_Log(), "listen failure, ip:%s, port:%u ......", selfClusterNode()->ip, selfClusterNode()->port);
 			return 0;
 		}
 		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);

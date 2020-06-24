@@ -42,9 +42,6 @@ __declspec_dllexport void freeClusterTable(struct ClusterTable_t* t);
 
 __declspec_dllexport ClusterNode_t* targetClusterNode(ClusterNodeGroup_t* grp, int mode, unsigned int key);
 
-__declspec_dllexport ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char* json_data);
-__declspec_dllexport const char* loadClusterTableFromJsonData(struct ClusterTable_t* table, const char* data);
-
 #ifdef __cplusplus
 }
 #endif

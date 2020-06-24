@@ -5,6 +5,7 @@
 #include "channel_imp.h"
 #include "cluster_node.h"
 #include "cluster.h"
+#include "cluster_action.h"
 #include "dispatch.h"
 #include "msg_struct.h"
 #include "net_thread.h"

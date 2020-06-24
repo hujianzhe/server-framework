@@ -86,6 +86,12 @@ int main(int argc, char** argv) {
 		g_Config.cluster.port
 	);
 	if (!g_SelfClusterNode) {
+		fprintf(stderr, "self cluster node isn't find, name:%s, socktype:%s, ip:%s, port:%u\n",
+			g_Config.cluster.name,
+			if_socktype2string(g_Config.cluster.socktype),
+			g_Config.cluster.ip,
+			g_Config.cluster.port
+		);
 		logErr(ptr_g_Log(), "self cluster node isn't find, name:%s, socktype:%s, ip:%s, port:%u",
 			g_Config.cluster.name,
 			if_socktype2string(g_Config.cluster.socktype),

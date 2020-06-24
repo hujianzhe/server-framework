@@ -1,9 +1,9 @@
 {
 	"cluster" : {
-		"name" : "test",
+		"name" : "so_test",
 		"socktype" : "SOCK_DGRAM",
 		"ip" : "127.0.0.1",
-		"port" : 50000
+		"port" : 40000
 	},
 	"outer_ip" : "127.0.0.1",
 	"listen_options" : [
@@ -11,13 +11,13 @@
 			"protocol" : "http",
 			"socktype" : "SOCK_STREAM",
 			"ip" : "127.0.0.1",
-			"port" : 50001
+			"port" : 40001
 		},
 		{
 			"protocol" : "websocket",
 			"socktype" : "SOCK_STREAM",
 			"ip" : "127.0.0.1",
-			"port" : 50002
+			"port" : 40002
 		}
 	],
 	"connect_options" : [

@@ -11,7 +11,6 @@ extern "C" {
 
 __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	ConfigConnectOption_t* option = NULL;
-	ClusterNode_t* clsnd;
 	unsigned int i;
 
 	// listen port

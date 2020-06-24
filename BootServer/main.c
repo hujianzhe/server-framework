@@ -35,14 +35,6 @@ int main(int argc, char** argv) {
 	}
 	g_Log.m_maxfilesize = g_Config.log.maxfilesize;
 	loginitok = 1;
-	// input boot cluster node info
-	logInfo(&g_Log, "module_path(%s) name:%s, socktype:%s, ip:%s, port:%u, pid:%zu",
-		module_path, g_Config.cluster.name, if_socktype2string(g_Config.cluster.socktype),
-		g_Config.cluster.ip, g_Config.cluster.port, processId());
-
-	printf("module_path(%s) name:%s, socktype:%s, ip:%s, port:%u, pid:%zu\n",
-		module_path, g_Config.cluster.name, if_socktype2string(g_Config.cluster.socktype),
-		g_Config.cluster.ip, g_Config.cluster.port, processId());
 	// load module
 	if ('\0' == module_path[0] && g_Config.module_path) {
 		module_path = g_Config.module_path;
@@ -61,6 +53,14 @@ int main(int argc, char** argv) {
 			goto err;
 		}
 	}
+	// input boot cluster node info
+	logInfo(&g_Log, "module_path(%s) name:%s, socktype:%s, ip:%s, port:%u, pid:%zu",
+		module_path, g_Config.cluster.name, if_socktype2string(g_Config.cluster.socktype),
+		g_Config.cluster.ip, g_Config.cluster.port, processId());
+
+	printf("module_path(%s) name:%s, socktype:%s, ip:%s, port:%u, pid:%zu\n",
+		module_path, g_Config.cluster.name, if_socktype2string(g_Config.cluster.socktype),
+		g_Config.cluster.ip, g_Config.cluster.port, processId());
 	// load cluster config
 	g_ClusterTable = newClusterTable();
 	if (!g_ClusterTable)

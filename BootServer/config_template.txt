@@ -3,7 +3,7 @@
 		"name" : "so_test",
 		"socktype" : "SOCK_DGRAM",
 		"ip" : "127.0.0.1",
-		"port" : 40000
+		"port" : 40001
 	},
 	"outer_ip" : "127.0.0.1",
 	"listen_options" : [

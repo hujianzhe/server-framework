@@ -52,9 +52,9 @@ void freeNetThreadResource(void) {
 static unsigned int THREAD_CALL reactorThreadEntry(void* arg) {
 	Reactor_t* reactor = (Reactor_t*)arg;
 	NioEv_t e[4096];
-	int wait_sec = 1000;
+	int wait_msec = 1000;
 	while (g_Valid) {
-		int n = reactorHandle(reactor, e, sizeof(e) / sizeof(e[0]), gmtimeMillisecond(), wait_sec);
+		int n = reactorHandle(reactor, e, sizeof(e) / sizeof(e[0]), gmtimeMillisecond(), wait_msec);
 		if (n < 0) {
 			logErr(&g_Log, "reactorHandle error:%d", errnoGet());
 			break;

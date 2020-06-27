@@ -1,4 +1,5 @@
 #include "util/inc/sysapi/socket.h"
+#include "util/inc/sysapi/statistics.h"
 #include "util/inc/component/cJSON.h"
 #include "util/inc/datastruct/memfunc.h"
 #include "config.h"
@@ -122,6 +123,18 @@ int initConfig(const char* path) {
 				}
 			}
 			g_Config.connect_options_cnt = i;
+		}
+
+		cjson = cJSON_Field(root, "net_thread_cnt");
+		if (cjson) {
+			int net_thread_cnt = cjson->valueint;
+			if (net_thread_cnt <= 0) {
+				net_thread_cnt = processorCount();
+			}
+			g_Config.net_thread_cnt = net_thread_cnt;
+		}
+		else {
+			g_Config.net_thread_cnt = 1;
 		}
 
 		cjson = cJSON_Field(root, "module_path");

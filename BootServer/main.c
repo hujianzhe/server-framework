@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 	// init net thread resource
-	if (!newNetThreadResource()) {
+	if (!newNetThreadResource(g_Config.net_thread_cnt)) {
 		goto err;
 	}
 	netthreadresourceinitok = 1;

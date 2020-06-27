@@ -13,13 +13,12 @@ extern "C" {
 Reactor_t* selectReactor(size_t key) { return &s_Reactors[key % s_ReactorCnt]; }
 Reactor_t* ptr_g_ReactorAccept(void) { return s_Reactors + s_ReactorCnt; }
 
-int newNetThreadResource(void) {
+int newNetThreadResource(unsigned int cnt) {
 	int i;
 	size_t nbytes;
 	if (!networkSetupEnv())
 		return 0;
-	//s_ReactorCnt = processorCount();
-	s_ReactorCnt = 1;
+	s_ReactorCnt = cnt;
 	nbytes = (sizeof(Thread_t) + sizeof(Reactor_t)) * (s_ReactorCnt + 1);
 	s_Reactors = (Reactor_t*)malloc(nbytes);
 	if (!s_Reactors)

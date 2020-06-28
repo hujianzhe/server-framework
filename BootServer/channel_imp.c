@@ -124,7 +124,7 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 		reactorCommitCmd(NULL, &o->freecmd);
 		return;
 	}
-	reactorCommitCmd(selectReactor((size_t)newfd), &o->regcmd);
+	reactorCommitCmd(selectReactor(), &o->regcmd);
 	if (sockaddrDecode((struct sockaddr_storage*)peer_addr, ip, &port))
 		logInfo(&g_Log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
 	else
@@ -340,7 +340,7 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const void
 	}
 	conn_channel->on_recv = listen_channel->on_recv;
 
-	reactorCommitCmd(selectReactor((size_t)newfd), &o->regcmd);
+	reactorCommitCmd(selectReactor(), &o->regcmd);
 	if (sockaddrDecode((struct sockaddr_storage*)peer_addr, ip, &port))
 		logInfo(&g_Log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
 	else
@@ -486,7 +486,7 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 	}
 	conn_channel->on_recv = listen_channel->on_recv;
 
-	reactorCommitCmd(selectReactor((size_t)newfd), &o->regcmd);
+	reactorCommitCmd(selectReactor(), &o->regcmd);
 	if (sockaddrDecode((struct sockaddr_storage*)peer_addr, ip, &port))
 		logInfo(&g_Log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
 	else

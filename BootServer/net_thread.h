@@ -8,7 +8,8 @@ extern "C" {
 #endif
 
 __declspec_dllexport Reactor_t* ptr_g_ReactorAccept(void);
-__declspec_dllexport Reactor_t* selectReactor(size_t key);
+__declspec_dllexport Reactor_t* targetReactor(size_t key);
+__declspec_dllexport Reactor_t* selectReactor(void);
 
 int newNetThreadResource(unsigned int cnt);
 void freeNetThreadResource(void);

@@ -131,7 +131,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 					reactorCommitCmd(NULL, &c->_.freecmd);
 					return 1;
 				}
-				reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
+				reactorCommitCmd(selectReactor(), &o->regcmd);
 				rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 				if (rpc_item->ret_msg) {
 					if (!start_req_login_test(c))
@@ -148,11 +148,11 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 					reactorCommitCmd(NULL, &c->_.freecmd);
 					return 1;
 				}
-				reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
+				reactorCommitCmd(selectReactor(), &o->regcmd);
 			}
 		}
 		else {
-			reactorCommitCmd(selectReactor((size_t)(o->fd)), &o->regcmd);
+			reactorCommitCmd(selectReactor(), &o->regcmd);
 			if (!start_req_login_test(c))
 				return 0;
 		}

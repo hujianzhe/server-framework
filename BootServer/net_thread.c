@@ -10,8 +10,15 @@ static size_t s_BootReactorThreadCnt;
 extern "C" {
 #endif
 
-Reactor_t* selectReactor(size_t key) { return &s_Reactors[key % s_ReactorCnt]; }
 Reactor_t* ptr_g_ReactorAccept(void) { return s_Reactors + s_ReactorCnt; }
+Reactor_t* targetReactor(size_t key) { return &s_Reactors[key % s_ReactorCnt]; }
+Reactor_t* selectReactor(void) {
+	static Atom32_t num = 0;
+	unsigned int i = _xadd32(&num, 1);
+	if (i >= s_ReactorCnt)
+		i = 0;
+	return s_Reactors + i;
+}
 
 int newNetThreadResource(unsigned int cnt) {
 	int i;

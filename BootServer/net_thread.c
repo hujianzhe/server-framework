@@ -15,9 +15,7 @@ Reactor_t* targetReactor(size_t key) { return &s_Reactors[key % s_ReactorCnt]; }
 Reactor_t* selectReactor(void) {
 	static Atom32_t num = 0;
 	unsigned int i = _xadd32(&num, 1);
-	if (i >= s_ReactorCnt)
-		i = 0;
-	return s_Reactors + i;
+	return &s_Reactors[i % s_ReactorCnt];
 }
 
 int newNetThreadResource(unsigned int cnt) {

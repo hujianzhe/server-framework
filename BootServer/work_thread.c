@@ -209,7 +209,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					} while (0);
 				}
 
-				channelDestroy(channel);
 				reactorCommitCmd(NULL, &channel->_.freecmd);
 			}
 		}

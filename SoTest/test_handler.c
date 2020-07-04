@@ -49,7 +49,7 @@ void reqTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	makeSendMsg(&msg, CMD_NOTIFY_TEST, NULL, 0);
 	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
-	if (ctrl->rpc_status == 'R') {
+	if (RPC_STATUS_REQ == ctrl->rpc_status) {
 		makeSendMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
 	}
 	else {

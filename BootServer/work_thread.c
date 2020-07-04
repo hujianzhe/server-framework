@@ -31,7 +31,7 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 			}
 			else {
 				SendMsg_t ret_msg;
-				if (ctrl->rpc_status == 'R') {
+				if (RPC_STATUS_REQ == ctrl->rpc_status) {
 					makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 0, NULL, 0);
 				}
 				else {
@@ -107,7 +107,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			if (REACTOR_USER_CMD == internal->type) {
 				UserMsg_t* ctrl = pod_container_of(internal , UserMsg_t, internal);
 				if (ctrl->be_from_cluster) {
-					if ('S' == ctrl->rpc_status) {
+					if (RPC_STATUS_HAND_SHAKE == ctrl->rpc_status) {
 						Channel_t* channel = ctrl->channel;
 						ClusterNode_t* clsnd = flushClusterNodeFromJsonData(g_ClusterTable, (char*)ctrl->data);
 						free(ctrl);
@@ -121,6 +121,11 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						}
 						continue;
 					}
+					else if (RPC_STATUS_FLUSH_NODE == ctrl->rpc_status) {
+						flushClusterNodeFromJsonData(g_ClusterTable, (char*)ctrl->data);
+						free(ctrl);
+						continue;
+					}
 					else {
 						Session_t* session = channelSession(ctrl->channel);
 						if (session && session->channel_client)
@@ -128,7 +133,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					}
 				}
 				if (thread->f_rpc) {
-					if ('T' == ctrl->rpc_status) {
+					if (RPC_STATUS_RESP == ctrl->rpc_status) {
 						RpcItem_t* rpc_item = rpcFiberCoreResume(thread->f_rpc, ctrl->rpcid, ctrl);
 						free(ctrl);
 						if (!rpc_item) {
@@ -141,7 +146,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					}
 				}
 				else if (thread->a_rpc) {
-					if ('T' == ctrl->rpc_status) {
+					if (RPC_STATUS_RESP == ctrl->rpc_status) {
 						RpcItem_t* rpc_item = rpcAsyncCoreCallback(thread->a_rpc, ctrl->rpcid, ctrl);
 						free(ctrl);
 						if (!rpc_item) {

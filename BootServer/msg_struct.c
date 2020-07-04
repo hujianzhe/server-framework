@@ -31,14 +31,14 @@ SendMsg_t* makeSendMsg(SendMsg_t* msg, int cmdid, const void* data, unsigned int
 
 SendMsg_t* makeSendMsgRpcReq(SendMsg_t* msg, int rpcid, int cmdid, const void* data, unsigned int len) {
 	makeSendMsg(msg, cmdid, data, len);
-	msg->rpc_status = 'R';
+	msg->rpc_status = RPC_STATUS_REQ;
 	msg->htonl_rpcid = htonl(rpcid);
 	return msg;
 }
 
 SendMsg_t* makeSendMsgRpcResp(SendMsg_t* msg, int rpcid, int retcode, const void* data, unsigned int len) {
 	makeSendMsg(msg, retcode, data, len);
-	msg->rpc_status = 'T';
+	msg->rpc_status = RPC_STATUS_RESP;
 	msg->htonl_rpcid = htonl(rpcid);
 	return msg;
 }

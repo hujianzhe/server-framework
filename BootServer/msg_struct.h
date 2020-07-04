@@ -13,6 +13,13 @@ typedef struct SendMsg_t {
 	Iobuf_t iov[4];
 } SendMsg_t;
 
+enum {
+	RPC_STATUS_REQ = 'R',
+	RPC_STATUS_RESP = 'T',
+	RPC_STATUS_HAND_SHAKE = 'S',
+	RPC_STATUS_FLUSH_NODE = 'F',
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif

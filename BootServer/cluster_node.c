@@ -80,7 +80,7 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 		sessionChannelReplaceClient(&clsnd->session, channel);
 		reactorCommitCmd(selectReactor(), &o->regcmd);
 		// handshake
-		makeSendMsg(&msg, 0, hs_data, hs_datalen)->rpc_status = 'S';
+		makeSendMsg(&msg, 0, hs_data, hs_datalen)->rpc_status = RPC_STATUS_HAND_SHAKE;
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		free(hs_data);
 	}

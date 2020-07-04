@@ -32,7 +32,7 @@ void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 			UserMsg_t* msg = newUserMsg(0);
 			msg->channel = channel;
 			msg->rpcid = rpc_item->id;
-			msg->rpc_status = 'T';
+			msg->rpc_status = RPC_STATUS_RESP;
 			dataqueuePush(&g_TaskThread->dq, &msg->internal._);
 		}
 	}

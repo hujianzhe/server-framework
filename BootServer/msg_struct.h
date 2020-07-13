@@ -10,8 +10,7 @@ typedef struct SendMsg_t {
 		int htonl_retcode;
 	};
 	int htonl_rpcid;
-	int htonl_identity;
-	Iobuf_t iov[5];
+	Iobuf_t iov[4];
 } SendMsg_t;
 
 enum {

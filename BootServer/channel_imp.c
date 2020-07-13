@@ -70,16 +70,16 @@ static void channel_detach(ChannelBase_t* channel) {
 }
 
 /*************************************************************************/
-static const unsigned int INNER_CHANNEL_BASEHDRSIZE = 4;
-static const unsigned int INNER_CHANNEL_EXTHDRSIZE = 5;
+static const unsigned int CHANNEL_BASEHDRSIZE = 4;
+static const unsigned int CHANNEL_EXTHDRSIZE = 5;
 static unsigned int lengthfieldframe_hdrsize(Channel_t* c, unsigned int bodylen) {
-	return INNER_CHANNEL_BASEHDRSIZE + INNER_CHANNEL_EXTHDRSIZE;
+	return CHANNEL_BASEHDRSIZE + CHANNEL_EXTHDRSIZE;
 }
 
 static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen, ChannelInbufDecodeResult_t* decode_result) {
 	unsigned char* data;
 	unsigned int datalen;
-	int res = lengthfieldframeDecode(INNER_CHANNEL_BASEHDRSIZE, buf, buflen, &data, &datalen);
+	int res = lengthfieldframeDecode(CHANNEL_BASEHDRSIZE, buf, buflen, &data, &datalen);
 	if (res < 0) {
 		decode_result->err = 1;
 	}
@@ -87,14 +87,14 @@ static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen,
 		decode_result->incomplete = 1;
 	}
 	else {
-		if (datalen < INNER_CHANNEL_EXTHDRSIZE) {
+		if (datalen < CHANNEL_EXTHDRSIZE) {
 			decode_result->err = 1;
 			return;
 		}
 		decode_result->pktype = *data;
 		decode_result->pkseq = ntohl(*(unsigned int*)(data + 1));
-		data += INNER_CHANNEL_EXTHDRSIZE;
-		datalen -= INNER_CHANNEL_EXTHDRSIZE;
+		data += CHANNEL_EXTHDRSIZE;
+		datalen -= CHANNEL_EXTHDRSIZE;
 
 		decode_result->bodyptr = data;
 		decode_result->bodylen = datalen;
@@ -103,10 +103,10 @@ static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen,
 }
 
 static void innerchannel_encode(Channel_t* c, unsigned char* hdr, unsigned int bodylen, unsigned char pktype, unsigned int pkseq) {
-	bodylen += INNER_CHANNEL_EXTHDRSIZE;
-	*(hdr + INNER_CHANNEL_BASEHDRSIZE) = pktype;
-	*(unsigned int*)(hdr + INNER_CHANNEL_BASEHDRSIZE + 1) = htonl(pkseq);
-	lengthfieldframeEncode(hdr, INNER_CHANNEL_BASEHDRSIZE, bodylen);
+	bodylen += CHANNEL_EXTHDRSIZE;
+	*(hdr + CHANNEL_BASEHDRSIZE) = pktype;
+	*(unsigned int*)(hdr + CHANNEL_BASEHDRSIZE + 1) = htonl(pkseq);
+	lengthfieldframeEncode(hdr, CHANNEL_BASEHDRSIZE, bodylen);
 }
 
 static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const void* peer_addr, long long ts_msec) {
@@ -139,7 +139,7 @@ static void innerchannel_reply_ack(Channel_t* c, unsigned int seq, const void* a
 }
 
 static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResult_t* decode_result) {
-	unsigned int cmdid_rpcid_sz = 13;
+	unsigned int cmdid_rpcid_sz = 9;
 	if (decode_result->bodylen >= cmdid_rpcid_sz) {
 		UserMsg_t* message = newUserMsg(decode_result->bodylen - cmdid_rpcid_sz);
 		if (!message) {
@@ -153,7 +153,6 @@ static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecode
 		message->rpc_status = *(decode_result->bodyptr);
 		message->retcode = message->cmdid = ntohl(*(int*)(decode_result->bodyptr + 1));
 		message->rpcid = ntohl(*(int*)(decode_result->bodyptr + 5));
-		message->identity = ntohl(*(int*)(decode_result->bodyptr + 9));
 		if (message->datalen) {
 			memcpy(message->data, decode_result->bodyptr + cmdid_rpcid_sz, message->datalen);
 		}
@@ -317,7 +316,6 @@ static void httpframe_recv(Channel_t* c, const void* addr, ChannelInbufDecodeRes
 	message->rpc_status = 0;
 	message->cmdid = 0;
 	message->rpcid = 0;
-	message->identity = 0;
 	if (message->datalen) {
 		memcpy(message->data, decode_result->bodyptr, message->datalen);
 	}

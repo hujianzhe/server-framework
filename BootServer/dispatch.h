@@ -17,7 +17,6 @@ typedef struct UserMsg_t {
 		int retcode;
 	};
 	int rpcid;
-	int identity;
 	size_t datalen;
 	unsigned char data[1];
 } UserMsg_t;

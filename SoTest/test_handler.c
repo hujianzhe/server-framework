@@ -141,7 +141,7 @@ void reqWebsocketTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 }
 
 void reqParallelTest1(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	const char reply[] = __FUNCTION__;
+	const char reply[] = "reqParallelTest1";
 
 	printf("%s hello world !!! %s\n", __FUNCTION__, (char*)ctrl->data);
 
@@ -153,7 +153,7 @@ void reqParallelTest1(TaskThread_t* thrd, UserMsg_t* ctrl) {
 }
 
 void reqParallelTest2(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	const char reply[] = __FUNCTION__;
+	const char reply[] = "reqParallelTest2";
 
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
 

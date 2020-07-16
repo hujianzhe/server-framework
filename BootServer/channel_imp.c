@@ -260,43 +260,28 @@ static void httpframe_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 		free(frame);
 	}
 	else {
-		if (!strcmp(frame->method, "GET")) {
-			decode_result->bodyptr = NULL;
-			decode_result->bodylen = 0;
+		unsigned int datalen = 0;
+		const char* content_length_field = httpframeGetHeader(frame, "Content-Length");
+		if (content_length_field) {
+			if (sscanf(content_length_field, "%u", &datalen) != 1) {
+				decode_result->err = 1;
+				free(httpframeReset(frame));
+				return;
+			}
+		}
+		if (datalen > buflen - res) {
+			decode_result->incomplete = 1;
+			/*
+			* TODO optimized
 			decode_result->decodelen = res;
-			decode_result->userdata = frame;
+			c->decode_userdata = frame;
+			*/
 			return;
 		}
-		if (!strcmp(frame->method, "POST")) {
-			unsigned int content_length;
-			const char* content_length_field = httpframeGetHeader(frame, "Content-Length");
-			if (!content_length_field) {
-				decode_result->err = 1;
-				free(httpframeReset(frame));
-				return;
-			}
-			if (sscanf(content_length_field, "%u", &content_length) != 1) {
-				decode_result->err = 1;
-				free(httpframeReset(frame));
-				return;
-			}
-			if (content_length > buflen - res) {
-				decode_result->incomplete = 1;
-				/*
-				* TODO optimized
-				decode_result->decodelen = res;
-				c->decode_userdata = frame;
-				*/
-				return;
-			}
-			decode_result->bodylen = content_length;
-			decode_result->bodyptr = content_length ? (buf + res) : NULL;
-			decode_result->decodelen = res + content_length;
-			decode_result->userdata = frame;
-			return;
-		}
-		decode_result->err = 1;
-		free(httpframeReset(frame));
+		decode_result->bodylen = datalen;
+		decode_result->bodyptr = datalen ? (buf + res) : NULL;
+		decode_result->decodelen = res + datalen;
+		decode_result->userdata = frame;
 	}
 }
 

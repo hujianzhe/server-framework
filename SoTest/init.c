@@ -41,6 +41,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 			continue;
 		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		//rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 		rpc_item->identity = CMD_REQ_ParallelTest1;
 		cnt_rpc++;
 
@@ -49,10 +50,11 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 			continue;
 		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		//rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 		rpc_item->identity = CMD_REQ_ParallelTest2;
 		cnt_rpc++;
 	}
-	while (i--) {
+	while (cnt_rpc--) {
 		UserMsg_t* ret_msg;
 		rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 		if (!rpc_item->ret_msg) {

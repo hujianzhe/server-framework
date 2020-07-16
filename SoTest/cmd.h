@@ -9,7 +9,9 @@ enum {
 	CMD_NOTIFY_TEST,
 	CMD_RET_TEST,
 
-	CMD_REQ_WEBSOCKET_TEST
+	CMD_REQ_WEBSOCKET_TEST,
+	CMD_REQ_ParallelTest1,
+	CMD_REQ_ParallelTest2,
 };
 
 #endif // !CMD_H

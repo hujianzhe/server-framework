@@ -6,7 +6,7 @@
 static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (g_ModuleInitFunc) {
 		if (!g_ModuleInitFunc(thrd, g_MainArgc, g_MainArgv)) {
-			fprintf(stderr, "(%s).init(argc, argv) return failure\n", g_MainArgv[1]);
+			fprintf(stderr, "init(argc, argv) return failure\n");
 			g_Valid = 0;
 		}
 		g_ModuleInitFunc = NULL;

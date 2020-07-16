@@ -139,3 +139,27 @@ void reqWebsocketTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	printf("%s recv: %s\n", __FUNCTION__, ctrl->data);
 	channelSend(ctrl->channel, reply, strlen(reply), NETPACKET_FRAGMENT);
 }
+
+void reqParallelTest1(TaskThread_t* thrd, UserMsg_t* ctrl) {
+	const char reply[] = __FUNCTION__;
+
+	printf("%s hello world !!! %s\n", __FUNCTION__, (char*)ctrl->data);
+
+	if (RPC_STATUS_REQ == ctrl->rpc_status) {
+		SendMsg_t msg;
+		makeSendMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
+		channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	}
+}
+
+void reqParallelTest2(TaskThread_t* thrd, UserMsg_t* ctrl) {
+	const char reply[] = __FUNCTION__;
+
+	printf("say hello world !!! %s\n", (char*)ctrl->data);
+
+	if (RPC_STATUS_REQ == ctrl->rpc_status) {
+		SendMsg_t msg;
+		makeSendMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
+		channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	}
+}

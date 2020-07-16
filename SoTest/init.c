@@ -30,6 +30,40 @@ static void rpc_async_req_login_test(RpcAsyncCore_t* rpc, RpcItem_t* rpc_item) {
 	g_Invalid();
 }
 
+static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
+	SendMsg_t msg;
+	char test_data[] = "test paralle ^.^";
+	int i, cnt_rpc = 0;
+	RpcItem_t* rpc_item;
+	for (i = 0; i < 2; ++i) {
+		rpc_item = newRpcItemFiberReady(thrd, channel, 1000);
+		if (!rpc_item)
+			continue;
+		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		rpc_item->identity = CMD_REQ_ParallelTest1;
+		cnt_rpc++;
+
+		rpc_item = newRpcItemFiberReady(thrd, channel, 1000);
+		if (!rpc_item)
+			continue;
+		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		rpc_item->identity = CMD_REQ_ParallelTest2;
+		cnt_rpc++;
+	}
+	while (i--) {
+		UserMsg_t* ret_msg;
+		rpc_item = rpcFiberCoreYield(thrd->f_rpc);
+		if (!rpc_item->ret_msg) {
+			printf("rpc identity(%zu) call failure timeout or cancel\n", rpc_item->identity);
+			continue;
+		}
+		ret_msg = (UserMsg_t*)rpc_item->ret_msg;
+		printf("rpc identity(%zu) return: %s ...\n", rpc_item->identity, ret_msg->data);
+	}
+}
+
 static void websocket_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResult_t* decode_result) {
 	if (decode_result->bodylen > 0) {
 		UserMsg_t* message;
@@ -83,6 +117,8 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	regStringDispatch(thrd->dispatch, "/reqHttpTest", reqHttpTest);
 	regStringDispatch(thrd->dispatch, "/reqSoTest", reqSoTest);
 	regNumberDispatch(thrd->dispatch, CMD_REQ_WEBSOCKET_TEST, reqWebsocketTest);
+	regNumberDispatch(thrd->dispatch, CMD_REQ_ParallelTest1, reqParallelTest1);
+	regNumberDispatch(thrd->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);
 
 	// listen extra port
 	for (i = 0; i < ptr_g_Config()->listen_options_cnt; ++i) {
@@ -134,6 +170,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 				reactorCommitCmd(selectReactor(), &o->regcmd);
 				rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 				if (rpc_item->ret_msg) {
+					frpc_test_paralle(thrd, c);
 					if (!start_req_login_test(c))
 						return 0;
 				}

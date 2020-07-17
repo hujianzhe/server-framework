@@ -102,6 +102,9 @@ static void websocket_recv(Channel_t* c, const void* addr, ChannelInbufDecodeRes
 		}
 		dataqueuePush(&ptr_g_TaskThread()->dq, &message->internal._);
 	}
+	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
+		channelSend(c, NULL, 0, NETPACKET_NO_ACK_FRAGMENT);
+	}
 }
 
 #ifdef __cplusplus

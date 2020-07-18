@@ -11,10 +11,12 @@ typedef struct ChannelUserData_t {
 	struct Session_t* session;
 	List_t rpc_itemlist;
 	int ws_handshake_state;
+	int text_data_print_log;
 } ChannelUserData_t;
 
 typedef void(*FnChannelOnRecv_t)(Channel_t*, const void*, ChannelInbufDecodeResult_t*);
 
+#define	channelUserData(channel)	((ChannelUserData_t*)((channel)->userdata))
 #define	channelSession(channel)		(((ChannelUserData_t*)((channel)->userdata))->session)
 #define	channelSessionId(channel)	(((ChannelUserData_t*)((channel)->userdata))->session_id)
 

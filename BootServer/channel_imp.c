@@ -250,7 +250,7 @@ static void httpframe_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 		decode_result->err = 1;
 		return;
 	}
-	res = httpframeDecode(frame, (char*)buf, buflen);
+	res = httpframeDecodeHeader(frame, (char*)buf, buflen);
 	if (res < 0) {
 		decode_result->err = 1;
 		free(frame);

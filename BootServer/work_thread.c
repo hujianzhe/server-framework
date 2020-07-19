@@ -25,7 +25,7 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 			g_DefaultDispatchCallback(thrd, ctrl);
 		else {
 			if (ctrl->httpframe) {
-				char reply[] = "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n";
+				char reply[] = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n";
 				channelSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
 				reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
 			}

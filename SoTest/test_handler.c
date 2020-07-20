@@ -208,6 +208,7 @@ void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		if (wrbytes != form_data->datalen) {
 			logErr(ptr_g_Log(), "%s write error", path);
 			free(path);
+			fdClose(fd);
 			break;
 		}
 

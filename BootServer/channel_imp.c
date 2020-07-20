@@ -287,8 +287,6 @@ static void httpframe_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 		}
 		decode_result->decodelen = res + frame->content_length;
 		decode_result->userdata = frame;
-
-		logDebug(&g_Log, "\r\n%s", buf);
 	}
 }
 

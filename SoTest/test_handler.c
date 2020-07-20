@@ -163,3 +163,12 @@ void reqParallelTest2(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	}
 }
+
+void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
+	HttpFrame_t* httpframe = ctrl->httpframe;
+	ListNode_t* cur, *next;
+	for (cur = httpframe->multipart_form_datalist.head; cur; cur = next) {
+		HttpMultipartFormData_t* form_data = pod_container_of(cur, HttpMultipartFormData_t, listnode);
+		next = cur->next;
+	}
+}

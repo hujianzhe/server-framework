@@ -5,7 +5,6 @@
 #include "util/inc/component/channel.h"
 
 struct Session_t;
-struct UserMsg_t;
 typedef struct ChannelUserData_t {
 	int session_id;
 	struct Session_t* session;

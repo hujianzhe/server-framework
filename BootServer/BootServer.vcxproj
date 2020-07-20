@@ -179,6 +179,7 @@
     <ClInclude Include="util\inc\crt\collision_detection.h" />
     <ClInclude Include="util\inc\crt\consistent_hash.h" />
     <ClInclude Include="util\inc\crt\cXML.h" />
+    <ClInclude Include="util\inc\crt\dynbuf.h" />
     <ClInclude Include="util\inc\crt\math.h" />
     <ClInclude Include="util\inc\datastruct\base64.h" />
     <ClInclude Include="util\inc\datastruct\bstree.h" />
@@ -239,6 +240,7 @@
     <ClCompile Include="util\src\crt\collision_detection.c" />
     <ClCompile Include="util\src\crt\consistent_hash.c" />
     <ClCompile Include="util\src\crt\cXML.c" />
+    <ClCompile Include="util\src\crt\dynbuf.c" />
     <ClCompile Include="util\src\crt\math.c" />
     <ClCompile Include="util\src\datastruct\base64.c" />
     <ClCompile Include="util\src\datastruct\bstree.c" />

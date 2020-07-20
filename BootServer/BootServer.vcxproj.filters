@@ -15,18 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="util\inc\component\cJSON.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\component\collision_detection.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\component\cXML.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\sysapi\math.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="channel_imp.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -46,9 +34,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="session_struct.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\component\consistent_hash.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="work_thread.h">
@@ -234,20 +219,11 @@
     <ClInclude Include="util\inc\platform_define.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\crt\dynbuf.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="util\src\component\cJSON.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\component\collision_detection.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\component\cXML.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\sysapi\math.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="channel_imp.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -273,9 +249,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="session_struct.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\component\consistent_hash.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="cluster_node.c">
@@ -414,6 +387,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\sysapi\time.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\dynbuf.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

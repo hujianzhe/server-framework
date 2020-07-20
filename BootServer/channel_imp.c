@@ -260,27 +260,32 @@ static void httpframe_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 		free(frame);
 	}
 	else {
-		unsigned int datalen = 0;
-		const char* content_length_field = httpframeGetHeader(frame, "Content-Length");
-		if (content_length_field) {
-			if (sscanf(content_length_field, "%u", &datalen) != 1) {
-				decode_result->err = 1;
-				free(httpframeReset(frame));
+		if (frame->content_length) {
+			if (frame->content_length > buflen - res) {
+				decode_result->incomplete = 1;
 				return;
 			}
+			if (frame->multipart_form_data_boundary &&
+				frame->multipart_form_data_boundary[0])
+			{
+				decode_result->bodyptr = NULL;
+				decode_result->bodylen = 0;
+				if (!httpframeDecodeMultipartFormDataList(frame, buf + res, frame->content_length)) {
+					decode_result->err = 1;
+					free(httpframeReset(frame));
+					return;
+				}
+			}
+			else {
+				decode_result->bodyptr = buf + res;
+				decode_result->bodylen = frame->content_length;
+			}
 		}
-		if (datalen > buflen - res) {
-			decode_result->incomplete = 1;
-			/*
-			* TODO optimized
-			decode_result->decodelen = res;
-			c->decode_userdata = frame;
-			*/
-			return;
+		else {
+			decode_result->bodyptr = NULL;
+			decode_result->bodylen = 0;
 		}
-		decode_result->bodylen = datalen;
-		decode_result->bodyptr = datalen ? (buf + res) : NULL;
-		decode_result->decodelen = res + datalen;
+		decode_result->decodelen = res + frame->content_length;
 		decode_result->userdata = frame;
 
 		logDebug(&g_Log, "\r\n%s", buf);

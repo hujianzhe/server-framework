@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="util\inc\component\channel.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\component\cJSON.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -25,6 +22,51 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\component\cXML.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\sysapi\math.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="channel_imp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="dispatch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="global.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="msg_struct.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="rpc_helper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="session_struct.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\component\consistent_hash.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="work_thread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster_node.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="net_thread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster_action.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\component\channel.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\component\dataqueue.h">
@@ -55,6 +97,48 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\component\websocketframe.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\cpp\container_utility.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\cpp\cpp_compiler_define.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\cpp\exception.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\cpp\lexical_cast.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\cpp\nullptr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\cpp\string_split.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\cpp\unique_ptr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\cpp\unordered_map.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\cpp\unordered_set.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\cJSON.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\collision_detection.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\consistent_hash.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\cXML.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\math.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\datastruct\base64.h">
@@ -120,9 +204,6 @@
     <ClInclude Include="util\inc\sysapi\ipc.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\sysapi\math.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\sysapi\misc.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -153,50 +234,8 @@
     <ClInclude Include="util\inc\platform_define.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="channel_imp.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="config.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="dispatch.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="global.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="msg_struct.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="rpc_helper.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="session_struct.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\component\consistent_hash.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="work_thread.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cluster_node.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cluster.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="net_thread.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cluster_action.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="util\src\component\channel.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="util\src\component\cJSON.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -204,6 +243,54 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\cXML.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\sysapi\math.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="channel_imp.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="config.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="dispatch.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="global.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="msg_struct.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="rpc_helper.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="work_thread.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="session_struct.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\component\consistent_hash.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster_node.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="net_thread.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster_action.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\component\channel.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\dataqueue.c">
@@ -234,6 +321,21 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\websocketframe.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\cJSON.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\collision_detection.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\consistent_hash.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\cXML.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\math.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\datastruct\base64.c">
@@ -293,9 +395,6 @@
     <ClCompile Include="util\src\sysapi\ipc.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\sysapi\math.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="util\src\sysapi\misc.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -315,48 +414,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\sysapi\time.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="channel_imp.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="config.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="dispatch.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="global.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="main.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="msg_struct.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="rpc_helper.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="work_thread.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="session_struct.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\component\consistent_hash.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster_node.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="net_thread.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster_action.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

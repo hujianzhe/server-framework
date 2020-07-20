@@ -1,6 +1,6 @@
 #include "util/inc/sysapi/socket.h"
 #include "util/inc/sysapi/statistics.h"
-#include "util/inc/component/cJSON.h"
+#include "util/inc/crt/cJSON.h"
 #include "util/inc/datastruct/memfunc.h"
 #include "config.h"
 #include <stdlib.h>

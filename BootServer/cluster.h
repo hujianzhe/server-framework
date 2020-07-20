@@ -1,7 +1,7 @@
 #ifndef CLUSTER_H
 #define	CLUSTER_H
 
-#include "util/inc/component/consistent_hash.h"
+#include "util/inc/crt/consistent_hash.h"
 #include "cluster_node.h"
 
 typedef struct ClusterNodeGroup_t {

@@ -121,6 +121,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	regNumberDispatch(thrd->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
 	regStringDispatch(thrd->dispatch, "/reqHttpTest", reqHttpTest);
 	regStringDispatch(thrd->dispatch, "/reqSoTest", reqSoTest);
+	regStringDispatch(thrd->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);
 	regNumberDispatch(thrd->dispatch, CMD_REQ_WEBSOCKET_TEST, reqWebsocketTest);
 	regNumberDispatch(thrd->dispatch, CMD_REQ_ParallelTest1, reqParallelTest1);
 	regNumberDispatch(thrd->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);

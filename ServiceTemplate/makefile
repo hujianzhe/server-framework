@@ -8,6 +8,7 @@ TARGET_PATH += .
 COMPILE_OPTION := -Wno-deprecated -Wno-parentheses
 MACRO := -D_REENTRANT
 DLL_PATH := -Wl,-rpath,./:$(TARGET_PATH)
+INCLUDE_PATH :=
 
 DEFAULT_LINK := -lpthread -lm -ldl
 ifeq ($(shell uname), Linux)
@@ -25,7 +26,7 @@ TARGET := $(TARGET_PATH)/libServiceTemplate.so
 all:
 
 debug:
-	$(COMPILER) -fPIC -shared $(MACRO) -g $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)
+	$(COMPILER) -fPIC -shared $(MACRO) -g $(COMPILE_OPTION) $(INCLUDE_PATH) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)
 
 release:
-	$(COMPILER) -fPIC -shared $(MACRO) $(COMPILE_OPTION) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)
+	$(COMPILER) -fPIC -shared $(MACRO) $(COMPILE_OPTION) $(INCLUDE_PATH) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)

@@ -31,4 +31,4 @@ linux下使用make debug 或 make release
 启动:  
 编辑好服务节点启动需要的配置文件(具体格式参看附带的配置文件模板)，给每个节点一个配置文件和唯一日志标识名  
 windows直接VS打开，工程配置好启动参数  <配置文件>  
-linux下进入BootServer目录，sh run.sh <配置文件>  
+linux编译后，sh run.sh <配置文件>  

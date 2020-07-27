@@ -12,11 +12,13 @@ typedef struct ClusterNodeGroup_t {
 	unsigned int target_loopcnt;
 } ClusterNodeGroup_t;
 
-#define	CLUSTER_TARGET_USE_HASH_MOD		1
-#define	CLUSTER_TARGET_USE_HASH_RING	2
-#define	CLUSTER_TARGET_USE_ROUND_ROBIN	3
-#define	CLUSTER_TARGET_USE_WEIGHT_NUM	4
-#define	CLUSTER_TARGET_USE_CONNECT_NUM	5
+#define	CLUSTER_TARGET_USE_HASH_MOD			1
+#define	CLUSTER_TARGET_USE_HASH_RING		2
+#define	CLUSTER_TARGET_USE_ROUND_ROBIN		3
+#define	CLUSTER_TARGET_USE_WEIGHT_RANDOM	4
+#define	CLUSTER_TARGET_USE_CONNECT_NUM		5
+#define	CLUSTER_TARGET_USE_WEIGHT_MIN		6
+#define	CLUSTER_TARGET_USE_WEIGHT_MAX		7
 
 struct ClusterTable_t;
 extern struct ClusterTable_t* g_ClusterTable;

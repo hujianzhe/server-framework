@@ -190,7 +190,7 @@ ClusterNode_t* targetClusterNode(ClusterNodeGroup_t* grp, int mode, unsigned int
 			return NULL;
 		dst_clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
 	}
-	else if (CLUSTER_TARGET_USE_WEIGHT_NUM == mode) {
+	else if (CLUSTER_TARGET_USE_WEIGHT_RANDOM == mode) {
 		static int mt_seedval = 1;
 		int random_val;
 		RandMT19937_t mt_ctx;
@@ -217,6 +217,24 @@ ClusterNode_t* targetClusterNode(ClusterNodeGroup_t* grp, int mode, unsigned int
 				dst_clsnd = clsnd;
 				break;
 			}
+		}
+	}
+	else if (CLUSTER_TARGET_USE_WEIGHT_MIN == mode) {
+		ListNode_t* cur;
+		dst_clsnd = NULL;
+		for (cur = grp->nodelist.head; cur; cur = cur->next) {
+			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+			if (!dst_clsnd || dst_clsnd->weight_num > clsnd->weight_num)
+				dst_clsnd = clsnd;
+		}
+	}
+	else if (CLUSTER_TARGET_USE_WEIGHT_MAX == mode) {
+		ListNode_t* cur;
+		dst_clsnd = NULL;
+		for (cur = grp->nodelist.head; cur; cur = cur->next) {
+			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+			if (!dst_clsnd || dst_clsnd->weight_num < clsnd->weight_num)
+				dst_clsnd = clsnd;
 		}
 	}
 	else if (CLUSTER_TARGET_USE_CONNECT_NUM == mode) {

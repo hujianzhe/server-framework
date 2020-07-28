@@ -70,7 +70,10 @@ static RpcItem_t* readyRpcItem(TaskThread_t* thrd, RpcItem_t* rpc_item, Channel_
 }
 
 RpcItem_t* newRpcItemFiberReady(TaskThread_t* thrd, Channel_t* channel, long long timeout_msec) {
-	RpcItem_t* rpc_item = newRpcItem();
+	RpcItem_t* rpc_item;
+	if (!channel->_.valid)
+		return NULL;
+	rpc_item = newRpcItem();
 	if (!rpc_item)
 		return NULL;
 	if (!readyRpcItem(thrd, rpc_item, channel, timeout_msec)) {
@@ -85,7 +88,10 @@ RpcItem_t* newRpcItemFiberReady(TaskThread_t* thrd, Channel_t* channel, long lon
 }
 
 RpcItem_t* newRpcItemAsyncReady(TaskThread_t* thrd, Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcAsyncCore_t*, RpcItem_t*)) {
-	RpcItem_t* rpc_item = newRpcItem();
+	RpcItem_t* rpc_item;
+	if (!channel->_.valid)
+		return NULL;
+	rpc_item = newRpcItem();
 	if (!rpc_item)
 		return NULL;
 	if (!readyRpcItem(thrd, rpc_item, channel, timeout_msec)) {

@@ -8,6 +8,7 @@ typedef struct {
 	int socktype;
 	IPString_t ip;
 	unsigned short port;
+	int readcache_max_size;
 } ConfigListenOption_t, ConfigConnectOption_t;
 
 typedef struct Config_t {
@@ -21,6 +22,7 @@ typedef struct Config_t {
 		int socktype;
 		IPString_t ip;
 		unsigned short port;
+		int readcache_max_size;
 	} cluster;
 	struct {
 		const char* pathname;

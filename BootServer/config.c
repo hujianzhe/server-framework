@@ -26,7 +26,7 @@ int initConfig(const char* path) {
 			break;
 		}
 		else {
-			cJSON *name, *socktype, *ip, *port;
+			cJSON *name, *socktype, *ip, *port, *readcache_max_size;
 			name = cJSON_Field(cjson, "name");
 			if (!name)
 				break;
@@ -39,6 +39,9 @@ int initConfig(const char* path) {
 			port = cJSON_Field(cjson, "port");
 			if (!port)
 				break;
+			readcache_max_size = cJSON_Field(cjson, "readcache_max_size");
+			if (readcache_max_size && readcache_max_size->valueint > 0)
+				g_Config.cluster.readcache_max_size = readcache_max_size->valueint;
 			g_Config.cluster.name = strdup(name->valuestring);
 			if (!g_Config.cluster.name)
 				break;
@@ -70,6 +73,7 @@ int initConfig(const char* path) {
 				cJSON* ipnode = cJSON_Field(childnode, "ip");
 				cJSON* portnode = cJSON_Field(childnode, "port");
 				cJSON* socktype = cJSON_Field(childnode, "socktype");
+				cJSON* readcache_max_size = cJSON_Field(childnode, "readcache_max_size");
 				if (!protocol || !ipnode || !portnode) {
 					continue;
 				}
@@ -82,6 +86,12 @@ int initConfig(const char* path) {
 				}
 				else {
 					option_ptr->socktype = if_string2socktype(socktype->valuestring);
+				}
+				if (readcache_max_size && readcache_max_size->valueint > 0) {
+					option_ptr->readcache_max_size = readcache_max_size->valueint;
+				}
+				else {
+					option_ptr->readcache_max_size = 0;
 				}
 			}
 			g_Config.listen_options_cnt = i;
@@ -97,17 +107,18 @@ int initConfig(const char* path) {
 			int i;
 			cJSON* childnode;
 			g_Config.connect_options_cnt = cJSON_Size(cjson);
-			g_Config.connect_options = (ConfigListenOption_t*)malloc(sizeof(ConfigListenOption_t) * g_Config.connect_options_cnt);
+			g_Config.connect_options = (ConfigConnectOption_t*)malloc(sizeof(ConfigConnectOption_t) * g_Config.connect_options_cnt);
 			if (!g_Config.connect_options) {
 				break;
 			}
 			i = 0;
 			for (childnode = cjson->child; childnode; childnode = childnode->next) {
-				ConfigListenOption_t* option_ptr;
+				ConfigConnectOption_t* option_ptr;
 				cJSON* protocol = cJSON_Field(childnode, "protocol");
 				cJSON* ipnode = cJSON_Field(childnode, "ip");
 				cJSON* portnode = cJSON_Field(childnode, "port");
 				cJSON* socktype = cJSON_Field(childnode, "socktype");
+				cJSON* readcache_max_size = cJSON_Field(childnode, "readcache_max_size");
 				if (!protocol || !ipnode || !portnode) {
 					continue;
 				}
@@ -120,6 +131,12 @@ int initConfig(const char* path) {
 				}
 				else {
 					option_ptr->socktype = if_string2socktype(socktype->valuestring);
+				}
+				if (readcache_max_size && readcache_max_size->valueint > 0) {
+					option_ptr->readcache_max_size = readcache_max_size->valueint;
+				}
+				else {
+					option_ptr->readcache_max_size = 0;
 				}
 			}
 			g_Config.connect_options_cnt = i;

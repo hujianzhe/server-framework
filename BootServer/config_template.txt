@@ -3,7 +3,8 @@
 		"name" : "so_test",
 		"socktype" : "SOCK_DGRAM",
 		"ip" : "127.0.0.1",
-		"port" : 40001
+		"port" : 40001,
+		"readcache_max_size" : 65535
 	},
 	"outer_ip" : "127.0.0.1",
 	"listen_options" : [
@@ -11,13 +12,15 @@
 			"protocol" : "http",
 			"socktype" : "SOCK_STREAM",
 			"ip" : "127.0.0.1",
-			"port" : 40001
+			"port" : 40001,
+			"readcache_max_size" : 65535
 		},
 		{
 			"protocol" : "websocket",
 			"socktype" : "SOCK_STREAM",
 			"ip" : "127.0.0.1",
-			"port" : 40002
+			"port" : 40002,
+			"readcache_max_size" : 65535
 		}
 	],
 	"connect_options" : [
@@ -25,7 +28,8 @@
 			"protocol" : "ServiceCenter",
 			"socktype" : "SOCK_DGRAM",
 			"ip" : "39.100.213.153",
-			"port" : 40000
+			"port" : 40000,
+			"readcache_max_size" : 65535
 		}
 	],
 	"log" : {

@@ -208,7 +208,7 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const void* saddr) {
 	return c;
 }
 
-ReactorObject_t* openListenerInner(int socktype, const char* ip, unsigned short port) {
+Channel_t* openListenerInner(int socktype, const char* ip, unsigned short port) {
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
 	Channel_t* c;
@@ -234,7 +234,7 @@ ReactorObject_t* openListenerInner(int socktype, const char* ip, unsigned short 
 		return NULL;
 	}
 	c->_.on_ack_halfconn = innerchannel_accept_callback;
-	return o;
+	return c;
 }
 
 /**************************************************************************/
@@ -362,7 +362,7 @@ Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const void* saddr) {
 	return c;
 }
 
-ReactorObject_t* openListenerHttp(const char* ip, unsigned short port, FnChannelOnRecv_t fn) {
+Channel_t* openListenerHttp(const char* ip, unsigned short port, FnChannelOnRecv_t fn) {
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
 	Channel_t* c;
@@ -388,7 +388,7 @@ ReactorObject_t* openListenerHttp(const char* ip, unsigned short port, FnChannel
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_ack_halfconn = http_accept_callback;
 	c->on_recv = fn ? fn : httpframe_recv;
-	return o;
+	return c;
 }
 
 /**************************************************************************/
@@ -506,7 +506,7 @@ Channel_t* openChannelWebsocketServer(ReactorObject_t* o, const void* saddr) {
 	return c;
 }
 
-ReactorObject_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn) {
+Channel_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn) {
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
 	Channel_t* c;
@@ -532,7 +532,7 @@ ReactorObject_t* openListenerWebsocket(const char* ip, unsigned short port, FnCh
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_ack_halfconn = websocket_accept_callback;
 	c->on_recv = fn ? fn : websocket_recv;
-	return o;
+	return c;
 }
 
 #ifdef __cplusplus

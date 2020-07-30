@@ -16,18 +16,18 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	// listen extra port
 	for (i = 0; i < ptr_g_Config()->listen_options_cnt; ++i) {
 		ConfigListenOption_t* option = ptr_g_Config()->listen_options + i;
-		ReactorObject_t* o;
+		Channel_t* c;
 		if (!strcmp(option->protocol, "http")) {
-			o = openListenerHttp(option->ip, option->port, NULL);
+			c = openListenerHttp(option->ip, option->port, NULL);
 		}
 		else {
 			continue;
 		}
-		if (!o) {
+		if (!c) {
 			logErr(ptr_g_Log(), "listen failure, ip:%s, port:%u ......", option->ip, option->port);
 			return 0;
 		}
-		reactorCommitCmd(ptr_g_ReactorAccept(), &o->regcmd);
+		reactorCommitCmd(ptr_g_ReactorAccept(), &c->_.o->regcmd);
 	}
 
 	logInfo(ptr_g_Log(), "init ok ......");

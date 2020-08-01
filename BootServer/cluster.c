@@ -252,6 +252,121 @@ ClusterNode_t* targetClusterNode(ClusterNodeGroup_t* grp, int mode, unsigned int
 	return dst_clsnd;
 }
 
+ClusterNode_t* targetClusterNodeByIp(ClusterNodeGroup_t* grp, const IPString_t ip, int mode, unsigned int key) {
+	ClusterNode_t* dst_clsnd;
+	if (!grp || !ip || 0 == ip[0])
+		return NULL;
+	else if (CLUSTER_TARGET_USE_HASH_MOD == mode) {
+		ListNode_t* cur;
+		unsigned int nodelistcnt = 0;
+		for (cur = grp->nodelist.head; cur; cur = cur->next) {
+			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+			if (0 == strcmp(clsnd->ip, ip))
+				++nodelistcnt;
+		}
+		if (0 == nodelistcnt)
+			return NULL;
+		key %= nodelistcnt;
+		for (cur = grp->nodelist.head; cur; cur = cur->next) {
+			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+			if (strcmp(clsnd->ip, ip))
+				continue;
+			if (key--)
+				break;
+		}
+		if (!cur)
+			return NULL;
+		dst_clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+	}
+	else if (CLUSTER_TARGET_USE_ROUND_ROBIN == mode) {
+		ListNode_t* cur;
+		if (++grp->target_loopcnt >= grp->nodelistcnt) {
+			grp->target_loopcnt = 0;
+		}
+		key = grp->target_loopcnt;
+		for (cur = grp->nodelist.head; cur; cur = cur->next) {
+			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+			if (strcmp(clsnd->ip, ip))
+				continue;
+			if (key--)
+				break;
+		}
+		if (!cur)
+			return NULL;
+		dst_clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+	}
+	else if (CLUSTER_TARGET_USE_WEIGHT_RANDOM == mode) {
+		static int mt_seedval = 1;
+		int random_val;
+		RandMT19937_t mt_ctx;
+		int weight_num = 0;
+		ListNode_t* cur;
+		for (cur = grp->nodelist.head; cur; cur = cur->next) {
+			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+			if (clsnd->weight_num <= 0)
+				continue;
+			if (strcmp(clsnd->ip, ip))
+				continue;
+			weight_num += clsnd->weight_num;
+		}
+		if (0 == weight_num)
+			return NULL;
+		mt19937Seed(&mt_ctx, mt_seedval++);
+		random_val = mt19937Range(&mt_ctx, 0, weight_num);
+		weight_num = 0;
+		dst_clsnd = NULL;
+		for (cur = grp->nodelist.head; cur; cur = cur->next) {
+			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+			if (clsnd->weight_num <= 0)
+				continue;
+			if (strcmp(clsnd->ip, ip))
+				continue;
+			weight_num += clsnd->weight_num;
+			if (random_val < weight_num) {
+				dst_clsnd = clsnd;
+				break;
+			}
+		}
+	}
+	else if (CLUSTER_TARGET_USE_WEIGHT_MIN == mode) {
+		ListNode_t* cur;
+		dst_clsnd = NULL;
+		for (cur = grp->nodelist.head; cur; cur = cur->next) {
+			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+			if (strcmp(clsnd->ip, ip))
+				continue;
+			if (!dst_clsnd || dst_clsnd->weight_num > clsnd->weight_num)
+				dst_clsnd = clsnd;
+		}
+	}
+	else if (CLUSTER_TARGET_USE_WEIGHT_MAX == mode) {
+		ListNode_t* cur;
+		dst_clsnd = NULL;
+		for (cur = grp->nodelist.head; cur; cur = cur->next) {
+			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+			if (strcmp(clsnd->ip, ip))
+				continue;
+			if (!dst_clsnd || dst_clsnd->weight_num < clsnd->weight_num)
+				dst_clsnd = clsnd;
+		}
+	}
+	else if (CLUSTER_TARGET_USE_CONNECT_NUM == mode) {
+		ListNode_t* cur;
+		dst_clsnd = NULL;
+		for (cur = grp->nodelist.head; cur; cur = cur->next) {
+			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+			if (strcmp(clsnd->ip, ip))
+				continue;
+			if (!dst_clsnd || dst_clsnd->connection_num > clsnd->connection_num)
+				dst_clsnd = clsnd;
+		}
+	}
+	else {
+		return NULL;
+	}
+	return dst_clsnd;
+}
+
 #ifdef __cplusplus
 }
 #endif

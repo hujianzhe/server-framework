@@ -43,6 +43,7 @@ __declspec_dllexport void unregClusterNode(struct ClusterTable_t* t, ClusterNode
 __declspec_dllexport void freeClusterTable(struct ClusterTable_t* t);
 
 __declspec_dllexport ClusterNode_t* targetClusterNode(ClusterNodeGroup_t* grp, int mode, unsigned int key);
+__declspec_dllexport ClusterNode_t* targetClusterNodeByIp(ClusterNodeGroup_t* grp, const IPString_t ip, int mode, unsigned int key);
 
 #ifdef __cplusplus
 }

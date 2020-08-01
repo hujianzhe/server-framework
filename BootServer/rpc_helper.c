@@ -113,6 +113,10 @@ void freeRpcItem(TaskThread_t* thrd, RpcItem_t* rpc_item) {
 	}
 	if (rpc_item->timeout_ev)
 		rbtimerDelEvent(&thrd->rpc_timer, (RBTimerEvent_t*)rpc_item->timeout_ev);
+	if (thrd->f_rpc)
+		rpcFiberCoreCancel(thrd->f_rpc, rpc_item);
+	else if (thrd->a_rpc)
+		rpcAsyncCoreCancel(thrd->a_rpc, rpc_item);
 	free(rpc_item);
 }
 

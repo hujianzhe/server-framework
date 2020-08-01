@@ -106,6 +106,8 @@ RpcItem_t* newRpcItemAsyncReady(TaskThread_t* thrd, Channel_t* channel, long lon
 }
 
 void freeRpcItem(TaskThread_t* thrd, RpcItem_t* rpc_item) {
+	if (!rpc_item)
+		return;
 	if (rpc_item->originator) {
 		Channel_t* channel = (Channel_t*)rpc_item->originator;
 		ChannelUserData_t* ud = (ChannelUserData_t*)channel->userdata;

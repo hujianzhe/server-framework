@@ -42,7 +42,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		//rpc_item = rpcFiberCoreYield(thrd->f_rpc);
-		rpc_item->identity = CMD_REQ_ParallelTest1;
+		rpc_item->udata = CMD_REQ_ParallelTest1;
 		cnt_rpc++;
 
 		rpc_item = newRpcItemFiberReady(thrd, channel, 1000);
@@ -51,18 +51,18 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		//rpc_item = rpcFiberCoreYield(thrd->f_rpc);
-		rpc_item->identity = CMD_REQ_ParallelTest2;
+		rpc_item->udata = CMD_REQ_ParallelTest2;
 		cnt_rpc++;
 	}
 	while (cnt_rpc--) {
 		UserMsg_t* ret_msg;
 		rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 		if (!rpc_item->ret_msg) {
-			printf("rpc identity(%zu) call failure timeout or cancel\n", rpc_item->identity);
+			printf("rpc identity(%zu) call failure timeout or cancel\n", rpc_item->udata);
 			continue;
 		}
 		ret_msg = (UserMsg_t*)rpc_item->ret_msg;
-		printf("rpc identity(%zu) return: %s ...\n", rpc_item->identity, ret_msg->data);
+		printf("rpc identity(%zu) return: %s ...\n", rpc_item->udata, ret_msg->data);
 	}
 }
 

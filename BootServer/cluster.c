@@ -271,8 +271,9 @@ ClusterNode_t* targetClusterNodeByIp(ClusterNodeGroup_t* grp, const IPString_t i
 			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
 			if (strcmp(clsnd->ip, ip))
 				continue;
-			if (key--)
+			if (0 == key)
 				break;
+			key--;
 		}
 		if (!cur)
 			return NULL;
@@ -288,8 +289,9 @@ ClusterNode_t* targetClusterNodeByIp(ClusterNodeGroup_t* grp, const IPString_t i
 			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
 			if (strcmp(clsnd->ip, ip))
 				continue;
-			if (key--)
+			if (0 == key)
 				break;
+			key--;
 		}
 		if (!cur)
 			return NULL;

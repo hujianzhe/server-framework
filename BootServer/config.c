@@ -13,14 +13,14 @@ extern "C" {
 #endif
 
 int initConfig(const char* path) {
-	int res = 0;
-	cJSON* root, *cjson;
+	int res;
+	cJSON* root = cJSON_ParseFromFile(NULL, path);
+	if (!root) {
+		return 0;
+	}
+	res = 0;
 	do {
-		root = cJSON_ParseFromFile(NULL, path);
-		if (!root) {
-			break;
-		}
-
+		cJSON* cjson;
 		cjson = cJSON_Field(root, "cluster");
 		if (!cjson) {
 			break;
@@ -48,13 +48,6 @@ int initConfig(const char* path) {
 			g_Config.cluster.socktype = if_string2socktype(socktype->valuestring);
 			strcpy(g_Config.cluster.ip, ip->valuestring);
 			g_Config.cluster.port = port->valueint;
-		}
-
-		cjson = cJSON_Field(root, "extra_data");
-		if (cjson) {
-			g_Config.extra_data_txt = strdup(cjson->valuestring);
-			if (!g_Config.extra_data_txt)
-				break;
 		}
 
 		cjson = cJSON_Field(root, "listen_options");
@@ -216,7 +209,10 @@ int initConfig(const char* path) {
 
 		res = 1;
 	} while (0);
-	cJSON_Delete(root);
+	if (res)
+		g_Config.cjson_root = root;
+	else
+		cJSON_Delete(root);
 	return res;
 }
 
@@ -244,9 +240,8 @@ void freeConfig(void) {
 	free((char*)g_Config.cluster_table_path);
 	g_Config.cluster_table_path = NULL;
 	g_Config.outer_ip[0] = 0;
-	free((char*)g_Config.extra_data_txt);
-	g_Config.extra_data_txt = NULL;
-	g_Config.extra_data = NULL;
+	cJSON_Delete(g_Config.cjson_root);
+	g_Config.cjson_root = NULL;
 }
 
 Config_t* ptr_g_Config(void) { return &g_Config; }

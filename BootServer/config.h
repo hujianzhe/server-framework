@@ -11,6 +11,7 @@ typedef struct {
 	int readcache_max_size;
 } ConfigListenOption_t, ConfigConnectOption_t;
 
+struct cJSON;
 typedef struct Config_t {
 	ConfigListenOption_t* listen_options;
 	unsigned int listen_options_cnt;
@@ -36,8 +37,7 @@ typedef struct Config_t {
 	int rpc_async;
 	int tcp_nodelay;
 	int udp_cwndsize;
-	const char* extra_data_txt;
-	void* extra_data;
+	struct cJSON* cjson_root;
 } Config_t;
 
 extern Config_t g_Config;

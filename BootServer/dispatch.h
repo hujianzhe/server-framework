@@ -2,14 +2,25 @@
 #define	DISPATCH_H
 
 #include "util/inc/component/channel.h"
-#include "util/inc/component/httpframe.h"
+
+enum {
+	USER_MSG_EXTRA_HTTP_FRAME = 1,
+	USER_MSG_EXTRA_TIMER_EVENT
+};
+
+struct HttpFrame_t;
+struct RBTimerEvent_t;
 
 typedef struct UserMsg_t {
 	ReactorCmd_t internal;
 	Channel_t* channel;
 	Sockaddr_t peer_addr;
-	int be_from_cluster;
-	HttpFrame_t* httpframe;
+	short be_from_cluster;
+	short extra_type;
+	union {
+		struct HttpFrame_t* httpframe;
+		struct RBTimerEvent_t* timer_event; /* fiber use */
+	};
 	const char* cmdstr;
 	char rpc_status;
 	union {

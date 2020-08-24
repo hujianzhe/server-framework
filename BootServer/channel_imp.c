@@ -301,6 +301,7 @@ static void httpframe_recv(Channel_t* c, const void* addr, ChannelInbufDecodeRes
 		memcpy(&message->peer_addr, addr, sockaddrLength(addr));
 	}
 	httpframe->uri[httpframe->pathlen] = 0;
+	message->extra_type = USER_MSG_EXTRA_HTTP_FRAME;
 	message->httpframe = httpframe;
 	message->cmdstr = httpframe->uri;
 	message->rpc_status = 0;

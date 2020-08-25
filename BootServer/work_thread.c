@@ -288,8 +288,8 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		rpcAsyncCoreDestroy(thread->a_rpc);
 	}
 	for (cur = rbtimerClean(&thread->timer); cur; cur = next) {
-		free(pod_container_of(cur, RBTimerEvent_t, m_listnode));
 		next = cur->next;
+		free(pod_container_of(cur, RBTimerEvent_t, m_listnode));
 	}
 	for (cur = dataqueueClean(&thread->dq); cur; cur = next) {
 		ReactorCmd_t* internal = (ReactorCmd_t*)cur;

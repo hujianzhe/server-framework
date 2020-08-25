@@ -107,12 +107,20 @@ static void websocket_recv(Channel_t* c, const void* addr, ChannelInbufDecodeRes
 	}
 }
 
+static int test_timer(RBTimer_t* timer, RBTimerEvent_t* e) {
+	puts("test_timer============================================");
+	e->timestamp_msec += 1000;
+	rbtimerAddEvent(timer, e);
+	return 0;
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	int i;
+	RBTimerEvent_t* timer_event;
 
 	regNumberDispatch(thrd->dispatch, CMD_REQ_TEST, reqTest);
 	regNumberDispatch(thrd->dispatch, CMD_NOTIFY_TEST, notifyTest);
@@ -125,6 +133,13 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	regNumberDispatch(thrd->dispatch, CMD_REQ_WEBSOCKET_TEST, reqWebsocketTest);
 	regNumberDispatch(thrd->dispatch, CMD_REQ_ParallelTest1, reqParallelTest1);
 	regNumberDispatch(thrd->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);
+
+	// add timer
+	timer_event = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
+	timer_event->arg = NULL;
+	timer_event->callback = test_timer;
+	timer_event->timestamp_msec = gmtimeMillisecond() + 1000;
+	rbtimerAddEvent(&thrd->timer, timer_event);
 
 	// listen extra port
 	for (i = 0; i < ptr_g_Config()->listen_options_cnt; ++i) {

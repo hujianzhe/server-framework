@@ -24,11 +24,13 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		else if (g_DefaultDispatchCallback)
 			g_DefaultDispatchCallback(thrd, ctrl);
 		else {
-			if (ctrl->httpframe) {
-				free(httpframeReset(ctrl->httpframe));
-				char reply[] = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n";
-				channelSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
-				reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
+			if (USER_MSG_EXTRA_HTTP_FRAME == ctrl->extra_type) {
+				if (ctrl->httpframe) {
+					free(httpframeReset(ctrl->httpframe));
+					char reply[] = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n";
+					channelSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
+					reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
+				}
 			}
 			else {
 				SendMsg_t ret_msg;
@@ -54,7 +56,13 @@ static int session_expire_timeout_callback(RBTimer_t* timer, RBTimerEvent_t* e) 
 
 static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 	TaskThread_t* thread = (TaskThread_t*)rpc->runthread;
-	call_dispatch(thread, ctrl);
+	if (USER_MSG_EXTRA_TIMER_EVENT == ctrl->extra_type) {
+		RBTimerEvent_t* e = ctrl->timer_event;
+		e->callback(&thread->timer, e);
+	}
+	else {
+		call_dispatch(thread, ctrl);
+	}
 }
 
 static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
@@ -232,10 +240,22 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				rpcAsyncCoreCancel(thread->a_rpc, rpc_item);
 			freeRpcItemWhenTimeout(thread, rpc_item);
 		}
-		for (cur = rbtimerTimeout(&thread->timer, cur_msec); cur; cur = next) {
-			RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
-			next = cur->next;
-			e->callback(&thread->timer, e);
+		if (thread->f_rpc) {
+			static UserMsg_t timer_msg;
+			timer_msg.extra_type = USER_MSG_EXTRA_TIMER_EVENT;
+			for (cur = rbtimerTimeout(&thread->timer, cur_msec); cur; cur = next) {
+				RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
+				next = cur->next;
+				timer_msg.timer_event = e;
+				rpcFiberCoreResumeMsg(thread->f_rpc, &timer_msg);
+			}
+		}
+		else {
+			for (cur = rbtimerTimeout(&thread->timer, cur_msec); cur; cur = next) {
+				RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
+				next = cur->next;
+				e->callback(&thread->timer, e);
+			}
 		}
 		timer_min_msec[0] = rbtimerMiniumTimestamp(&thread->timer);
 		timer_min_msec[1] = rbtimerMiniumTimestamp(&thread->rpc_timer);

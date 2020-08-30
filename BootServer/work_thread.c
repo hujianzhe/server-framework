@@ -177,16 +177,22 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					logInfo(&g_Log, "channel(%p) detach, reason:%d, connected times: %u",
 						channel, channel->_.detach_error, channel->_.connected_times);
 				}
-				else {
+				else if (channel->_.flag & CHANNEL_FLAG_SERVER) {
 					logInfo(&g_Log, "channel(%p) detach, reason:%d", channel, channel->_.detach_error);
 				}
-
-				if (g_SelfClusterNode->connection_num > 0)
-					g_SelfClusterNode->connection_num--;
+				else {
+					IPString_t listen_ip;
+					unsigned short listen_port;
+					sockaddrDecode(&channel->_.listen_addr.st, listen_ip, &listen_port);
+					logInfo(&g_Log, "listen ip(%s) port(%u) detach", listen_ip, listen_port);
+				}
 
 				if ((channel->_.flag & CHANNEL_FLAG_CLIENT) ||
 					(channel->_.flag & CHANNEL_FLAG_SERVER))
 				{
+					if (g_SelfClusterNode->connection_num > 0)
+						g_SelfClusterNode->connection_num--;
+
 					freeRpcItemWhenChannelDetach(thread, channel);
 
 					do {

@@ -234,6 +234,7 @@ Channel_t* openListenerInner(int socktype, const char* ip, unsigned short port) 
 		return NULL;
 	}
 	c->_.on_ack_halfconn = innerchannel_accept_callback;
+	c->_.on_detach = channel_detach;
 	return c;
 }
 
@@ -388,6 +389,7 @@ Channel_t* openListenerHttp(const char* ip, unsigned short port, FnChannelOnRecv
 	}
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_ack_halfconn = http_accept_callback;
+	c->_.on_detach = channel_detach;
 	c->on_recv = fn ? fn : httpframe_recv;
 	return c;
 }
@@ -532,6 +534,7 @@ Channel_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelO
 	}
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_ack_halfconn = websocket_accept_callback;
+	c->_.on_detach = channel_detach;
 	c->on_recv = fn ? fn : websocket_recv;
 	return c;
 }

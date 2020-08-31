@@ -9,7 +9,6 @@
 extern "C" {
 #endif
 	int init(TaskThread_t*, int, char**);
-	void destroy(void);
 #ifdef __cplusplus
 }
 #endif

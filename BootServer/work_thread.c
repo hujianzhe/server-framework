@@ -3,6 +3,16 @@
 #include "work_thread.h"
 #include <stdio.h>
 
+#ifdef USE_STATIC_MODULE
+#ifdef __cplusplus
+extern "C" {
+#endif
+	void destroy(void);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (g_ModuleInitFunc) {
 		if (!g_ModuleInitFunc(thrd, g_MainArgc, g_MainArgv)) {
@@ -303,11 +313,15 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		if (REACTOR_USER_CMD == internal->type)
 			free(pod_container_of(internal, UserMsg_t, internal));
 	}
+#ifdef USE_STATIC_MODULE
+	destroy();
+#else
 	if (g_ModulePtr) {
 		void(*module_destroy_fn_ptr)(void) = (void(*)(void))moduleSymbolAddress(g_ModulePtr, "destroy");
 		if (module_destroy_fn_ptr)
 			module_destroy_fn_ptr();
 	}
+#endif
 	return 0;
 }
 

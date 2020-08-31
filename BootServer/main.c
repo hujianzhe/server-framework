@@ -4,6 +4,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef USE_STATIC_MODULE
+#ifdef __cplusplus
+extern "C" {
+#endif
+	int init(TaskThread_t*, int, char**);
+	void destroy(void);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
+
 static void sigintHandler(int signo) {
 	g_Valid = 0;
 	dataqueueWake(&g_TaskThread->dq);
@@ -35,6 +47,9 @@ int main(int argc, char** argv) {
 	}
 	g_Log.m_maxfilesize = g_Config.log.maxfilesize;
 	loginitok = 1;
+#ifdef USE_STATIC_MODULE
+	g_ModuleInitFunc = init;
+#else
 	// load module
 	if ('\0' == module_path[0] && g_Config.module_path) {
 		module_path = g_Config.module_path;
@@ -53,6 +68,7 @@ int main(int argc, char** argv) {
 			goto err;
 		}
 	}
+#endif
 	// input boot cluster node info
 	logInfo(&g_Log, "module_path(%s) name:%s, socktype:%s, ip:%s, port:%u, pid:%zu",
 		module_path, g_Config.cluster.name, if_socktype2string(g_Config.cluster.socktype),

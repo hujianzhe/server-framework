@@ -29,6 +29,10 @@ UserMsg_t* newUserMsg(size_t datalen) {
 		msg->httpframe = NULL;
 		msg->timer_event = NULL;
 		msg->cmdstr = NULL;
+		msg->rpc_status = 0;
+		msg->cmdid = 0;
+		msg->retcode = 0;
+		msg->rpcid = 0;
 		msg->datalen = datalen;
 		msg->data[msg->datalen] = 0;
 	}

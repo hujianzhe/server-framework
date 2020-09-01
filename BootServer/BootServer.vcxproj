@@ -166,6 +166,7 @@
     <ClInclude Include="util\inc\component\reactor.h" />
     <ClInclude Include="util\inc\component\rpc_core.h" />
     <ClInclude Include="util\inc\component\websocketframe.h" />
+    <ClInclude Include="util\inc\cpp\array.h" />
     <ClInclude Include="util\inc\cpp\container_utility.h" />
     <ClInclude Include="util\inc\cpp\cpp_compiler_define.h" />
     <ClInclude Include="util\inc\cpp\exception.h" />

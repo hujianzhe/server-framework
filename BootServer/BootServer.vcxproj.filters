@@ -225,6 +225,9 @@
     <ClInclude Include="util\inc\datastruct\md5.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\cpp\array.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="channel_imp.c">

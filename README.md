@@ -27,8 +27,10 @@ TODO:
 编译:  
 windows直接VS编译，然后把需要的dll拷贝到对应服务目录下  
 linux下使用make debug 或 make release  
+mac笔记本下未解决dylib的问题，需要修改业务目录下的makefile，定义-DUSE_STATIC_MODULE，并将业务代码连同BootServer代码一起编译  
 
 启动:  
 编辑好服务节点启动需要的配置文件(具体格式参看附带的配置文件模板)，给每个节点一个配置文件和唯一日志标识名，注意IP和端口号  
 windows直接VS打开，工程配置好启动参数  <配置文件>  
 linux编译后，sh run.sh <配置文件>  
+mac需要自行启动编译后的可执行文件，不使用run.sh脚本启动，例如./SoTest/SoTest.exe <配置文件>  

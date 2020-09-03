@@ -228,6 +228,9 @@
     <ClInclude Include="util\inc\cpp\array.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\cpp\type_traits.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="channel_imp.c">

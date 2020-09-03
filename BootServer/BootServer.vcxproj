@@ -173,6 +173,7 @@
     <ClInclude Include="util\inc\cpp\lexical_cast.h" />
     <ClInclude Include="util\inc\cpp\nullptr.h" />
     <ClInclude Include="util\inc\cpp\string_split.h" />
+    <ClInclude Include="util\inc\cpp\type_traits.h" />
     <ClInclude Include="util\inc\cpp\unique_ptr.h" />
     <ClInclude Include="util\inc\cpp\unordered_map.h" />
     <ClInclude Include="util\inc\cpp\unordered_set.h" />

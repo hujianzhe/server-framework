@@ -172,11 +172,13 @@
     <ClInclude Include="util\inc\cpp\exception.h" />
     <ClInclude Include="util\inc\cpp\lexical_cast.h" />
     <ClInclude Include="util\inc\cpp\nullptr.h" />
+    <ClInclude Include="util\inc\cpp\shared_ptr.h" />
     <ClInclude Include="util\inc\cpp\string_split.h" />
     <ClInclude Include="util\inc\cpp\type_traits.h" />
     <ClInclude Include="util\inc\cpp\unique_ptr.h" />
     <ClInclude Include="util\inc\cpp\unordered_map.h" />
     <ClInclude Include="util\inc\cpp\unordered_set.h" />
+    <ClInclude Include="util\inc\cpp\weak_ptr.h" />
     <ClInclude Include="util\inc\crt\cJSON.h" />
     <ClInclude Include="util\inc\crt\collision_detection.h" />
     <ClInclude Include="util\inc\crt\consistent_hash.h" />

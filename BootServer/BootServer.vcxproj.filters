@@ -102,9 +102,6 @@
     <ClInclude Include="util\inc\cpp\string_split.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\cpp\unique_ptr.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\cpp\unordered_map.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -229,6 +226,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\cpp\type_traits.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\cpp\unique_ptr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\cpp\shared_ptr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\cpp\weak_ptr.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

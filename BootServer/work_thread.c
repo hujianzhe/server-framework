@@ -78,8 +78,9 @@ static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	ListNode_t* cur, *next;
 	int wait_msec;
-	long long cur_msec, timer_min_msec[2];
+	long long cur_msec, timer_min_msec;
 	TaskThread_t* thread = (TaskThread_t*)arg;
+	RBTimer_t* due_timer[] = { &thread->timer, &thread->rpc_timer };
 	// init rpc
 	if (g_Config.rpc_fiber) {
 		Fiber_t* thread_fiber = fiberFromThread();
@@ -273,26 +274,14 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				e->callback(&thread->timer, e);
 			}
 		}
-		timer_min_msec[0] = rbtimerMiniumTimestamp(&thread->timer);
-		timer_min_msec[1] = rbtimerMiniumTimestamp(&thread->rpc_timer);
-		if (timer_min_msec[0] < 0 && timer_min_msec[1] < 0) {
-			wait_msec = -1;
-		}
-		else {
-			long long min_msec;
-			cur_msec = gmtimeMillisecond();
-			if (timer_min_msec[1] < 0)
-				min_msec = timer_min_msec[0];
-			else if (timer_min_msec[0] < 0)
-				min_msec = timer_min_msec[1];
-			else if (timer_min_msec[0] < timer_min_msec[1])
-				min_msec = timer_min_msec[0];
-			else
-				min_msec = timer_min_msec[1];
-			if (min_msec > cur_msec)
-				wait_msec = min_msec - cur_msec;
+		if (rbtimerDueFirst(due_timer, sizeof(due_timer) / sizeof(due_timer[0]), &timer_min_msec)) {
+			if (timer_min_msec > cur_msec)
+				wait_msec = timer_min_msec - cur_msec;
 			else
 				wait_msec = 0;
+		}
+		else {
+			wait_msec = -1;
 		}
 	}
 	// thread exit clean

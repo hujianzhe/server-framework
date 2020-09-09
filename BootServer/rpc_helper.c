@@ -122,13 +122,17 @@ void freeRpcItem(TaskThread_t* thrd, RpcItem_t* rpc_item) {
 	free(rpc_item);
 }
 
-BOOL newFiberSleep(TaskThread_t* thrd, long long timeout_msec) {
+BOOL newFiberSleepMillsecond(TaskThread_t* thrd, long long timeout_msec) {
 	RpcItem_t* rpc_item;
 	RBTimerEvent_t* timeout_ev;
 	if (!thrd->f_rpc)
 		return FALSE;
 	if (timeout_msec <= 0)
 		return TRUE;
+	if (thrd->f_rpc->cur_fiber == thrd->f_rpc->sche_fiber) {
+		threadSleepMillsecond(timeout_msec);
+		return TRUE;
+	}
 	rpc_item = newRpcItem();
 	if (!rpc_item)
 		return FALSE;

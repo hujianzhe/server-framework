@@ -43,7 +43,7 @@ void retLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	} while (0);
 	cJSON_Delete(cjson_ret_root);
 
-	newFiberSleep(thrd, 5000);
+	newFiberSleepMillsecond(thrd, 5000);
 
 	// test code
 	if (thrd->f_rpc)

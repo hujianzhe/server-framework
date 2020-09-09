@@ -16,6 +16,7 @@ __declspec_dllexport void freeRpcItem(TaskThread_t* thrd, RpcItem_t* rpc_item);
 void freeRpcItemWhenTimeout(TaskThread_t* thrd, RpcItem_t* rpc_item);
 void freeRpcItemWhenNormal(TaskThread_t* thrd, Channel_t* channel, RpcItem_t* rpc_item);
 void freeRpcItemWhenChannelDetach(TaskThread_t* thrd, Channel_t* channel);
+__declspec_dllexport BOOL newFiberSleep(TaskThread_t* thrd, long long timeout_msec);
 
 #ifdef __cplusplus
 }

@@ -122,6 +122,36 @@ void freeRpcItem(TaskThread_t* thrd, RpcItem_t* rpc_item) {
 	free(rpc_item);
 }
 
+BOOL newFiberSleep(TaskThread_t* thrd, long long timeout_msec) {
+	RpcItem_t* rpc_item;
+	RBTimerEvent_t* timeout_ev;
+	if (!thrd->f_rpc)
+		return FALSE;
+	if (timeout_msec <= 0)
+		return TRUE;
+	rpc_item = newRpcItem();
+	if (!rpc_item)
+		return FALSE;
+	rpc_item->timestamp_msec = gmtimeMillisecond();
+	timeout_ev = (RBTimerEvent_t*)(rpc_item + 1);
+	timeout_ev->timestamp_msec = rpc_item->timestamp_msec + timeout_msec;
+	timeout_ev->callback = NULL;
+	timeout_ev->arg = rpc_item;
+	if (!rbtimerAddEvent(&thrd->fiber_sleep_timer, timeout_ev)) {
+		free(rpc_item);
+		return FALSE;
+	}
+	rpc_item->timeout_ev = timeout_ev;
+	if (!rpcFiberCoreRegItem(thrd->f_rpc, rpc_item)) {
+		rbtimerDelEvent(&thrd->fiber_sleep_timer, timeout_ev);
+		free(rpc_item);
+		return FALSE;
+	}
+	rpc_item = rpcFiberCoreYield(thrd->f_rpc);
+	free(rpc_item);
+	return TRUE;
+}
+
 #ifdef __cplusplus
 }
 #endif

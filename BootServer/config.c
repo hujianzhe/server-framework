@@ -41,13 +41,13 @@ int initConfig(const char* path) {
 				break;
 			readcache_max_size = cJSON_Field(cjson, "readcache_max_size");
 			if (readcache_max_size && readcache_max_size->valueint > 0)
-				g_Config.cluster.readcache_max_size = readcache_max_size->valueint;
-			g_Config.cluster.name = strdup(name->valuestring);
-			if (!g_Config.cluster.name)
+				g_Config.clsnd.readcache_max_size = readcache_max_size->valueint;
+			g_Config.clsnd.name = strdup(name->valuestring);
+			if (!g_Config.clsnd.name)
 				break;
-			g_Config.cluster.socktype = if_string2socktype(socktype->valuestring);
-			strcpy(g_Config.cluster.ip, ip->valuestring);
-			g_Config.cluster.port = port->valueint;
+			g_Config.clsnd.socktype = if_string2socktype(socktype->valuestring);
+			strcpy(g_Config.clsnd.ip, ip->valuestring);
+			g_Config.clsnd.port = port->valueint;
 		}
 
 		cjson = cJSON_Field(root, "listen_options");
@@ -228,8 +228,8 @@ void freeConfig(void) {
 	for (i = 0; i < g_Config.connect_options_cnt; ++i) {
 		free((char*)g_Config.connect_options[i].protocol);
 	}
-	free((char*)g_Config.cluster.name);
-	g_Config.cluster.name = NULL;
+	free((char*)g_Config.clsnd.name);
+	g_Config.clsnd.name = NULL;
 	free(g_Config.connect_options);
 	g_Config.connect_options = NULL;
 	g_Config.connect_options_cnt = 0;

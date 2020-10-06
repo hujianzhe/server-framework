@@ -70,12 +70,12 @@ int main(int argc, char** argv) {
 #endif
 	// input boot cluster node info
 	logInfo(&g_Log, "module_path(%s) name:%s, socktype:%s, ip:%s, port:%u, pid:%zu",
-		module_path, g_Config.cluster.name, if_socktype2string(g_Config.cluster.socktype),
-		g_Config.cluster.ip, g_Config.cluster.port, processId());
+		module_path, g_Config.clsnd.name, if_socktype2string(g_Config.clsnd.socktype),
+		g_Config.clsnd.ip, g_Config.clsnd.port, processId());
 
 	printf("module_path(%s) name:%s, socktype:%s, ip:%s, port:%u, pid:%zu\n",
-		module_path, g_Config.cluster.name, if_socktype2string(g_Config.cluster.socktype),
-		g_Config.cluster.ip, g_Config.cluster.port, processId());
+		module_path, g_Config.clsnd.name, if_socktype2string(g_Config.clsnd.socktype),
+		g_Config.clsnd.ip, g_Config.clsnd.port, processId());
 	// load cluster config
 	g_ClusterTable = newClusterTable();
 	if (!g_ClusterTable)
@@ -95,23 +95,23 @@ int main(int argc, char** argv) {
 	}
 	// check cluster node valid
 	g_SelfClusterNode = getClusterNodeFromGroup(
-		getClusterNodeGroup(g_ClusterTable, g_Config.cluster.name),
-		g_Config.cluster.socktype,
-		g_Config.cluster.ip,
-		g_Config.cluster.port
+		getClusterNodeGroup(g_ClusterTable, g_Config.clsnd.name),
+		g_Config.clsnd.socktype,
+		g_Config.clsnd.ip,
+		g_Config.clsnd.port
 	);
 	if (!g_SelfClusterNode) {
 		fprintf(stderr, "self cluster node isn't find, name:%s, socktype:%s, ip:%s, port:%u\n",
-			g_Config.cluster.name,
-			if_socktype2string(g_Config.cluster.socktype),
-			g_Config.cluster.ip,
-			g_Config.cluster.port
+			g_Config.clsnd.name,
+			if_socktype2string(g_Config.clsnd.socktype),
+			g_Config.clsnd.ip,
+			g_Config.clsnd.port
 		);
 		logErr(&g_Log, "self cluster node isn't find, name:%s, socktype:%s, ip:%s, port:%u",
-			g_Config.cluster.name,
-			if_socktype2string(g_Config.cluster.socktype),
-			g_Config.cluster.ip,
-			g_Config.cluster.port
+			g_Config.clsnd.name,
+			if_socktype2string(g_Config.clsnd.socktype),
+			g_Config.clsnd.ip,
+			g_Config.clsnd.port
 		);
 		return 0;
 	}
@@ -121,11 +121,11 @@ int main(int argc, char** argv) {
 	}
 	netthreadresourceinitok = 1;
 	// listen self cluster node port
-	if (g_Config.cluster.port) {
-		Channel_t* c = openListenerInner(g_Config.cluster.socktype, g_Config.cluster.ip, g_Config.cluster.port);
+	if (g_Config.clsnd.port) {
+		Channel_t* c = openListenerInner(g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port);
 		if (!c) {
-			fprintf(stderr, "listen self cluster node err, ip:%s, port:%u\n", g_Config.cluster.ip, g_Config.cluster.port);
-			logErr(&g_Log, "listen self cluster node err, ip:%s, port:%u", g_Config.cluster.ip, g_Config.cluster.port);
+			fprintf(stderr, "listen self cluster node err, ip:%s, port:%u\n", g_Config.clsnd.ip, g_Config.clsnd.port);
+			logErr(&g_Log, "listen self cluster node err, ip:%s, port:%u", g_Config.clsnd.ip, g_Config.clsnd.port);
 			goto err;
 		}
 		reactorCommitCmd(ptr_g_ReactorAccept(), &c->_.o->regcmd);

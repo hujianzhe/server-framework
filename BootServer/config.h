@@ -24,7 +24,7 @@ typedef struct Config_t {
 		IPString_t ip;
 		unsigned short port;
 		int readcache_max_size;
-	} cluster;
+	} clsnd;
 	struct {
 		const char* pathname;
 		unsigned int maxfilesize;

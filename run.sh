@@ -2,4 +2,4 @@
 EXEC_PATH=./BootServer
 ulimit -c unlimited
 
-${EXEC_PATH}/BootServer.exe $1 $2 &
+${EXEC_PATH}/BootServer.exe $1 &

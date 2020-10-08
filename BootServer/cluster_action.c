@@ -107,7 +107,12 @@ const char* loadClusterTableFromJsonData(struct ClusterTable_t* t, const char* j
 						break;
 					}
 					for (i = 0, key = hashkey_array->child; key && i < hashkey_arraylen; key = key->next, ++i) {
-						ptr_key_array[i] = key->valueint;
+						if (key->valuedouble < 1.0) {
+							ptr_key_array[i] = key->valuedouble * UINT_MAX;
+						}
+						else {
+							ptr_key_array[i] = key->valueint;
+						}
 					}
 				}
 			}

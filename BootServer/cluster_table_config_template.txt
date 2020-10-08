@@ -7,7 +7,7 @@
             "ip" : "127.0.0.1",
             "port" : 51000,
             "weight_num" : 1,
-            "hash_key" : [ 100, 200 ]
+            "hash_key" : [ 0.2, 0.6 ]
         },
         {
             "name" : "svr_test",
@@ -15,7 +15,7 @@
             "ip" : "127.0.0.1",
             "port" : 52000,
             "weight_num" : 1,
-            "hash_key" : [ 300, 400 ]
+            "hash_key" : [ 0.4, 0.8 ]
         },
         {
             "name" : "so_test",

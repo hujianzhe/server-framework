@@ -13,6 +13,11 @@ INCLUDE_PATH :=
 DEFAULT_LINK := -lpthread -lm -ldl
 ifeq ($(shell uname), Linux)
 DEFAULT_LINK += -lrt
+else ifeq ($(shell uname), Darwin)
+INCLUDE_PATH += -I ../BootServer
+SOURCE_C_FILE += $(shell find ../BootServer -name "*.c")
+SOURCE_CPP_FILE += $(shell find ../BootServer -name "*.cpp" && find ../BootServer -name "*.cc")
+MACRO += -DUSE_STATIC_MODULE
 endif
 
 ifeq ($(SOURCE_CPP_FILE), "")
@@ -21,7 +26,11 @@ else
 COMPILER := gcc
 endif
 
+ifeq ($(shell uname), Darwin)
+TARGET := $(TARGET_PATH)/SoTest.exe
+else
 TARGET := $(TARGET_PATH)/libSoTest.so
+endif
 
 all:
 

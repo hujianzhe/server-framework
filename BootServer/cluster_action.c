@@ -1,5 +1,6 @@
 #include "global.h"
 #include "cluster_action.h"
+#include <limits.h>
 
 #ifdef __cplusplus
 extern "C" {

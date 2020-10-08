@@ -12,6 +12,7 @@ INCLUDE_PATH :=
 
 DEFAULT_LINK := -lpthread -lm -ldl
 ifeq ($(shell uname), Linux)
+COMPILE_OPTION += -fPIC -shared
 DEFAULT_LINK += -lrt
 else ifeq ($(shell uname), Darwin)
 INCLUDE_PATH += -I ../BootServer
@@ -35,7 +36,7 @@ endif
 all:
 
 debug:
-	$(COMPILER) -fPIC -shared $(MACRO) -g $(COMPILE_OPTION) $(INCLUDE_PATH) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)
+	$(COMPILER) $(MACRO) -g $(COMPILE_OPTION) $(INCLUDE_PATH) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)
 
 release:
-	$(COMPILER) -fPIC -shared $(MACRO) $(COMPILE_OPTION) $(INCLUDE_PATH) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)
+	$(COMPILER) $(MACRO) $(COMPILE_OPTION) $(INCLUDE_PATH) $(SOURCE_C_FILE) -o $(TARGET) $(DLL_PATH) $(DEFAULT_LINK)

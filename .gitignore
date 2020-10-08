@@ -32,4 +32,5 @@ core.*
 *.psess
 *.vspx
 *.dSYM
+.DS_Store
 /BootServer/util

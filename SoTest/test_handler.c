@@ -105,7 +105,7 @@ void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		return;
 	}
 	channelSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
-	reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
+	channelSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
 	free(reply);
 	return;
 }
@@ -130,7 +130,7 @@ void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		return;
 	}
 	channelSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
-	reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
+	channelSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
 	free(reply);
 }
 
@@ -227,6 +227,6 @@ void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		return;
 	}
 	channelSend(ctrl->channel, reply, replylen, NETPACKET_FRAGMENT);
-	reactorCommitCmd(NULL, &ctrl->channel->_.stream_sendfincmd);
+	channelSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
 	free(reply);
 }

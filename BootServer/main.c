@@ -24,10 +24,9 @@ static void sigintHandler(int signo) {
 int main(int argc, char** argv) {
 	int configinitok = 0, loginitok = 0, netthreadresourceinitok = 0,
 		taskthreadinitok = 0, taskthreadrunok = 0;
-	const char* module_path = "", *load_cluster_table_errmsg;
-	char* cluster_table_filedata;
 	//
 	if (argc < 2) {
+		fputs("need a config file to boot ...", stderr);
 		return 1;
 	}
 	// save boot arguments
@@ -35,13 +34,13 @@ int main(int argc, char** argv) {
 	g_MainArgv = argv;
 	// load config
 	if (!initConfig(argv[1])) {
-		fprintf(stderr, "initConfig(%s) error", argv[1]);
+		fprintf(stderr, "initConfig(%s) error\n", argv[1]);
 		goto err;
 	}
 	configinitok = 1;
 	// init log
 	if (!logInit(&g_Log, "", g_Config.log.pathname)) {
-		fprintf(stderr, "logInit(%s) error", g_Config.log.pathname);
+		fprintf(stderr, "logInit(%s) error\n", g_Config.log.pathname);
 		goto err;
 	}
 	g_Log.m_maxfilesize = g_Config.log.maxfilesize;
@@ -50,70 +49,102 @@ int main(int argc, char** argv) {
 	g_ModuleInitFunc = init;
 #else
 	// load module
-	if ('\0' == module_path[0] && g_Config.module_path) {
-		module_path = g_Config.module_path;
-	}
-	if (module_path[0]) {
-		g_ModulePtr = moduleLoad(module_path);
+	if (g_Config.module_path && g_Config.module_path[0]) {
+		g_ModulePtr = moduleLoad(g_Config.module_path);
 		if (!g_ModulePtr) {
-			fprintf(stderr, "moduleLoad(%s) failure\n", module_path);
-			logErr(&g_Log, "moduleLoad(%s) failure", module_path);
+			fprintf(stderr, "moduleLoad(%s) failure\n", g_Config.module_path);
+			logErr(&g_Log, "moduleLoad(%s) failure", g_Config.module_path);
 			goto err;
 		}
 		g_ModuleInitFunc = (int(*)(TaskThread_t*, int, char**))moduleSymbolAddress(g_ModulePtr, "init");
 		if (!g_ModuleInitFunc) {
-			fprintf(stderr, "moduleSymbolAddress(%s, \"init\") failure\n", module_path);
-			logErr(&g_Log, "moduleSymbolAddress(%s, \"init\") failure", module_path);
+			fprintf(stderr, "moduleSymbolAddress(%s, \"init\") failure\n", g_Config.module_path);
+			logErr(&g_Log, "moduleSymbolAddress(%s, \"init\") failure", g_Config.module_path);
 			goto err;
 		}
 	}
 #endif
 	// input boot cluster node info
 	logInfo(&g_Log, "module_path(%s) name:%s, socktype:%s, ip:%s, port:%u, pid:%zu",
-		module_path, g_Config.clsnd.name, if_socktype2string(g_Config.clsnd.socktype),
-		g_Config.clsnd.ip, g_Config.clsnd.port, processId());
+		g_Config.module_path ? g_Config.module_path : "", g_Config.clsnd.name,
+		if_socktype2string(g_Config.clsnd.socktype), g_Config.clsnd.ip, g_Config.clsnd.port, processId());
 
 	printf("module_path(%s) name:%s, socktype:%s, ip:%s, port:%u, pid:%zu\n",
-		module_path, g_Config.clsnd.name, if_socktype2string(g_Config.clsnd.socktype),
-		g_Config.clsnd.ip, g_Config.clsnd.port, processId());
-	// load cluster config
+		g_Config.module_path ? g_Config.module_path : "", g_Config.clsnd.name,
+		if_socktype2string(g_Config.clsnd.socktype), g_Config.clsnd.ip, g_Config.clsnd.port, processId());
+	// int cluster data
 	g_ClusterTable = newClusterTable();
 	if (!g_ClusterTable)
 		goto err;
-	cluster_table_filedata = fileReadAllData(g_Config.cluster_table_path, NULL);
-	if (!cluster_table_filedata) {
-		fprintf(stderr, "fileReadAllData(%s) failure\n", g_Config.cluster_table_path);
-		logErr(&g_Log, "fileReadAllData(%s) failure", g_Config.cluster_table_path);
-		goto err;
-	}
-	load_cluster_table_errmsg = loadClusterTableFromJsonData(g_ClusterTable, cluster_table_filedata);
-	free(cluster_table_filedata);
-	if (load_cluster_table_errmsg && load_cluster_table_errmsg[0]) {
-		fprintf(stderr, "loadClusterTableFromJsonData failure: %s\n", load_cluster_table_errmsg);
-		logErr(&g_Log, "loadClusterTableFromJsonData failure: %s", load_cluster_table_errmsg);
-		goto err;
-	}
-	// check cluster node valid
-	g_SelfClusterNode = getClusterNodeFromGroup(
-		getClusterNodeGroup(g_ClusterTable, g_Config.clsnd.name),
-		g_Config.clsnd.socktype,
-		g_Config.clsnd.ip,
-		g_Config.clsnd.port
-	);
-	if (!g_SelfClusterNode) {
-		fprintf(stderr, "self cluster node isn't find, name:%s, socktype:%s, ip:%s, port:%u\n",
-			g_Config.clsnd.name,
-			if_socktype2string(g_Config.clsnd.socktype),
+	if (g_Config.cluster_table_path && g_Config.cluster_table_path[0]) {
+		const char* load_cluster_table_errmsg;
+		char* cluster_table_filedata = fileReadAllData(g_Config.cluster_table_path, NULL);
+		if (!cluster_table_filedata) {
+			fprintf(stderr, "fileReadAllData(%s) failure\n", g_Config.cluster_table_path);
+			logErr(&g_Log, "fileReadAllData(%s) failure", g_Config.cluster_table_path);
+			goto err;
+		}
+		load_cluster_table_errmsg = loadClusterTableFromJsonData(g_ClusterTable, cluster_table_filedata);
+		free(cluster_table_filedata);
+		if (load_cluster_table_errmsg && load_cluster_table_errmsg[0]) {
+			fprintf(stderr, "loadClusterTableFromJsonData failure: %s\n", load_cluster_table_errmsg);
+			logErr(&g_Log, "loadClusterTableFromJsonData failure: %s", load_cluster_table_errmsg);
+			goto err;
+		}
+		g_SelfClusterNode = getClusterNodeFromGroup(
+			getClusterNodeGroup(g_ClusterTable, g_Config.clsnd.name),
+			g_Config.clsnd.socktype,
 			g_Config.clsnd.ip,
 			g_Config.clsnd.port
 		);
-		logErr(&g_Log, "self cluster node isn't find, name:%s, socktype:%s, ip:%s, port:%u",
-			g_Config.clsnd.name,
-			if_socktype2string(g_Config.clsnd.socktype),
-			g_Config.clsnd.ip,
-			g_Config.clsnd.port
-		);
-		return 0;
+		if (!g_SelfClusterNode) {
+			fprintf(stderr, "self cluster node isn't find, name:%s, socktype:%s, ip:%s, port:%u\n",
+				g_Config.clsnd.name,
+				if_socktype2string(g_Config.clsnd.socktype),
+				g_Config.clsnd.ip,
+				g_Config.clsnd.port
+			);
+			logErr(&g_Log, "self cluster node isn't find, name:%s, socktype:%s, ip:%s, port:%u",
+				g_Config.clsnd.name,
+				if_socktype2string(g_Config.clsnd.socktype),
+				g_Config.clsnd.ip,
+				g_Config.clsnd.port
+			);
+			return 0;
+		}
+	}
+	else {
+		g_SelfClusterNode = newClusterNode(g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port);
+		if (!g_SelfClusterNode) {
+			fprintf(stderr, "new self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
+				g_Config.clsnd.name,
+				if_socktype2string(g_Config.clsnd.socktype),
+				g_Config.clsnd.ip,
+				g_Config.clsnd.port
+			);
+			logErr(&g_Log, "new self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
+				g_Config.clsnd.name,
+				if_socktype2string(g_Config.clsnd.socktype),
+				g_Config.clsnd.ip,
+				g_Config.clsnd.port
+			);
+			goto err;
+		}
+		if (!regClusterNode(g_ClusterTable, g_Config.clsnd.name, g_SelfClusterNode)) {
+			fprintf(stderr, "reg self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
+				g_Config.clsnd.name,
+				if_socktype2string(g_Config.clsnd.socktype),
+				g_Config.clsnd.ip,
+				g_Config.clsnd.port
+			);
+			logErr(&g_Log, "reg self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
+				g_Config.clsnd.name,
+				if_socktype2string(g_Config.clsnd.socktype),
+				g_Config.clsnd.ip,
+				g_Config.clsnd.port
+			);
+			goto err;
+		}
 	}
 	// init net thread resource
 	if (!newNetThreadResource(g_Config.net_thread_cnt)) {

@@ -6,12 +6,12 @@ void frpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 	// test code
 	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
 		char test_data[] = "this text is from client ^.^";
-		SendMsg_t msg;
+		InnerMsg_t msg;
 		RpcItem_t* rpc_item = newRpcItemFiberReady(thrd, channel, 1000);
 		if (!rpc_item) {
 			return;
 		}
-		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST, test_data, sizeof(test_data));
+		makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST, test_data, sizeof(test_data));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 		if (rpc_item->ret_msg) {
@@ -30,30 +30,30 @@ void arpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 	// test code
 	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
 		char test_data[] = "this text is from client ^.^";
-		SendMsg_t msg;
+		InnerMsg_t msg;
 		RpcItem_t* rpc_item = newRpcItemAsyncReady(thrd, channel, 1000, NULL, rpcRetTest);
 		if (!rpc_item) {
 			return;
 		}
-		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST, test_data, sizeof(test_data));
+		makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST, test_data, sizeof(test_data));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	}
 }
 
 void reqTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	char test_data[] = "this text is from server ^.^";
-	SendMsg_t msg;
+	InnerMsg_t msg;
 
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
 
-	makeSendMsg(&msg, CMD_NOTIFY_TEST, NULL, 0);
+	makeInnerMsg(&msg, CMD_NOTIFY_TEST, NULL, 0);
 	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
 	if (RPC_STATUS_REQ == ctrl->rpc_status) {
-		makeSendMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
+		makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
 	}
 	else {
-		makeSendMsg(&msg, CMD_RET_TEST, test_data, sizeof(test_data));
+		makeInnerMsg(&msg, CMD_RET_TEST, test_data, sizeof(test_data));
 	}
 	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 }
@@ -146,8 +146,8 @@ void reqParallelTest1(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	printf("%s hello world !!! %s\n", __FUNCTION__, (char*)ctrl->data);
 
 	if (RPC_STATUS_REQ == ctrl->rpc_status) {
-		SendMsg_t msg;
-		makeSendMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
+		InnerMsg_t msg;
+		makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
 		channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	}
 }
@@ -158,8 +158,8 @@ void reqParallelTest2(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
 
 	if (RPC_STATUS_REQ == ctrl->rpc_status) {
-		SendMsg_t msg;
-		makeSendMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
+		InnerMsg_t msg;
+		makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
 		channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	}
 }

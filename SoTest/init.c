@@ -9,8 +9,8 @@
 #endif
 
 static int start_req_login_test(Channel_t* channel) {
-	SendMsg_t msg;
-	makeSendMsg(&msg, CMD_REQ_LOGIN_TEST, NULL, 0);
+	InnerMsg_t msg;
+	makeInnerMsg(&msg, CMD_REQ_LOGIN_TEST, NULL, 0);
 	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	return 1;
 }
@@ -31,7 +31,7 @@ static void rpc_async_req_login_test(RpcAsyncCore_t* rpc, RpcItem_t* rpc_item) {
 }
 
 static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
-	SendMsg_t msg;
+	InnerMsg_t msg;
 	char test_data[] = "test paralle ^.^";
 	int i, cnt_rpc = 0;
 	RpcItem_t* rpc_item;
@@ -39,7 +39,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 		rpc_item = newRpcItemFiberReady(thrd, channel, 1000);
 		if (!rpc_item)
 			continue;
-		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
+		makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		//rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 		rpc_item->udata = CMD_REQ_ParallelTest1;
@@ -48,7 +48,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 		rpc_item = newRpcItemFiberReady(thrd, channel, 1000);
 		if (!rpc_item)
 			continue;
-		makeSendMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
+		makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		//rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 		rpc_item->udata = CMD_REQ_ParallelTest2;

@@ -5,7 +5,7 @@
 
 void reqLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON *cjson_ret_root;
-	SendMsg_t ret_msg;
+	InnerMsg_t ret_msg;
 
 	logInfo(ptr_g_Log(), "%s recv: %s", __FUNCTION__, (char*)ctrl->data);
 
@@ -15,7 +15,7 @@ void reqLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON_AddNewNumber(cjson_ret_root, "session_id", channelSessionId(ctrl->channel));
 	cJSON_Print(cjson_ret_root);
 
-	makeSendMsg(&ret_msg, CMD_RET_LOGIN_TEST, cjson_ret_root->txt, cjson_ret_root->txtlen);
+	makeInnerMsg(&ret_msg, CMD_RET_LOGIN_TEST, cjson_ret_root->txt, cjson_ret_root->txtlen);
 	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 	cJSON_Delete(cjson_ret_root);
 }

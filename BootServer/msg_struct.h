@@ -3,7 +3,7 @@
 
 #include "util/inc/platform_define.h"
 
-typedef struct SendMsg_t {
+typedef struct InnerMsg_t {
 	char rpc_status;
 	union {
 		int htonl_cmdid;
@@ -11,7 +11,7 @@ typedef struct SendMsg_t {
 	};
 	int htonl_rpcid;
 	Iobuf_t iov[4];
-} SendMsg_t;
+} InnerMsg_t;
 
 enum {
 	RPC_STATUS_REQ = 'R',
@@ -24,10 +24,10 @@ enum {
 extern "C" {
 #endif
 
-__declspec_dllexport SendMsg_t* makeSendMsgEmpty(SendMsg_t* msg);
-__declspec_dllexport SendMsg_t* makeSendMsg(SendMsg_t* msg, int cmdid, const void* data, unsigned int len);
-__declspec_dllexport SendMsg_t* makeSendMsgRpcReq(SendMsg_t* msg, int rpcid, int cmdid, const void* data, unsigned int len);
-__declspec_dllexport SendMsg_t* makeSendMsgRpcResp(SendMsg_t* msg, int rpcid, int retcode, const void* data, unsigned int len);
+__declspec_dllexport InnerMsg_t* makeInnerMsgEmpty(InnerMsg_t* msg);
+__declspec_dllexport InnerMsg_t* makeInnerMsg(InnerMsg_t* msg, int cmdid, const void* data, unsigned int len);
+__declspec_dllexport InnerMsg_t* makeInnerMsgRpcReq(InnerMsg_t* msg, int rpcid, int cmdid, const void* data, unsigned int len);
+__declspec_dllexport InnerMsg_t* makeInnerMsgRpcResp(InnerMsg_t* msg, int rpcid, int retcode, const void* data, unsigned int len);
 
 #ifdef __cplusplus
 }

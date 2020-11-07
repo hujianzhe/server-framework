@@ -36,19 +36,19 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		else {
 			if (USER_MSG_EXTRA_HTTP_FRAME == ctrl->extra_type) {
 				if (ctrl->httpframe) {
+					const char reply[] = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n";
 					free(httpframeReset(ctrl->httpframe));
-					char reply[] = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n";
 					channelSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
 					channelSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
 				}
 			}
 			else {
-				SendMsg_t ret_msg;
+				InnerMsg_t ret_msg;
 				if (RPC_STATUS_REQ == ctrl->rpc_status) {
-					makeSendMsgRpcResp(&ret_msg, ctrl->rpcid, 0, NULL, 0);
+					makeInnerMsgRpcResp(&ret_msg, ctrl->rpcid, 0, NULL, 0);
 				}
 				else {
-					makeSendMsg(&ret_msg, 0, NULL, 0);
+					makeInnerMsg(&ret_msg, 0, NULL, 0);
 				}
 				channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 			}

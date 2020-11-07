@@ -9,8 +9,8 @@ extern "C" {
 
 static int defaultOnHeartbeat(Channel_t* c, int heartbeat_times) {
 	if (heartbeat_times < c->heartbeat_maxtimes) {
-		SendMsg_t msg;
-		makeSendMsgEmpty(&msg);
+		InnerMsg_t msg;
+		makeInnerMsgEmpty(&msg);
 		channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 		return 1;
 	}
@@ -159,8 +159,8 @@ static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecode
 		dataqueuePush(&g_TaskThread->dq, &message->internal._);
 	}
 	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
-		SendMsg_t packet;
-		makeSendMsgEmpty(&packet);
+		InnerMsg_t packet;
+		makeInnerMsgEmpty(&packet);
 		channelSendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 	}
 }

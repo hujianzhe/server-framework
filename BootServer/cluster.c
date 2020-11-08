@@ -369,6 +369,20 @@ ClusterNode_t* targetClusterNodeByIp(ClusterNodeGroup_t* grp, const IPString_t i
 	return dst_clsnd;
 }
 
+void broadcastClusterGroup(ClusterNodeGroup_t* grp, const Iobuf_t iov[], unsigned int iovcnt) {
+	ListNode_t* cur;
+	for (cur = grp->nodelist.head; cur; cur = cur->next) {
+		Channel_t* channel;
+		ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+		if (clsnd == g_SelfClusterNode)
+			continue;
+		channel = connectClusterNode(clsnd);
+		if (!channel)
+			continue;
+		channelSendv(channel, iov, iovcnt, NETPACKET_FRAGMENT);
+	}
+}
+
 #ifdef __cplusplus
 }
 #endif

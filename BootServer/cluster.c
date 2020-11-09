@@ -371,6 +371,8 @@ ClusterNode_t* targetClusterNodeByIp(ClusterNodeGroup_t* grp, const IPString_t i
 
 void broadcastClusterGroup(ClusterNodeGroup_t* grp, const Iobuf_t iov[], unsigned int iovcnt) {
 	ListNode_t* cur;
+	if (!grp)
+		return;
 	for (cur = grp->nodelist.head; cur; cur = cur->next) {
 		Channel_t* channel;
 		ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);

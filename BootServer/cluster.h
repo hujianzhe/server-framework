@@ -45,6 +45,7 @@ __declspec_dllexport void freeClusterTable(struct ClusterTable_t* t);
 __declspec_dllexport ClusterNode_t* targetClusterNode(ClusterNodeGroup_t* grp, int mode, unsigned int key);
 __declspec_dllexport ClusterNode_t* targetClusterNodeByIp(ClusterNodeGroup_t* grp, const IPString_t ip, int mode, unsigned int key);
 __declspec_dllexport void broadcastClusterGroup(ClusterNodeGroup_t* grp, const Iobuf_t iov[], unsigned int iovcnt);
+__declspec_dllexport void broadcastClusterTable(struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt);
 
 #ifdef __cplusplus
 }

@@ -385,6 +385,20 @@ void broadcastClusterGroup(ClusterNodeGroup_t* grp, const Iobuf_t iov[], unsigne
 	}
 }
 
+void broadcastClusterTable(struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt) {
+	ListNode_t* cur;
+	for (cur = t->nodelist.head; cur; cur = cur->next) {
+		Channel_t* channel;
+		ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_listnode);
+		if (clsnd == g_SelfClusterNode)
+			continue;
+		channel = connectClusterNode(clsnd);
+		if (!channel)
+			continue;
+		channelSendv(channel, iov, iovcnt, NETPACKET_FRAGMENT);
+	}
+}
+
 #ifdef __cplusplus
 }
 #endif

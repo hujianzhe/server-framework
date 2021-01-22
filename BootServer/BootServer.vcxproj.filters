@@ -237,6 +237,9 @@
     <ClInclude Include="util\inc\cpp\weak_ptr.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\datastruct\arrheap.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="channel_imp.c">
@@ -408,6 +411,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\datastruct\md5.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\datastruct\arrheap.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

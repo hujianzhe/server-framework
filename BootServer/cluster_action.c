@@ -55,7 +55,7 @@ const char* loadClusterTableFromJsonData(struct ClusterTable_t* t, const char* j
 	}
 	errmsg = NULL;
 	do {
-		cJSON* cjson_cluster_nodes, *cjson_clsnd, *cjson_version;
+		cJSON* cjson_cluster_nodes, *cjson_clsnd;
 
 		cjson_cluster_nodes = cJSON_Field(root, "cluster_nodes");
 		if (!cjson_cluster_nodes) {

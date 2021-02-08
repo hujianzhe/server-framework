@@ -8,7 +8,6 @@ typedef struct ClusterTable_t {
 } ClusterTable_t;
 
 struct ClusterTable_t* g_ClusterTable;
-int g_ClusterTableVersion;
 
 static int __keycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
 static unsigned int __keyhash(const void* key) { return hashBKDR((const char*)key); }
@@ -54,8 +53,6 @@ extern "C" {
 
 struct ClusterTable_t* ptr_g_ClusterTable(void) { return g_ClusterTable; }
 void set_g_ClusterTable(struct ClusterTable_t* t) { g_ClusterTable = t; }
-int getClusterTableVersion(void) { return g_ClusterTableVersion; }
-void setClusterTableVersion(int version) { g_ClusterTableVersion = version; }
 
 struct ClusterTable_t* newClusterTable(void) {
 	ClusterTable_t* t = (ClusterTable_t*)malloc(sizeof(ClusterTable_t));

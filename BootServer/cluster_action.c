@@ -57,11 +57,6 @@ const char* loadClusterTableFromJsonData(struct ClusterTable_t* t, const char* j
 	do {
 		cJSON* cjson_cluster_nodes, *cjson_clsnd, *cjson_version;
 
-		cjson_version = cJSON_Field(root, "version");
-		if (!cjson_version) {
-			errmsg = "json data miss field version";
-			break;
-		}
 		cjson_cluster_nodes = cJSON_Field(root, "cluster_nodes");
 		if (!cjson_cluster_nodes) {
 			errmsg = "json data miss field cluster_nodes";
@@ -126,7 +121,6 @@ const char* loadClusterTableFromJsonData(struct ClusterTable_t* t, const char* j
 			errmsg = "reg cluster node error";
 			break;
 		}
-		g_ClusterTableVersion = cjson_version->valueint;
 	} while (0);
 	cJSON_Delete(root);
 	return errmsg;

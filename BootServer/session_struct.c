@@ -61,6 +61,21 @@ void sessionChannelReplaceServer(Session_t* session, Channel_t* channel) {
 	}
 }
 
+void sessionDisconnect(Session_t* session) {
+	if (session->channel_client) {
+		channelSendv(session->channel_client, NULL, 0, NETPACKET_FIN);
+		channelSession(session->channel_client) = NULL;
+		channelSessionId(session->channel_client) = 0;
+		session->channel_client = NULL;
+	}
+	if (session->channel_server) {
+		channelSendv(session->channel_server, NULL, 0, NETPACKET_FIN);
+		channelSession(session->channel_server) = NULL;
+		channelSessionId(session->channel_server) = 0;
+		session->channel_server = NULL;
+	}
+}
+
 void sessionUnbindChannel(Session_t* session) {
 	if (session->channel_client) {
 		channelSession(session->channel_client) = NULL;

@@ -35,8 +35,8 @@ __declspec_dllexport ClusterNodeGroup_t* getClusterNodeGroup(struct ClusterTable
 __declspec_dllexport ClusterNode_t* getClusterNodeFromGroup(ClusterNodeGroup_t* grp, int socktype, const IPString_t ip, unsigned short port);
 __declspec_dllexport ClusterNode_t* getClusterNode(struct ClusterTable_t* t, int socktype, const IPString_t ip, unsigned short port);
 __declspec_dllexport List_t* getClusterNodeList(struct ClusterTable_t* t);
-__declspec_dllexport int regClusterNode(struct ClusterTable_t* t, const char* name, ClusterNode_t* clsnd);
-__declspec_dllexport void unregClusterNode(struct ClusterTable_t* t, ClusterNode_t* clsnd);
+int regClusterNode(struct ClusterTable_t* t, const char* name, ClusterNode_t* clsnd);
+void unregClusterNode(struct ClusterTable_t* t, ClusterNode_t* clsnd);
 __declspec_dllexport void freeClusterTable(struct ClusterTable_t* t);
 
 __declspec_dllexport ClusterNode_t* targetClusterNode(ClusterNodeGroup_t* grp, int mode, unsigned int key);

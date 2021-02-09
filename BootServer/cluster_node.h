@@ -27,12 +27,12 @@ extern "C" {
 #endif
 
 __declspec_dllexport ClusterNode_t* selfClusterNode(void);
-__declspec_dllexport void setSelfClusterNode(ClusterNode_t* clsnd);
+void setSelfClusterNode(ClusterNode_t* clsnd);
 
 __declspec_dllexport ClusterNode_t* newClusterNode(int socktype, IPString_t ip, unsigned short port);
 __declspec_dllexport void freeClusterNode(ClusterNode_t* clsnd);
 __declspec_dllexport Channel_t* connectClusterNode(ClusterNode_t* clsnd);
-__declspec_dllexport unsigned int* reallocClusterNodeHashKey(ClusterNode_t* clsnd, unsigned int key_arraylen);
+unsigned int* reallocClusterNodeHashKey(ClusterNode_t* clsnd, unsigned int key_arraylen);
 
 #ifdef __cplusplus
 }

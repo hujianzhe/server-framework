@@ -264,6 +264,7 @@ static void httpframe_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 		if (frame->content_length) {
 			if (frame->content_length > buflen - res) {
 				decode_result->incomplete = 1;
+				free(httpframeReset(frame));
 				return;
 			}
 			if (frame->multipart_form_data_boundary &&
@@ -295,6 +296,7 @@ static void httpframe_recv(Channel_t* c, const void* addr, ChannelInbufDecodeRes
 	HttpFrame_t* httpframe = (HttpFrame_t*)decode_result->userdata;
 	UserMsg_t* message = newUserMsg(decode_result->bodylen);
 	if (!message) {
+		free(httpframeReset(httpframe));
 		return;
 	}
 	message->channel = c;

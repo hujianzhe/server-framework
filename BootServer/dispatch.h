@@ -16,11 +16,13 @@ typedef struct UserMsg_t {
 	Channel_t* channel;
 	Sockaddr_t peer_addr;
 	short be_from_cluster;
-	short extra_type;
-	union {
-		struct HttpFrame_t* httpframe;
-		struct RBTimerEvent_t* timer_event; /* fiber use */
-	};
+	struct {
+		short type;
+		union {
+			struct HttpFrame_t* httpframe;
+			struct RBTimerEvent_t* timer_event; /* fiber use */
+		};
+	} param;
 	const char* cmdstr;
 	char rpc_status;
 	union {

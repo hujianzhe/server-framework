@@ -14,19 +14,19 @@ static RpcItem_t* newRpcItem(void) {
 	return rpc_item;
 }
 
-void freeRpcItemWhenTimeout(TaskThread_t* thrd, RpcItem_t* rpc_item) {
+void freeRpcItemWhenTimeout(RpcItem_t* rpc_item) {
 	Channel_t* channel = (Channel_t*)rpc_item->originator;
 	ChannelUserData_t* ud = (ChannelUserData_t*)channel->userdata;
 	listRemoveNode(&ud->rpc_itemlist, &rpc_item->listnode);
 	free(rpc_item);
 }
 
-void freeRpcItemWhenNormal(TaskThread_t* thrd, Channel_t* channel, RpcItem_t* rpc_item) {
+void freeRpcItemWhenNormal(RBTimer_t* rpc_timer, Channel_t* channel, RpcItem_t* rpc_item) {
 	if (channel == rpc_item->originator) {
 		ChannelUserData_t* ud = (ChannelUserData_t*)channel->userdata;
 		listRemoveNode(&ud->rpc_itemlist, &rpc_item->listnode);
 		if (rpc_item->timeout_ev)
-			rbtimerDelEvent(&thrd->rpc_timer, (RBTimerEvent_t*)rpc_item->timeout_ev);
+			rbtimerDelEvent(rpc_timer, (RBTimerEvent_t*)rpc_item->timeout_ev);
 		free(rpc_item);
 	}
 }

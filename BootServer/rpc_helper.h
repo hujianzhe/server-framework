@@ -13,8 +13,8 @@ extern "C" {
 __declspec_dllexport RpcItem_t* newRpcItemFiberReady(TaskThread_t* thrd, Channel_t* channel, long long timeout_msec);
 __declspec_dllexport RpcItem_t* newRpcItemAsyncReady(TaskThread_t* thrd, Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcAsyncCore_t*, RpcItem_t*));
 __declspec_dllexport void freeRpcItem(TaskThread_t* thrd, RpcItem_t* rpc_item);
-void freeRpcItemWhenTimeout(TaskThread_t* thrd, RpcItem_t* rpc_item);
-void freeRpcItemWhenNormal(TaskThread_t* thrd, Channel_t* channel, RpcItem_t* rpc_item);
+void freeRpcItemWhenTimeout(RpcItem_t* rpc_item);
+void freeRpcItemWhenNormal(RBTimer_t* rpc_timer, Channel_t* channel, RpcItem_t* rpc_item);
 void freeRpcItemWhenChannelDetach(TaskThread_t* thrd, Channel_t* channel);
 __declspec_dllexport BOOL newFiberSleepMillsecond(TaskThread_t* thrd, long long timeout_msec);
 

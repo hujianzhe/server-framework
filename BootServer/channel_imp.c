@@ -240,10 +240,6 @@ Channel_t* openListenerInner(int socktype, const char* ip, unsigned short port) 
 
 /**************************************************************************/
 
-static unsigned int httpframe_hdrsize(Channel_t* c, unsigned int bodylen) { return 0; }
-
-static void httpframe_encode(Channel_t* c, unsigned char* hdr, unsigned int bodylen, unsigned char pktype, unsigned int pkseq) {}
-
 static void httpframe_decode(Channel_t* c, unsigned char* buf, size_t buflen, ChannelInbufDecodeResult_t* decode_result) {
 	int res;
 	HttpFrame_t* frame = (HttpFrame_t*)malloc(sizeof(HttpFrame_t));
@@ -304,8 +300,8 @@ static void httpframe_recv(Channel_t* c, const void* addr, ChannelInbufDecodeRes
 		memcpy(&message->peer_addr, addr, sockaddrLength(addr));
 	}
 	httpframe->uri[httpframe->pathlen] = 0;
-	message->extra_type = USER_MSG_EXTRA_HTTP_FRAME;
-	message->httpframe = httpframe;
+	message->param.type = USER_MSG_EXTRA_HTTP_FRAME;
+	message->param.httpframe = httpframe;
 	message->cmdstr = httpframe->uri;
 	message->rpc_status = 0;
 	message->cmdid = 0;
@@ -356,9 +352,7 @@ Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const void* saddr) {
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
-	c->on_hdrsize = httpframe_hdrsize;
 	c->on_decode = httpframe_decode;
-	c->on_encode = httpframe_encode;
 	c->on_recv = httpframe_recv;
 	flag = c->_.flag;
 	if (flag & CHANNEL_FLAG_SERVER)

@@ -25,9 +25,9 @@ UserMsg_t* newUserMsg(size_t datalen) {
 		msg->channel = NULL;
 		msg->peer_addr.sa.sa_family = AF_UNSPEC;
 		msg->be_from_cluster = 0;
-		msg->extra_type = 0;
-		msg->httpframe = NULL;
-		msg->timer_event = NULL;
+		msg->param.type = 0;
+		msg->param.httpframe = NULL;
+		msg->param.timer_event = NULL;
 		msg->cmdstr = NULL;
 		msg->rpc_status = 0;
 		msg->cmdid = 0;

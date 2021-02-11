@@ -86,7 +86,7 @@ void retTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 }
 
 void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	HttpFrame_t* httpframe = ctrl->httpframe;
+	HttpFrame_t* httpframe = ctrl->param.httpframe;
 	printf("recv http browser ... %s\n", httpframe->query);
 	free(httpframeReset(httpframe));
 
@@ -111,7 +111,7 @@ void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 }
 
 void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	HttpFrame_t* httpframe = ctrl->httpframe;
+	HttpFrame_t* httpframe = ctrl->param.httpframe;
 	printf("module recv http browser ... %s\n", httpframe->query);
 	free(httpframeReset(httpframe));
 
@@ -165,7 +165,7 @@ void reqParallelTest2(TaskThread_t* thrd, UserMsg_t* ctrl) {
 }
 
 void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	HttpFrame_t* httpframe = ctrl->httpframe;
+	HttpFrame_t* httpframe = ctrl->param.httpframe;
 	ListNode_t* cur, *next;
 	char* reply;
 	int replylen;

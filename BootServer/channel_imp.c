@@ -102,11 +102,10 @@ static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen,
 	}
 }
 
-static void innerchannel_encode(Channel_t* c, unsigned char* hdr, unsigned int bodylen, unsigned char pktype, unsigned int pkseq) {
-	bodylen += CHANNEL_EXTHDRSIZE;
-	*(hdr + CHANNEL_BASEHDRSIZE) = pktype;
-	*(unsigned int*)(hdr + CHANNEL_BASEHDRSIZE + 1) = htonl(pkseq);
-	lengthfieldframeEncode(hdr, CHANNEL_BASEHDRSIZE, bodylen);
+static void innerchannel_encode(Channel_t* c, const ChannelOutbufEncodeParam_t* param) {
+	*(param->buf + CHANNEL_BASEHDRSIZE) = param->pktype;
+	*(unsigned int*)(param->buf + CHANNEL_BASEHDRSIZE + 1) = htonl(param->pkseq);
+	lengthfieldframeEncode(param->buf, CHANNEL_BASEHDRSIZE, param->bodylen + CHANNEL_EXTHDRSIZE);
 }
 
 static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const void* peer_addr, long long ts_msec) {
@@ -134,7 +133,13 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 static void innerchannel_reply_ack(Channel_t* c, unsigned int seq, const void* addr) {
 	unsigned int hdrsize = c->on_hdrsize(c, 0);
 	unsigned char* buf = (unsigned char*)alloca(hdrsize);
-	c->on_encode(c, buf, 0, NETPACKET_ACK, seq);
+	ChannelOutbufEncodeParam_t encode_param;
+	encode_param.bodylen = 0;
+	encode_param.hdrlen = hdrsize;
+	encode_param.pkseq = seq;
+	encode_param.pktype = NETPACKET_ACK;
+	encode_param.buf = buf;
+	c->on_encode(c, &encode_param);
 	socketWrite(c->_.o->fd, buf, hdrsize, 0, addr, sockaddrLength(addr));
 }
 
@@ -400,10 +405,10 @@ static unsigned int websocket_hdrsize(Channel_t* c, unsigned int bodylen) {
 		return 0;
 }
 
-static void websocket_encode(Channel_t* c, unsigned char* hdr, unsigned int bodylen, unsigned char pktype, unsigned int pkseq) {
+static void websocket_encode(Channel_t* c, const ChannelOutbufEncodeParam_t* param) {
 	ChannelUserData_t* ud = (ChannelUserData_t*)c->userdata;
 	if (ud->ws_handshake_state > 1)
-		websocketframeEncode(hdr, 1, WEBSOCKET_BINARY_FRAME, bodylen);
+		websocketframeEncode(param->buf, 1, WEBSOCKET_BINARY_FRAME, param->bodylen);
 	else
 		ud->ws_handshake_state = 2;
 }

@@ -19,6 +19,7 @@ typedef struct ClusterNodeGroup_t {
 #define	CLUSTER_TARGET_USE_CONNECT_NUM		5
 #define	CLUSTER_TARGET_USE_WEIGHT_MIN		6
 #define	CLUSTER_TARGET_USE_WEIGHT_MAX		7
+#define	CLUSTER_TARGET_USE_RANDOM			8
 
 struct ClusterTable_t;
 extern struct ClusterTable_t* g_ClusterTable;

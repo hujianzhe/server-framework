@@ -207,6 +207,11 @@ int initConfig(const char* path) {
 			g_Config.udp_cwndsize = cjson->valueint;
 		}
 
+		cjson = cJSON_Field(root, "enqueue_timeout_msec");
+		if (cjson) {
+			g_Config.enqueue_timeout_msec = cjson->valueint;
+		}
+
 		res = 1;
 	} while (0);
 	if (res)

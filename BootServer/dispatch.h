@@ -23,6 +23,7 @@ typedef struct UserMsg_t {
 			struct RBTimerEvent_t* timer_event; /* fiber use */
 		};
 	} param;
+	long long enqueue_time_msec;
 	const char* cmdstr;
 	char rpc_status;
 	union {

@@ -152,6 +152,12 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							ctrl->channel = session->channel_client;
 					}
 				}
+				if (g_Config.enqueue_timeout_msec > 0 && ctrl->enqueue_time_msec > 0) {
+					cur_msec = gmtimeMillisecond();
+					if (cur_msec - ctrl->enqueue_time_msec >= g_Config.enqueue_timeout_msec) {
+						continue;
+					}
+				}
 				if (thread->f_rpc) {
 					if (RPC_STATUS_RESP == ctrl->rpc_status) {
 						RpcItem_t* rpc_item = rpcFiberCoreResume(thread->f_rpc, ctrl->rpcid, ctrl);

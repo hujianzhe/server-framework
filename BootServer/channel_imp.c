@@ -161,6 +161,9 @@ static void innerchannel_recv(Channel_t* c, const void* addr, ChannelInbufDecode
 		if (message->datalen) {
 			memcpy(message->data, decode_result->bodyptr + cmdid_rpcid_sz, message->datalen);
 		}
+		if (g_Config.enqueue_timeout_msec > 0) {
+			message->enqueue_time_msec = gmtimeMillisecond();
+		}
 		dataqueuePush(&g_TaskThread->dq, &message->internal._);
 	}
 	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
@@ -313,6 +316,9 @@ static void httpframe_recv(Channel_t* c, const void* addr, ChannelInbufDecodeRes
 	message->rpcid = 0;
 	if (message->datalen) {
 		memcpy(message->data, decode_result->bodyptr, message->datalen);
+	}
+	if (g_Config.enqueue_timeout_msec > 0) {
+		message->enqueue_time_msec = gmtimeMillisecond();
 	}
 	dataqueuePush(&g_TaskThread->dq, &message->internal._);
 }

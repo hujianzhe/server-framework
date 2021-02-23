@@ -37,6 +37,7 @@ typedef struct Config_t {
 	int rpc_async;
 	int tcp_nodelay;
 	int udp_cwndsize;
+	int enqueue_timeout_msec;
 	struct cJSON* cjson_root;
 } Config_t;
 

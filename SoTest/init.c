@@ -100,6 +100,9 @@ static void websocket_recv(Channel_t* c, const void* addr, ChannelInbufDecodeRes
 		if (message->datalen) {
 			memcpy(message->data, decode_result->bodyptr, message->datalen);
 		}
+		if (ptr_g_Config()->enqueue_timeout_msec > 0) {
+			message->enqueue_time_msec = gmtimeMillisecond();
+		}
 		dataqueuePush(&ptr_g_TaskThread()->dq, &message->internal._);
 	}
 	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
@@ -109,8 +112,8 @@ static void websocket_recv(Channel_t* c, const void* addr, ChannelInbufDecodeRes
 
 static int test_timer(RBTimer_t* timer, RBTimerEvent_t* e) {
 	logInfo(ptr_g_Log(), "test_timer============================================");
-	e->timestamp_msec += 1000;
-	rbtimerAddEvent(timer, e);
+	//e->timestamp_msec += 1000;
+	//rbtimerAddEvent(timer, e);
 	return 0;
 }
 

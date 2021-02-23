@@ -44,5 +44,6 @@
 	"rpc_async" : 0,
 	"tcp_nodelay" : 1,
 	"udp_cwndsize" : 40,
+	"enqueue_timeout_msec" : 0,
 	"extra_data" : ""
 }

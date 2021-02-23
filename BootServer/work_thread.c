@@ -155,6 +155,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				if (g_Config.enqueue_timeout_msec > 0 && ctrl->enqueue_time_msec > 0) {
 					cur_msec = gmtimeMillisecond();
 					if (cur_msec - ctrl->enqueue_time_msec >= g_Config.enqueue_timeout_msec) {
+						free(ctrl);
 						continue;
 					}
 				}

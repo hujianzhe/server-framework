@@ -137,12 +137,13 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	regNumberDispatch(thrd->dispatch, CMD_REQ_ParallelTest1, reqParallelTest1);
 	regNumberDispatch(thrd->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);
 
-	// add timer
+	/* add timer
 	timer_event = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
 	timer_event->arg = NULL;
 	timer_event->callback = test_timer;
 	timer_event->timestamp_msec = gmtimeMillisecond() + 1000;
 	rbtimerAddEvent(&thrd->timer, timer_event);
+	*/
 
 	// listen extra port
 	for (i = 0; i < ptr_g_Config()->listen_options_cnt; ++i) {

@@ -12,6 +12,13 @@ static unsigned int __numkeyhash(const void* key) { return (ptrlen_t)key; }
 static int __strkeycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
 static unsigned int __strkeyhash(const void* key) { return hashBKDR((const char*)key); }
 
+static void free_user_msg(UserMsg_t* msg) {
+	if (USER_MSG_EXTRA_HTTP_FRAME == msg->param.type) {
+		free(httpframeReset(msg->param.httpframe));
+	}
+	free(msg);
+}
+
 DispatchCallback_t g_DefaultDispatchCallback = NULL;
 
 #ifdef __cplusplus
@@ -24,6 +31,7 @@ UserMsg_t* newUserMsg(size_t datalen) {
 		msg->internal.type = REACTOR_USER_CMD;
 		msg->channel = NULL;
 		msg->peer_addr.sa.sa_family = AF_UNSPEC;
+		msg->on_free = free_user_msg;
 		msg->be_from_cluster = 0;
 		msg->param.type = 0;
 		msg->param.httpframe = NULL;

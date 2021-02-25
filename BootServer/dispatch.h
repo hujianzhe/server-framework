@@ -15,6 +15,7 @@ typedef struct UserMsg_t {
 	ReactorCmd_t internal;
 	Channel_t* channel;
 	Sockaddr_t peer_addr;
+	void(*on_free)(struct UserMsg_t* self);
 	short be_from_cluster;
 	struct {
 		short type;

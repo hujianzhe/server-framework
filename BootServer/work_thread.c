@@ -37,7 +37,6 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 			if (USER_MSG_EXTRA_HTTP_FRAME == ctrl->param.type) {
 				if (ctrl->param.httpframe) {
 					const char reply[] = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n";
-					free(httpframeReset(ctrl->param.httpframe));
 					channelSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
 					channelSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
 				}
@@ -54,7 +53,7 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 			}
 		}
 	}
-	free(ctrl);
+	ctrl->on_free(ctrl);
 }
 
 static int session_expire_timeout_callback(RBTimer_t* timer, RBTimerEvent_t* e) {
@@ -130,7 +129,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					if (RPC_STATUS_HAND_SHAKE == ctrl->rpc_status) {
 						Channel_t* channel = ctrl->channel;
 						ClusterNode_t* clsnd = flushClusterNodeFromJsonData(g_ClusterTable, (char*)ctrl->data);
-						free(ctrl);
+						ctrl->on_free(ctrl);
 						if (clsnd) {
 							if (clsnd->session.channel_server != channel)
 								sessionChannelReplaceServer(&clsnd->session, channel);
@@ -143,7 +142,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					}
 					else if (RPC_STATUS_FLUSH_NODE == ctrl->rpc_status) {
 						flushClusterNodeFromJsonData(g_ClusterTable, (char*)ctrl->data);
-						free(ctrl);
+						ctrl->on_free(ctrl);
 						continue;
 					}
 					else {
@@ -155,18 +154,19 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				if (g_Config.enqueue_timeout_msec > 0 && ctrl->enqueue_time_msec > 0) {
 					cur_msec = gmtimeMillisecond();
 					if (cur_msec - ctrl->enqueue_time_msec >= g_Config.enqueue_timeout_msec) {
-						free(ctrl);
+						ctrl->on_free(ctrl);
 						continue;
 					}
 				}
 				if (thread->f_rpc) {
 					if (RPC_STATUS_RESP == ctrl->rpc_status) {
+						Channel_t* channel = ctrl->channel;
 						RpcItem_t* rpc_item = rpcFiberCoreResume(thread->f_rpc, ctrl->rpcid, ctrl);
-						free(ctrl);
+						ctrl->on_free(ctrl);
 						if (!rpc_item) {
 							continue;
 						}
-						freeRpcItemWhenNormal(&thread->rpc_timer, ctrl->channel, rpc_item);
+						freeRpcItemWhenNormal(&thread->rpc_timer, channel, rpc_item);
 					}
 					else {
 						rpcFiberCoreResumeMsg(thread->f_rpc, ctrl);
@@ -174,12 +174,13 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				}
 				else if (thread->a_rpc) {
 					if (RPC_STATUS_RESP == ctrl->rpc_status) {
+						Channel_t* channel = ctrl->channel;
 						RpcItem_t* rpc_item = rpcAsyncCoreCallback(thread->a_rpc, ctrl->rpcid, ctrl);
-						free(ctrl);
+						ctrl->on_free(ctrl);
 						if (!rpc_item) {
 							continue;
 						}
-						freeRpcItemWhenNormal(&thread->rpc_timer, ctrl->channel, rpc_item);
+						freeRpcItemWhenNormal(&thread->rpc_timer, channel, rpc_item);
 					}
 					else {
 						call_dispatch(thread, ctrl);
@@ -313,8 +314,10 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	for (cur = dataqueueClean(&thread->dq); cur; cur = next) {
 		ReactorCmd_t* internal = (ReactorCmd_t*)cur;
 		next = cur->next;
-		if (REACTOR_USER_CMD == internal->type)
-			free(pod_container_of(internal, UserMsg_t, internal));
+		if (REACTOR_USER_CMD == internal->type) {
+			UserMsg_t* ctrl = pod_container_of(internal, UserMsg_t, internal);
+			ctrl->on_free(ctrl);
+		}
 	}
 #ifdef USE_STATIC_MODULE
 	destroy();

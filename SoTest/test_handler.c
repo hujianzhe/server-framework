@@ -88,7 +88,6 @@ void retTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	HttpFrame_t* httpframe = ctrl->param.httpframe;
 	printf("recv http browser ... %s\n", httpframe->query);
-	free(httpframeReset(httpframe));
 
 	const char test_data[] = "C server say hello world, yes ~.~";
 	int reply_len;
@@ -113,7 +112,6 @@ void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	HttpFrame_t* httpframe = ctrl->param.httpframe;
 	printf("module recv http browser ... %s\n", httpframe->query);
-	free(httpframeReset(httpframe));
 
 	const char test_data[] = "C so/dll server say hello world, yes ~.~";
 	int reply_len;
@@ -216,7 +214,6 @@ void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		logInfo(ptr_g_Log(), "%s write %u bytes...", path, wrbytes);
 		free(path);
 	}
-	free(httpframeReset(httpframe));
 	if (cur) {
 		str_result = "UPLOAD ERROR";
 	}

@@ -216,6 +216,7 @@ void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		logInfo(ptr_g_Log(), "%s write %u bytes...", path, wrbytes);
 		free(path);
 	}
+	free(httpframeReset(httpframe));
 	if (cur) {
 		str_result = "UPLOAD ERROR";
 	}

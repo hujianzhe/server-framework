@@ -27,6 +27,7 @@ extern "C" {
 #endif
 
 __declspec_dllexport void g_Invalid(void);
+__declspec_dllexport void g_FreeMem(void* p);
 __declspec_dllexport Log_t* ptr_g_Log(void);
 
 #ifdef __cplusplus

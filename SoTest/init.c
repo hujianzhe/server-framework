@@ -112,8 +112,8 @@ static void websocket_recv(Channel_t* c, const void* addr, ChannelInbufDecodeRes
 
 static int test_timer(RBTimer_t* timer, RBTimerEvent_t* e) {
 	logInfo(ptr_g_Log(), "test_timer============================================");
-	//e->timestamp_msec += 1000;
-	//rbtimerAddEvent(timer, e);
+	e->timestamp_msec += 1000;
+	rbtimerAddEvent(timer, e);
 	return 0;
 }
 

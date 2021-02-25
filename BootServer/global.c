@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 void g_Invalid(void) { g_Valid = 0; }
+void g_FreeMem(void* p) { free(p); }
 Log_t* ptr_g_Log(void) { return &g_Log; }
 
 #ifdef __cplusplus

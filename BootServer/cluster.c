@@ -7,6 +7,14 @@ typedef struct ClusterTable_t {
 	HashtableNode_t* grp_bulk[32];
 } ClusterTable_t;
 
+typedef struct ClusterNodeGroup_t {
+	HashtableNode_t m_htnode;
+	List_t nodelist;
+	unsigned int nodelistcnt;
+	ConsistentHash_t consistent_hash;
+	unsigned int target_loopcnt;
+} ClusterNodeGroup_t;
+
 struct ClusterTable_t* g_ClusterTable;
 
 static int __keycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
@@ -63,12 +71,12 @@ struct ClusterTable_t* newClusterTable(void) {
 	return t;
 }
 
-ClusterNodeGroup_t* getClusterNodeGroup(struct ClusterTable_t* t, const char* name) {
+struct ClusterNodeGroup_t* getClusterNodeGroup(struct ClusterTable_t* t, const char* name) {
 	HashtableNode_t* htnode = hashtableSearchKey(&t->grp_table, name);
 	return htnode ? pod_container_of(htnode, ClusterNodeGroup_t, m_htnode) : NULL;
 }
 
-ClusterNode_t* getClusterNodeFromGroup(ClusterNodeGroup_t* grp, int socktype, const IPString_t ip, unsigned short port) {
+ClusterNode_t* getClusterNodeFromGroup(struct ClusterNodeGroup_t* grp, int socktype, const IPString_t ip, unsigned short port) {
 	if (grp) {
 		ListNode_t* cur;
 		for (cur = grp->nodelist.head; cur; cur = cur->next) {
@@ -162,7 +170,7 @@ void freeClusterTable(struct ClusterTable_t* t) {
 		g_ClusterTable = NULL;
 }
 
-ClusterNode_t* targetClusterNode(ClusterNodeGroup_t* grp, int mode, unsigned int key) {
+ClusterNode_t* targetClusterNode(struct ClusterNodeGroup_t* grp, int mode, unsigned int key) {
 	ClusterNode_t* dst_clsnd;
 	if (!grp)
 		return NULL;
@@ -261,7 +269,7 @@ ClusterNode_t* targetClusterNode(ClusterNodeGroup_t* grp, int mode, unsigned int
 	return dst_clsnd;
 }
 
-ClusterNode_t* targetClusterNodeByIp(ClusterNodeGroup_t* grp, const IPString_t ip, int mode, unsigned int key) {
+ClusterNode_t* targetClusterNodeByIp(struct ClusterNodeGroup_t* grp, const IPString_t ip, int mode, unsigned int key) {
 	ClusterNode_t* dst_clsnd;
 	if (!grp || !ip || 0 == ip[0])
 		return NULL;
@@ -404,7 +412,7 @@ ClusterNode_t* targetClusterNodeByIp(ClusterNodeGroup_t* grp, const IPString_t i
 	return dst_clsnd;
 }
 
-void broadcastClusterGroup(ClusterNodeGroup_t* grp, const Iobuf_t iov[], unsigned int iovcnt) {
+void broadcastClusterGroup(struct ClusterNodeGroup_t* grp, const Iobuf_t iov[], unsigned int iovcnt) {
 	ListNode_t* cur;
 	if (!grp)
 		return;

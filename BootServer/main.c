@@ -73,9 +73,6 @@ int main(int argc, char** argv) {
 		g_Config.module_path ? g_Config.module_path : "", g_Config.clsnd.name,
 		if_socktype2string(g_Config.clsnd.socktype), g_Config.clsnd.ip, g_Config.clsnd.port, processId());
 	// int cluster data
-	g_ClusterTable = newClusterTable();
-	if (!g_ClusterTable)
-		goto err;
 	if (g_Config.cluster_table_path && g_Config.cluster_table_path[0]) {
 		const char* load_cluster_table_errmsg;
 		char* cluster_table_filedata = fileReadAllData(g_Config.cluster_table_path, NULL);
@@ -84,9 +81,9 @@ int main(int argc, char** argv) {
 			logErr(&g_Log, "fileReadAllData(%s) failure", g_Config.cluster_table_path);
 			goto err;
 		}
-		load_cluster_table_errmsg = loadClusterTableFromJsonData(g_ClusterTable, cluster_table_filedata);
+		g_ClusterTable = loadClusterTableFromJsonData(cluster_table_filedata, &load_cluster_table_errmsg);
 		free(cluster_table_filedata);
-		if (load_cluster_table_errmsg && load_cluster_table_errmsg[0]) {
+		if (!g_ClusterTable) {
 			fprintf(stderr, "loadClusterTableFromJsonData failure: %s\n", load_cluster_table_errmsg);
 			logErr(&g_Log, "loadClusterTableFromJsonData failure: %s", load_cluster_table_errmsg);
 			goto err;
@@ -130,6 +127,9 @@ int main(int argc, char** argv) {
 			);
 			goto err;
 		}
+		g_ClusterTable = newClusterTable();
+		if (!g_ClusterTable)
+			goto err;
 		if (!regClusterNode(g_ClusterTable, g_Config.clsnd.name, g_SelfClusterNode)) {
 			fprintf(stderr, "reg self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
 				g_Config.clsnd.name,

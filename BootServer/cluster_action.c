@@ -46,20 +46,25 @@ ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char
 	return clsnd;
 }
 
-const char* loadClusterTableFromJsonData(struct ClusterTable_t* t, const char* json_data) {
-	const char* errmsg;
+struct ClusterTable_t* loadClusterTableFromJsonData(const char* json_data, const char** errmsg) {
+	struct ClusterTable_t* t = NULL;
 	cJSON* root = cJSON_Parse(NULL, json_data);
 	if (!root) {
-		errmsg = "parse json data error";
-		return 0;
+		*errmsg = "parse json data error";
+		return t;
 	}
-	errmsg = NULL;
+	*errmsg = NULL;
 	do {
 		cJSON* cjson_cluster_nodes, *cjson_clsnd;
 
 		cjson_cluster_nodes = cJSON_Field(root, "cluster_nodes");
 		if (!cjson_cluster_nodes) {
-			errmsg = "json data miss field cluster_nodes";
+			*errmsg = "json data miss field cluster_nodes";
+			break;
+		}
+		t = newClusterTable();
+		if (!t) {
+			*errmsg = "newClusterTable return NULL";
 			break;
 		}
 		for (cjson_clsnd = cjson_cluster_nodes->child; cjson_clsnd; cjson_clsnd = cjson_clsnd->next) {
@@ -118,12 +123,14 @@ const char* loadClusterTableFromJsonData(struct ClusterTable_t* t, const char* j
 			}
 		}
 		if (cjson_clsnd) {
-			errmsg = "reg cluster node error";
+			*errmsg = "reg cluster node error";
+			freeClusterTable(t);
+			t = NULL;
 			break;
 		}
 	} while (0);
 	cJSON_Delete(root);
-	return errmsg;
+	return t;
 }
 
 #ifdef __cplusplus

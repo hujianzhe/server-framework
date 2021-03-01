@@ -159,7 +159,6 @@
     <ClInclude Include="util\inc\component\dataqueue.h" />
     <ClInclude Include="util\inc\component\db.h" />
     <ClInclude Include="util\inc\component\httpframe.h" />
-    <ClInclude Include="util\inc\component\lengthfieldframe.h" />
     <ClInclude Include="util\inc\component\log.h" />
     <ClInclude Include="util\inc\component\memheap_mt.h" />
     <ClInclude Include="util\inc\component\rbtimer.h" />
@@ -191,6 +190,7 @@
     <ClInclude Include="util\inc\datastruct\graph.h" />
     <ClInclude Include="util\inc\datastruct\hash.h" />
     <ClInclude Include="util\inc\datastruct\hashtable.h" />
+    <ClInclude Include="util\inc\datastruct\lengthfieldframe.h" />
     <ClInclude Include="util\inc\datastruct\list.h" />
     <ClInclude Include="util\inc\datastruct\md5.h" />
     <ClInclude Include="util\inc\datastruct\memfunc.h" />
@@ -235,7 +235,6 @@
     <ClCompile Include="util\src\component\dataqueue.c" />
     <ClCompile Include="util\src\component\db.c" />
     <ClCompile Include="util\src\component\httpframe.c" />
-    <ClCompile Include="util\src\component\lengthfieldframe.c" />
     <ClCompile Include="util\src\component\log.c" />
     <ClCompile Include="util\src\component\memheap_mt.c" />
     <ClCompile Include="util\src\component\rbtimer.c" />
@@ -254,6 +253,7 @@
     <ClCompile Include="util\src\datastruct\graph.c" />
     <ClCompile Include="util\src\datastruct\hash.c" />
     <ClCompile Include="util\src\datastruct\hashtable.c" />
+    <ClCompile Include="util\src\datastruct\lengthfieldframe.c" />
     <ClCompile Include="util\src\datastruct\list.c" />
     <ClCompile Include="util\src\datastruct\md5.c" />
     <ClCompile Include="util\src\datastruct\memfunc.c" />

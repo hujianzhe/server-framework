@@ -161,6 +161,7 @@
     <ClInclude Include="util\inc\component\httpframe.h" />
     <ClInclude Include="util\inc\component\log.h" />
     <ClInclude Include="util\inc\component\memheap_mt.h" />
+    <ClInclude Include="util\inc\component\memref.h" />
     <ClInclude Include="util\inc\component\rbtimer.h" />
     <ClInclude Include="util\inc\component\reactor.h" />
     <ClInclude Include="util\inc\component\rpc_core.h" />
@@ -237,6 +238,7 @@
     <ClCompile Include="util\src\component\httpframe.c" />
     <ClCompile Include="util\src\component\log.c" />
     <ClCompile Include="util\src\component\memheap_mt.c" />
+    <ClCompile Include="util\src\component\memref.c" />
     <ClCompile Include="util\src\component\rbtimer.c" />
     <ClCompile Include="util\src\component\reactor.c" />
     <ClCompile Include="util\src\component\rpc_core.c" />

@@ -66,7 +66,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 	}
 }
 
-static void websocket_recv(Channel_t* c, const void* addr, ChannelInbufDecodeResult_t* decode_result) {
+static void websocket_recv(Channel_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {
 	if (decode_result->bodylen > 0) {
 		UserMsg_t* message;
 		char* cmdstr;

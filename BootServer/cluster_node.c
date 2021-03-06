@@ -61,7 +61,7 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 		if (!hs_data)
 			return NULL;
 
-		if (!sockaddrEncode(&saddr.st, ipstrFamily(clsnd->ip), clsnd->ip, clsnd->port)) {
+		if (!sockaddrEncode(&saddr.sa, ipstrFamily(clsnd->ip), clsnd->ip, clsnd->port)) {
 			free(hs_data);
 			return NULL;
 		}
@@ -70,7 +70,7 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 			free(hs_data);
 			return NULL;
 		}
-		channel = openChannelInner(o, CHANNEL_FLAG_CLIENT, &saddr);
+		channel = openChannelInner(o, CHANNEL_FLAG_CLIENT, &saddr.sa);
 		if (!channel) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			free(hs_data);

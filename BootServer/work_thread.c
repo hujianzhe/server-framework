@@ -202,7 +202,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				else {
 					IPString_t listen_ip;
 					unsigned short listen_port;
-					sockaddrDecode(&channel->_.listen_addr.st, listen_ip, &listen_port);
+					sockaddrDecode(&channel->_.listen_addr.sa, listen_ip, &listen_port);
 					logInfo(&g_Log, "listen ip(%s) port(%u) detach", listen_ip, listen_port);
 				}
 

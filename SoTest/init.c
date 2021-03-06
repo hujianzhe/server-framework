@@ -24,7 +24,7 @@ static void rpc_async_req_login_test(RpcAsyncCore_t* rpc, RpcItem_t* rpc_item) {
 	else {
 		IPString_t ip;
 		unsigned short port;
-		sockaddrDecode(&channel->_.connect_addr.st, ip, &port);
+		sockaddrDecode(&channel->_.connect_addr.sa, ip, &port);
 		logErr(ptr_g_Log(), "%s channel(%p) connect %s:%hu failure", __FUNCTION__, channel, ip, port);
 	}
 	g_Invalid();
@@ -123,7 +123,7 @@ extern "C" {
 
 __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	int i;
-	RBTimerEvent_t* timer_event;
+	//RBTimerEvent_t* timer_event;
 
 	regNumberDispatch(thrd->dispatch, CMD_REQ_TEST, reqTest);
 	regNumberDispatch(thrd->dispatch, CMD_NOTIFY_TEST, notifyTest);
@@ -173,12 +173,12 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		ReactorObject_t* o;
 		int domain = ipstrFamily(option->ip);
 
-		if (!sockaddrEncode(&connect_addr.st, domain, option->ip, option->port))
+		if (!sockaddrEncode(&connect_addr.sa, domain, option->ip, option->port))
 			return 0;
-		o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.st.ss_family, option->socktype, 0);
+		o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.sa.sa_family, option->socktype, 0);
 		if (!o)
 			return 0;
-		c = openChannelInner(o, CHANNEL_FLAG_CLIENT, &connect_addr);
+		c = openChannelInner(o, CHANNEL_FLAG_CLIENT, &connect_addr.sa);
 		if (!c) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			return 0;

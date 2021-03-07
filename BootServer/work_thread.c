@@ -248,6 +248,9 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					} while (0);
 				}
 
+				if (channel->_.memref && !memrefDecrStrong(&channel->_.memref)) {
+					continue;
+				}
 				reactorCommitCmd(NULL, &channel->_.freecmd);
 			}
 		}

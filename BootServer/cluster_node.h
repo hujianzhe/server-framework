@@ -9,6 +9,7 @@ typedef struct ClusterNode_t {
 	Session_t session;
 	ListNode_t m_listnode;
 	ListNode_t m_grp_listnode;
+	HashtableNode_t m_id_htnode;
 	struct ClusterNodeGroup_t* grp;
 	const char* name;
 	int id;

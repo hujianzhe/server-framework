@@ -10,11 +10,15 @@ ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char
 	cJSON* root;
 	ClusterNode_t* clsnd = NULL;
 	do {
-		cJSON *cjson_socktype, *cjson_ip, *cjson_port, *cjson_conn_num, *cjson_weight_num;
+		cJSON *cjson_id, *cjson_socktype, *cjson_ip, *cjson_port, *cjson_conn_num, *cjson_weight_num;
 		int socktype;
 
 		root = cJSON_Parse(NULL, json_data);
 		if (!root) {
+			break;
+		}
+		cjson_id = cJSON_Field(root, "id");
+		if (!cjson_id) {
 			break;
 		}
 		cjson_socktype = cJSON_Field(root, "socktype");
@@ -33,8 +37,14 @@ ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char
 		cjson_conn_num = cJSON_Field(root, "connection_num");
 		cjson_weight_num = cJSON_Field(root, "weight_num");
 
-		clsnd = getClusterNode(t, socktype, cjson_ip->valuestring, cjson_port->valueint);
+		clsnd = getClusterNodeById(t, cjson_id->valueint);
 		if (!clsnd) {
+			break;
+		}
+		if (clsnd->socktype != socktype ||
+			clsnd->port != cjson_port->valueint ||
+			strcmp(clsnd->ip, cjson_ip->valuestring))
+		{
 			break;
 		}
 		if (cjson_conn_num && cjson_conn_num->valueint > 0)
@@ -93,6 +103,9 @@ struct ClusterTable_t* loadClusterTableFromJsonData(const char* json_data, const
 			weight_num = cJSON_Field(cjson_clsnd, "weight_num");
 			hashkey_array = cJSON_Field(cjson_clsnd, "hash_key");
 
+			clsnd = getClusterNodeById(t, id->valueint);
+			if (clsnd)
+				continue;
 			clsnd = getClusterNode(t, socktype, ip->valuestring, port->valueint);
 			if (clsnd)
 				continue;

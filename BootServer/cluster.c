@@ -5,6 +5,8 @@ typedef struct ClusterTable_t {
 	List_t nodelist;
 	Hashtable_t grp_table;
 	HashtableNode_t* grp_bulk[32];
+	Hashtable_t id_table;
+	HashtableNode_t* id_bulk[32];
 } ClusterTable_t;
 
 typedef struct ClusterNodeGroup_t {
@@ -17,8 +19,8 @@ typedef struct ClusterNodeGroup_t {
 
 struct ClusterTable_t* g_ClusterTable;
 
-static int __keycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
-static unsigned int __keyhash(const void* key) { return hashBKDR((const char*)key); }
+static int __grp_name_keycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
+static unsigned int __grp_name_keyhash(const void* key) { return hashBKDR((const char*)key); }
 
 static ClusterNodeGroup_t* new_cluster_node_group(const char* name) {
 	ClusterNodeGroup_t* grp = (ClusterNodeGroup_t*)malloc(sizeof(ClusterNodeGroup_t));
@@ -65,7 +67,8 @@ void set_g_ClusterTable(struct ClusterTable_t* t) { g_ClusterTable = t; }
 struct ClusterTable_t* newClusterTable(void) {
 	ClusterTable_t* t = (ClusterTable_t*)malloc(sizeof(ClusterTable_t));
 	if (t) {
-		hashtableInit(&t->grp_table, t->grp_bulk, sizeof(t->grp_bulk) / sizeof(t->grp_bulk[0]), __keycmp, __keyhash);
+		hashtableInit(&t->grp_table, t->grp_bulk, sizeof(t->grp_bulk) / sizeof(t->grp_bulk[0]), __grp_name_keycmp, __grp_name_keyhash);
+		hashtableInit(&t->id_table, t->id_bulk, sizeof(t->id_bulk) / sizeof(t->id_bulk[0]), NULL, NULL);
 		listInit(&t->nodelist);
 	}
 	return t;
@@ -100,6 +103,11 @@ ClusterNode_t* getClusterNode(struct ClusterTable_t* t, int socktype, const IPSt
 	return NULL;
 }
 
+ClusterNode_t* getClusterNodeById(struct ClusterTable_t* t, int clsnd_id) {
+	HashtableNode_t* htnode = hashtableSearchKey(&t->id_table, (void*)(size_t)clsnd_id);
+	return htnode ? pod_container_of(htnode, ClusterNode_t, m_id_htnode) : NULL;
+}
+
 List_t* getClusterNodeList(struct ClusterTable_t* t) { return &t->nodelist; }
 
 int regClusterNode(struct ClusterTable_t* t, const char* name, ClusterNode_t* clsnd) {
@@ -126,7 +134,7 @@ int regClusterNode(struct ClusterTable_t* t, const char* name, ClusterNode_t* cl
 	clsnd->grp = grp;
 	grp->nodelistcnt++;
 	listPushNodeBack(&grp->nodelist, &clsnd->m_grp_listnode);
-
+	hashtableInsertNode(&t->id_table, &clsnd->m_id_htnode);
 	listPushNodeBack(&t->nodelist, &clsnd->m_listnode);
 	clsnd->session.has_reg = 1;
 	return 1;
@@ -144,6 +152,7 @@ void unregClusterNode(struct ClusterTable_t* t, ClusterNode_t* clsnd) {
 			hashtableRemoveNode(&t->grp_table, &grp->m_htnode);
 			free_cluster_node_group(grp);
 		}
+		hashtableRemoveNode(&t->id_table, &clsnd->m_id_htnode);
 		listRemoveNode(&t->nodelist, &clsnd->m_listnode);
 		clsnd->session.has_reg = 0;
 		clsnd->grp = NULL;

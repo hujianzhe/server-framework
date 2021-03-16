@@ -17,6 +17,7 @@ ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned shor
 	if (clsnd) {
 		initSession(&clsnd->session);
 		clsnd->session.persist = 1;
+		clsnd->m_id_htnode.key = (void*)(size_t)id;
 		clsnd->grp = NULL;
 		clsnd->name = "";
 		clsnd->id = id;
@@ -55,7 +56,8 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 		Sockaddr_t saddr;
 		ReactorObject_t* o;
 
-		hs_data = strFormat(&hs_datalen, "{\"ip\":\"%s\",\"port\":%u,\"socktype\":\"%s\",\"connection_num\":%d}",
+		hs_data = strFormat(&hs_datalen, "{\"id\":%d,\"ip\":\"%s\",\"port\":%u,\"socktype\":\"%s\",\"connection_num\":%d}",
+			g_SelfClusterNode->id,
 			g_SelfClusterNode->ip, g_SelfClusterNode->port,
 			if_socktype2string(g_SelfClusterNode->socktype),
 			g_SelfClusterNode->connection_num);

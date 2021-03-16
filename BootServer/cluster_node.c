@@ -12,13 +12,14 @@ extern "C" {
 ClusterNode_t* selfClusterNode(void) { return g_SelfClusterNode; }
 void setSelfClusterNode(ClusterNode_t* cluster) { g_SelfClusterNode = cluster; }
 
-ClusterNode_t* newClusterNode(int socktype, IPString_t ip, unsigned short port) {
+ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned short port) {
 	ClusterNode_t* clsnd = (ClusterNode_t*)malloc(sizeof(ClusterNode_t));
 	if (clsnd) {
 		initSession(&clsnd->session);
 		clsnd->session.persist = 1;
 		clsnd->grp = NULL;
 		clsnd->name = "";
+		clsnd->id = id;
 		clsnd->socktype = socktype;
 		if (ip)
 			strcpy(clsnd->ip, ip);

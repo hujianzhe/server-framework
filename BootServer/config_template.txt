@@ -1,6 +1,7 @@
 {
 	"cluster" : {
 		"name" : "so_test",
+		"id" : 200,
 		"socktype" : "SOCK_DGRAM",
 		"ip" : "127.0.0.1",
 		"port" : 40001,

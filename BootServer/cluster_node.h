@@ -11,6 +11,7 @@ typedef struct ClusterNode_t {
 	ListNode_t m_grp_listnode;
 	struct ClusterNodeGroup_t* grp;
 	const char* name;
+	int id;
 	int socktype;
 	IPString_t ip;
 	unsigned short port;
@@ -29,7 +30,7 @@ extern "C" {
 __declspec_dllexport ClusterNode_t* selfClusterNode(void);
 void setSelfClusterNode(ClusterNode_t* clsnd);
 
-ClusterNode_t* newClusterNode(int socktype, IPString_t ip, unsigned short port);
+ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned short port);
 void freeClusterNode(ClusterNode_t* clsnd);
 __declspec_dllexport Channel_t* connectClusterNode(ClusterNode_t* clsnd);
 unsigned int* reallocClusterNodeHashKey(ClusterNode_t* clsnd, unsigned int key_arraylen);

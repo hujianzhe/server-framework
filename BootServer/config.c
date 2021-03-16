@@ -26,9 +26,12 @@ int initConfig(const char* path) {
 			break;
 		}
 		else {
-			cJSON *name, *socktype, *ip, *port, *readcache_max_size;
+			cJSON *name, *id, *socktype, *ip, *port, *readcache_max_size;
 			name = cJSON_Field(cjson, "name");
 			if (!name)
+				break;
+			id = cJSON_Field(cjson, "id");
+			if (!id)
 				break;
 			socktype = cJSON_Field(cjson, "socktype");
 			if (!socktype)
@@ -45,6 +48,7 @@ int initConfig(const char* path) {
 			g_Config.clsnd.name = strdup(name->valuestring);
 			if (!g_Config.clsnd.name)
 				break;
+			g_Config.clsnd.id = id->valueint;
 			g_Config.clsnd.socktype = if_string2socktype(socktype->valuestring);
 			strcpy(g_Config.clsnd.ip, ip->valuestring);
 			g_Config.clsnd.port = port->valueint;

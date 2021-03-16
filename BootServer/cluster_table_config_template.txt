@@ -3,6 +3,7 @@
     "cluster_nodes" : [
         {
             "name" : "svr_test",
+            "id" : 100,
             "socktype" : "SOCK_DGRAM",
             "ip" : "127.0.0.1",
             "port" : 51000,
@@ -11,6 +12,7 @@
         },
         {
             "name" : "svr_test",
+            "id" : 101,
             "socktype" : "SOCK_DGRAM",
             "ip" : "127.0.0.1",
             "port" : 52000,
@@ -19,6 +21,7 @@
         },
         {
             "name" : "so_test",
+            "id" : 200,
             "socktype" : "SOCK_DGRAM",
             "ip" : "127.0.0.1",
             "port" : 40001,

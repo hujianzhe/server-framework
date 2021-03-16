@@ -94,15 +94,17 @@ int main(int argc, char** argv) {
 			g_Config.clsnd.ip,
 			g_Config.clsnd.port
 		);
-		if (!g_SelfClusterNode) {
-			fprintf(stderr, "self cluster node isn't find, name:%s, socktype:%s, ip:%s, port:%u\n",
+		if (!g_SelfClusterNode || g_SelfClusterNode->id != g_Config.clsnd.id) {
+			fprintf(stderr, "self cluster node isn't find, name:%s, id:%d, socktype:%s, ip:%s, port:%u\n",
 				g_Config.clsnd.name,
+				g_Config.clsnd.id,
 				if_socktype2string(g_Config.clsnd.socktype),
 				g_Config.clsnd.ip,
 				g_Config.clsnd.port
 			);
-			logErr(&g_Log, "self cluster node isn't find, name:%s, socktype:%s, ip:%s, port:%u",
+			logErr(&g_Log, "self cluster node isn't find, name:%s, id:%d, socktype:%s, ip:%s, port:%u",
 				g_Config.clsnd.name,
+				g_Config.clsnd.id,
 				if_socktype2string(g_Config.clsnd.socktype),
 				g_Config.clsnd.ip,
 				g_Config.clsnd.port
@@ -111,7 +113,7 @@ int main(int argc, char** argv) {
 		}
 	}
 	else {
-		g_SelfClusterNode = newClusterNode(g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port);
+		g_SelfClusterNode = newClusterNode(g_Config.clsnd.id, g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port);
 		if (!g_SelfClusterNode) {
 			fprintf(stderr, "new self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
 				g_Config.clsnd.name,

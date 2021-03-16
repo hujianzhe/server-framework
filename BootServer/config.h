@@ -20,6 +20,7 @@ typedef struct Config_t {
 	IPString_t outer_ip;
 	struct {
 		const char* name;
+		int id;
 		int socktype;
 		IPString_t ip;
 		unsigned short port;

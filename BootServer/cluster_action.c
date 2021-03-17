@@ -45,6 +45,7 @@ ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char
 			clsnd->port != cjson_port->valueint ||
 			strcmp(clsnd->ip, cjson_ip->valuestring))
 		{
+			clsnd = NULL;
 			break;
 		}
 		if (cjson_conn_num && cjson_conn_num->valueint > 0)

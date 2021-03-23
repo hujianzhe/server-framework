@@ -17,8 +17,6 @@ typedef struct ClusterNodeGroup_t {
 	unsigned int target_loopcnt;
 } ClusterNodeGroup_t;
 
-struct ClusterTable_t* g_ClusterTable;
-
 static int __grp_name_keycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
 static unsigned int __grp_name_keyhash(const void* key) { return hashBKDR((const char*)key); }
 
@@ -60,9 +58,6 @@ static void free_cluster_node_group(ClusterNodeGroup_t* grp) {
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct ClusterTable_t* ptr_g_ClusterTable(void) { return g_ClusterTable; }
-void set_g_ClusterTable(struct ClusterTable_t* t) { g_ClusterTable = t; }
 
 struct ClusterTable_t* newClusterTable(void) {
 	ClusterTable_t* t = (ClusterTable_t*)malloc(sizeof(ClusterTable_t));
@@ -175,8 +170,6 @@ void freeClusterTable(struct ClusterTable_t* t) {
 		free_cluster_node_group(grp);
 	}
 	free(t);
-	if (t == g_ClusterTable)
-		g_ClusterTable = NULL;
 }
 
 ClusterNode_t* targetClusterNode(struct ClusterNodeGroup_t* grp, int mode, unsigned int key) {

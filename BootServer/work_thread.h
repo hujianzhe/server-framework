@@ -6,6 +6,7 @@
 #include "util/inc/component/rpc_core.h"
 
 struct Dispatch_t;
+struct ClusterTable_t;
 
 typedef struct TaskThread_t {
 	Thread_t tid;
@@ -16,6 +17,7 @@ typedef struct TaskThread_t {
 	struct Dispatch_t* dispatch;
 	RpcFiberCore_t* f_rpc;
 	RpcAsyncCore_t* a_rpc;
+	struct ClusterTable_t* clstbl;
 } TaskThread_t;
 
 extern TaskThread_t* g_TaskThread;

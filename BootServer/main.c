@@ -24,6 +24,7 @@ static void sigintHandler(int signo) {
 int main(int argc, char** argv) {
 	int configinitok = 0, loginitok = 0, netthreadresourceinitok = 0,
 		taskthreadinitok = 0, taskthreadrunok = 0;
+	struct ClusterTable_t* clstbl = NULL;
 	//
 	if (argc < 2) {
 		fputs("need a config file to boot ...", stderr);
@@ -72,7 +73,7 @@ int main(int argc, char** argv) {
 	printf("module_path(%s) name:%s, socktype:%s, ip:%s, port:%u, pid:%zu\n",
 		g_Config.module_path ? g_Config.module_path : "", g_Config.clsnd.name,
 		if_socktype2string(g_Config.clsnd.socktype), g_Config.clsnd.ip, g_Config.clsnd.port, processId());
-	// int cluster data
+	// init cluster data
 	if (g_Config.cluster_table_path && g_Config.cluster_table_path[0]) {
 		const char* load_cluster_table_errmsg;
 		char* cluster_table_filedata = fileReadAllData(g_Config.cluster_table_path, NULL);
@@ -81,15 +82,15 @@ int main(int argc, char** argv) {
 			logErr(&g_Log, "fileReadAllData(%s) failure", g_Config.cluster_table_path);
 			goto err;
 		}
-		g_ClusterTable = loadClusterTableFromJsonData(cluster_table_filedata, &load_cluster_table_errmsg);
+		clstbl = loadClusterTableFromJsonData(cluster_table_filedata, &load_cluster_table_errmsg);
 		free(cluster_table_filedata);
-		if (!g_ClusterTable) {
+		if (!clstbl) {
 			fprintf(stderr, "loadClusterTableFromJsonData failure: %s\n", load_cluster_table_errmsg);
 			logErr(&g_Log, "loadClusterTableFromJsonData failure: %s", load_cluster_table_errmsg);
 			goto err;
 		}
 		g_SelfClusterNode = getClusterNodeFromGroup(
-			getClusterNodeGroup(g_ClusterTable, g_Config.clsnd.name),
+			getClusterNodeGroup(clstbl, g_Config.clsnd.name),
 			g_Config.clsnd.socktype,
 			g_Config.clsnd.ip,
 			g_Config.clsnd.port
@@ -129,10 +130,10 @@ int main(int argc, char** argv) {
 			);
 			goto err;
 		}
-		g_ClusterTable = newClusterTable();
-		if (!g_ClusterTable)
+		clstbl = newClusterTable();
+		if (!clstbl)
 			goto err;
-		if (!regClusterNode(g_ClusterTable, g_Config.clsnd.name, g_SelfClusterNode)) {
+		if (!regClusterNode(clstbl, g_Config.clsnd.name, g_SelfClusterNode)) {
 			fprintf(stderr, "reg self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
 				g_Config.clsnd.name,
 				if_socktype2string(g_Config.clsnd.socktype),
@@ -168,6 +169,7 @@ int main(int argc, char** argv) {
 	if (!g_TaskThread)
 		goto err;
 	taskthreadinitok = 1;
+	g_TaskThread->clstbl = clstbl;
 	// run reactor thread
 	if (!runNetThreads())
 		goto err;
@@ -213,7 +215,7 @@ end:
 	if (netthreadresourceinitok) {
 		freeNetThreadResource();
 	}
-	if (g_ClusterTable)
-		freeClusterTable(g_ClusterTable);
+	if (clstbl)
+		freeClusterTable(clstbl);
 	return 0;
 }

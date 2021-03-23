@@ -128,7 +128,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				if (ctrl->be_from_cluster) {
 					if (RPC_STATUS_HAND_SHAKE == ctrl->rpc_status) {
 						Channel_t* channel = ctrl->channel;
-						ClusterNode_t* clsnd = flushClusterNodeFromJsonData(g_ClusterTable, (char*)ctrl->data);
+						ClusterNode_t* clsnd = flushClusterNodeFromJsonData(thread->clstbl, (char*)ctrl->data);
 						ctrl->on_free(ctrl);
 						if (clsnd) {
 							if (clsnd->session.channel_server != channel)
@@ -141,7 +141,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						continue;
 					}
 					else if (RPC_STATUS_FLUSH_NODE == ctrl->rpc_status) {
-						flushClusterNodeFromJsonData(g_ClusterTable, (char*)ctrl->data);
+						flushClusterNodeFromJsonData(thread->clstbl, (char*)ctrl->data);
 						ctrl->on_free(ctrl);
 						continue;
 					}
@@ -373,6 +373,7 @@ TaskThread_t* newTaskThread(void) {
 
 	t->f_rpc = NULL;
 	t->a_rpc = NULL;
+	t->clstbl = NULL;
 	return t;
 err:
 	if (dq_ok)

@@ -17,10 +17,9 @@ else
 DLL_PATH := -Wl,-rpath,./:$(TARGET_PATH)
 endif
 
-ifeq ($(SOURCE_CPP_FILE), "")
-COMPILER := g++
-else
 COMPILER := gcc
+ifeq ($(COMPILER), gcc)
+SOURCE_CPP_FILE :=
 endif
 
 TARGET := $(TARGET_PATH)/BootServer.exe

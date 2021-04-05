@@ -21,6 +21,7 @@ extern void* g_ModulePtr;
 extern int(*g_ModuleInitFunc)(TaskThread_t*, int, char**);
 extern volatile int g_Valid;
 extern Log_t g_Log;
+extern int g_ConnectionNum;
 
 #ifdef __cplusplus
 extern "C" {

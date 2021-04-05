@@ -75,6 +75,7 @@ int main(int argc, char** argv) {
 		if_socktype2string(g_Config.clsnd.socktype), g_Config.clsnd.ip, g_Config.clsnd.port, processId());
 	// init cluster data
 	if (g_Config.cluster_table_path && g_Config.cluster_table_path[0]) {
+		ClusterNode_t* clsnd;
 		const char* load_cluster_table_errmsg;
 		char* cluster_table_filedata = fileReadAllData(g_Config.cluster_table_path, NULL);
 		if (!cluster_table_filedata) {
@@ -89,13 +90,13 @@ int main(int argc, char** argv) {
 			logErr(&g_Log, "loadClusterTableFromJsonData failure: %s", load_cluster_table_errmsg);
 			goto err;
 		}
-		g_SelfClusterNode = getClusterNodeFromGroup(
+		clsnd = getClusterNodeFromGroup(
 			getClusterNodeGroup(clstbl, g_Config.clsnd.name),
 			g_Config.clsnd.socktype,
 			g_Config.clsnd.ip,
 			g_Config.clsnd.port
 		);
-		if (!g_SelfClusterNode || g_SelfClusterNode->id != g_Config.clsnd.id) {
+		if (!clsnd || clsnd->id != g_Config.clsnd.id) {
 			fprintf(stderr, "self cluster node isn't find, name:%s, id:%d, socktype:%s, ip:%s, port:%u\n",
 				g_Config.clsnd.name,
 				g_Config.clsnd.id,
@@ -114,8 +115,9 @@ int main(int argc, char** argv) {
 		}
 	}
 	else {
-		g_SelfClusterNode = newClusterNode(g_Config.clsnd.id, g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port);
-		if (!g_SelfClusterNode) {
+		ClusterNode_t* clsnd;
+		clsnd = newClusterNode(g_Config.clsnd.id, g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port);
+		if (!clsnd) {
 			fprintf(stderr, "new self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
 				g_Config.clsnd.name,
 				if_socktype2string(g_Config.clsnd.socktype),
@@ -133,7 +135,7 @@ int main(int argc, char** argv) {
 		clstbl = newClusterTable();
 		if (!clstbl)
 			goto err;
-		if (!regClusterNode(clstbl, g_Config.clsnd.name, g_SelfClusterNode)) {
+		if (!regClusterNode(clstbl, g_Config.clsnd.name, clsnd)) {
 			fprintf(stderr, "reg self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
 				g_Config.clsnd.name,
 				if_socktype2string(g_Config.clsnd.socktype),

@@ -1,3 +1,4 @@
+#include "config.h"
 #include "global.h"
 #include "cluster_action.h"
 #include <limits.h>
@@ -139,6 +140,9 @@ struct ClusterTable_t* loadClusterTableFromJsonData(const char* json_data, const
 			if (!regClusterNode(t, name->valuestring, clsnd)) {
 				freeClusterNode(clsnd);
 				break;
+			}
+			if (clsnd->id == g_Config.clsnd.id) {
+				clsnd->connection_num = g_ConnectionNum;
 			}
 		}
 		if (cjson_clsnd) {

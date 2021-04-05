@@ -133,7 +133,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						if (clsnd) {
 							if (clsnd->session.channel_server != channel)
 								sessionChannelReplaceServer(&clsnd->session, channel);
-							g_SelfClusterNode->connection_num++;
+							g_ConnectionNum++;
 						}
 						else {
 							channelSendv(channel, NULL, 0, NETPACKET_FIN);
@@ -209,8 +209,8 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				if ((channel->_.flag & CHANNEL_FLAG_CLIENT) ||
 					(channel->_.flag & CHANNEL_FLAG_SERVER))
 				{
-					if (g_SelfClusterNode->connection_num > 0)
-						g_SelfClusterNode->connection_num--;
+					if (g_ConnectionNum > 0)
+						g_ConnectionNum--;
 
 					freeRpcItemWhenChannelDetach(thread, channel);
 

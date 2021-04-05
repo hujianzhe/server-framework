@@ -3,14 +3,9 @@
 #include "cluster_node.h"
 #include <string.h>
 
-ClusterNode_t* g_SelfClusterNode;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-ClusterNode_t* selfClusterNode(void) { return g_SelfClusterNode; }
-void setSelfClusterNode(ClusterNode_t* cluster) { g_SelfClusterNode = cluster; }
 
 ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned short port) {
 	ClusterNode_t* clsnd = (ClusterNode_t*)malloc(sizeof(ClusterNode_t));
@@ -39,14 +34,12 @@ void freeClusterNode(ClusterNode_t* clsnd) {
 	if (clsnd) {
 		free(clsnd->hashkey);
 		free(clsnd);
-		if (clsnd == g_SelfClusterNode)
-			g_SelfClusterNode = NULL;
 	}
 }
 
 Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 	Channel_t* channel;
-	if (clsnd == g_SelfClusterNode)
+	if (clsnd->id == g_Config.clsnd.id)
 		return NULL;
 	channel = sessionChannel(&clsnd->session);
 	if (!channel) {
@@ -57,10 +50,10 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 		ReactorObject_t* o;
 
 		hs_data = strFormat(&hs_datalen, "{\"id\":%d,\"ip\":\"%s\",\"port\":%u,\"socktype\":\"%s\",\"connection_num\":%d}",
-			g_SelfClusterNode->id,
-			g_SelfClusterNode->ip, g_SelfClusterNode->port,
-			if_socktype2string(g_SelfClusterNode->socktype),
-			g_SelfClusterNode->connection_num);
+			g_Config.clsnd.id,
+			g_Config.clsnd.ip, g_Config.clsnd.port,
+			if_socktype2string(g_Config.clsnd.socktype),
+			g_ConnectionNum);
 		if (!hs_data)
 			return NULL;
 

@@ -22,14 +22,9 @@ typedef struct ClusterNode_t {
 	int connection_num;
 } ClusterNode_t;
 
-extern ClusterNode_t* g_SelfClusterNode;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-__declspec_dllexport ClusterNode_t* selfClusterNode(void);
-void setSelfClusterNode(ClusterNode_t* clsnd);
 
 ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned short port);
 void freeClusterNode(ClusterNode_t* clsnd);

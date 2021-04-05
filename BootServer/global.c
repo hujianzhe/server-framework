@@ -6,6 +6,7 @@ void* g_ModulePtr;
 int(*g_ModuleInitFunc)(TaskThread_t*, int, char**);
 volatile int g_Valid = 1;
 Log_t g_Log;
+int g_ConnectionNum;
 
 #ifdef __cplusplus
 extern "C" {

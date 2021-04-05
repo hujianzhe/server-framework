@@ -1,3 +1,4 @@
+#include "config.h"
 #include "global.h"
 #include "cluster.h"
 
@@ -261,6 +262,8 @@ ClusterNode_t* targetClusterNode(struct ClusterNodeGroup_t* grp, int mode, unsig
 		dst_clsnd = NULL;
 		for (cur = grp->nodelist.head; cur; cur = cur->next) {
 			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
+			if (clsnd->id == g_Config.clsnd.id)
+				clsnd->connection_num = g_ConnectionNum;
 			if (!dst_clsnd || dst_clsnd->connection_num > clsnd->connection_num)
 				dst_clsnd = clsnd;
 		}
@@ -404,6 +407,8 @@ ClusterNode_t* targetClusterNodeByIp(struct ClusterNodeGroup_t* grp, const IPStr
 			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
 			if (strcmp(clsnd->ip, ip))
 				continue;
+			if (clsnd->id == g_Config.clsnd.id)
+				clsnd->connection_num = g_ConnectionNum;
 			if (!dst_clsnd || dst_clsnd->connection_num > clsnd->connection_num)
 				dst_clsnd = clsnd;
 		}
@@ -421,7 +426,7 @@ void broadcastClusterGroup(struct ClusterNodeGroup_t* grp, const Iobuf_t iov[], 
 	for (cur = grp->nodelist.head; cur; cur = cur->next) {
 		Channel_t* channel;
 		ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
-		if (clsnd == g_SelfClusterNode)
+		if (clsnd->id == g_Config.clsnd.id)
 			continue;
 		channel = connectClusterNode(clsnd);
 		if (!channel)
@@ -435,7 +440,7 @@ void broadcastClusterTable(struct ClusterTable_t* t, const Iobuf_t iov[], unsign
 	for (cur = t->nodelist.head; cur; cur = cur->next) {
 		Channel_t* channel;
 		ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_listnode);
-		if (clsnd == g_SelfClusterNode)
+		if (clsnd->id == g_Config.clsnd.id)
 			continue;
 		channel = connectClusterNode(clsnd);
 		if (!channel)

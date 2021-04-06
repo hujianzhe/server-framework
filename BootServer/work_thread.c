@@ -31,8 +31,8 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		}
 		if (callback)
 			callback(thrd, ctrl);
-		else if (g_DefaultDispatchCallback)
-			g_DefaultDispatchCallback(thrd, ctrl);
+		else if (thrd->dispatch->null_dispatch_callback)
+			thrd->dispatch->null_dispatch_callback(thrd, ctrl);
 		else {
 			if (USER_MSG_EXTRA_HTTP_FRAME == ctrl->param.type) {
 				if (ctrl->param.httpframe) {

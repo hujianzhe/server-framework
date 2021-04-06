@@ -36,25 +36,22 @@ typedef struct UserMsg_t {
 	unsigned char data[1];
 } UserMsg_t;
 
+struct TaskThread_t;
+typedef void(*DispatchCallback_t)(struct TaskThread_t*, UserMsg_t*);
+
 typedef struct Dispatch_t {
+	DispatchCallback_t null_dispatch_callback;
 	Hashtable_t s_NumberDispatchTable;
 	HashtableNode_t* s_NumberDispatchBulk[1024];
 	Hashtable_t s_StringDispatchTable;
 	HashtableNode_t* s_StringDispatchBulk[1024];
 } Dispatch_t;
 
-struct TaskThread_t;
-typedef void(*DispatchCallback_t)(struct TaskThread_t*, UserMsg_t*);
-
-extern DispatchCallback_t g_DefaultDispatchCallback;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 __declspec_dllexport UserMsg_t* newUserMsg(size_t datalen);
-
-__declspec_dllexport void set_g_DefaultDispatchCallback(DispatchCallback_t fn);
 
 Dispatch_t* newDispatch(void);
 __declspec_dllexport int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchCallback_t func);

@@ -19,8 +19,6 @@ static void free_user_msg(UserMsg_t* msg) {
 	free(msg);
 }
 
-DispatchCallback_t g_DefaultDispatchCallback = NULL;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -48,11 +46,11 @@ UserMsg_t* newUserMsg(size_t datalen) {
 	return msg;
 }
 
-void set_g_DefaultDispatchCallback(DispatchCallback_t fn) { g_DefaultDispatchCallback = fn; }
-
 Dispatch_t* newDispatch(void) {
 	Dispatch_t* dispatch = (Dispatch_t*)malloc(sizeof(Dispatch_t));
 	if (dispatch) {
+		dispatch->null_dispatch_callback = NULL;
+
 		hashtableInit(
 			&dispatch->s_NumberDispatchTable,
 			dispatch->s_NumberDispatchBulk,

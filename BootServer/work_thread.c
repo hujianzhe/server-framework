@@ -64,7 +64,7 @@ static int session_expire_timeout_callback(RBTimer_t* timer, RBTimerEvent_t* e) 
 }
 
 static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
-	TaskThread_t* thrd = (TaskThread_t*)rpc->runthread;
+	TaskThread_t* thrd = (TaskThread_t*)rpc->base.runthread;
 	if (USER_MSG_EXTRA_TIMER_EVENT == ctrl->param.type) {
 		RBTimerEvent_t* e = ctrl->param.timer_event;
 		e->callback(&thrd->timer, e);
@@ -101,7 +101,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			g_Valid = 0;
 			return 1;
 		}
-		thread->f_rpc->runthread = thread;
+		thread->f_rpc->base.runthread = thread;
 	}
 	else if (g_Config.rpc_async) {
 		thread->a_rpc = (RpcAsyncCore_t*)malloc(sizeof(RpcAsyncCore_t));
@@ -115,6 +115,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			g_Valid = 0;
 			return 1;
 		}
+		thread->a_rpc->base.runthread = thread;
 	}
 	// start
 	wait_msec = -1;
@@ -166,7 +167,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						if (!rpc_item) {
 							continue;
 						}
-						freeRpcItemWhenNormal(&thread->rpc_timer, channel, rpc_item);
+						freeRpcItemWhenNormal(&thread->rpc_timer, rpc_item);
 					}
 					else {
 						rpcFiberCoreResumeMsg(thread->f_rpc, ctrl);
@@ -180,7 +181,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						if (!rpc_item) {
 							continue;
 						}
-						freeRpcItemWhenNormal(&thread->rpc_timer, channel, rpc_item);
+						freeRpcItemWhenNormal(&thread->rpc_timer, rpc_item);
 					}
 					else {
 						call_dispatch(thread, ctrl);
@@ -266,7 +267,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				rpcFiberCoreCancel(thread->f_rpc, rpc_item);
 			else if (thread->a_rpc)
 				rpcAsyncCoreCancel(thread->a_rpc, rpc_item);
-			freeRpcItemWhenTimeout(rpc_item);
+			freeRpcItemWhenNormal(&thread->rpc_timer, rpc_item);
 		}
 		if (thread->f_rpc) {
 			static UserMsg_t timer_msg;

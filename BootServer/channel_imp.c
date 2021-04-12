@@ -25,16 +25,16 @@ static void defaultOnSynAck(ChannelBase_t* c, long long ts_msec) {
 void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	Channel_t* channel = pod_container_of(c, Channel_t, _);
 	ChannelUserData_t* ud = (ChannelUserData_t*)channel->userdata;
-	if (1 == c->connected_times) {
-		channelEnableHeartbeat(channel, ts_msec);
-		if (ud->rpc_itemlist.head) {
-			RpcItem_t* rpc_item = pod_container_of(ud->rpc_itemlist.head, RpcItem_t, listnode);
-			UserMsg_t* msg = newUserMsg(0);
-			msg->channel = channel;
-			msg->rpcid = rpc_item->id;
-			msg->rpc_status = RPC_STATUS_RESP;
-			dataqueuePush(&g_TaskThread->dq, &msg->internal._);
-		}
+	if (1 != c->connected_times) {
+		return;
+	}
+	channelEnableHeartbeat(channel, ts_msec);
+	if (ud->rpc_syn_ack_item) {
+		UserMsg_t* msg = newUserMsg(0);
+		msg->channel = channel;
+		msg->rpcid = ud->rpc_syn_ack_item->id;
+		msg->rpc_status = RPC_STATUS_RESP;
+		dataqueuePush(&g_TaskThread->dq, &msg->internal._);
 	}
 }
 
@@ -183,8 +183,8 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr*
 	//
 	ud = (ChannelUserData_t*)(c + 1);
 	ud->session = NULL;
+	ud->rpc_syn_ack_item = NULL;
 	ud->ws_handshake_state = 0;
-	listInit(&ud->rpc_itemlist);
 	//
 	c->userdata = ud;
 	// c->_.write_fragment_size = 500;
@@ -356,8 +356,8 @@ Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* 
 	//
 	ud = (ChannelUserData_t*)(c + 1);
 	ud->session = NULL;
+	ud->rpc_syn_ack_item = NULL;
 	ud->ws_handshake_state = 0;
-	listInit(&ud->rpc_itemlist);
 	//
 	c->userdata = ud;
 	// c->_.write_fragment_size = 500;
@@ -501,8 +501,8 @@ Channel_t* openChannelWebsocketServer(ReactorObject_t* o, const struct sockaddr*
 	//
 	ud = (ChannelUserData_t*)(c + 1);
 	ud->session = NULL;
+	ud->rpc_syn_ack_item = NULL;
 	ud->ws_handshake_state = 0;
-	listInit(&ud->rpc_itemlist);
 	//
 	c->userdata = ud;
 	// c->_.write_fragment_size = 500;

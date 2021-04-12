@@ -16,7 +16,7 @@ static int start_req_login_test(Channel_t* channel) {
 }
 
 static void rpc_async_req_login_test(RpcAsyncCore_t* rpc, RpcItem_t* rpc_item) {
-	Channel_t* channel = (Channel_t*)rpc_item->originator;
+	Channel_t* channel = (Channel_t*)rpc_item->udata;
 	if (rpc_item->ret_msg) {
 		if (start_req_login_test(channel))
 			return;
@@ -187,11 +187,13 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		if (thrd->f_rpc || thrd->a_rpc) {
 			c->_.on_syn_ack = defaultRpcOnSynAck;
 			if (thrd->f_rpc) {
-				if (!newRpcItemFiberReady(thrd, c, 5000)) {
+				rpc_item = newRpcItemFiberReady(thrd, c, 5000);
+				if (!rpc_item) {
 					reactorCommitCmd(NULL, &o->freecmd);
 					reactorCommitCmd(NULL, &c->_.freecmd);
 					return 1;
 				}
+				channelUserData(c)->rpc_syn_ack_item = rpc_item;
 				reactorCommitCmd(selectReactor(), &o->regcmd);
 				rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 				if (rpc_item->ret_msg) {
@@ -205,11 +207,14 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 				}
 			}
 			else {
-				if (!newRpcItemAsyncReady(thrd, c, 5000, NULL, rpc_async_req_login_test)) {
+				rpc_item = newRpcItemAsyncReady(thrd, c, 5000, NULL, rpc_async_req_login_test);
+				if (!rpc_item) {
 					reactorCommitCmd(NULL, &o->freecmd);
 					reactorCommitCmd(NULL, &c->_.freecmd);
 					return 1;
 				}
+				rpc_item->udata = (size_t)c;
+				channelUserData(c)->rpc_syn_ack_item = rpc_item;
 				reactorCommitCmd(selectReactor(), &o->regcmd);
 			}
 		}

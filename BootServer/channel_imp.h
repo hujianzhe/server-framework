@@ -4,11 +4,12 @@
 #include "util/inc/component/reactor.h"
 #include "util/inc/component/channel.h"
 
+struct RpcItem_t;
 struct Session_t;
 typedef struct ChannelUserData_t {
 	int session_id;
 	struct Session_t* session;
-	List_t rpc_itemlist;
+	struct RpcItem_t* rpc_syn_ack_item;
 	int ws_handshake_state;
 	int text_data_print_log;
 } ChannelUserData_t;

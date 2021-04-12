@@ -6,6 +6,7 @@
 
 struct RpcItem_t;
 struct Session_t;
+struct TaskThread_t;
 typedef struct ChannelUserData_t {
 	int session_id;
 	struct Session_t* session;

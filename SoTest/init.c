@@ -194,6 +194,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 					return 1;
 				}
 				channelUserData(c)->rpc_syn_ack_item = rpc_item;
+				channelUserData(c)->rpc_syn_ack_work_thread = thrd;
 				reactorCommitCmd(selectReactor(), &o->regcmd);
 				rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 				if (rpc_item->ret_msg) {
@@ -215,6 +216,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 				}
 				rpc_item->udata = (size_t)c;
 				channelUserData(c)->rpc_syn_ack_item = rpc_item;
+				channelUserData(c)->rpc_syn_ack_work_thread = thrd;
 				reactorCommitCmd(selectReactor(), &o->regcmd);
 			}
 		}

@@ -1,11 +1,20 @@
 #include "config.h"
 #include "global.h"
 #include "channel_imp.h"
+#include "work_thread.h"
 #include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+static ChannelUserData_t* init_channel_user_data(ChannelUserData_t* ud) {
+	ud->session = NULL;
+	ud->rpc_syn_ack_item = NULL;
+	ud->rpc_syn_ack_work_thread = NULL;
+	ud->ws_handshake_state = 0;
+	return ud;
+}
 
 static int defaultOnHeartbeat(Channel_t* c, int heartbeat_times) {
 	if (heartbeat_times < c->heartbeat_maxtimes) {
@@ -29,12 +38,12 @@ void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 		return;
 	}
 	channelEnableHeartbeat(channel, ts_msec);
-	if (ud->rpc_syn_ack_item) {
+	if (ud->rpc_syn_ack_item && ud->rpc_syn_ack_work_thread) {
 		UserMsg_t* msg = newUserMsg(0);
 		msg->channel = channel;
 		msg->rpcid = ud->rpc_syn_ack_item->id;
 		msg->rpc_status = RPC_STATUS_RESP;
-		dataqueuePush(&g_TaskThread->dq, &msg->internal._);
+		dataqueuePush(&ud->rpc_syn_ack_work_thread->dq, &msg->internal._);
 	}
 }
 
@@ -182,11 +191,7 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr*
 		return NULL;
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	ud->session = NULL;
-	ud->rpc_syn_ack_item = NULL;
-	ud->ws_handshake_state = 0;
-	//
-	c->userdata = ud;
+	c->userdata = init_channel_user_data(ud);
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
@@ -355,11 +360,7 @@ Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* 
 		return NULL;
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	ud->session = NULL;
-	ud->rpc_syn_ack_item = NULL;
-	ud->ws_handshake_state = 0;
-	//
-	c->userdata = ud;
+	c->userdata = init_channel_user_data(ud);
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
@@ -500,11 +501,7 @@ Channel_t* openChannelWebsocketServer(ReactorObject_t* o, const struct sockaddr*
 		return NULL;
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	ud->session = NULL;
-	ud->rpc_syn_ack_item = NULL;
-	ud->ws_handshake_state = 0;
-	//
-	c->userdata = ud;
+	c->userdata = init_channel_user_data(ud);
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;

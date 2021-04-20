@@ -14,6 +14,7 @@
 
 struct ClusterTable_t;
 struct ClusterNodeGroup_t;
+struct TaskThread_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,8 +32,8 @@ __declspec_dllexport void freeClusterTable(struct ClusterTable_t* t);
 
 __declspec_dllexport ClusterNode_t* targetClusterNode(struct ClusterNodeGroup_t* grp, int mode, unsigned int key);
 __declspec_dllexport ClusterNode_t* targetClusterNodeByIp(struct ClusterNodeGroup_t* grp, const IPString_t ip, int mode, unsigned int key);
-__declspec_dllexport void broadcastClusterGroup(struct ClusterNodeGroup_t* grp, const Iobuf_t iov[], unsigned int iovcnt);
-__declspec_dllexport void broadcastClusterTable(struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt);
+__declspec_dllexport void broadcastClusterGroup(struct TaskThread_t* thrd, struct ClusterNodeGroup_t* grp, const Iobuf_t iov[], unsigned int iovcnt);
+__declspec_dllexport void broadcastClusterTable(struct TaskThread_t* thrd, struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt);
 
 #ifdef __cplusplus
 }

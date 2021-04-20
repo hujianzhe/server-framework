@@ -28,7 +28,7 @@ extern "C" {
 
 ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned short port);
 void freeClusterNode(ClusterNode_t* clsnd);
-__declspec_dllexport Channel_t* connectClusterNode(ClusterNode_t* clsnd);
+__declspec_dllexport Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq);
 unsigned int* reallocClusterNodeHashKey(ClusterNode_t* clsnd, unsigned int key_arraylen);
 
 #ifdef __cplusplus

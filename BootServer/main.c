@@ -156,9 +156,15 @@ int main(int argc, char** argv) {
 		goto err;
 	}
 	netthreadresourceinitok = 1;
+	// init task thread
+	g_TaskThread = newTaskThread();
+	if (!g_TaskThread)
+		goto err;
+	taskthreadinitok = 1;
+	g_TaskThread->clstbl = clstbl;
 	// listen self cluster node port
 	if (g_Config.clsnd.port) {
-		Channel_t* c = openListenerInner(g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port);
+		Channel_t* c = openListenerInner(g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port, &g_TaskThread->dq);
 		if (!c) {
 			fprintf(stderr, "listen self cluster node err, ip:%s, port:%u\n", g_Config.clsnd.ip, g_Config.clsnd.port);
 			logErr(&g_Log, "listen self cluster node err, ip:%s, port:%u", g_Config.clsnd.ip, g_Config.clsnd.port);
@@ -166,12 +172,6 @@ int main(int argc, char** argv) {
 		}
 		reactorCommitCmd(ptr_g_ReactorAccept(), &c->_.o->regcmd);
 	}
-	// init task thread
-	g_TaskThread = newTaskThread();
-	if (!g_TaskThread)
-		goto err;
-	taskthreadinitok = 1;
-	g_TaskThread->clstbl = clstbl;
 	// run reactor thread
 	if (!runNetThreads())
 		goto err;

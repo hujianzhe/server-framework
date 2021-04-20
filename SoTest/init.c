@@ -150,10 +150,10 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		ConfigListenOption_t* option = ptr_g_Config()->listen_options + i;
 		Channel_t* c;
 		if (!strcmp(option->protocol, "http")) {
-			c = openListenerHttp(option->ip, option->port, NULL);
+			c = openListenerHttp(option->ip, option->port, NULL, &thrd->dq);
 		}
 		else if (!strcmp(option->protocol, "websocket")) {
-			c = openListenerWebsocket(option->ip, option->port, websocket_recv);
+			c = openListenerWebsocket(option->ip, option->port, websocket_recv, &thrd->dq);
 		}
 		else {
 			continue;
@@ -178,7 +178,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.sa.sa_family, option->socktype, 0);
 		if (!o)
 			return 0;
-		c = openChannelInner(o, CHANNEL_FLAG_CLIENT, &connect_addr.sa);
+		c = openChannelInner(o, CHANNEL_FLAG_CLIENT, &connect_addr.sa, &thrd->dq);
 		if (!c) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			return 0;

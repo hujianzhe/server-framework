@@ -37,7 +37,7 @@ void freeClusterNode(ClusterNode_t* clsnd) {
 	}
 }
 
-Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
+Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq) {
 	Channel_t* channel;
 	if (clsnd->id == g_Config.clsnd.id)
 		return NULL;
@@ -66,7 +66,7 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 			free(hs_data);
 			return NULL;
 		}
-		channel = openChannelInner(o, CHANNEL_FLAG_CLIENT, &saddr.sa);
+		channel = openChannelInner(o, CHANNEL_FLAG_CLIENT, &saddr.sa, dq);
 		if (!channel) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			free(hs_data);

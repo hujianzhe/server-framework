@@ -75,8 +75,9 @@ static void channel_reg_handler(ChannelBase_t* c, long long timestamp_msec) {
 	}
 }
 
-static void channel_detach(ChannelBase_t* channel) {
-	dataqueuePush(&g_TaskThread->dq, &channel->freecmd._);
+static void channel_detach(ChannelBase_t* c) {
+	Channel_t* channel = pod_container_of(c, Channel_t, _);
+	dataqueuePush(channelUserData(channel)->dq, &c->freecmd._);
 }
 
 /*************************************************************************/
@@ -121,6 +122,7 @@ static void innerchannel_encode(Channel_t* c, const ChannelOutbufEncodeParam_t* 
 static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
 	Channel_t* listen_channel = pod_container_of(listen_c, Channel_t, _);
 	ReactorObject_t* listen_o = listen_c->o;
+	Channel_t* conn_channel;
 	IPString_t ip;
 	unsigned short port;
 	ReactorObject_t* o = reactorobjectOpen(newfd, listen_o->domain, listen_o->socktype, listen_o->protocol);
@@ -128,8 +130,8 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 		socketClose(newfd);
 		return;
 	}
-	listen_channel = openChannelInner(o, CHANNEL_FLAG_SERVER, peer_addr);
-	if (!listen_channel) {
+	conn_channel = openChannelInner(o, CHANNEL_FLAG_SERVER, peer_addr, channelUserData(listen_channel)->dq);
+	if (!conn_channel) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return;
 	}
@@ -174,7 +176,7 @@ static void innerchannel_recv(Channel_t* c, const struct sockaddr* addr, Channel
 		if (g_Config.enqueue_timeout_msec > 0) {
 			message->enqueue_time_msec = gmtimeMillisecond();
 		}
-		dataqueuePush(&g_TaskThread->dq, &message->internal._);
+		dataqueuePush(channelUserData(c)->dq, &message->internal._);
 	}
 	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
 		InnerMsg_t packet;
@@ -185,14 +187,16 @@ static void innerchannel_recv(Channel_t* c, const struct sockaddr* addr, Channel
 
 /**************************************************************************/
 
-Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr* addr) {
+Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
 	ChannelUserData_t* ud;
 	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserData_t), addr);
 	if (!c)
 		return NULL;
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	c->userdata = init_channel_user_data(ud);
+	init_channel_user_data(ud);
+	ud->dq = dq;
+	c->userdata = ud;
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
@@ -222,7 +226,7 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr*
 	return c;
 }
 
-Channel_t* openListenerInner(int socktype, const char* ip, unsigned short port) {
+Channel_t* openListenerInner(int socktype, const char* ip, unsigned short port, struct DataQueue_t* dq) {
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
 	Channel_t* c;
@@ -242,7 +246,7 @@ Channel_t* openListenerInner(int socktype, const char* ip, unsigned short port) 
 			return NULL;
 		}
 	}
-	c = openChannelInner(o, CHANNEL_FLAG_LISTEN, &local_saddr.sa);
+	c = openChannelInner(o, CHANNEL_FLAG_LISTEN, &local_saddr.sa, dq);
 	if (!c) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
@@ -326,7 +330,7 @@ static void httpframe_recv(Channel_t* c, const struct sockaddr* addr, ChannelInb
 	if (g_Config.enqueue_timeout_msec > 0) {
 		message->enqueue_time_msec = gmtimeMillisecond();
 	}
-	dataqueuePush(&g_TaskThread->dq, &message->internal._);
+	dataqueuePush(channelUserData(c)->dq, &message->internal._);
 }
 
 static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
@@ -340,7 +344,7 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const stru
 		socketClose(newfd);
 		return;
 	}
-	conn_channel = openChannelHttp(o, CHANNEL_FLAG_SERVER, peer_addr);
+	conn_channel = openChannelHttp(o, CHANNEL_FLAG_SERVER, peer_addr, channelUserData(listen_channel)->dq);
 	if (!conn_channel) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return;
@@ -354,14 +358,16 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const stru
 		logErr(&g_Log, "accept parse sockaddr error");
 }
 
-Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* addr) {
+Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
 	ChannelUserData_t* ud;
 	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserData_t), addr);
 	if (!c)
 		return NULL;
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	c->userdata = init_channel_user_data(ud);
+	init_channel_user_data(ud);
+	ud->dq = dq;
+	c->userdata = ud;
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
@@ -373,7 +379,7 @@ Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* 
 	return c;
 }
 
-Channel_t* openListenerHttp(const char* ip, unsigned short port, FnChannelOnRecv_t fn) {
+Channel_t* openListenerHttp(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct DataQueue_t* dq) {
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
 	Channel_t* c;
@@ -391,7 +397,7 @@ Channel_t* openListenerHttp(const char* ip, unsigned short port, FnChannelOnRecv
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
-	c = openChannelHttp(o, CHANNEL_FLAG_LISTEN, &local_saddr.sa);
+	c = openChannelHttp(o, CHANNEL_FLAG_LISTEN, &local_saddr.sa, dq);
 	if (!c) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
@@ -479,7 +485,7 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 		socketClose(newfd);
 		return;
 	}
-	conn_channel = openChannelWebsocketServer(o, peer_addr);
+	conn_channel = openChannelWebsocketServer(o, peer_addr, channelUserData(listen_channel)->dq);
 	if (!conn_channel) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return;
@@ -493,14 +499,16 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 		logErr(&g_Log, "accept parse sockaddr error");
 }
 
-static Channel_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struct sockaddr* addr) {
+static Channel_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
 	ChannelUserData_t* ud;
 	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserData_t), addr);
 	if (!c)
 		return NULL;
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	c->userdata = init_channel_user_data(ud);
+	init_channel_user_data(ud);
+	ud->dq = dq;
+	c->userdata = ud;
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
@@ -511,15 +519,15 @@ static Channel_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struc
 	return c;
 }
 
-Channel_t* openChannelWebsocketServer(ReactorObject_t* o, const struct sockaddr* addr) {
-	Channel_t* c = openChannelWebsocket(o, CHANNEL_FLAG_SERVER, addr);
+Channel_t* openChannelWebsocketServer(ReactorObject_t* o, const struct sockaddr* addr, struct DataQueue_t* dq) {
+	Channel_t* c = openChannelWebsocket(o, CHANNEL_FLAG_SERVER, addr, dq);
 	c->on_hdrsize = websocket_hdrsize;
 	c->on_decode = websocket_decode;
 	c->on_encode = websocket_encode;
 	return c;
 }
 
-Channel_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn) {
+Channel_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct DataQueue_t* dq) {
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
 	Channel_t* c;
@@ -537,7 +545,7 @@ Channel_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelO
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
-	c = openChannelWebsocket(o, CHANNEL_FLAG_LISTEN, &local_saddr.sa);
+	c = openChannelWebsocket(o, CHANNEL_FLAG_LISTEN, &local_saddr.sa, dq);
 	if (!c) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;

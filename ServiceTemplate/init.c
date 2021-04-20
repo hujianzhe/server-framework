@@ -18,7 +18,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		ConfigListenOption_t* option = ptr_g_Config()->listen_options + i;
 		Channel_t* c;
 		if (!strcmp(option->protocol, "http")) {
-			c = openListenerHttp(option->ip, option->port, NULL);
+			c = openListenerHttp(option->ip, option->port, NULL, &thrd->dq);
 		}
 		else {
 			continue;

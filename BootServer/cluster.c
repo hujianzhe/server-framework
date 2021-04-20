@@ -1,6 +1,7 @@
 #include "config.h"
 #include "global.h"
 #include "cluster.h"
+#include "work_thread.h"
 
 typedef struct ClusterTable_t {
 	List_t nodelist;
@@ -419,7 +420,7 @@ ClusterNode_t* targetClusterNodeByIp(struct ClusterNodeGroup_t* grp, const IPStr
 	return dst_clsnd;
 }
 
-void broadcastClusterGroup(struct ClusterNodeGroup_t* grp, const Iobuf_t iov[], unsigned int iovcnt) {
+void broadcastClusterGroup(TaskThread_t* thrd, struct ClusterNodeGroup_t* grp, const Iobuf_t iov[], unsigned int iovcnt) {
 	ListNode_t* cur;
 	if (!grp)
 		return;
@@ -428,21 +429,21 @@ void broadcastClusterGroup(struct ClusterNodeGroup_t* grp, const Iobuf_t iov[], 
 		ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
 		if (clsnd->id == g_Config.clsnd.id)
 			continue;
-		channel = connectClusterNode(clsnd);
+		channel = connectClusterNode(clsnd, &thrd->dq);
 		if (!channel)
 			continue;
 		channelSendv(channel, iov, iovcnt, NETPACKET_FRAGMENT);
 	}
 }
 
-void broadcastClusterTable(struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt) {
+void broadcastClusterTable(TaskThread_t* thrd, struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt) {
 	ListNode_t* cur;
 	for (cur = t->nodelist.head; cur; cur = cur->next) {
 		Channel_t* channel;
 		ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_listnode);
 		if (clsnd->id == g_Config.clsnd.id)
 			continue;
-		channel = connectClusterNode(clsnd);
+		channel = connectClusterNode(clsnd, &thrd->dq);
 		if (!channel)
 			continue;
 		channelSendv(channel, iov, iovcnt, NETPACKET_FRAGMENT);

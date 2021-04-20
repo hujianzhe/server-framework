@@ -6,12 +6,12 @@
 
 struct RpcItem_t;
 struct Session_t;
-struct TaskThread_t;
+struct DataQueue_t;
 typedef struct ChannelUserData_t {
 	int session_id;
 	struct Session_t* session;
 	struct RpcItem_t* rpc_syn_ack_item;
-	struct TaskThread_t* rpc_syn_ack_work_thread;
+	struct DataQueue_t* dq;
 	int ws_handshake_state;
 	int text_data_print_log;
 } ChannelUserData_t;

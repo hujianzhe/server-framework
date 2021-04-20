@@ -11,7 +11,7 @@ extern "C" {
 static ChannelUserData_t* init_channel_user_data(ChannelUserData_t* ud) {
 	ud->session = NULL;
 	ud->rpc_syn_ack_item = NULL;
-	ud->rpc_syn_ack_work_thread = NULL;
+	ud->dq = NULL;
 	ud->ws_handshake_state = 0;
 	return ud;
 }
@@ -38,12 +38,13 @@ void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 		return;
 	}
 	channelEnableHeartbeat(channel, ts_msec);
-	if (ud->rpc_syn_ack_item && ud->rpc_syn_ack_work_thread) {
+	if (ud->rpc_syn_ack_item) {
 		UserMsg_t* msg = newUserMsg(0);
 		msg->channel = channel;
 		msg->rpcid = ud->rpc_syn_ack_item->id;
 		msg->rpc_status = RPC_STATUS_RESP;
-		dataqueuePush(&ud->rpc_syn_ack_work_thread->dq, &msg->internal._);
+		dataqueuePush(ud->dq, &msg->internal._);
+		ud->rpc_syn_ack_item = NULL;
 	}
 }
 
@@ -191,7 +192,7 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr*
 		return NULL;
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	c->userdata = init_channel_user_data(ud);
+	channelUserData(c) = init_channel_user_data(ud);
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
@@ -360,7 +361,7 @@ Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* 
 		return NULL;
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	c->userdata = init_channel_user_data(ud);
+	channelUserData(c) = init_channel_user_data(ud);
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
@@ -390,14 +391,12 @@ Channel_t* openListenerHttp(const char* ip, unsigned short port, FnChannelOnRecv
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
-	c = reactorobjectOpenChannel(o, CHANNEL_FLAG_LISTEN, 0, &local_saddr.sa);
+	c = openChannelHttp(o, CHANNEL_FLAG_LISTEN, &local_saddr.sa);
 	if (!c) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
-	c->_.on_reg = channel_reg_handler;
 	c->_.on_ack_halfconn = http_accept_callback;
-	c->_.on_detach = channel_detach;
 	c->on_recv = fn ? fn : httpframe_recv;
 	return c;
 }
@@ -494,22 +493,29 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 		logErr(&g_Log, "accept parse sockaddr error");
 }
 
-Channel_t* openChannelWebsocketServer(ReactorObject_t* o, const struct sockaddr* addr) {
+static Channel_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struct sockaddr* addr) {
 	ChannelUserData_t* ud;
-	Channel_t* c = reactorobjectOpenChannel(o, CHANNEL_FLAG_SERVER, sizeof(ChannelUserData_t), addr);
+	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserData_t), addr);
 	if (!c)
 		return NULL;
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	c->userdata = init_channel_user_data(ud);
+	channelUserData(c) = init_channel_user_data(ud);
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
+	c->on_recv = websocket_recv;
+	if (flag & CHANNEL_FLAG_SERVER) {
+		c->heartbeat_timeout_sec = 20;
+	}
+	return c;
+}
+
+Channel_t* openChannelWebsocketServer(ReactorObject_t* o, const struct sockaddr* addr) {
+	Channel_t* c = openChannelWebsocket(o, CHANNEL_FLAG_SERVER, addr);
 	c->on_hdrsize = websocket_hdrsize;
 	c->on_decode = websocket_decode;
 	c->on_encode = websocket_encode;
-	c->on_recv = websocket_recv;
-	c->heartbeat_timeout_sec = 20;
 	return c;
 }
 
@@ -531,14 +537,12 @@ Channel_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelO
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
-	c = reactorobjectOpenChannel(o, CHANNEL_FLAG_LISTEN, 0, &local_saddr.sa);
+	c = openChannelWebsocket(o, CHANNEL_FLAG_LISTEN, &local_saddr.sa);
 	if (!c) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
-	c->_.on_reg = channel_reg_handler;
 	c->_.on_ack_halfconn = websocket_accept_callback;
-	c->_.on_detach = channel_detach;
 	c->on_recv = fn ? fn : websocket_recv;
 	return c;
 }

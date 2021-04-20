@@ -186,6 +186,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		logInfo(ptr_g_Log(), "channel(%p) connecting......", c);
 		if (thrd->f_rpc || thrd->a_rpc) {
 			c->_.on_syn_ack = defaultRpcOnSynAck;
+			channelUserData(c)->dq = &thrd->dq;
 			if (thrd->f_rpc) {
 				rpc_item = newRpcItemFiberReady(thrd, c, 5000);
 				if (!rpc_item) {
@@ -194,7 +195,6 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 					return 1;
 				}
 				channelUserData(c)->rpc_syn_ack_item = rpc_item;
-				channelUserData(c)->rpc_syn_ack_work_thread = thrd;
 				reactorCommitCmd(selectReactor(), &o->regcmd);
 				rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 				if (rpc_item->ret_msg) {
@@ -216,7 +216,6 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 				}
 				rpc_item->udata = (size_t)c;
 				channelUserData(c)->rpc_syn_ack_item = rpc_item;
-				channelUserData(c)->rpc_syn_ack_work_thread = thrd;
 				reactorCommitCmd(selectReactor(), &o->regcmd);
 			}
 		}

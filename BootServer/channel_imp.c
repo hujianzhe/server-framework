@@ -192,7 +192,7 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr*
 		return NULL;
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	channelUserData(c) = init_channel_user_data(ud);
+	c->userdata = init_channel_user_data(ud);
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
@@ -361,7 +361,7 @@ Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* 
 		return NULL;
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	channelUserData(c) = init_channel_user_data(ud);
+	c->userdata = init_channel_user_data(ud);
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
@@ -500,7 +500,7 @@ static Channel_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struc
 		return NULL;
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	channelUserData(c) = init_channel_user_data(ud);
+	c->userdata = init_channel_user_data(ud);
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;

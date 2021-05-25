@@ -178,6 +178,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 		o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.sa.sa_family, option->socktype, 0);
 		if (!o)
 			return 0;
+		o->stream.max_connect_timeout_sec = 5;
 		c = openChannelInner(o, CHANNEL_FLAG_CLIENT, &connect_addr.sa, &thrd->dq);
 		if (!c) {
 			reactorCommitCmd(NULL, &o->freecmd);

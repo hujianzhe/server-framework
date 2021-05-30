@@ -161,7 +161,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				}
 				if (thread->f_rpc) {
 					if (RPC_STATUS_RESP == ctrl->rpc_status) {
-						Channel_t* channel = ctrl->channel;
 						RpcItem_t* rpc_item = rpcFiberCoreResume(thread->f_rpc, ctrl->rpcid, ctrl);
 						ctrl->on_free(ctrl);
 						if (!rpc_item) {
@@ -175,7 +174,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				}
 				else if (thread->a_rpc) {
 					if (RPC_STATUS_RESP == ctrl->rpc_status) {
-						Channel_t* channel = ctrl->channel;
 						RpcItem_t* rpc_item = rpcAsyncCoreCallback(thread->a_rpc, ctrl->rpcid, ctrl);
 						ctrl->on_free(ctrl);
 						if (!rpc_item) {

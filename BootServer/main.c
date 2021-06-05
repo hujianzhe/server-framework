@@ -9,6 +9,7 @@
 extern "C" {
 #endif
 	int init(TaskThread_t*, int, char**);
+	void destroy(TaskThread_t*);
 #ifdef __cplusplus
 }
 #endif
@@ -25,6 +26,8 @@ int main(int argc, char** argv) {
 	int configinitok = 0, loginitok = 0, netthreadresourceinitok = 0,
 		taskthreadinitok = 0, taskthreadrunok = 0;
 	struct ClusterTable_t* clstbl = NULL;
+	int(*fn_init)(struct TaskThread_t* thrd, int argc, char** argv);
+	void(*fn_destroy)(struct TaskThread_t* thrd);
 	//
 	if (argc < 2) {
 		fputs("need a config file to boot ...", stderr);
@@ -47,7 +50,8 @@ int main(int argc, char** argv) {
 	g_Log.m_maxfilesize = g_Config.log.maxfilesize;
 	loginitok = 1;
 #ifdef USE_STATIC_MODULE
-	g_ModuleInitFunc = init;
+	fn_init = init;
+	fn_destroy = destroy;
 #else
 	// load module
 	if (g_Config.module_path && g_Config.module_path[0]) {
@@ -57,12 +61,13 @@ int main(int argc, char** argv) {
 			logErr(&g_Log, "moduleLoad(%s) failure", g_Config.module_path);
 			goto err;
 		}
-		g_ModuleInitFunc = (int(*)(TaskThread_t*, int, char**))moduleSymbolAddress(g_ModulePtr, "init");
-		if (!g_ModuleInitFunc) {
+		fn_init = (int(*)(TaskThread_t*, int, char**))moduleSymbolAddress(g_ModulePtr, "init");
+		if (!fn_init) {
 			fprintf(stderr, "moduleSymbolAddress(%s, \"init\") failure\n", g_Config.module_path);
 			logErr(&g_Log, "moduleSymbolAddress(%s, \"init\") failure", g_Config.module_path);
 			goto err;
 		}
+		fn_destroy = (void(*)(TaskThread_t*))moduleSymbolAddress(g_ModulePtr, "destroy");
 	}
 #endif
 	// input boot cluster node info
@@ -162,6 +167,10 @@ int main(int argc, char** argv) {
 		goto err;
 	taskthreadinitok = 1;
 	g_TaskThread->clstbl = clstbl;
+	g_TaskThread->init_argc = argc;
+	g_TaskThread->init_argv = argv;
+	g_TaskThread->fn_init = fn_init;
+	g_TaskThread->fn_destroy = fn_destroy;
 	// listen self cluster node port
 	if (g_Config.clsnd.port) {
 		Channel_t* c = openListenerInner(g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port, &g_TaskThread->dq);
@@ -182,13 +191,6 @@ int main(int argc, char** argv) {
 	if (!runTaskThread(g_TaskThread))
 		goto err;
 	taskthreadrunok = 1;
-	// post module init_func message
-	if (g_ModuleInitFunc) {
-		UserMsg_t* msg = newUserMsg(0);
-		if (!msg)
-			goto err;
-		dataqueuePush(&g_TaskThread->dq, &msg->internal._);
-	}
 	// wait thread exit
 	threadJoin(g_TaskThread->tid, NULL);
 	g_Valid = 0;

@@ -230,7 +230,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	return 1;
 }
 
-__declspec_dllexport void destroy(void) {
+__declspec_dllexport void destroy(TaskThread_t* thrd) {
 
 }
 

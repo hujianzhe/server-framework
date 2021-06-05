@@ -18,6 +18,11 @@ typedef struct TaskThread_t {
 	RpcFiberCore_t* f_rpc;
 	RpcAsyncCore_t* a_rpc;
 	struct ClusterTable_t* clstbl;
+	int init_argc;
+	char** init_argv;
+	int(*fn_init)(struct TaskThread_t* thrd, int argc, char** argv);
+	void(*fn_destroy)(struct TaskThread_t* thrd);
+	UserMsg_t* __fn_init_fiber_msg;
 } TaskThread_t;
 
 extern TaskThread_t* g_TaskThread;

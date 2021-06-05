@@ -3,54 +3,36 @@
 #include "work_thread.h"
 #include <stdio.h>
 
-#ifdef USE_STATIC_MODULE
-#ifdef __cplusplus
-extern "C" {
-#endif
-	void destroy(void);
-#ifdef __cplusplus
-}
-#endif
-#endif
-
 static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	if (g_ModuleInitFunc) {
-		if (!g_ModuleInitFunc(thrd, g_MainArgc, g_MainArgv)) {
-			fprintf(stderr, "init(argc, argv) return failure\n");
-			g_Valid = 0;
-		}
-		g_ModuleInitFunc = NULL;
+	DispatchCallback_t callback;
+	Dispatch_t* dispatch = thrd->dispatch;
+	if (ctrl->cmdstr) {
+		callback = getStringDispatch(dispatch, ctrl->cmdstr);
 	}
 	else {
-		DispatchCallback_t callback;
-		if (ctrl->cmdstr) {
-			callback = getStringDispatch(thrd->dispatch, ctrl->cmdstr);
+		callback = getNumberDispatch(dispatch, ctrl->cmdid);
+	}
+	if (callback)
+		callback(thrd, ctrl);
+	else if (dispatch->null_dispatch_callback)
+		dispatch->null_dispatch_callback(thrd, ctrl);
+	else {
+		if (USER_MSG_EXTRA_HTTP_FRAME == ctrl->param.type) {
+			if (ctrl->param.httpframe) {
+				const char reply[] = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n";
+				channelSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
+				channelSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
+			}
 		}
 		else {
-			callback = getNumberDispatch(thrd->dispatch, ctrl->cmdid);
-		}
-		if (callback)
-			callback(thrd, ctrl);
-		else if (thrd->dispatch->null_dispatch_callback)
-			thrd->dispatch->null_dispatch_callback(thrd, ctrl);
-		else {
-			if (USER_MSG_EXTRA_HTTP_FRAME == ctrl->param.type) {
-				if (ctrl->param.httpframe) {
-					const char reply[] = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n";
-					channelSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
-					channelSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
-				}
+			InnerMsg_t ret_msg;
+			if (RPC_STATUS_REQ == ctrl->rpc_status) {
+				makeInnerMsgRpcResp(&ret_msg, ctrl->rpcid, 0, NULL, 0);
 			}
 			else {
-				InnerMsg_t ret_msg;
-				if (RPC_STATUS_REQ == ctrl->rpc_status) {
-					makeInnerMsgRpcResp(&ret_msg, ctrl->rpcid, 0, NULL, 0);
-				}
-				else {
-					makeInnerMsg(&ret_msg, 0, NULL, 0);
-				}
-				channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
+				makeInnerMsg(&ret_msg, 0, NULL, 0);
 			}
+			channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 		}
 	}
 	ctrl->on_free(ctrl);
@@ -65,7 +47,11 @@ static int session_expire_timeout_callback(RBTimer_t* timer, RBTimerEvent_t* e) 
 
 static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 	TaskThread_t* thrd = (TaskThread_t*)rpc->base.runthread;
-	if (USER_MSG_EXTRA_TIMER_EVENT == ctrl->param.type) {
+	if (thrd->__fn_init_fiber_msg == ctrl) {
+		thrd->__fn_init_fiber_msg = NULL;
+		thrd->fn_init(thrd, thrd->init_argc, thrd->init_argv);
+	}
+	else if (USER_MSG_EXTRA_TIMER_EVENT == ctrl->param.type) {
 		RBTimerEvent_t* e = ctrl->param.timer_event;
 		e->callback(&thrd->timer, e);
 	}
@@ -116,6 +102,18 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			return 1;
 		}
 		thread->a_rpc->base.runthread = thread;
+	}
+	// call global init function
+	if (thread->fn_init) {
+		if (thread->f_rpc) {
+			UserMsg_t fn_init_fiber_msg;
+			thread->__fn_init_fiber_msg = &fn_init_fiber_msg;
+			rpcFiberCoreResumeMsg(thread->f_rpc, &fn_init_fiber_msg);
+		}
+		else if (!thread->fn_init(thread, g_MainArgc, g_MainArgv)) {
+			fprintf(stderr, "task thread init failure\n");
+			g_Valid = 0;
+		}
 	}
 	// start
 	wait_msec = -1;
@@ -317,15 +315,8 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			ctrl->on_free(ctrl);
 		}
 	}
-#ifdef USE_STATIC_MODULE
-	destroy();
-#else
-	if (g_ModulePtr) {
-		void(*module_destroy_fn_ptr)(void) = (void(*)(void))moduleSymbolAddress(g_ModulePtr, "destroy");
-		if (module_destroy_fn_ptr)
-			module_destroy_fn_ptr();
-	}
-#endif
+	if (thread->fn_destroy)
+		thread->fn_destroy(thread);
 	return 0;
 }
 
@@ -369,6 +360,11 @@ TaskThread_t* newTaskThread(void) {
 	t->f_rpc = NULL;
 	t->a_rpc = NULL;
 	t->clstbl = NULL;
+	t->init_argc = 0;
+	t->init_argv = NULL;
+	t->fn_init = NULL;
+	t->fn_destroy = NULL;
+	t->__fn_init_fiber_msg = NULL;
 	return t;
 err:
 	if (dq_ok)

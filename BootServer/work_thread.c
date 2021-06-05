@@ -49,7 +49,10 @@ static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 	TaskThread_t* thrd = (TaskThread_t*)rpc->base.runthread;
 	if (thrd->__fn_init_fiber_msg == ctrl) {
 		thrd->__fn_init_fiber_msg = NULL;
-		thrd->fn_init(thrd, thrd->init_argc, thrd->init_argv);
+		if (!thrd->fn_init(thrd, thrd->init_argc, thrd->init_argv)) {
+			fprintf(stderr, "task thread init failure\n");
+			g_Valid = 0;
+		}
 	}
 	else if (USER_MSG_EXTRA_TIMER_EVENT == ctrl->param.type) {
 		RBTimerEvent_t* e = ctrl->param.timer_event;

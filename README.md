@@ -21,7 +21,7 @@ TODO:
 模块介绍:  
 1、BootServer：服务节点启动的必备初始化和操作  
 2、ServiceTemplate：服务节点代码模板，用来写你的业务逻辑  
-3、SoTest：测试节点，用于测试功能  
+3、SoTestClient,SoTestServer：测试节点，用于测试功能  
 
 编译:  
 windows直接VS编译，然后把需要的dll拷贝到对应服务目录下  

@@ -20,11 +20,20 @@
             "hash_key" : [ 0.4, 0.8 ]
         },
         {
-            "name" : "so_test",
+            "name" : "so_test_server",
             "id" : 200,
             "socktype" : "SOCK_DGRAM",
             "ip" : "127.0.0.1",
             "port" : 40001,
+            "weight_num" : 1,
+            "hash_key" : []
+        },
+		{
+            "name" : "so_test_client",
+            "id" : 300,
+            "socktype" : "SOCK_DGRAM",
+            "ip" : "127.0.0.1",
+            "port" : 41001,
             "weight_num" : 1,
             "hash_key" : []
         }

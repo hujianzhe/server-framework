@@ -27,9 +27,9 @@ SOURCE_CPP_FILE :=
 endif
 
 ifeq ($(shell uname), Darwin)
-TARGET := $(TARGET_PATH)/SoTest.exe
+TARGET := $(TARGET_PATH)/SoTestClient.exe
 else
-TARGET := $(TARGET_PATH)/libSoTest.so
+TARGET := $(TARGET_PATH)/libSoTestClient.so
 endif
 
 all:

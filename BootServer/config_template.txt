@@ -1,6 +1,6 @@
 {
 	"cluster" : {
-		"name" : "so_test",
+		"name" : "so_test_server",
 		"id" : 200,
 		"socktype" : "SOCK_DGRAM",
 		"ip" : "127.0.0.1",
@@ -27,18 +27,18 @@
 	"connect_options" : [
 		{
 			"protocol" : "inner",
-			"socktype" : "SOCK_DGRAM",
+			"socktype" : "SOCK_STREAM",
 			"ip" : "39.100.213.153",
 			"port" : 40000,
 			"readcache_max_size" : 65535
 		}
 	],
 	"log" : {
-		"pathname" : "./SoTest",
+		"pathname" : "./SoTestServer",
 		"maxfilesize_mb" : 10
 	},
 	"net_thread_cnt" : 0,
-	"module_path" : "./SoTest.dll",
+	"module_path" : "./SoTestServer.dll",
 	"cluster_table_path" : "./cluster_table_config_template.txt",
 	"rpc_fiber_stack_size_kb" : 64,
 	"rpc_fiber" : 1,

@@ -59,7 +59,15 @@ static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 		e->callback(&thrd->timer, e);
 	}
 	else {
-		call_dispatch(thrd, ctrl);
+		Channel_t* c = ctrl->channel;
+		if (c) {
+			channelbaseAddRef(&c->_);
+			call_dispatch(thrd, ctrl);
+			reactorCommitCmd(NULL, &c->_.freecmd);
+		}
+		else {
+			call_dispatch(thrd, ctrl);
+		}
 	}
 }
 

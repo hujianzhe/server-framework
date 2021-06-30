@@ -12,8 +12,6 @@ typedef struct Session_t {
 	void* userdata;
 	void(*disconnect)(struct Session_t*);
 	void(*destroy)(struct Session_t*);
-	unsigned int expire_timeout_msec;
-	RBTimerEvent_t* expire_timeout_ev;
 } Session_t;
 
 #ifdef __cplusplus

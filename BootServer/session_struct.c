@@ -24,8 +24,6 @@ Session_t* initSession(Session_t* session) {
 	session->userdata = NULL;
 	session->disconnect = NULL;
 	session->destroy = NULL;
-	session->expire_timeout_msec = 0;
-	session->expire_timeout_ev = NULL;
 	return session;
 }
 

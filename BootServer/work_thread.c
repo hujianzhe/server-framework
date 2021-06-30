@@ -38,13 +38,6 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	ctrl->on_free(ctrl);
 }
 
-static int session_expire_timeout_callback(RBTimer_t* timer, RBTimerEvent_t* e) {
-	Session_t* session = (Session_t*)e->arg;
-	if (session->destroy)
-		session->destroy(session);
-	return 0;
-}
-
 static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 	TaskThread_t* thrd = (TaskThread_t*)rpc->base.runthread;
 	if (thrd->__fn_init_fiber_msg == ctrl) {
@@ -217,43 +210,22 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				if ((channel->_.flag & CHANNEL_FLAG_CLIENT) ||
 					(channel->_.flag & CHANNEL_FLAG_SERVER))
 				{
-					if (g_ConnectionNum > 0)
-						g_ConnectionNum--;
-
-					freeRpcItemWhenChannelDetach(thread, channel);
-
-					do {
-						Session_t* session = channelSession(channel);
-						if (!session)
-							break;
-						else if (session->channel_client == channel)
+					Session_t* session = channelSession(channel);
+					if (session) {
+						if (session->channel_client == channel) {
 							session->channel_client = NULL;
-						else if (session->channel_server == channel)
-							session->channel_server = NULL;
-						channelSession(channel) = NULL;
-						channelSessionId(channel) = 0;
-						if (session->channel_client || session->channel_server)
-							break;
-						if (session->disconnect)
-							session->disconnect(session);
-						if (session->persist)
-							break;
-						if (session->expire_timeout_msec > 0) {
-							RBTimerEvent_t* e = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
-							if (e) {
-								e->arg = session;
-								e->callback = session_expire_timeout_callback;
-								e->timestamp_msec = gmtimeMillisecond() + session->expire_timeout_msec;
-								session->expire_timeout_ev = e;
-								if (rbtimerAddEvent(&thread->timer, e)) {
-									break;
-								}
-								free(e);
-							}
 						}
-						if (session->destroy)
-							session->destroy(session);
-					} while (0);
+						if (session->channel_server == channel) {
+							session->channel_server = NULL;
+						}
+						if (!sessionChannel(session) && session->disconnect) {
+							session->disconnect(session);
+						}
+					}
+					if (g_ConnectionNum > 0) {
+						g_ConnectionNum--;
+					}
+					freeRpcItemWhenChannelDetach(thread, channel);
 				}
 				reactorCommitCmd(NULL, &channel->_.freecmd);
 			}

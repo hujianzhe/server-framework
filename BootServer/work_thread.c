@@ -120,7 +120,16 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		}
 	}
 	// start
-	wait_msec = -1;
+	cur_msec = gmtimeMillisecond();
+	if (rbtimerDueFirst(due_timer, sizeof(due_timer) / sizeof(due_timer[0]), &timer_min_msec)) {
+		if (timer_min_msec > cur_msec)
+			wait_msec = timer_min_msec - cur_msec;
+		else
+			wait_msec = 0;
+	}
+	else {
+		wait_msec = -1;
+	}
 	while (g_Valid) {
 		// handle message and event
 		for (cur = dataqueuePopWait(&thread->dq, wait_msec, ~0); cur; cur = next) {

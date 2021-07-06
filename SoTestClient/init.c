@@ -79,19 +79,16 @@ extern "C" {
 
 __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	int i;
-	//RBTimerEvent_t* timer_event;
+	RBTimerEvent_t* timer_event;
 
 	regNumberDispatch(thrd->dispatch, CMD_NOTIFY_TEST, notifyTest);
 	regNumberDispatch(thrd->dispatch, CMD_RET_TEST, retTest);
 	regNumberDispatch(thrd->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
 
-	/* add timer
+	// add timer
 	timer_event = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
-	timer_event->arg = NULL;
-	timer_event->callback = test_timer;
-	timer_event->timestamp_msec = gmtimeMillisecond() + 1000;
+	rbtimerEventSet(timer_event, gmtimeMillisecond() + 1000, test_timer, NULL, 0);
 	rbtimerAddEvent(&thrd->timer, timer_event);
-	*/
 
 	for (i = 0; i < ptr_g_Config()->connect_options_cnt; ++i) {
 		ConfigConnectOption_t* option = ptr_g_Config()->connect_options + i;

@@ -119,18 +119,18 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			g_Valid = 0;
 		}
 	}
-	// start
+	// start loop
 	cur_msec = gmtimeMillisecond();
-	if (rbtimerDueFirst(due_timer, sizeof(due_timer) / sizeof(due_timer[0]), &timer_min_msec)) {
-		if (timer_min_msec > cur_msec)
-			wait_msec = timer_min_msec - cur_msec;
-		else
-			wait_msec = 0;
-	}
-	else {
-		wait_msec = -1;
-	}
 	while (g_Valid) {
+		if (rbtimerDueFirst(due_timer, sizeof(due_timer) / sizeof(due_timer[0]), &timer_min_msec)) {
+			if (timer_min_msec > cur_msec)
+				wait_msec = timer_min_msec - cur_msec;
+			else
+				wait_msec = 0;
+		}
+		else {
+			wait_msec = -1;
+		}
 		// handle message and event
 		for (cur = dataqueuePopWait(&thread->dq, wait_msec, ~0); cur; cur = next) {
 			ReactorCmd_t* internal = (ReactorCmd_t*)cur;
@@ -276,15 +276,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				next = cur->next;
 				e->callback(&thread->timer, e);
 			}
-		}
-		if (rbtimerDueFirst(due_timer, sizeof(due_timer) / sizeof(due_timer[0]), &timer_min_msec)) {
-			if (timer_min_msec > cur_msec)
-				wait_msec = timer_min_msec - cur_msec;
-			else
-				wait_msec = 0;
-		}
-		else {
-			wait_msec = -1;
 		}
 	}
 	// thread exit clean

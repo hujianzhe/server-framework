@@ -120,9 +120,9 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		}
 	}
 	// start loop
-	cur_msec = gmtimeMillisecond();
 	while (g_Valid) {
 		if (rbtimerDueFirst(due_timer, sizeof(due_timer) / sizeof(due_timer[0]), &timer_min_msec)) {
+			cur_msec = gmtimeMillisecond();
 			if (timer_min_msec > cur_msec)
 				wait_msec = timer_min_msec - cur_msec;
 			else
@@ -254,7 +254,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			freeRpcItemWhenNormal(&thread->rpc_timer, rpc_item);
 		}
 		if (thread->f_rpc) {
-			static UserMsg_t timer_msg;
+			UserMsg_t timer_msg;
 			timer_msg.param.type = USER_MSG_EXTRA_TIMER_EVENT;
 			for (cur = rbtimerTimeout(&thread->timer, cur_msec); cur; cur = next) {
 				RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);

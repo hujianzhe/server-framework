@@ -68,7 +68,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 
 static int test_timer(RBTimer_t* timer, RBTimerEvent_t* e) {
 	logInfo(ptr_g_Log(), "test_timer============================================");
-	e->timestamp_msec += 1000;
+	e->timestamp_msec += e->interval_msec;
 	rbtimerAddEvent(timer, e);
 	return 0;
 }
@@ -87,7 +87,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 
 	// add timer
 	timer_event = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
-	rbtimerEventSet(timer_event, gmtimeMillisecond() + 1000, test_timer, NULL, 0);
+	rbtimerEventSet(timer_event, gmtimeMillisecond() / 1000 * 1000 + 1000, test_timer, NULL, 1000);
 	rbtimerAddEvent(&thrd->timer, timer_event);
 
 	for (i = 0; i < ptr_g_Config()->connect_options_cnt; ++i) {

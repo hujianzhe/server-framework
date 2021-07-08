@@ -2,10 +2,12 @@
 #define	SESSION_STRUCT_H
 
 #include "util/inc/component/channel.h"
+#include <time.h>
 
 typedef struct Session_t {
 	short has_reg;
-	short persist;
+	int reconnect_delay_sec;
+	time_t reconnect_timestamp_sec;
 	Channel_t* channel_client;
 	Channel_t* channel_server;
 	int id;

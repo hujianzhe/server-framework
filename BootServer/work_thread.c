@@ -65,9 +65,10 @@ static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 }
 
 static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
-	ListNode_t* cur, *next;
+	ListNode_t* iter_cur, *iter_next;
 	int wait_msec;
 	long long cur_msec, timer_min_msec;
+	time_t cur_sec;
 	TaskThread_t* thread = (TaskThread_t*)arg;
 	RBTimer_t* due_timer[] = { &thread->timer, &thread->rpc_timer, &thread->fiber_sleep_timer };
 	// init rpc
@@ -131,10 +132,13 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		else {
 			wait_msec = -1;
 		}
+		iter_cur = dataqueuePopWait(&thread->dq, wait_msec, ~0);
 		// handle message and event
-		for (cur = dataqueuePopWait(&thread->dq, wait_msec, ~0); cur; cur = next) {
-			ReactorCmd_t* internal = (ReactorCmd_t*)cur;
-			next = cur->next;
+		cur_msec = gmtimeMillisecond();
+		cur_sec = cur_msec / 1000;
+		for (; iter_cur; iter_cur = iter_next) {
+			ReactorCmd_t* internal = (ReactorCmd_t*)iter_cur;
+			iter_next = iter_cur->next;
 			if (REACTOR_USER_CMD == internal->type) {
 				UserMsg_t* ctrl = pod_container_of(internal , UserMsg_t, internal);
 				if (ctrl->be_from_cluster) {
@@ -227,8 +231,10 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						if (session->channel_server == channel) {
 							session->channel_server = NULL;
 						}
-						if (!sessionChannel(session) && session->disconnect) {
-							session->disconnect(session);
+						if (!sessionChannel(session)) {
+							session->reconnect_timestamp_sec = cur_sec + session->reconnect_delay_sec;
+							if (session->disconnect)
+								session->disconnect(session);
 						}
 					}
 					if (g_ConnectionNum > 0) {
@@ -242,10 +248,10 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 
 		// handle timer event
 		cur_msec = gmtimeMillisecond();
-		for (cur = rbtimerTimeout(&thread->rpc_timer, cur_msec); cur; cur = next) {
-			RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
+		for (iter_cur = rbtimerTimeout(&thread->rpc_timer, cur_msec); iter_cur; iter_cur = iter_next) {
+			RBTimerEvent_t* e = pod_container_of(iter_cur, RBTimerEvent_t, m_listnode);
 			RpcItem_t* rpc_item = (RpcItem_t*)e->arg;
-			next = cur->next;
+			iter_next = iter_cur->next;
 			rpc_item->timeout_ev = NULL;
 			if (thread->f_rpc)
 				rpcFiberCoreCancel(thread->f_rpc, rpc_item);
@@ -256,24 +262,24 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		if (thread->f_rpc) {
 			UserMsg_t timer_msg;
 			timer_msg.param.type = USER_MSG_EXTRA_TIMER_EVENT;
-			for (cur = rbtimerTimeout(&thread->timer, cur_msec); cur; cur = next) {
-				RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
-				next = cur->next;
+			for (iter_cur = rbtimerTimeout(&thread->timer, cur_msec); iter_cur; iter_cur = iter_next) {
+				RBTimerEvent_t* e = pod_container_of(iter_cur, RBTimerEvent_t, m_listnode);
+				iter_next = iter_cur->next;
 				timer_msg.param.timer_event = e;
 				rpcFiberCoreResumeMsg(thread->f_rpc, &timer_msg);
 			}
-			for (cur = rbtimerTimeout(&thread->fiber_sleep_timer, cur_msec); cur; cur = next) {
-				RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
+			for (iter_cur = rbtimerTimeout(&thread->fiber_sleep_timer, cur_msec); iter_cur; iter_cur = iter_next) {
+				RBTimerEvent_t* e = pod_container_of(iter_cur, RBTimerEvent_t, m_listnode);
 				RpcItem_t* rpc_item = (RpcItem_t*)e->arg;
-				next = cur->next;
+				iter_next = iter_cur->next;
 				rpc_item->timeout_ev = NULL;
 				rpcFiberCoreCancel(thread->f_rpc, rpc_item);
 			}
 		}
 		else {
-			for (cur = rbtimerTimeout(&thread->timer, cur_msec); cur; cur = next) {
-				RBTimerEvent_t* e = pod_container_of(cur, RBTimerEvent_t, m_listnode);
-				next = cur->next;
+			for (iter_cur = rbtimerTimeout(&thread->timer, cur_msec); iter_cur; iter_cur = iter_next) {
+				RBTimerEvent_t* e = pod_container_of(iter_cur, RBTimerEvent_t, m_listnode);
+				iter_next = iter_cur->next;
 				e->callback(&thread->timer, e);
 			}
 		}
@@ -286,13 +292,13 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	else if (thread->a_rpc) {
 		rpcAsyncCoreDestroy(thread->a_rpc);
 	}
-	for (cur = rbtimerClean(&thread->timer); cur; cur = next) {
-		next = cur->next;
-		free(pod_container_of(cur, RBTimerEvent_t, m_listnode));
+	for (iter_cur = rbtimerClean(&thread->timer); iter_cur; iter_cur = iter_next) {
+		iter_next = iter_cur->next;
+		free(pod_container_of(iter_cur, RBTimerEvent_t, m_listnode));
 	}
-	for (cur = dataqueueClean(&thread->dq); cur; cur = next) {
-		ReactorCmd_t* internal = (ReactorCmd_t*)cur;
-		next = cur->next;
+	for (iter_cur = dataqueueClean(&thread->dq); iter_cur; iter_cur = iter_next) {
+		ReactorCmd_t* internal = (ReactorCmd_t*)iter_cur;
+		iter_next = iter_cur->next;
 		if (REACTOR_USER_CMD == internal->type) {
 			UserMsg_t* ctrl = pod_container_of(internal, UserMsg_t, internal);
 			ctrl->on_free(ctrl);

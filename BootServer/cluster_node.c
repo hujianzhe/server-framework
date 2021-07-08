@@ -11,7 +11,6 @@ ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned shor
 	ClusterNode_t* clsnd = (ClusterNode_t*)malloc(sizeof(ClusterNode_t));
 	if (clsnd) {
 		initSession(&clsnd->session);
-		clsnd->session.persist = 1;
 		clsnd->m_id_htnode.key = (void*)(size_t)id;
 		clsnd->grp = NULL;
 		clsnd->name = "";
@@ -48,6 +47,12 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq) {
 		int hs_datalen;
 		Sockaddr_t saddr;
 		ReactorObject_t* o;
+
+		if (clsnd->session.reconnect_timestamp_sec > 0 &&
+			time(NULL) < clsnd->session.reconnect_timestamp_sec)
+		{
+			return NULL;
+		}
 
 		hs_data = strFormat(&hs_datalen, "{\"id\":%d,\"ip\":\"%s\",\"port\":%u,\"socktype\":\"%s\",\"connection_num\":%d}",
 			g_Config.clsnd.id,

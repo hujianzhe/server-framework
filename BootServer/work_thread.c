@@ -147,9 +147,9 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						ClusterNode_t* clsnd = flushClusterNodeFromJsonData(thread->clstbl, (char*)ctrl->data);
 						ctrl->on_free(ctrl);
 						if (clsnd) {
-							if (clsnd->session.channel_server != channel)
+							if (clsnd->session.channel_server != channel) {
 								sessionChannelReplaceServer(&clsnd->session, channel);
-							g_ConnectionNum++;
+							}
 						}
 						else {
 							channelSendv(channel, NULL, 0, NETPACKET_FIN);
@@ -236,9 +236,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							if (session->disconnect)
 								session->disconnect(session);
 						}
-					}
-					if (g_ConnectionNum > 0) {
-						g_ConnectionNum--;
 					}
 					freeRpcItemWhenChannelDetach(thread, channel);
 				}

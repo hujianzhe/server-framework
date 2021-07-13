@@ -5,7 +5,6 @@ char** g_MainArgv;
 void* g_ModulePtr;
 volatile int g_Valid = 1;
 Log_t g_Log;
-int g_ConnectionNum;
 
 #ifdef __cplusplus
 extern "C" {

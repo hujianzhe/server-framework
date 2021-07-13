@@ -79,6 +79,12 @@ int main(int argc, char** argv) {
 		g_Config.module_path ? g_Config.module_path : "", g_Config.clsnd.name,
 		if_socktype2string(g_Config.clsnd.socktype), g_Config.clsnd.ip, g_Config.clsnd.port, processId());
 	// init cluster data
+	clstbl = newClusterTable();
+	if (!clstbl) {
+		fputs("newClusterTable failure\n", stderr);
+		logErr(&g_Log, "newClusterTable failure");
+		goto err;
+	}
 	if (g_Config.cluster_table_path && g_Config.cluster_table_path[0]) {
 		ClusterNode_t* clsnd;
 		const char* load_cluster_table_errmsg;
@@ -88,13 +94,13 @@ int main(int argc, char** argv) {
 			logErr(&g_Log, "fileReadAllData(%s) failure", g_Config.cluster_table_path);
 			goto err;
 		}
-		clstbl = loadClusterTableFromJsonData(cluster_table_filedata, &load_cluster_table_errmsg);
-		free(cluster_table_filedata);
-		if (!clstbl) {
+		if (!loadClusterTableFromJsonData(clstbl, cluster_table_filedata, &load_cluster_table_errmsg)) {
 			fprintf(stderr, "loadClusterTableFromJsonData failure: %s\n", load_cluster_table_errmsg);
 			logErr(&g_Log, "loadClusterTableFromJsonData failure: %s", load_cluster_table_errmsg);
+			free(cluster_table_filedata);
 			goto err;
 		}
+		free(cluster_table_filedata);
 		clsnd = getClusterNodeFromGroup(
 			getClusterNodeGroup(clstbl, g_Config.clsnd.name),
 			g_Config.clsnd.socktype,
@@ -116,7 +122,7 @@ int main(int argc, char** argv) {
 				g_Config.clsnd.ip,
 				g_Config.clsnd.port
 			);
-			return 0;
+			goto err;
 		}
 	}
 	else {
@@ -137,9 +143,6 @@ int main(int argc, char** argv) {
 			);
 			goto err;
 		}
-		clstbl = newClusterTable();
-		if (!clstbl)
-			goto err;
 		if (!regClusterNode(clstbl, g_Config.clsnd.name, clsnd)) {
 			fprintf(stderr, "reg self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
 				g_Config.clsnd.name,

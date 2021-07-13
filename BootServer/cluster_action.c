@@ -58,100 +58,118 @@ ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char
 	return clsnd;
 }
 
-struct ClusterTable_t* loadClusterTableFromJsonData(const char* json_data, const char** errmsg) {
-	struct ClusterTable_t* t = NULL;
+struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, const char* json_data, const char** errmsg) {
+	ListNode_t* listnode_cur;
+	cJSON* cjson_cluster_nodes, *cjson_clsnd;
 	cJSON* root = cJSON_Parse(NULL, json_data);
 	if (!root) {
 		*errmsg = "parse json data error";
-		return t;
+		return NULL;
+	}
+	cjson_cluster_nodes = cJSON_Field(root, "cluster_nodes");
+	if (!cjson_cluster_nodes) {
+		*errmsg = "json data miss field cluster_nodes";
+		cJSON_Delete(root);
+		return NULL;
 	}
 	*errmsg = NULL;
-	do {
-		cJSON* cjson_cluster_nodes, *cjson_clsnd;
+	for (cjson_clsnd = cjson_cluster_nodes->child; cjson_clsnd; cjson_clsnd = cjson_clsnd->next) {
+		ClusterNode_t* clsnd;
+		cJSON *name, *id, *cjson_socktype, *ip, *port, *hashkey_array, *weight_num;
+		int socktype;
 
-		cjson_cluster_nodes = cJSON_Field(root, "cluster_nodes");
-		if (!cjson_cluster_nodes) {
-			*errmsg = "json data miss field cluster_nodes";
-			break;
-		}
-		t = newClusterTable();
-		if (!t) {
-			*errmsg = "newClusterTable return NULL";
-			break;
-		}
-		for (cjson_clsnd = cjson_cluster_nodes->child; cjson_clsnd; cjson_clsnd = cjson_clsnd->next) {
-			ClusterNode_t* clsnd;
-			cJSON *name, *id, *cjson_socktype, *ip, *port, *hashkey_array, *weight_num;
-			int socktype;
+		name = cJSON_Field(cjson_clsnd, "name");
+		if (!name || !name->valuestring || !name->valuestring[0])
+			continue;
+		id = cJSON_Field(cjson_clsnd, "id");
+		if (!id)
+			continue;
+		ip = cJSON_Field(cjson_clsnd, "ip");
+		if (!ip)
+			continue;
+		port = cJSON_Field(cjson_clsnd, "port");
+		if (!port)
+			continue;
+		cjson_socktype = cJSON_Field(cjson_clsnd, "socktype");
+		if (!cjson_socktype)
+			continue;
+		socktype = if_string2socktype(cjson_socktype->valuestring);
+		if (0 == socktype)
+			continue;
+		weight_num = cJSON_Field(cjson_clsnd, "weight_num");
+		hashkey_array = cJSON_Field(cjson_clsnd, "hash_key");
 
-			name = cJSON_Field(cjson_clsnd, "name");
-			if (!name || !name->valuestring || !name->valuestring[0])
-				continue;
-			id = cJSON_Field(cjson_clsnd, "id");
-			if (!id)
-				continue;
-			ip = cJSON_Field(cjson_clsnd, "ip");
-			if (!ip)
-				continue;
-			port = cJSON_Field(cjson_clsnd, "port");
-			if (!port)
-				continue;
-			cjson_socktype = cJSON_Field(cjson_clsnd, "socktype");
-			if (!cjson_socktype)
-				continue;
-			socktype = if_string2socktype(cjson_socktype->valuestring);
-			if (0 == socktype)
-				continue;
-			weight_num = cJSON_Field(cjson_clsnd, "weight_num");
-			hashkey_array = cJSON_Field(cjson_clsnd, "hash_key");
-
-			clsnd = getClusterNodeById(t, id->valueint);
-			if (clsnd)
-				continue;
-			clsnd = getClusterNode(t, socktype, ip->valuestring, port->valueint);
-			if (clsnd)
-				continue;
-			clsnd = newClusterNode(id->valueint, socktype, ip->valuestring, port->valueint);
-			if (!clsnd)
-				continue;
+		clsnd = getClusterNodeById(t, id->valueint);
+		if (clsnd) {
 			if (weight_num) {
 				clsnd->weight_num = weight_num->valueint;
 			}
-			if (hashkey_array) {
-				int hashkey_arraylen = cJSON_Size(hashkey_array);
-				if (hashkey_arraylen > 0) {
-					int i;
-					cJSON* key;
-					unsigned int* ptr_key_array = reallocClusterNodeHashKey(clsnd, hashkey_arraylen);
-					if (!ptr_key_array) {
-						freeClusterNode(clsnd);
-						break;
+			clsnd->status = CLSND_STATUS_NORMAL;
+		}
+		else {
+			clsnd = newClusterNode(id->valueint, socktype, ip->valuestring, port->valueint);
+			if (!clsnd) {
+				break;
+			}
+			if (weight_num) {
+				clsnd->weight_num = weight_num->valueint;
+			}
+			do {
+				int i;
+				cJSON* key;
+				unsigned int* ptr_key_array;
+				int hashkey_arraylen;
+				if (!hashkey_array) {
+					break;
+				}
+				hashkey_arraylen = cJSON_Size(hashkey_array);
+				if (hashkey_arraylen <= 0) {
+					break;
+				}
+				ptr_key_array = reallocClusterNodeHashKey(clsnd, hashkey_arraylen);
+				if (!ptr_key_array) {
+					freeClusterNode(clsnd);
+					clsnd = NULL;
+					break;
+				}
+				for (i = 0, key = hashkey_array->child; key && i < hashkey_arraylen; key = key->next, ++i) {
+					if (key->valuedouble < 1.0) {
+						ptr_key_array[i] = key->valuedouble * UINT_MAX;
 					}
-					for (i = 0, key = hashkey_array->child; key && i < hashkey_arraylen; key = key->next, ++i) {
-						if (key->valuedouble < 1.0) {
-							ptr_key_array[i] = key->valuedouble * UINT_MAX;
-						}
-						else {
-							ptr_key_array[i] = key->valueint;
-						}
+					else {
+						ptr_key_array[i] = key->valueint;
 					}
 				}
+			} while (0);
+			if (!clsnd) {
+				break;
 			}
 			if (!regClusterNode(t, name->valuestring, clsnd)) {
 				freeClusterNode(clsnd);
 				break;
 			}
-			if (clsnd->id == g_Config.clsnd.id) {
-				clsnd->connection_num = g_ConnectionNum;
+		}
+	}
+	if (cjson_clsnd) {
+		cJSON_Delete(root);
+		return NULL;
+	}
+	for (listnode_cur = getClusterNodeList(t)->head; listnode_cur; listnode_cur = listnode_cur->next) {
+		ClusterNode_t* clsnd = pod_container_of(listnode_cur, ClusterNode_t, m_listnode);
+		for (cjson_clsnd = cjson_cluster_nodes->child; cjson_clsnd; cjson_clsnd = cjson_clsnd->next) {
+			cJSON* id = cJSON_Field(cjson_clsnd, "id");
+			if (!id) {
+				continue;
+			}
+			if (id->valueint == clsnd->id) {
+				break;
 			}
 		}
-		if (cjson_clsnd) {
-			*errmsg = "reg cluster node error";
-			freeClusterTable(t);
-			t = NULL;
-			break;
+		if (!cjson_clsnd) {
+			continue;
 		}
-	} while (0);
+		clsnd->status = CLSND_STATUS_INACTIVE;
+	}
 	cJSON_Delete(root);
 	return t;
 }

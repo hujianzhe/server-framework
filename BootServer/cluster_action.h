@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char* json_data);
-__declspec_dllexport struct ClusterTable_t* loadClusterTableFromJsonData(const char* json_data, const char** err_msg);
+__declspec_dllexport struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, const char* json_data, const char** errmsg);
 
 #ifdef __cplusplus
 }

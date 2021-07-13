@@ -89,8 +89,8 @@ void wakeupNetThreads(void) {
 }
 
 void joinNetThreads(void) {
-	while (s_BootReactorThreadCnt--) {
-		threadJoin(s_ReactorThreads[s_BootReactorThreadCnt], NULL);
+	while (s_BootReactorThreadCnt) {
+		threadJoin(s_ReactorThreads[--s_BootReactorThreadCnt], NULL);
 	}
 }
 

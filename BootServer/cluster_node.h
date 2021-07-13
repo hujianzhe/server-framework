@@ -5,6 +5,11 @@
 
 struct ClusterNodeGroup_t;
 
+enum {
+	CLSND_STATUS_NORMAL = 0,
+	CLSND_STATUS_INACTIVE = 1
+};
+
 typedef struct ClusterNode_t {
 	Session_t session;
 	ListNode_t m_listnode;
@@ -20,6 +25,7 @@ typedef struct ClusterNode_t {
 	unsigned int hashkey_cnt;
 	int weight_num;
 	int connection_num;
+	int status;
 } ClusterNode_t;
 
 #ifdef __cplusplus

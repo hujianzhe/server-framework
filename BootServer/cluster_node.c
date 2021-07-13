@@ -25,6 +25,7 @@ ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned shor
 		clsnd->hashkey_cnt = 0;
 		clsnd->weight_num = 0;
 		clsnd->connection_num = 0;
+		clsnd->status = CLSND_STATUS_NORMAL;
 	}
 	return clsnd;
 }
@@ -54,11 +55,10 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq) {
 			return NULL;
 		}
 
-		hs_data = strFormat(&hs_datalen, "{\"id\":%d,\"ip\":\"%s\",\"port\":%u,\"socktype\":\"%s\",\"connection_num\":%d}",
+		hs_data = strFormat(&hs_datalen, "{\"id\":%d,\"ip\":\"%s\",\"port\":%u,\"socktype\":\"%s\"}",
 			g_Config.clsnd.id,
 			g_Config.clsnd.ip, g_Config.clsnd.port,
-			if_socktype2string(g_Config.clsnd.socktype),
-			g_ConnectionNum);
+			if_socktype2string(g_Config.clsnd.socktype));
 		if (!hs_data)
 			return NULL;
 

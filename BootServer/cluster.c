@@ -258,17 +258,6 @@ ClusterNode_t* targetClusterNode(struct ClusterNodeGroup_t* grp, int mode, unsig
 				dst_clsnd = clsnd;
 		}
 	}
-	else if (CLUSTER_TARGET_USE_CONNECT_NUM == mode) {
-		ListNode_t* cur;
-		dst_clsnd = NULL;
-		for (cur = grp->nodelist.head; cur; cur = cur->next) {
-			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
-			if (clsnd->id == g_Config.clsnd.id)
-				clsnd->connection_num = g_ConnectionNum;
-			if (!dst_clsnd || dst_clsnd->connection_num > clsnd->connection_num)
-				dst_clsnd = clsnd;
-		}
-	}
 	else {
 		return NULL;
 	}
@@ -398,19 +387,6 @@ ClusterNode_t* targetClusterNodeByIp(struct ClusterNodeGroup_t* grp, const IPStr
 			if (strcmp(clsnd->ip, ip))
 				continue;
 			if (!dst_clsnd || dst_clsnd->weight_num < clsnd->weight_num)
-				dst_clsnd = clsnd;
-		}
-	}
-	else if (CLUSTER_TARGET_USE_CONNECT_NUM == mode) {
-		ListNode_t* cur;
-		dst_clsnd = NULL;
-		for (cur = grp->nodelist.head; cur; cur = cur->next) {
-			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
-			if (strcmp(clsnd->ip, ip))
-				continue;
-			if (clsnd->id == g_Config.clsnd.id)
-				clsnd->connection_num = g_ConnectionNum;
-			if (!dst_clsnd || dst_clsnd->connection_num > clsnd->connection_num)
 				dst_clsnd = clsnd;
 		}
 	}

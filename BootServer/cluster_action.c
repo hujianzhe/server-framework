@@ -165,7 +165,7 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 				break;
 			}
 		}
-		if (!cjson_clsnd) {
+		if (cjson_clsnd) {
 			continue;
 		}
 		clsnd->status = CLSND_STATUS_INACTIVE;

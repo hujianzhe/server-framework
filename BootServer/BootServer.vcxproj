@@ -183,6 +183,7 @@
     <ClInclude Include="util\inc\crt\collision_detection.h" />
     <ClInclude Include="util\inc\crt\consistent_hash.h" />
     <ClInclude Include="util\inc\crt\cXML.h" />
+    <ClInclude Include="util\inc\crt\dynarr.h" />
     <ClInclude Include="util\inc\crt\dynbuf.h" />
     <ClInclude Include="util\inc\crt\export_free.h" />
     <ClInclude Include="util\inc\crt\math.h" />

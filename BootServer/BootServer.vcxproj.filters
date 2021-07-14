@@ -246,6 +246,9 @@
     <ClInclude Include="util\inc\crt\export_free.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\crt\dynarr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="channel_imp.c">

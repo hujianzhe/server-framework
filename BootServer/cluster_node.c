@@ -21,8 +21,7 @@ ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned shor
 		else
 			clsnd->ip[0] = 0;
 		clsnd->port = port;
-		clsnd->hashkey = NULL;
-		clsnd->hashkey_cnt = 0;
+		dynarrInitZero(&clsnd->hashkeys);
 		clsnd->weight_num = 0;
 		clsnd->connection_num = 0;
 		clsnd->status = CLSND_STATUS_NORMAL;
@@ -32,7 +31,7 @@ ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned shor
 
 void freeClusterNode(ClusterNode_t* clsnd) {
 	if (clsnd) {
-		free(clsnd->hashkey);
+		dynarrFreeMemory(&clsnd->hashkeys);
 		free(clsnd);
 	}
 }
@@ -86,21 +85,6 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq) {
 		free(hs_data);
 	}
 	return channel;
-}
-
-unsigned int* reallocClusterNodeHashKey(ClusterNode_t* clsnd, unsigned int hashkey_cnt) {
-	unsigned int* hashkey = (unsigned int*)realloc(clsnd->hashkey, sizeof(clsnd->hashkey[0]) * hashkey_cnt);
-	if (hashkey) {
-		if (!clsnd->hashkey) {
-			unsigned int i;
-			for (i = clsnd->hashkey_cnt; i < hashkey_cnt; ++i) {
-				hashkey[i] = 0;
-			}
-		}
-		clsnd->hashkey = hashkey;
-		clsnd->hashkey_cnt = hashkey_cnt;
-	}
-	return hashkey;
 }
 
 #ifdef __cplusplus

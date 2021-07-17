@@ -117,7 +117,6 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 			do {
 				int i;
 				cJSON* key;
-				unsigned int* ptr_key_array;
 				int hashkey_arraylen;
 				if (!hashkey_array) {
 					break;
@@ -126,18 +125,16 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 				if (hashkey_arraylen <= 0) {
 					break;
 				}
-				ptr_key_array = reallocClusterNodeHashKey(clsnd, hashkey_arraylen);
-				if (!ptr_key_array) {
-					freeClusterNode(clsnd);
-					clsnd = NULL;
+				dynarrResetLength(&clsnd->hashkeys, hashkey_arraylen, i);
+				if (!i) {
 					break;
 				}
 				for (i = 0, key = hashkey_array->child; key && i < hashkey_arraylen; key = key->next, ++i) {
 					if (key->valuedouble < 1.0) {
-						ptr_key_array[i] = key->valuedouble * UINT_MAX;
+						clsnd->hashkeys.buf[i] = key->valuedouble * UINT_MAX;
 					}
 					else {
-						ptr_key_array[i] = key->valueint;
+						clsnd->hashkeys.buf[i] = key->valueint;
 					}
 				}
 			} while (0);

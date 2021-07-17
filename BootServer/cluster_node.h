@@ -2,6 +2,7 @@
 #define	CLUSTER_NODE_H
 
 #include "session_struct.h"
+#include "util/inc/crt/dynarr.h"
 
 struct ClusterNodeGroup_t;
 
@@ -21,8 +22,7 @@ typedef struct ClusterNode_t {
 	int socktype;
 	IPString_t ip;
 	unsigned short port;
-	unsigned int* hashkey;
-	unsigned int hashkey_cnt;
+	DynArr_t(unsigned int) hashkeys;
 	int weight_num;
 	int connection_num;
 	int status;
@@ -35,7 +35,6 @@ extern "C" {
 ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned short port);
 void freeClusterNode(ClusterNode_t* clsnd);
 __declspec_dllexport Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq);
-unsigned int* reallocClusterNodeHashKey(ClusterNode_t* clsnd, unsigned int key_arraylen);
 
 #ifdef __cplusplus
 }

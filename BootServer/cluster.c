@@ -40,11 +40,11 @@ static ClusterNodeGroup_t* new_cluster_node_group(const char* name) {
 
 static int cluster_reg_consistenthash(ClusterNodeGroup_t* grp, ClusterNode_t* clsnd) {
 	int i;
-	for (i = 0; i < clsnd->hashkey_cnt; ++i) {
-		if (!consistenthashReg(&grp->consistent_hash, clsnd->hashkey[i], clsnd))
+	for (i = 0; i < clsnd->hashkeys.len; ++i) {
+		if (!consistenthashReg(&grp->consistent_hash, clsnd->hashkeys.buf[i], clsnd))
 			break;
 	}
-	if (i != clsnd->hashkey_cnt) {
+	if (i != clsnd->hashkeys.len) {
 		consistenthashDelValue(&grp->consistent_hash, clsnd);
 		return 0;
 	}

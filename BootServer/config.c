@@ -26,10 +26,7 @@ int initConfig(const char* path) {
 			break;
 		}
 		else {
-			cJSON *name, *id, *socktype, *ip, *port, *readcache_max_size;
-			name = cJSON_Field(cjson, "name");
-			if (!name)
-				break;
+			cJSON *id, *socktype, *ip, *port, *readcache_max_size;
 			id = cJSON_Field(cjson, "id");
 			if (!id)
 				break;
@@ -45,9 +42,6 @@ int initConfig(const char* path) {
 			readcache_max_size = cJSON_Field(cjson, "readcache_max_size");
 			if (readcache_max_size && readcache_max_size->valueint > 0)
 				g_Config.clsnd.readcache_max_size = readcache_max_size->valueint;
-			g_Config.clsnd.name = strdup(name->valuestring);
-			if (!g_Config.clsnd.name)
-				break;
 			g_Config.clsnd.id = id->valueint;
 			g_Config.clsnd.socktype = if_string2socktype(socktype->valuestring);
 			strcpy(g_Config.clsnd.ip, ip->valuestring);
@@ -237,8 +231,6 @@ void freeConfig(void) {
 	for (i = 0; i < g_Config.connect_options_cnt; ++i) {
 		free((char*)g_Config.connect_options[i].protocol);
 	}
-	free((char*)g_Config.clsnd.name);
-	g_Config.clsnd.name = NULL;
 	free(g_Config.connect_options);
 	g_Config.connect_options = NULL;
 	g_Config.connect_options_cnt = 0;

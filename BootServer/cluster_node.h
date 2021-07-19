@@ -2,9 +2,6 @@
 #define	CLUSTER_NODE_H
 
 #include "session_struct.h"
-#include "util/inc/crt/dynarr.h"
-
-struct ClusterNodeGroup_t;
 
 enum {
 	CLSND_STATUS_NORMAL = 0,
@@ -16,14 +13,11 @@ typedef struct ClusterNode_t {
 	ListNode_t m_listnode;
 	ListNode_t m_grp_listnode;
 	HashtableNode_t m_id_htnode;
-	struct ClusterNodeGroup_t* grp;
 	const char* name;
 	int id;
 	int socktype;
 	IPString_t ip;
 	unsigned short port;
-	DynArr_t(unsigned int) hashkeys;
-	int weight_num;
 	int connection_num;
 	int status;
 } ClusterNode_t;

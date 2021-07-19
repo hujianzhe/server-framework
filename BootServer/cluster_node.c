@@ -12,17 +12,16 @@ ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned shor
 	if (clsnd) {
 		initSession(&clsnd->session);
 		clsnd->m_id_htnode.key = (void*)(size_t)id;
-		clsnd->grp = NULL;
 		clsnd->name = "";
 		clsnd->id = id;
 		clsnd->socktype = socktype;
-		if (ip)
+		if (ip) {
 			strcpy(clsnd->ip, ip);
-		else
+		}
+		else {
 			clsnd->ip[0] = 0;
+		}
 		clsnd->port = port;
-		dynarrInitZero(&clsnd->hashkeys);
-		clsnd->weight_num = 0;
 		clsnd->connection_num = 0;
 		clsnd->status = CLSND_STATUS_NORMAL;
 	}
@@ -30,16 +29,14 @@ ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned shor
 }
 
 void freeClusterNode(ClusterNode_t* clsnd) {
-	if (clsnd) {
-		dynarrFreeMemory(&clsnd->hashkeys);
-		free(clsnd);
-	}
+	free(clsnd);
 }
 
 Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq) {
 	Channel_t* channel;
-	if (clsnd->id == g_Config.clsnd.id)
+	if (clsnd->id == g_Config.clsnd.id) {
 		return NULL;
+	}
 	channel = sessionChannel(&clsnd->session);
 	if (!channel) {
 		InnerMsg_t msg;
@@ -54,12 +51,10 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq) {
 			return NULL;
 		}
 
-		hs_data = strFormat(&hs_datalen, "{\"id\":%d,\"ip\":\"%s\",\"port\":%u,\"socktype\":\"%s\"}",
-			g_Config.clsnd.id,
-			g_Config.clsnd.ip, g_Config.clsnd.port,
-			if_socktype2string(g_Config.clsnd.socktype));
-		if (!hs_data)
+		hs_data = strFormat(&hs_datalen, "{\"id\":%d}", g_Config.clsnd.id);
+		if (!hs_data) {
 			return NULL;
+		}
 
 		if (!sockaddrEncode(&saddr.sa, ipstrFamily(clsnd->ip), clsnd->ip, clsnd->port)) {
 			free(hs_data);

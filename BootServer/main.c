@@ -15,7 +15,6 @@ extern "C" {
 #endif
 #endif
 
-
 static void sigintHandler(int signo) {
 	g_Valid = 0;
 	dataqueueWake(&g_TaskThread->dq);
@@ -71,12 +70,12 @@ int main(int argc, char** argv) {
 	}
 #endif
 	// input boot cluster node info
-	logInfo(&g_Log, "module_path(%s) name:%s, socktype:%s, ip:%s, port:%u, pid:%zu",
-		g_Config.module_path ? g_Config.module_path : "", g_Config.clsnd.name,
+	logInfo(&g_Log, "module_path(%s) socktype:%s, ip:%s, port:%u, pid:%zu",
+		g_Config.module_path ? g_Config.module_path : "",
 		if_socktype2string(g_Config.clsnd.socktype), g_Config.clsnd.ip, g_Config.clsnd.port, processId());
 
-	printf("module_path(%s) name:%s, socktype:%s, ip:%s, port:%u, pid:%zu\n",
-		g_Config.module_path ? g_Config.module_path : "", g_Config.clsnd.name,
+	printf("module_path(%s) socktype:%s, ip:%s, port:%u, pid:%zu\n",
+		g_Config.module_path ? g_Config.module_path : "",
 		if_socktype2string(g_Config.clsnd.socktype), g_Config.clsnd.ip, g_Config.clsnd.port, processId());
 	// init cluster data
 	clstbl = newClusterTable();
@@ -101,57 +100,24 @@ int main(int argc, char** argv) {
 			goto err;
 		}
 		free(cluster_table_filedata);
-		clsnd = getClusterNodeFromGroup(
-			getClusterNodeGroup(clstbl, g_Config.clsnd.name),
-			g_Config.clsnd.socktype,
-			g_Config.clsnd.ip,
-			g_Config.clsnd.port
-		);
+		clsnd = getClusterNodeById(clstbl, g_Config.clsnd.id);
 		if (!clsnd || clsnd->id != g_Config.clsnd.id) {
-			fprintf(stderr, "self cluster node isn't find, name:%s, id:%d, socktype:%s, ip:%s, port:%u\n",
-				g_Config.clsnd.name,
+			fprintf(stderr, "self cluster node(id:%d) isn't in cluster table\n", g_Config.clsnd.id);
+			logErr(&g_Log, "self cluster node(id:%d) isn't in cluster table", g_Config.clsnd.id);
+			goto err;
+		}
+		if (clsnd->socktype != g_Config.clsnd.socktype ||
+			clsnd->port != g_Config.clsnd.port ||
+			strcmp(clsnd->ip, g_Config.clsnd.ip))
+		{
+			fprintf(stderr, "self cluster node isn't find, id:%d, socktype:%s, ip:%s, port:%u\n",
 				g_Config.clsnd.id,
 				if_socktype2string(g_Config.clsnd.socktype),
 				g_Config.clsnd.ip,
 				g_Config.clsnd.port
 			);
-			logErr(&g_Log, "self cluster node isn't find, name:%s, id:%d, socktype:%s, ip:%s, port:%u",
-				g_Config.clsnd.name,
+			logErr(&g_Log, "self cluster node isn't find, id:%d, socktype:%s, ip:%s, port:%u",
 				g_Config.clsnd.id,
-				if_socktype2string(g_Config.clsnd.socktype),
-				g_Config.clsnd.ip,
-				g_Config.clsnd.port
-			);
-			goto err;
-		}
-	}
-	else {
-		ClusterNode_t* clsnd;
-		clsnd = newClusterNode(g_Config.clsnd.id, g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port);
-		if (!clsnd) {
-			fprintf(stderr, "new self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
-				g_Config.clsnd.name,
-				if_socktype2string(g_Config.clsnd.socktype),
-				g_Config.clsnd.ip,
-				g_Config.clsnd.port
-			);
-			logErr(&g_Log, "new self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
-				g_Config.clsnd.name,
-				if_socktype2string(g_Config.clsnd.socktype),
-				g_Config.clsnd.ip,
-				g_Config.clsnd.port
-			);
-			goto err;
-		}
-		if (!regClusterNode(clstbl, g_Config.clsnd.name, clsnd)) {
-			fprintf(stderr, "reg self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
-				g_Config.clsnd.name,
-				if_socktype2string(g_Config.clsnd.socktype),
-				g_Config.clsnd.ip,
-				g_Config.clsnd.port
-			);
-			logErr(&g_Log, "reg self cluster node failure, name:%s, socktype:%s, ip:%s, port:%u",
-				g_Config.clsnd.name,
 				if_socktype2string(g_Config.clsnd.socktype),
 				g_Config.clsnd.ip,
 				g_Config.clsnd.port

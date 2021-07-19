@@ -1,6 +1,5 @@
 {
 	"cluster" : {
-		"name" : "so_test_server",
 		"id" : 200,
 		"socktype" : "SOCK_DGRAM",
 		"ip" : "127.0.0.1",

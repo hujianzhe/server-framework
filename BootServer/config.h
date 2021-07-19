@@ -19,7 +19,6 @@ typedef struct Config_t {
 	unsigned int connect_options_cnt;
 	IPString_t outer_ip;
 	struct {
-		const char* name;
 		int id;
 		int socktype;
 		IPString_t ip;

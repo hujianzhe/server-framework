@@ -11,9 +11,7 @@ ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char
 	cJSON* root;
 	ClusterNode_t* clsnd = NULL;
 	do {
-		cJSON *cjson_id, *cjson_socktype, *cjson_ip, *cjson_port, *cjson_conn_num, *cjson_weight_num;
-		int socktype;
-
+		cJSON* cjson_id;
 		root = cJSON_Parse(NULL, json_data);
 		if (!root) {
 			break;
@@ -22,44 +20,18 @@ ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char
 		if (!cjson_id) {
 			break;
 		}
-		cjson_socktype = cJSON_Field(root, "socktype");
-		if (!cjson_socktype) {
-			break;
-		}
-		socktype = if_string2socktype(cjson_socktype->valuestring);
-		cjson_ip = cJSON_Field(root, "ip");
-		if (!cjson_ip) {
-			break;
-		}
-		cjson_port = cJSON_Field(root, "port");
-		if (!cjson_port) {
-			break;
-		}
-		cjson_conn_num = cJSON_Field(root, "connection_num");
-		cjson_weight_num = cJSON_Field(root, "weight_num");
-
 		clsnd = getClusterNodeById(t, cjson_id->valueint);
 		if (!clsnd) {
 			break;
 		}
-		if (clsnd->socktype != socktype ||
-			clsnd->port != cjson_port->valueint ||
-			strcmp(clsnd->ip, cjson_ip->valuestring))
-		{
-			clsnd = NULL;
-			break;
-		}
-		if (cjson_conn_num && cjson_conn_num->valueint > 0)
-			clsnd->connection_num = cjson_conn_num->valueint;
-		if (cjson_weight_num && cjson_weight_num->valueint >= 0)
-			clsnd->weight_num = cjson_weight_num->valueint;
 	} while (0);
 	cJSON_Delete(root);
 	return clsnd;
 }
 
 struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, const char* json_data, const char** errmsg) {
-	ListNode_t* listnode_cur;
+	DynArr_t(struct ClusterNodeGroup_t*) new_grps = { 0 };
+	List_t new_clsnds;
 	cJSON* cjson_cluster_nodes, *cjson_clsnd;
 	cJSON* root = cJSON_Parse(NULL, json_data);
 	if (!root) {
@@ -73,10 +45,14 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 		return NULL;
 	}
 	*errmsg = NULL;
+	listInit(&new_clsnds);
 	for (cjson_clsnd = cjson_cluster_nodes->child; cjson_clsnd; cjson_clsnd = cjson_clsnd->next) {
 		ClusterNode_t* clsnd;
+		struct ClusterNodeGroup_t* grp;
 		cJSON *name, *id, *cjson_socktype, *ip, *port, *hashkey_array, *weight_num;
 		int socktype;
+		int ret_ok;
+		size_t i;
 
 		name = cJSON_Field(cjson_clsnd, "name");
 		if (!name || !name->valuestring || !name->valuestring[0])
@@ -99,11 +75,27 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 		weight_num = cJSON_Field(cjson_clsnd, "weight_num");
 		hashkey_array = cJSON_Field(cjson_clsnd, "hash_key");
 
+		ret_ok = 1;
+		grp = NULL;
+		for (i = 0; i < new_grps.len; ++i) {
+			if (!strcmp(new_grps.buf[i]->m_htnode.key, name->valuestring)) {
+				grp = new_grps.buf[i];
+				break;
+			}
+		}
+		if (!grp) {
+			grp = newClusterNodeGroup(name->valuestring);
+			if (!grp) {
+				break;
+			}
+			dynarrInsert(&new_grps, new_grps.len, grp, ret_ok);
+			if (!ret_ok) {
+				break;
+			}
+		}
+
 		clsnd = getClusterNodeById(t, id->valueint);
 		if (clsnd) {
-			if (weight_num) {
-				clsnd->weight_num = weight_num->valueint;
-			}
 			clsnd->status = CLSND_STATUS_NORMAL;
 		}
 		else {
@@ -111,63 +103,57 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 			if (!clsnd) {
 				break;
 			}
-			if (weight_num) {
-				clsnd->weight_num = weight_num->valueint;
-			}
-			do {
-				int i;
-				cJSON* key;
-				int hashkey_arraylen;
-				if (!hashkey_array) {
-					break;
-				}
-				hashkey_arraylen = cJSON_Size(hashkey_array);
-				if (hashkey_arraylen <= 0) {
-					break;
-				}
-				dynarrResetLength(&clsnd->hashkeys, hashkey_arraylen, i);
-				if (!i) {
-					break;
-				}
-				for (i = 0, key = hashkey_array->child; key && i < hashkey_arraylen; key = key->next, ++i) {
-					if (key->valuedouble < 1.0) {
-						clsnd->hashkeys.buf[i] = key->valuedouble * UINT_MAX;
-					}
-					else {
-						clsnd->hashkeys.buf[i] = key->valueint;
-					}
-				}
-			} while (0);
-			if (!clsnd) {
+			listPushNodeBack(&new_clsnds, &clsnd->m_listnode);
+		}
+		if (!regClusterNodeToGroup(grp, clsnd)) {
+			break;
+		}
+		do {
+			cJSON* key;
+			int hashkey_arrlen;
+			if (!hashkey_array) {
 				break;
 			}
-			if (!regClusterNode(t, name->valuestring, clsnd)) {
-				freeClusterNode(clsnd);
+			hashkey_arrlen = cJSON_Size(hashkey_array);
+			if (hashkey_arrlen <= 0) {
 				break;
 			}
+			for (key = hashkey_array->child; key; key = key->next) {
+				unsigned int hashkey;
+				if (key->valuedouble < 1.0) {
+					hashkey = key->valuedouble * UINT_MAX;
+				}
+				else {
+					hashkey = key->valueint;
+				}
+				if (!consistenthashReg(&grp->consistent_hash, hashkey, clsnd)) {
+					ret_ok = 0;
+					break;
+				}
+			}
+		} while (0);
+		if (!ret_ok) {
+			break;
 		}
 	}
 	if (cjson_clsnd) {
+		size_t i;
+		ListNode_t* cur, *next;
+		for (cur = new_clsnds.head; cur; cur = next) {
+			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_listnode);
+			next = cur->next;
+			freeClusterNode(clsnd);
+		}
 		cJSON_Delete(root);
+		for (i = 0; i < new_grps.len; ++i) {
+			freeClusterNodeGroup(new_grps.buf[i]);
+		}
+		dynarrFreeMemory(&new_grps);
 		return NULL;
 	}
-	for (listnode_cur = getClusterNodeList(t)->head; listnode_cur; listnode_cur = listnode_cur->next) {
-		ClusterNode_t* clsnd = pod_container_of(listnode_cur, ClusterNode_t, m_listnode);
-		for (cjson_clsnd = cjson_cluster_nodes->child; cjson_clsnd; cjson_clsnd = cjson_clsnd->next) {
-			cJSON* id = cJSON_Field(cjson_clsnd, "id");
-			if (!id) {
-				continue;
-			}
-			if (id->valueint == clsnd->id) {
-				break;
-			}
-		}
-		if (cjson_clsnd) {
-			continue;
-		}
-		clsnd->status = CLSND_STATUS_INACTIVE;
-	}
+	replaceClusterNodeGroup(t, new_grps.buf, new_grps.len);
 	cJSON_Delete(root);
+	dynarrFreeMemory(&new_grps);
 	return t;
 }
 

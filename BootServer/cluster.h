@@ -17,6 +17,7 @@ struct TaskThread_t;
 
 typedef struct ClusterNodeGroup_t {
 	HashtableNode_t m_htnode;
+	const char* name;
 	ConsistentHash_t consistent_hash;
 	DynArr_t(ClusterNode_t*) clsnds;
 	unsigned int target_loopcnt;

@@ -28,11 +28,12 @@ struct ClusterNodeGroup_t* newClusterNodeGroup(const char* name) {
 	if (!grp) {
 		return NULL;
 	}
-	grp->m_htnode.key = strdup(name);
-	if (!grp->m_htnode.key) {
+	grp->name = strdup(name);
+	if (!grp->name) {
 		free(grp);
 		return NULL;
 	}
+	grp->m_htnode.key = name;
 	consistenthashInit(&grp->consistent_hash);
 	dynarrInitZero(&grp->clsnds);
 	grp->target_loopcnt = 0;
@@ -46,7 +47,7 @@ int regClusterNodeToGroup(struct ClusterNodeGroup_t* grp, ClusterNode_t* clsnd) 
 }
 
 void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp) {
-	free((void*)grp->m_htnode.key);
+	free((void*)grp->name);
 	consistenthashFree(&grp->consistent_hash);
 	free(grp);
 }

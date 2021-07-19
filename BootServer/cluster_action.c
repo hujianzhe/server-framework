@@ -78,7 +78,7 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 		ret_ok = 1;
 		grp = NULL;
 		for (i = 0; i < new_grps.len; ++i) {
-			if (!strcmp(new_grps.buf[i]->m_htnode.key, name->valuestring)) {
+			if (!strcmp(new_grps.buf[i]->name, name->valuestring)) {
 				grp = new_grps.buf[i];
 				break;
 			}

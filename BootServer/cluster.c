@@ -33,7 +33,7 @@ struct ClusterNodeGroup_t* newClusterNodeGroup(const char* name) {
 		free(grp);
 		return NULL;
 	}
-	grp->m_htnode.key = name;
+	grp->m_htnode.key = grp->name;
 	consistenthashInit(&grp->consistent_hash);
 	dynarrInitZero(&grp->clsnds);
 	grp->target_loopcnt = 0;

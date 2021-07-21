@@ -99,11 +99,21 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 			clsnd->status = CLSND_STATUS_NORMAL;
 		}
 		else {
-			clsnd = newClusterNode(id->valueint, socktype, ip->valuestring, port->valueint);
-			if (!clsnd) {
-				break;
+			ListNode_t* lcur;
+			for (lcur = new_clsnds.head; lcur; lcur = lcur->next) {
+				ClusterNode_t* obj = pod_container_of(lcur, ClusterNode_t, m_listnode);
+				if (id->valueint == obj->id) {
+					clsnd = obj;
+					break;
+				}
 			}
-			listPushNodeBack(&new_clsnds, &clsnd->m_listnode);
+			if (!clsnd) {
+				clsnd = newClusterNode(id->valueint, socktype, ip->valuestring, port->valueint);
+				if (!clsnd) {
+					break;
+				}
+				listPushNodeBack(&new_clsnds, &clsnd->m_listnode);
+			}
 		}
 		if (!regClusterNodeToGroup(grp, clsnd)) {
 			break;

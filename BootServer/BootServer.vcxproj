@@ -249,6 +249,7 @@
     <ClCompile Include="util\src\crt\collision_detection.c" />
     <ClCompile Include="util\src\crt\consistent_hash.c" />
     <ClCompile Include="util\src\crt\cXML.c" />
+    <ClCompile Include="util\src\crt\dynarr.c" />
     <ClCompile Include="util\src\crt\dynbuf.c" />
     <ClCompile Include="util\src\crt\export_free.c" />
     <ClCompile Include="util\src\crt\math.c" />

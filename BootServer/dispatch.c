@@ -6,12 +6,6 @@ typedef struct DispatchItem_t {
 	DispatchCallback_t func;
 } DispatchItem_t;
 
-static int __numkeycmp(const void* node_key, const void* key) { return node_key != key; }
-static unsigned int __numkeyhash(const void* key) { return (ptrlen_t)key; }
-
-static int __strkeycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
-static unsigned int __strkeyhash(const void* key) { return hashBKDR((const char*)key); }
-
 static void free_user_msg(UserMsg_t* msg) {
 	if (USER_MSG_EXTRA_HTTP_FRAME == msg->param.type) {
 		free(httpframeReset(msg->param.httpframe));
@@ -55,16 +49,16 @@ Dispatch_t* newDispatch(void) {
 			&dispatch->s_NumberDispatchTable,
 			dispatch->s_NumberDispatchBulk,
 			sizeof(dispatch->s_NumberDispatchBulk) / sizeof(dispatch->s_NumberDispatchBulk[0]),
-			__numkeycmp,
-			__numkeyhash
+			hashtableDefaultKeyCmp,
+			hashtableDefaultKeyHash
 		);
 
 		hashtableInit(
 			&dispatch->s_StringDispatchTable,
 			dispatch->s_StringDispatchBulk,
 			sizeof(dispatch->s_StringDispatchBulk) / sizeof(dispatch->s_StringDispatchBulk[0]),
-			__strkeycmp,
-			__strkeyhash
+			hashtableDefaultKeyCmpStr,
+			hashtableDefaultKeyHashStr
 		);
 	}
 	return dispatch;

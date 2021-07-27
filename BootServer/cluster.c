@@ -11,9 +11,6 @@ typedef struct ClusterTable_t {
 	HashtableNode_t* id_bulk[32];
 } ClusterTable_t;
 
-static int __grp_name_keycmp(const void* node_key, const void* key) { return strcmp((const char*)node_key, (const char*)key); }
-static unsigned int __grp_name_keyhash(const void* key) { return hashBKDR((const char*)key); }
-
 static struct ClusterNodeGroup_t* get_cluster_node_group(struct ClusterTable_t* t, const char* grp_name) {
 	HashtableNode_t* htnode = hashtableSearchKey(&t->grp_table, grp_name);
 	return htnode ? pod_container_of(htnode, ClusterNodeGroup_t, m_htnode) : NULL;
@@ -60,7 +57,7 @@ void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t
 		nexthtnode = hashtableNextNode(curhtnode);
 		freeClusterNodeGroup(grp);
 	}
-	hashtableInit(&t->grp_table, t->grp_bulk, sizeof(t->grp_bulk) / sizeof(t->grp_bulk[0]), __grp_name_keycmp, __grp_name_keyhash);
+	hashtableInit(&t->grp_table, t->grp_bulk, sizeof(t->grp_bulk) / sizeof(t->grp_bulk[0]), hashtableDefaultKeyCmpStr, hashtableDefaultKeyHashStr);
 	for (i = 0; i < grp_cnt; ++i) {
 		size_t j;
 		ClusterNodeGroup_t* grp = grps[i];
@@ -80,8 +77,8 @@ void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t
 struct ClusterTable_t* newClusterTable(void) {
 	ClusterTable_t* t = (ClusterTable_t*)malloc(sizeof(ClusterTable_t));
 	if (t) {
-		hashtableInit(&t->grp_table, t->grp_bulk, sizeof(t->grp_bulk) / sizeof(t->grp_bulk[0]), __grp_name_keycmp, __grp_name_keyhash);
-		hashtableInit(&t->id_table, t->id_bulk, sizeof(t->id_bulk) / sizeof(t->id_bulk[0]), NULL, NULL);
+		hashtableInit(&t->grp_table, t->grp_bulk, sizeof(t->grp_bulk) / sizeof(t->grp_bulk[0]), hashtableDefaultKeyCmpStr, hashtableDefaultKeyHashStr);
+		hashtableInit(&t->id_table, t->id_bulk, sizeof(t->id_bulk) / sizeof(t->id_bulk[0]), hashtableDefaultKeyCmp, hashtableDefaultKeyHash);
 		listInit(&t->nodelist);
 	}
 	return t;

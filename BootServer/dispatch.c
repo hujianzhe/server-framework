@@ -49,8 +49,8 @@ Dispatch_t* newDispatch(void) {
 			&dispatch->s_NumberDispatchTable,
 			dispatch->s_NumberDispatchBulk,
 			sizeof(dispatch->s_NumberDispatchBulk) / sizeof(dispatch->s_NumberDispatchBulk[0]),
-			hashtableDefaultKeyCmp,
-			hashtableDefaultKeyHash
+			hashtableDefaultKeyCmp32,
+			hashtableDefaultKeyHash32
 		);
 
 		hashtableInit(
@@ -75,7 +75,7 @@ int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchCallback_t 
 	}
 	else {
 		HashtableNode_t* exist_node;
-		item->m_hashnode.key = str;
+		item->m_hashnode.key.ptr = str;
 		item->func = func;
 		exist_node = hashtableInsertNode(&dispatch->s_StringDispatchTable, &item->m_hashnode);
 		if (exist_node != &item->m_hashnode) {
@@ -90,7 +90,7 @@ int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchCallback_t func) {
 	DispatchItem_t* item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
 	if (item) {
 		HashtableNode_t* exist_node;
-		item->m_hashnode.key = (void*)(size_t)cmd;
+		item->m_hashnode.key.i32 = cmd;
 		item->func = func;
 		exist_node = hashtableInsertNode(&dispatch->s_NumberDispatchTable, &item->m_hashnode);
 		if (exist_node != &item->m_hashnode) {
@@ -103,7 +103,10 @@ int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchCallback_t func) {
 }
 
 DispatchCallback_t getStringDispatch(Dispatch_t* dispatch, const char* str) {
-	HashtableNode_t* node = hashtableSearchKey(&dispatch->s_StringDispatchTable, str);
+	HashtableNodeKey_t hkey;
+	HashtableNode_t* node;
+	hkey.ptr = str;
+	node = hashtableSearchKey(&dispatch->s_StringDispatchTable, hkey);
 	if (node) {
 		return pod_container_of(node, DispatchItem_t, m_hashnode)->func;
 	}
@@ -111,7 +114,10 @@ DispatchCallback_t getStringDispatch(Dispatch_t* dispatch, const char* str) {
 }
 
 DispatchCallback_t getNumberDispatch(Dispatch_t* dispatch, int cmd) {
-	HashtableNode_t* node = hashtableSearchKey(&dispatch->s_NumberDispatchTable, (void*)(size_t)cmd);
+	HashtableNodeKey_t hkey;
+	HashtableNode_t* node;
+	hkey.i32 = cmd;
+	node = hashtableSearchKey(&dispatch->s_NumberDispatchTable, hkey);
 	if (node) {
 		return pod_container_of(node, DispatchItem_t, m_hashnode)->func;
 	}
@@ -130,7 +136,7 @@ void freeDispatch(Dispatch_t* dispatch) {
 		cur = hashtableFirstNode(&dispatch->s_StringDispatchTable);
 		while (cur) {
 			HashtableNode_t* next = hashtableNextNode(cur);
-			free((void*)cur->key);
+			free((void*)(cur->key.ptr));
 			free(pod_container_of(cur, DispatchItem_t, m_hashnode));
 			cur = next;
 		}

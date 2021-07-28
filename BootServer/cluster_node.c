@@ -11,7 +11,7 @@ ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned shor
 	ClusterNode_t* clsnd = (ClusterNode_t*)malloc(sizeof(ClusterNode_t));
 	if (clsnd) {
 		initSession(&clsnd->session);
-		clsnd->m_id_htnode.key = (void*)(size_t)id;
+		clsnd->m_id_htnode.key.i32 = id;
 		clsnd->id = id;
 		clsnd->socktype = socktype;
 		if (ip) {

@@ -12,7 +12,10 @@ typedef struct ClusterTable_t {
 } ClusterTable_t;
 
 static struct ClusterNodeGroup_t* get_cluster_node_group(struct ClusterTable_t* t, const char* grp_name) {
-	HashtableNode_t* htnode = hashtableSearchKey(&t->grp_table, grp_name);
+	HashtableNodeKey_t hkey;
+	HashtableNode_t* htnode;
+	hkey.ptr = grp_name;
+	htnode = hashtableSearchKey(&t->grp_table, hkey);
 	return htnode ? pod_container_of(htnode, ClusterNodeGroup_t, m_htnode) : NULL;
 }
 
@@ -30,7 +33,7 @@ struct ClusterNodeGroup_t* newClusterNodeGroup(const char* name) {
 		free(grp);
 		return NULL;
 	}
-	grp->m_htnode.key = grp->name;
+	grp->m_htnode.key.ptr = grp->name;
 	consistenthashInit(&grp->consistent_hash);
 	dynarrInitZero(&grp->clsnds);
 	grp->target_loopcnt = 0;
@@ -78,14 +81,17 @@ struct ClusterTable_t* newClusterTable(void) {
 	ClusterTable_t* t = (ClusterTable_t*)malloc(sizeof(ClusterTable_t));
 	if (t) {
 		hashtableInit(&t->grp_table, t->grp_bulk, sizeof(t->grp_bulk) / sizeof(t->grp_bulk[0]), hashtableDefaultKeyCmpStr, hashtableDefaultKeyHashStr);
-		hashtableInit(&t->id_table, t->id_bulk, sizeof(t->id_bulk) / sizeof(t->id_bulk[0]), hashtableDefaultKeyCmp, hashtableDefaultKeyHash);
+		hashtableInit(&t->id_table, t->id_bulk, sizeof(t->id_bulk) / sizeof(t->id_bulk[0]), hashtableDefaultKeyCmp32, hashtableDefaultKeyHash32);
 		listInit(&t->nodelist);
 	}
 	return t;
 }
 
 ClusterNode_t* getClusterNodeById(struct ClusterTable_t* t, int clsnd_id) {
-	HashtableNode_t* htnode = hashtableSearchKey(&t->id_table, (void*)(size_t)clsnd_id);
+	HashtableNodeKey_t hkey;
+	HashtableNode_t* htnode;
+	hkey.i32 = clsnd_id;
+	htnode = hashtableSearchKey(&t->id_table, hkey);
 	return htnode ? pod_container_of(htnode, ClusterNode_t, m_id_htnode) : NULL;
 }
 

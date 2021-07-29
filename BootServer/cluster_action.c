@@ -172,6 +172,11 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 				break;
 			}
 			for (key = hashkey_array->child; key; key = key->next) {
+				struct {
+					RBTreeNode_t _;
+					ClusterNode_t* clsnd;
+				} *data;
+				RBTreeNode_t* exist_node;
 				unsigned int hashkey;
 				if (key->valuedouble < 1.0) {
 					hashkey = key->valuedouble * UINT_MAX;
@@ -179,9 +184,17 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 				else {
 					hashkey = key->valueint;
 				}
-				if (!consistenthashReg(&grp->consistent_hash, hashkey, clsnd)) {
+				*(void**)&data = malloc(sizeof(*data));
+				if (!data) {
 					ret_ok = 0;
 					break;
+				}
+				data->_.key.u32 = hashkey;
+				data->clsnd = clsnd;
+				exist_node = rbtreeInsertNode(&grp->consistent_hash_ring, &data->_);
+				if (exist_node != &data->_) {
+					free(exist_node);
+					rbtreeReplaceNode(exist_node, &data->_);
 				}
 			}
 		} while (0);

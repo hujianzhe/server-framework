@@ -34,7 +34,7 @@ struct ClusterNodeGroup_t* newClusterNodeGroup(const char* name) {
 		return NULL;
 	}
 	grp->m_htnode.key.ptr = grp->name;
-	consistenthashInit(&grp->consistent_hash);
+	rbtreeInit(&grp->consistent_hash_ring, rbtreeDefaultKeyCmpU32);
 	dynarrInitZero(&grp->clsnds);
 	grp->target_loopcnt = 0;
 	return grp;
@@ -47,8 +47,12 @@ int regClusterNodeToGroup(struct ClusterNodeGroup_t* grp, ClusterNode_t* clsnd) 
 }
 
 void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp) {
+	RBTreeNode_t* tcur, * tnext;
+	for (tcur = rbtreeFirstNode(&grp->consistent_hash_ring); tcur; tcur = tnext) {
+		tnext = rbtreeNextNode(tcur);
+		free(tcur);
+	}
 	free((void*)grp->name);
-	consistenthashFree(&grp->consistent_hash);
 	free(grp);
 }
 
@@ -122,7 +126,22 @@ ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name,
 		return NULL;
 	}
 	if (CLUSTER_TARGET_USE_HASH_RING == mode) {
-		dst_clsnd = (ClusterNode_t*)consistenthashSelect(&grp->consistent_hash, key);
+		RBTreeNodeKey_t rkey;
+		RBTreeNode_t* exist_node;
+		struct {
+			RBTreeNode_t _;
+			ClusterNode_t* clsnd;
+		} *data;
+		rkey.u32 = key;
+		exist_node = rbtreeUpperBoundKey(&grp->consistent_hash_ring, rkey);
+		if (!exist_node) {
+			exist_node = rbtreeFirstNode(&grp->consistent_hash_ring);
+			if (!exist_node) {
+				return NULL;
+			}
+		}
+		*(void**)&data = exist_node;
+		dst_clsnd = data->clsnd;
 	}
 	else if (CLUSTER_TARGET_USE_HASH_MOD == mode) {
 		if (grp->clsnds.len <= 0) {

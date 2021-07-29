@@ -3,6 +3,7 @@
 
 #include "cluster_node.h"
 #include "util/inc/crt/dynarr.h"
+#include "util/inc/datastruct/rbtree.h"
 
 #define	CLUSTER_TARGET_USE_HASH_MOD			1
 #define	CLUSTER_TARGET_USE_HASH_RING		2
@@ -18,7 +19,7 @@ struct TaskThread_t;
 typedef struct ClusterNodeGroup_t {
 	HashtableNode_t m_htnode;
 	const char* name;
-	ConsistentHash_t consistent_hash;
+	RBTree_t consistent_hash_ring;
 	DynArr_t(ClusterNode_t*) clsnds;
 	unsigned int target_loopcnt;
 } ClusterNodeGroup_t;

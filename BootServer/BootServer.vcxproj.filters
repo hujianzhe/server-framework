@@ -111,9 +111,6 @@
     <ClInclude Include="util\inc\crt\collision_detection.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\crt\consistent_hash.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\crt\cXML.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -324,9 +321,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\collision_detection.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\consistent_hash.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\cXML.c">

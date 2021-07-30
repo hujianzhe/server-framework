@@ -9,9 +9,7 @@
 #define	CLUSTER_TARGET_USE_HASH_RING		2
 #define	CLUSTER_TARGET_USE_ROUND_ROBIN		3
 #define	CLUSTER_TARGET_USE_WEIGHT_RANDOM	4
-#define	CLUSTER_TARGET_USE_WEIGHT_MIN		6
-#define	CLUSTER_TARGET_USE_WEIGHT_MAX		7
-#define	CLUSTER_TARGET_USE_RANDOM			8
+#define	CLUSTER_TARGET_USE_RANDOM			5
 
 struct ClusterTable_t;
 struct TaskThread_t;
@@ -19,9 +17,11 @@ struct TaskThread_t;
 typedef struct ClusterNodeGroup_t {
 	HashtableNode_t m_htnode;
 	const char* name;
+	RBTree_t weight_num_ring;
 	RBTree_t consistent_hash_ring;
 	DynArr_t(ClusterNode_t*) clsnds;
 	unsigned int target_loopcnt;
+	unsigned int total_weight;
 } ClusterNodeGroup_t;
 
 #ifdef __cplusplus

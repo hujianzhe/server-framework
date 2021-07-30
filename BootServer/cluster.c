@@ -34,9 +34,11 @@ struct ClusterNodeGroup_t* newClusterNodeGroup(const char* name) {
 		return NULL;
 	}
 	grp->m_htnode.key.ptr = grp->name;
+	rbtreeInit(&grp->weight_num_ring, rbtreeDefaultKeyCmpU32);
 	rbtreeInit(&grp->consistent_hash_ring, rbtreeDefaultKeyCmpU32);
 	dynarrInitZero(&grp->clsnds);
 	grp->target_loopcnt = 0;
+	grp->total_weight = 0;
 	return grp;
 }
 
@@ -48,6 +50,10 @@ int regClusterNodeToGroup(struct ClusterNodeGroup_t* grp, ClusterNode_t* clsnd) 
 
 void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp) {
 	RBTreeNode_t* tcur, * tnext;
+	for (tcur = rbtreeFirstNode(&grp->weight_num_ring); tcur; tcur = tnext) {
+		tnext = rbtreeNextNode(tcur);
+		free(tcur);
+	}
 	for (tcur = rbtreeFirstNode(&grp->consistent_hash_ring); tcur; tcur = tnext) {
 		tnext = rbtreeNextNode(tcur);
 		free(tcur);
@@ -170,55 +176,27 @@ ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name,
 		random_val = mt19937Range(&mt_ctx, 0, grp->clsnds.len);
 		dst_clsnd = grp->clsnds.buf[random_val];
 	}
-	/*
 	else if (CLUSTER_TARGET_USE_WEIGHT_RANDOM == mode) {
 		static int mt_seedval = 1;
-		int random_val;
 		RandMT19937_t mt_ctx;
-		int weight_num = 0;
-		ListNode_t* cur;
-		for (cur = grp->nodelist.head; cur; cur = cur->next) {
-			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
-			if (clsnd->weight_num <= 0)
-				continue;
-			weight_num += clsnd->weight_num;
-		}
-		if (0 == weight_num)
+		RBTreeNodeKey_t rkey;
+		RBTreeNode_t* exist_node;
+		struct {
+			RBTreeNode_t _;
+			ClusterNode_t* clsnd;
+		} *data;
+		if (grp->total_weight <= 0) {
 			return NULL;
+		}
 		mt19937Seed(&mt_ctx, mt_seedval++);
-		random_val = mt19937Range(&mt_ctx, 0, weight_num);
-		weight_num = 0;
-		dst_clsnd = NULL;
-		for (cur = grp->nodelist.head; cur; cur = cur->next) {
-			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
-			if (clsnd->weight_num <= 0)
-				continue;
-			weight_num += clsnd->weight_num;
-			if (random_val < weight_num) {
-				dst_clsnd = clsnd;
-				break;
-			}
+		rkey.u32 = mt19937Range(&mt_ctx, 0, grp->total_weight);
+		exist_node = rbtreeUpperBoundKey(&grp->weight_num_ring, rkey);
+		if (!exist_node) {
+			return NULL;
 		}
+		*(void**)&data = exist_node;
+		dst_clsnd = data->clsnd;
 	}
-	else if (CLUSTER_TARGET_USE_WEIGHT_MIN == mode) {
-		ListNode_t* cur;
-		dst_clsnd = NULL;
-		for (cur = grp->nodelist.head; cur; cur = cur->next) {
-			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
-			if (!dst_clsnd || dst_clsnd->weight_num > clsnd->weight_num)
-				dst_clsnd = clsnd;
-		}
-	}
-	else if (CLUSTER_TARGET_USE_WEIGHT_MAX == mode) {
-		ListNode_t* cur;
-		dst_clsnd = NULL;
-		for (cur = grp->nodelist.head; cur; cur = cur->next) {
-			ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_grp_listnode);
-			if (!dst_clsnd || dst_clsnd->weight_num < clsnd->weight_num)
-				dst_clsnd = clsnd;
-		}
-	}
-	*/
 	else {
 		return NULL;
 	}

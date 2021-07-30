@@ -198,6 +198,24 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 				}
 			}
 		} while (0);
+		do {
+			struct {
+				RBTreeNode_t _;
+				ClusterNode_t* clsnd;
+			} *data;
+			if (!weight_num || weight_num->valueint <= 0) {
+				break;
+			}
+			*(void**)&data = malloc(sizeof(*data));
+			if (!data) {
+				ret_ok = 0;
+				break;
+			}
+			grp->total_weight += weight_num->valueint;
+			data->_.key.u32 = grp->total_weight;
+			data->clsnd = clsnd;
+			rbtreeInsertNode(&grp->weight_num_ring, &data->_);
+		} while (0);
 		if (!ret_ok) {
 			break;
 		}

@@ -251,7 +251,6 @@
     <ClCompile Include="util\src\crt\dynbuf.c" />
     <ClCompile Include="util\src\crt\export_free.c" />
     <ClCompile Include="util\src\crt\math.c" />
-    <ClCompile Include="util\src\datastruct\arrheap.c" />
     <ClCompile Include="util\src\datastruct\base64.c" />
     <ClCompile Include="util\src\datastruct\bstree.c" />
     <ClCompile Include="util\src\datastruct\graph.c" />

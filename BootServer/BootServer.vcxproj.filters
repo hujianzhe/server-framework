@@ -413,9 +413,6 @@
     <ClCompile Include="util\src\datastruct\md5.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\datastruct\arrheap.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="util\src\datastruct\lengthfieldframe.c">
       <Filter>源文件</Filter>
     </ClCompile>

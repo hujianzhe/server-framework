@@ -45,7 +45,7 @@ static void websocket_recv(Channel_t* c, const struct sockaddr* addr, ChannelInb
 		if (ptr_g_Config()->enqueue_timeout_msec > 0) {
 			message->enqueue_time_msec = gmtimeMillisecond();
 		}
-		dataqueuePush(&ptr_g_TaskThread()->dq, &message->internal._);
+		dataqueuePush(channelUserData(c)->dq, &message->internal._);
 	}
 	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
 		channelSend(c, NULL, 0, NETPACKET_NO_ACK_FRAGMENT);

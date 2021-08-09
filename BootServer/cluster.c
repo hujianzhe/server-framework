@@ -52,10 +52,12 @@ void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp) {
 	RBTreeNode_t* tcur, * tnext;
 	for (tcur = rbtreeFirstNode(&grp->weight_num_ring); tcur; tcur = tnext) {
 		tnext = rbtreeNextNode(tcur);
+		rbtreeRemoveNode(&grp->weight_num_ring, tcur);
 		free(tcur);
 	}
 	for (tcur = rbtreeFirstNode(&grp->consistent_hash_ring); tcur; tcur = tnext) {
 		tnext = rbtreeNextNode(tcur);
+		rbtreeRemoveNode(&grp->consistent_hash_ring, tcur);
 		free(tcur);
 	}
 	free((void*)grp->name);

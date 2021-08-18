@@ -12,7 +12,6 @@
 #define	CLUSTER_TARGET_USE_RANDOM			5
 
 struct ClusterTable_t;
-struct TaskThread_t;
 
 typedef struct ClusterNodeGroup_t {
 	HashtableNode_t m_htnode;
@@ -39,8 +38,8 @@ void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp);
 void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t** grps, size_t grp_cnt);
 
 __declspec_dllexport ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name, int mode, unsigned int key);
-__declspec_dllexport void broadcastClusterGroup(struct TaskThread_t* thrd, struct ClusterNodeGroup_t* grp, const Iobuf_t iov[], unsigned int iovcnt);
-__declspec_dllexport void broadcastClusterTable(struct TaskThread_t* thrd, struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt);
+__declspec_dllexport void broadcastClusterGroup(struct DataQueue_t* dq, struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt);
+__declspec_dllexport void broadcastClusterTable(struct DataQueue_t* dq, struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt);
 
 #ifdef __cplusplus
 }

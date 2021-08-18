@@ -3,6 +3,8 @@
 
 #include "session_struct.h"
 
+struct DataQueue_t;
+
 enum {
 	CLSND_STATUS_NORMAL = 0,
 	CLSND_STATUS_INACTIVE = 1

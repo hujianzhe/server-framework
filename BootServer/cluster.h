@@ -12,13 +12,14 @@
 #define	CLUSTER_TARGET_USE_RANDOM			5
 
 struct ClusterTable_t;
+typedef DynArr_t(ClusterNode_t*) DynArrClusterNodePtr_t;
 
 typedef struct ClusterNodeGroup_t {
 	HashtableNode_t m_htnode;
 	const char* name;
 	RBTree_t weight_num_ring;
 	RBTree_t consistent_hash_ring;
-	DynArr_t(ClusterNode_t*) clsnds;
+	DynArrClusterNodePtr_t clsnds;
 	unsigned int target_loopcnt;
 	unsigned int total_weight;
 } ClusterNodeGroup_t;
@@ -29,7 +30,8 @@ extern "C" {
 
 __declspec_dllexport struct ClusterTable_t* newClusterTable(void);
 __declspec_dllexport ClusterNode_t* getClusterNodeById(struct ClusterTable_t* t, int clsnd_id);
-__declspec_dllexport List_t* getClusterNodeList(struct ClusterTable_t* t);
+__declspec_dllexport void getClusterNodes(struct ClusterTable_t* t, DynArrClusterNodePtr_t* v);
+__declspec_dllexport void getClusterGroupNodes(struct ClusterTable_t* t, const char* grp_name, DynArrClusterNodePtr_t* v);
 __declspec_dllexport void freeClusterTable(struct ClusterTable_t* t);
 
 struct ClusterNodeGroup_t* newClusterNodeGroup(const char* name);

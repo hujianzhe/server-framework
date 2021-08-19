@@ -107,7 +107,26 @@ ClusterNode_t* getClusterNodeById(struct ClusterTable_t* t, int clsnd_id) {
 	return htnode ? pod_container_of(htnode, ClusterNode_t, m_id_htnode) : NULL;
 }
 
-List_t* getClusterNodeList(struct ClusterTable_t* t) { return &t->nodelist; }
+void getClusterNodes(struct ClusterTable_t* t, DynArrClusterNodePtr_t* v) {
+	ListNode_t* cur;
+	for (cur = t->nodelist.head; cur; cur = cur->next) {
+		ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_listnode);
+		int ret_ok;
+		dynarrInsert(v, v->len, clsnd, ret_ok);
+		if (!ret_ok) {
+			break;
+		}
+	}
+}
+
+void getClusterGroupNodes(struct ClusterTable_t* t, const char* grp_name, DynArrClusterNodePtr_t* v) {
+	int ret_ok;
+	ClusterNodeGroup_t* grp = get_cluster_node_group(t, grp_name);
+	if (!grp) {
+		return;
+	}
+	dynarrCopyAppend(v, grp->clsnds.buf, grp->clsnds.len, ret_ok);
+}
 
 void freeClusterTable(struct ClusterTable_t* t) {
 	if (t) {

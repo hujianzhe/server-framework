@@ -1,5 +1,5 @@
-#ifndef	CLUSTER_ACTION_H
-#define	CLUSTER_ACTION_H
+#ifndef	BOOT_SERVER_CLUSTER_ACTION_H
+#define	BOOT_SERVER_CLUSTER_ACTION_H
 
 #include "cluster.h"
 

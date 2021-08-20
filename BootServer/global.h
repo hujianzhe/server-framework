@@ -1,5 +1,5 @@
-#ifndef GLOBAL_H
-#define	GLOBAL_H
+#ifndef BOOT_SERVER_GLOBAL_H
+#define	BOOT_SERVER_GLOBAL_H
 
 #include "util/inc/all.h"
 #include "channel_imp.h"

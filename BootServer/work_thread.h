@@ -1,5 +1,5 @@
-#ifndef WORK_THREAD_H
-#define	WORK_THREAD_H
+#ifndef BOOT_SERVER_WORK_THREAD_H
+#define	BOOT_SERVER_WORK_THREAD_H
 
 #include "util/inc/component/dataqueue.h"
 #include "util/inc/component/rbtimer.h"

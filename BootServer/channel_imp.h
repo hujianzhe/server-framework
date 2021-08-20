@@ -1,5 +1,5 @@
-#ifndef	CHANNEL_IMP_H
-#define	CHANNEL_IMP_H
+#ifndef	BOOT_SERVER_CHANNEL_IMP_H
+#define	BOOT_SERVER_CHANNEL_IMP_H
 
 #include "util/inc/component/reactor.h"
 #include "util/inc/component/channel.h"

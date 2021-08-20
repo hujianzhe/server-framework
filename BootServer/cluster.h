@@ -1,5 +1,5 @@
-#ifndef CLUSTER_H
-#define	CLUSTER_H
+#ifndef BOOT_SERVER_CLUSTER_H
+#define	BOOT_SERVER_CLUSTER_H
 
 #include "cluster_node.h"
 #include "util/inc/crt/dynarr.h"

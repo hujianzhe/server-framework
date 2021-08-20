@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define	CONFIG_H
+#ifndef BOOT_SERVER_CONFIG_H
+#define	BOOT_SERVER_CONFIG_H
 
 #include "util/inc/sysapi/socket.h"
 

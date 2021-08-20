@@ -1,5 +1,5 @@
-#ifndef SESSION_STRUCT_H
-#define	SESSION_STRUCT_H
+#ifndef BOOT_SERVER_SESSION_STRUCT_H
+#define	BOOT_SERVER_SESSION_STRUCT_H
 
 #include "util/inc/component/channel.h"
 #include <time.h>

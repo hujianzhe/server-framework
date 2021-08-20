@@ -1,5 +1,5 @@
-#ifndef CLUSTER_NODE_H
-#define	CLUSTER_NODE_H
+#ifndef BOOT_SERVER_CLUSTER_NODE_H
+#define	BOOT_SERVER_CLUSTER_NODE_H
 
 #include "session_struct.h"
 

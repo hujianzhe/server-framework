@@ -1,5 +1,5 @@
-#ifndef DISPATCH_H
-#define	DISPATCH_H
+#ifndef BOOT_SERVER_DISPATCH_H
+#define	BOOT_SERVER_DISPATCH_H
 
 #include "util/inc/component/channel.h"
 

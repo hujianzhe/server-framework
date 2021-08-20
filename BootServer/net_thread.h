@@ -1,5 +1,5 @@
-#ifndef NET_THREAD_H
-#define	NET_THREAD_H
+#ifndef BOOT_SERVER_NET_THREAD_H
+#define	BOOT_SERVER_NET_THREAD_H
 
 #include "util/inc/component/reactor.h"
 

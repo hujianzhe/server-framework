@@ -1,5 +1,5 @@
-#ifndef RPC_HELPER_H
-#define	RPC_HELPER_H
+#ifndef BOOT_SERVER_RPC_HELPER_H
+#define	BOOT_SERVER_RPC_HELPER_H
 
 #include "util/inc/component/rpc_core.h"
 #include "util/inc/component/rbtimer.h"

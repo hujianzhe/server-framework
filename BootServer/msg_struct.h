@@ -1,5 +1,5 @@
-#ifndef MSG_STRUCT_H
-#define	MSG_STRUCT_H
+#ifndef BOOT_SERVER_MSG_STRUCT_H
+#define	BOOT_SERVER_MSG_STRUCT_H
 
 #include "util/inc/platform_define.h"
 

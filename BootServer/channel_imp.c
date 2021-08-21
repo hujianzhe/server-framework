@@ -16,19 +16,15 @@ static ChannelUserData_t* init_channel_user_data(ChannelUserData_t* ud) {
 	return ud;
 }
 
-static int defaultOnHeartbeat(Channel_t* c, int heartbeat_times) {
+static int defaultOnHeartbeat(ChannelBase_t* c, int heartbeat_times) {
 	if (heartbeat_times < c->heartbeat_maxtimes) {
+		Channel_t* channel = pod_container_of(c, Channel_t, _);
 		InnerMsg_t msg;
 		makeInnerMsgEmpty(&msg);
-		channelSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 		return 1;
 	}
 	return 0;
-}
-
-static void defaultOnSynAck(ChannelBase_t* c, long long ts_msec) {
-	Channel_t* channel = pod_container_of(c, Channel_t, _);
-	channelEnableHeartbeat(channel, ts_msec);
 }
 
 void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
@@ -37,7 +33,6 @@ void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	if (1 != c->connected_times) {
 		return;
 	}
-	channelEnableHeartbeat(channel, ts_msec);
 	if (ud->rpc_syn_ack_item) {
 		UserMsg_t* msg = newUserMsg(0);
 		msg->channel = channel;
@@ -71,7 +66,6 @@ static void channel_reg_handler(ChannelBase_t* c, long long timestamp_msec) {
 	}
 	else if (channel_flag & CHANNEL_FLAG_SERVER) {
 		logInfo(&g_Log, "%s server reg %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);
-		channelEnableHeartbeat(channel, timestamp_msec);
 	}
 }
 
@@ -207,13 +201,13 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr*
 	c->on_recv = innerchannel_recv;
 	flag = c->_.flag;
 	if (flag & CHANNEL_FLAG_CLIENT) {
-		c->heartbeat_timeout_sec = 10;
-		c->heartbeat_maxtimes = 3;
-		c->on_heartbeat = defaultOnHeartbeat;
-		c->_.on_syn_ack = defaultOnSynAck;
+		c->_.heartbeat_timeout_sec = 10;
+		c->_.heartbeat_maxtimes = 3;
+		c->_.on_heartbeat = defaultOnHeartbeat;
 	}
-	else if (flag & CHANNEL_FLAG_SERVER)
-		c->heartbeat_timeout_sec = 20;
+	else if (flag & CHANNEL_FLAG_SERVER) {
+		c->_.heartbeat_timeout_sec = 20;
+	}
 	if (flag & CHANNEL_FLAG_STREAM) {
 		if ((flag & CHANNEL_FLAG_CLIENT) || (flag & CHANNEL_FLAG_SERVER)) {
 			int on = g_Config.tcp_nodelay;
@@ -374,8 +368,9 @@ Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* 
 	c->on_decode = httpframe_decode;
 	c->on_recv = httpframe_recv;
 	flag = c->_.flag;
-	if (flag & CHANNEL_FLAG_SERVER)
-		c->heartbeat_timeout_sec = 20;
+	if (flag & CHANNEL_FLAG_SERVER) {
+		c->_.heartbeat_timeout_sec = 20;
+	}
 	return c;
 }
 
@@ -514,7 +509,7 @@ static Channel_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struc
 	c->_.on_detach = channel_detach;
 	c->on_recv = websocket_recv;
 	if (flag & CHANNEL_FLAG_SERVER) {
-		c->heartbeat_timeout_sec = 20;
+		c->_.heartbeat_timeout_sec = 20;
 	}
 	return c;
 }

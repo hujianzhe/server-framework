@@ -200,7 +200,6 @@
     <ClInclude Include="util\inc\datastruct\random.h" />
     <ClInclude Include="util\inc\datastruct\rbtree.h" />
     <ClInclude Include="util\inc\datastruct\sha1.h" />
-    <ClInclude Include="util\inc\datastruct\sort.h" />
     <ClInclude Include="util\inc\datastruct\transport_ctx.h" />
     <ClInclude Include="util\inc\datastruct\tree.h" />
     <ClInclude Include="util\inc\datastruct\url.h" />
@@ -264,7 +263,6 @@
     <ClCompile Include="util\src\datastruct\random.c" />
     <ClCompile Include="util\src\datastruct\rbtree.c" />
     <ClCompile Include="util\src\datastruct\sha1.c" />
-    <ClCompile Include="util\src\datastruct\sort.c" />
     <ClCompile Include="util\src\datastruct\transport_ctx.c" />
     <ClCompile Include="util\src\datastruct\tree.c" />
     <ClCompile Include="util\src\datastruct\url.c" />

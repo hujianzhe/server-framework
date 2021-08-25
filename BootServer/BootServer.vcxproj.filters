@@ -150,9 +150,6 @@
     <ClInclude Include="util\inc\datastruct\sha1.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\datastruct\sort.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\datastruct\transport_ctx.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -360,9 +357,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\datastruct\sha1.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\datastruct\sort.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\datastruct\transport_ctx.c">

@@ -66,8 +66,9 @@ Dispatch_t* newDispatch(void) {
 
 int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchCallback_t func) {
 	DispatchItem_t* item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
-	if (!item)
+	if (!item) {
 		return 0;
+	}
 	str = strdup(str);
 	if (!str) {
 		free(item);

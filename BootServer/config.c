@@ -28,20 +28,25 @@ int initConfig(const char* path) {
 		else {
 			cJSON *id, *socktype, *ip, *port, *readcache_max_size;
 			id = cJSON_Field(cjson, "id");
-			if (!id)
+			if (!id) {
 				break;
+			}
 			socktype = cJSON_Field(cjson, "socktype");
-			if (!socktype)
+			if (!socktype) {
 				break;
+			}
 			ip = cJSON_Field(cjson, "ip");
-			if (!ip)
+			if (!ip) {
 				break;
+			}
 			port = cJSON_Field(cjson, "port");
-			if (!port)
+			if (!port) {
 				break;
+			}
 			readcache_max_size = cJSON_Field(cjson, "readcache_max_size");
-			if (readcache_max_size && readcache_max_size->valueint > 0)
+			if (readcache_max_size && readcache_max_size->valueint > 0) {
 				g_Config.clsnd.readcache_max_size = readcache_max_size->valueint;
+			}
 			g_Config.clsnd.id = id->valueint;
 			g_Config.clsnd.socktype = if_string2socktype(socktype->valuestring);
 			strcpy(g_Config.clsnd.ip, ip->valuestring);
@@ -148,33 +153,40 @@ int initConfig(const char* path) {
 		cjson = cJSON_Field(root, "module_path");
 		if (cjson) {
 			g_Config.module_path = strdup(cjson->valuestring);
-			if (!g_Config.module_path)
+			if (!g_Config.module_path) {
 				break;
+			}
 		}
 
 		cjson = cJSON_Field(root, "cluster_table_path");
 		if (cjson) {
 			g_Config.cluster_table_path = strdup(cjson->valuestring);
-			if (!g_Config.cluster_table_path)
+			if (!g_Config.cluster_table_path) {
 				break;
+			}
 		}
 
 		cjson = cJSON_Field(root, "log");
-		if (!cjson)
+		if (!cjson) {
 			break;
+		}
 		else {
 			cJSON* pathname, *maxfilesize_mb;
 			pathname = cJSON_Field(cjson, "pathname");
-			if (!pathname)
+			if (!pathname) {
 				break;
+			}
 			g_Config.log.pathname = strdup(pathname->valuestring);
-			if (!g_Config.log.pathname)
+			if (!g_Config.log.pathname) {
 				break;
+			}
 			maxfilesize_mb = cJSON_Field(cjson, "maxfilesize_mb");
-			if (maxfilesize_mb && maxfilesize_mb->valueint > 0)
+			if (maxfilesize_mb && maxfilesize_mb->valueint > 0) {
 				g_Config.log.maxfilesize = maxfilesize_mb->valueint * 1024 * 1024;
-			else
+			}
+			else {
 				g_Config.log.maxfilesize = ~0;
+			}
 		}
 
 		cjson = cJSON_Field(root, "rpc_fiber");
@@ -212,10 +224,12 @@ int initConfig(const char* path) {
 
 		res = 1;
 	} while (0);
-	if (res)
+	if (res) {
 		g_Config.cjson_root = root;
-	else
+	}
+	else {
 		cJSON_Delete(root);
+	}
 	return res;
 }
 

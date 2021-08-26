@@ -12,10 +12,13 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	else {
 		callback = getNumberDispatch(dispatch, ctrl->cmdid);
 	}
-	if (callback)
+
+	if (callback) {
 		callback(thrd, ctrl);
-	else if (dispatch->null_dispatch_callback)
+	}
+	else if (dispatch->null_dispatch_callback) {
 		dispatch->null_dispatch_callback(thrd, ctrl);
+	}
 	else {
 		if (USER_MSG_EXTRA_HTTP_FRAME == ctrl->param.type) {
 			if (ctrl->param.httpframe) {
@@ -124,10 +127,12 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	while (g_Valid) {
 		if (rbtimerDueFirst(due_timer, sizeof(due_timer) / sizeof(due_timer[0]), &timer_min_msec)) {
 			cur_msec = gmtimeMillisecond();
-			if (timer_min_msec > cur_msec)
+			if (timer_min_msec > cur_msec) {
 				wait_msec = timer_min_msec - cur_msec;
-			else
+			}
+			else {
 				wait_msec = 0;
+			}
 		}
 		else {
 			wait_msec = -1;
@@ -301,8 +306,9 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			ctrl->on_free(ctrl);
 		}
 	}
-	if (thread->fn_destroy)
+	if (thread->fn_destroy) {
 		thread->fn_destroy(thread);
+	}
 	return 0;
 }
 
@@ -322,25 +328,30 @@ TaskThread_t* newTaskThread(void) {
 	if (!t)
 		return NULL;
 
-	if (!dataqueueInit(&t->dq))
+	if (!dataqueueInit(&t->dq)) {
 		goto err;
+	}
 	dq_ok = 1;
 
-	if (!rbtimerInit(&t->timer, TRUE))
+	if (!rbtimerInit(&t->timer, TRUE)) {
 		goto err;
+	}
 	timer_ok = 1;
 
-	if (!rbtimerInit(&t->rpc_timer, TRUE))
+	if (!rbtimerInit(&t->rpc_timer, TRUE)) {
 		goto err;
+	}
 	rpc_timer_ok = 1;
 
-	if (!rbtimerInit(&t->fiber_sleep_timer, FALSE))
+	if (!rbtimerInit(&t->fiber_sleep_timer, FALSE)) {
 		goto err;
+	}
 	fiber_sleep_timer_ok = 1;
 
 	t->dispatch = newDispatch();
-	if (!t->dispatch)
+	if (!t->dispatch) {
 		goto err;
+	}
 	dispatch_ok = 1;
 
 	t->f_rpc = NULL;
@@ -353,16 +364,21 @@ TaskThread_t* newTaskThread(void) {
 	t->__fn_init_fiber_msg = NULL;
 	return t;
 err:
-	if (dq_ok)
+	if (dq_ok) {
 		dataqueueDestroy(&t->dq);
-	if (timer_ok)
+	}
+	if (timer_ok) {
 		rbtimerDestroy(&t->timer);
-	if (rpc_timer_ok)
+	}
+	if (rpc_timer_ok) {
 		rbtimerDestroy(&t->rpc_timer);
-	if (fiber_sleep_timer_ok)
+	}
+	if (fiber_sleep_timer_ok) {
 		rbtimerDestroy(&t->fiber_sleep_timer);
-	if (dispatch_ok)
+	}
+	if (dispatch_ok) {
 		freeDispatch(t->dispatch);
+	}
 	free(t);
 	return NULL;
 }
@@ -373,8 +389,9 @@ BOOL runTaskThread(TaskThread_t* t) {
 
 void freeTaskThread(TaskThread_t* t) {
 	if (t) {
-		if (t == g_TaskThread)
+		if (t == g_TaskThread) {
 			g_TaskThread = NULL;
+		}
 		dataqueueDestroy(&t->dq);
 		rbtimerDestroy(&t->timer);
 		rbtimerDestroy(&t->rpc_timer);

@@ -21,18 +21,21 @@ Reactor_t* selectReactor(void) {
 int newNetThreadResource(unsigned int cnt) {
 	int i;
 	size_t nbytes;
-	if (!networkSetupEnv())
+	if (!networkSetupEnv()) {
 		return 0;
+	}
 	s_ReactorCnt = cnt;
 	nbytes = (sizeof(Thread_t) + sizeof(Reactor_t)) * (s_ReactorCnt + 1);
 	s_Reactors = (Reactor_t*)malloc(nbytes);
-	if (!s_Reactors)
+	if (!s_Reactors) {
 		return 0;
+	}
 	s_ReactorThreads = (Thread_t*)(s_Reactors + s_ReactorCnt + 1);
 
 	for (i = 0; i < s_ReactorCnt + 1; ++i) {
-		if (!reactorInit(s_Reactors + i))
+		if (!reactorInit(s_Reactors + i)) {
 			break;
+		}
 	}
 	if (i != s_ReactorCnt + 1) {
 		while (i--) {
@@ -75,10 +78,7 @@ BOOL runNetThreads(void) {
 		}
 	}
 	s_BootReactorThreadCnt = i;
-	if (i != s_ReactorCnt + 1) {
-		return FALSE;
-	}
-	return TRUE;
+	return i == s_ReactorCnt + 1;
 }
 
 void wakeupNetThreads(void) {

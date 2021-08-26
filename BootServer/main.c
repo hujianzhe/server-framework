@@ -132,8 +132,9 @@ int main(int argc, char** argv) {
 	netthreadresourceinitok = 1;
 	// init task thread
 	g_TaskThread = newTaskThread();
-	if (!g_TaskThread)
+	if (!g_TaskThread) {
 		goto err;
+	}
 	taskthreadinitok = 1;
 	g_TaskThread->clstbl = clstbl;
 	g_TaskThread->init_argc = argc;
@@ -151,14 +152,17 @@ int main(int argc, char** argv) {
 		reactorCommitCmd(ptr_g_ReactorAccept(), &c->_.o->regcmd);
 	}
 	// run reactor thread
-	if (!runNetThreads())
+	if (!runNetThreads()) {
 		goto err;
+	}
 	// reg SIGINT signal
-	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR)
+	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR) {
 		goto err;
+	}
 	// run task thread
-	if (!runTaskThread(g_TaskThread))
+	if (!runTaskThread(g_TaskThread)) {
 		goto err;
+	}
 	taskthreadrunok = 1;
 	// wait thread exit
 	threadJoin(g_TaskThread->tid, NULL);
@@ -188,7 +192,8 @@ end:
 	if (netthreadresourceinitok) {
 		freeNetThreadResource();
 	}
-	if (clstbl)
+	if (clstbl) {
 		freeClusterTable(clstbl);
+	}
 	return 0;
 }

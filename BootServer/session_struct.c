@@ -30,8 +30,9 @@ Session_t* initSession(Session_t* session) {
 
 void sessionChannelReplaceClient(Session_t* session, Channel_t* channel) {
 	Channel_t* old_channel = session->channel_client;
-	if (old_channel == channel)
+	if (old_channel == channel) {
 		return;
+	}
 	if (old_channel) {
 		channelSession(old_channel) = NULL;
 		channelSessionId(old_channel) = 0;
@@ -46,8 +47,9 @@ void sessionChannelReplaceClient(Session_t* session, Channel_t* channel) {
 
 void sessionChannelReplaceServer(Session_t* session, Channel_t* channel) {
 	Channel_t* old_channel = session->channel_server;
-	if (old_channel == channel)
+	if (old_channel == channel) {
 		return;
+	}
 	if (old_channel) {
 		channelSession(old_channel) = NULL;
 		channelSessionId(old_channel) = 0;
@@ -89,12 +91,15 @@ void sessionUnbindChannel(Session_t* session) {
 }
 
 Channel_t* sessionChannel(Session_t* session) {
-	if (session->channel_client)
+	if (session->channel_client) {
 		return session->channel_client;
-	else if (session->channel_server)
+	}
+	else if (session->channel_server) {
 		return session->channel_server;
-	else
+	}
+	else {
 		return NULL;
+	}
 }
 
 #ifdef __cplusplus

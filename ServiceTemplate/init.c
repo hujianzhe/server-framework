@@ -27,7 +27,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 			logErr(ptr_g_Log(), "listen failure, ip:%s, port:%u ......", option->ip, option->port);
 			return 0;
 		}
-		reactorCommitCmd(ptr_g_ReactorAccept(), &c->_.o->regcmd);
+		reactorCommitCmd(acceptReactor(), &c->_.o->regcmd);
 	}
 
 	logInfo(ptr_g_Log(), "init ok ......");

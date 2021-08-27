@@ -10,7 +10,7 @@ static size_t s_BootReactorThreadCnt;
 extern "C" {
 #endif
 
-Reactor_t* ptr_g_ReactorAccept(void) { return s_Reactors + s_ReactorCnt; }
+Reactor_t* acceptReactor(void) { return s_Reactors + s_ReactorCnt; }
 Reactor_t* targetReactor(size_t key) { return &s_Reactors[key % s_ReactorCnt]; }
 Reactor_t* selectReactor(void) {
 	static Atom32_t num = 0;

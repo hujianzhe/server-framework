@@ -41,15 +41,12 @@ typedef struct Config_t {
 	struct cJSON* cjson_root;
 } Config_t;
 
-extern Config_t g_Config;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int initConfig(const char* path);
-void freeConfig(void);
-__declspec_dllexport Config_t* ptr_g_Config(void);
+Config_t* initConfig(const char* path, Config_t* conf);
+void freeConfig(Config_t* conf);
 
 #ifdef __cplusplus
 }

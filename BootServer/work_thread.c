@@ -314,13 +314,11 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 
 /**************************************************************************************/
 
-TaskThread_t* g_TaskThread;
+extern TaskThread_t* g_DefTaskThreadPtr;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-TaskThread_t* ptr_g_TaskThread(void) { return g_TaskThread; }
 
 TaskThread_t* newTaskThread(void) {
 	int dq_ok = 0, timer_ok = 0, rpc_timer_ok = 0, fiber_sleep_timer_ok = 0, dispatch_ok = 0;
@@ -389,8 +387,8 @@ BOOL runTaskThread(TaskThread_t* t) {
 
 void freeTaskThread(TaskThread_t* t) {
 	if (t) {
-		if (t == g_TaskThread) {
-			g_TaskThread = NULL;
+		if (t == g_DefTaskThreadPtr) {
+			g_DefTaskThreadPtr = NULL;
 		}
 		dataqueueDestroy(&t->dq);
 		rbtimerDestroy(&t->timer);

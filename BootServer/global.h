@@ -2,6 +2,7 @@
 #define	BOOT_SERVER_GLOBAL_H
 
 #include "util/inc/all.h"
+#include "config.h"
 #include "channel_imp.h"
 #include "cluster_node.h"
 #include "cluster.h"
@@ -20,6 +21,8 @@ extern char** g_MainArgv;
 extern void* g_ModulePtr;
 extern volatile int g_Valid;
 extern Log_t g_Log;
+extern Config_t g_Config;
+extern TaskThread_t* g_DefTaskThreadPtr;
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,6 +30,8 @@ extern "C" {
 
 __declspec_dllexport void g_Invalid(void);
 __declspec_dllexport Log_t* ptr_g_Log(void);
+__declspec_dllexport Config_t* ptr_g_Config(void);
+__declspec_dllexport TaskThread_t* ptr_g_DefTaskThread(void);
 
 #ifdef __cplusplus
 }

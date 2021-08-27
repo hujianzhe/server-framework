@@ -17,7 +17,7 @@ extern "C" {
 
 static void sigintHandler(int signo) {
 	g_Valid = 0;
-	dataqueueWake(&g_TaskThread->dq);
+	dataqueueWake(&g_DefTaskThreadPtr->dq);
 	wakeupNetThreads();
 }
 
@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 	g_MainArgc = argc;
 	g_MainArgv = argv;
 	// load config
-	if (!initConfig(argv[1])) {
+	if (!initConfig(argv[1], &g_Config)) {
 		fprintf(stderr, "initConfig(%s) error\n", argv[1]);
 		goto err;
 	}
@@ -131,25 +131,25 @@ int main(int argc, char** argv) {
 	}
 	netthreadresourceinitok = 1;
 	// init task thread
-	g_TaskThread = newTaskThread();
-	if (!g_TaskThread) {
+	g_DefTaskThreadPtr = newTaskThread();
+	if (!g_DefTaskThreadPtr) {
 		goto err;
 	}
 	taskthreadinitok = 1;
-	g_TaskThread->clstbl = clstbl;
-	g_TaskThread->init_argc = argc;
-	g_TaskThread->init_argv = argv;
-	g_TaskThread->fn_init = fn_init;
-	g_TaskThread->fn_destroy = fn_destroy;
+	g_DefTaskThreadPtr->clstbl = clstbl;
+	g_DefTaskThreadPtr->init_argc = argc;
+	g_DefTaskThreadPtr->init_argv = argv;
+	g_DefTaskThreadPtr->fn_init = fn_init;
+	g_DefTaskThreadPtr->fn_destroy = fn_destroy;
 	// listen self cluster node port
 	if (g_Config.clsnd.port) {
-		Channel_t* c = openListenerInner(g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port, &g_TaskThread->dq);
+		Channel_t* c = openListenerInner(g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port, &g_DefTaskThreadPtr->dq);
 		if (!c) {
 			fprintf(stderr, "listen self cluster node err, ip:%s, port:%u\n", g_Config.clsnd.ip, g_Config.clsnd.port);
 			logErr(&g_Log, "listen self cluster node err, ip:%s, port:%u", g_Config.clsnd.ip, g_Config.clsnd.port);
 			goto err;
 		}
-		reactorCommitCmd(ptr_g_ReactorAccept(), &c->_.o->regcmd);
+		reactorCommitCmd(acceptReactor(), &c->_.o->regcmd);
 	}
 	// run reactor thread
 	if (!runNetThreads()) {
@@ -160,12 +160,12 @@ int main(int argc, char** argv) {
 		goto err;
 	}
 	// run task thread
-	if (!runTaskThread(g_TaskThread)) {
+	if (!runTaskThread(g_DefTaskThreadPtr)) {
 		goto err;
 	}
 	taskthreadrunok = 1;
 	// wait thread exit
-	threadJoin(g_TaskThread->tid, NULL);
+	threadJoin(g_DefTaskThreadPtr->tid, NULL);
 	g_Valid = 0;
 	joinNetThreads();
 	goto end;
@@ -173,12 +173,12 @@ err:
 	g_Valid = 0;
 	joinNetThreads();
 	if (taskthreadrunok) {
-		dataqueueWake(&g_TaskThread->dq);
-		threadJoin(g_TaskThread->tid, NULL);
+		dataqueueWake(&g_DefTaskThreadPtr->dq);
+		threadJoin(g_DefTaskThreadPtr->tid, NULL);
 	}
 end:
 	if (taskthreadinitok) {
-		freeTaskThread(g_TaskThread);
+		freeTaskThread(g_DefTaskThreadPtr);
 	}
 	if (g_ModulePtr) {
 		(void)moduleUnload(g_ModulePtr);
@@ -187,7 +187,7 @@ end:
 		logDestroy(&g_Log);
 	}
 	if (configinitok) {
-		freeConfig();
+		freeConfig(&g_Config);
 	}
 	if (netthreadresourceinitok) {
 		freeNetThreadResource();

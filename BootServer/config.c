@@ -6,17 +6,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-Config_t g_Config;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int initConfig(const char* path) {
+Config_t* initConfig(const char* path, Config_t* conf) {
 	int res;
 	cJSON* root = cJSON_ParseFromFile(NULL, path);
 	if (!root) {
-		return 0;
+		return NULL;
 	}
 	res = 0;
 	do {
@@ -45,21 +43,21 @@ int initConfig(const char* path) {
 			}
 			readcache_max_size = cJSON_Field(cjson, "readcache_max_size");
 			if (readcache_max_size && readcache_max_size->valueint > 0) {
-				g_Config.clsnd.readcache_max_size = readcache_max_size->valueint;
+				conf->clsnd.readcache_max_size = readcache_max_size->valueint;
 			}
-			g_Config.clsnd.id = id->valueint;
-			g_Config.clsnd.socktype = if_string2socktype(socktype->valuestring);
-			strcpy(g_Config.clsnd.ip, ip->valuestring);
-			g_Config.clsnd.port = port->valueint;
+			conf->clsnd.id = id->valueint;
+			conf->clsnd.socktype = if_string2socktype(socktype->valuestring);
+			strcpy(conf->clsnd.ip, ip->valuestring);
+			conf->clsnd.port = port->valueint;
 		}
 
 		cjson = cJSON_Field(root, "listen_options");
 		if (cjson) {
 			int i;
 			cJSON* childnode;
-			g_Config.listen_options_cnt = cJSON_Size(cjson);
-			g_Config.listen_options = (ConfigListenOption_t*)malloc(sizeof(ConfigListenOption_t) * g_Config.listen_options_cnt);
-			if (!g_Config.listen_options) {
+			conf->listen_options_cnt = cJSON_Size(cjson);
+			conf->listen_options = (ConfigListenOption_t*)malloc(sizeof(ConfigListenOption_t) * conf->listen_options_cnt);
+			if (!conf->listen_options) {
 				break;
 			}
 			i = 0;
@@ -73,7 +71,7 @@ int initConfig(const char* path) {
 				if (!protocol || !ipnode || !portnode) {
 					continue;
 				}
-				option_ptr = &g_Config.listen_options[i++];
+				option_ptr = &conf->listen_options[i++];
 				option_ptr->protocol = strdup(protocol->valuestring);
 				strcpy(option_ptr->ip, ipnode->valuestring);
 				option_ptr->port = portnode->valueint;
@@ -90,21 +88,21 @@ int initConfig(const char* path) {
 					option_ptr->readcache_max_size = 0;
 				}
 			}
-			g_Config.listen_options_cnt = i;
+			conf->listen_options_cnt = i;
 		}
 
 		cjson = cJSON_Field(root, "outer_ip");
 		if (cjson) {
-			strcpy(g_Config.outer_ip, cjson->valuestring);
+			strcpy(conf->outer_ip, cjson->valuestring);
 		}
 
 		cjson = cJSON_Field(root, "connect_options");
 		if (cjson) {
 			int i;
 			cJSON* childnode;
-			g_Config.connect_options_cnt = cJSON_Size(cjson);
-			g_Config.connect_options = (ConfigConnectOption_t*)malloc(sizeof(ConfigConnectOption_t) * g_Config.connect_options_cnt);
-			if (!g_Config.connect_options) {
+			conf->connect_options_cnt = cJSON_Size(cjson);
+			conf->connect_options = (ConfigConnectOption_t*)malloc(sizeof(ConfigConnectOption_t) * conf->connect_options_cnt);
+			if (!conf->connect_options) {
 				break;
 			}
 			i = 0;
@@ -118,7 +116,7 @@ int initConfig(const char* path) {
 				if (!protocol || !ipnode || !portnode) {
 					continue;
 				}
-				option_ptr = &g_Config.connect_options[i++];
+				option_ptr = &conf->connect_options[i++];
 				option_ptr->protocol = strdup(protocol->valuestring);
 				strcpy(option_ptr->ip, ipnode->valuestring);
 				option_ptr->port = portnode->valueint;
@@ -135,7 +133,7 @@ int initConfig(const char* path) {
 					option_ptr->readcache_max_size = 0;
 				}
 			}
-			g_Config.connect_options_cnt = i;
+			conf->connect_options_cnt = i;
 		}
 
 		cjson = cJSON_Field(root, "net_thread_cnt");
@@ -144,24 +142,24 @@ int initConfig(const char* path) {
 			if (net_thread_cnt <= 0) {
 				net_thread_cnt = processorCount();
 			}
-			g_Config.net_thread_cnt = net_thread_cnt;
+			conf->net_thread_cnt = net_thread_cnt;
 		}
 		else {
-			g_Config.net_thread_cnt = 1;
+			conf->net_thread_cnt = 1;
 		}
 
 		cjson = cJSON_Field(root, "module_path");
 		if (cjson) {
-			g_Config.module_path = strdup(cjson->valuestring);
-			if (!g_Config.module_path) {
+			conf->module_path = strdup(cjson->valuestring);
+			if (!conf->module_path) {
 				break;
 			}
 		}
 
 		cjson = cJSON_Field(root, "cluster_table_path");
 		if (cjson) {
-			g_Config.cluster_table_path = strdup(cjson->valuestring);
-			if (!g_Config.cluster_table_path) {
+			conf->cluster_table_path = strdup(cjson->valuestring);
+			if (!conf->cluster_table_path) {
 				break;
 			}
 		}
@@ -176,90 +174,89 @@ int initConfig(const char* path) {
 			if (!pathname) {
 				break;
 			}
-			g_Config.log.pathname = strdup(pathname->valuestring);
-			if (!g_Config.log.pathname) {
+			conf->log.pathname = strdup(pathname->valuestring);
+			if (!conf->log.pathname) {
 				break;
 			}
 			maxfilesize_mb = cJSON_Field(cjson, "maxfilesize_mb");
 			if (maxfilesize_mb && maxfilesize_mb->valueint > 0) {
-				g_Config.log.maxfilesize = maxfilesize_mb->valueint * 1024 * 1024;
+				conf->log.maxfilesize = maxfilesize_mb->valueint * 1024 * 1024;
 			}
 			else {
-				g_Config.log.maxfilesize = ~0;
+				conf->log.maxfilesize = ~0;
 			}
 		}
 
 		cjson = cJSON_Field(root, "rpc_fiber");
 		if (cjson) {
-			g_Config.rpc_fiber = cjson->valueint;
+			conf->rpc_fiber = cjson->valueint;
 		}
 
 		cjson = cJSON_Field(root, "rpc_fiber_stack_size_kb");
 		if (cjson) {
-			g_Config.rpc_fiber_stack_size = cjson->valueint * 1024;
+			conf->rpc_fiber_stack_size = cjson->valueint * 1024;
 		}
 		else {
-			g_Config.rpc_fiber_stack_size = 0x4000;
+			conf->rpc_fiber_stack_size = 0x4000;
 		}
 
 		cjson = cJSON_Field(root, "rpc_async");
 		if (cjson) {
-			g_Config.rpc_async = cjson->valueint;
+			conf->rpc_async = cjson->valueint;
 		}
 
 		cjson = cJSON_Field(root, "tcp_nodelay");
 		if (cjson) {
-			g_Config.tcp_nodelay = cjson->valueint;
+			conf->tcp_nodelay = cjson->valueint;
 		}
 
 		cjson = cJSON_Field(root, "udp_cwndsize");
 		if (cjson) {
-			g_Config.udp_cwndsize = cjson->valueint;
+			conf->udp_cwndsize = cjson->valueint;
 		}
 
 		cjson = cJSON_Field(root, "enqueue_timeout_msec");
 		if (cjson) {
-			g_Config.enqueue_timeout_msec = cjson->valueint;
+			conf->enqueue_timeout_msec = cjson->valueint;
 		}
 
 		res = 1;
 	} while (0);
 	if (res) {
-		g_Config.cjson_root = root;
+		conf->cjson_root = root;
+		return conf;
 	}
 	else {
 		cJSON_Delete(root);
+		return NULL;
 	}
-	return res;
 }
 
-void freeConfig(void) {
+void freeConfig(Config_t* conf) {
 	unsigned int i;
-	for (i = 0; i < g_Config.listen_options_cnt; ++i) {
-		free((char*)g_Config.listen_options[i].protocol);
+	for (i = 0; i < conf->listen_options_cnt; ++i) {
+		free((char*)conf->listen_options[i].protocol);
 	}
-	free(g_Config.listen_options);
-	g_Config.listen_options = NULL;
-	g_Config.listen_options_cnt = 0;
+	free(conf->listen_options);
+	conf->listen_options = NULL;
+	conf->listen_options_cnt = 0;
 
-	for (i = 0; i < g_Config.connect_options_cnt; ++i) {
-		free((char*)g_Config.connect_options[i].protocol);
+	for (i = 0; i < conf->connect_options_cnt; ++i) {
+		free((char*)conf->connect_options[i].protocol);
 	}
-	free(g_Config.connect_options);
-	g_Config.connect_options = NULL;
-	g_Config.connect_options_cnt = 0;
-	free((char*)g_Config.log.pathname);
-	g_Config.log.pathname = NULL;
-	free((char*)g_Config.module_path);
-	g_Config.module_path = NULL;
-	free((char*)g_Config.cluster_table_path);
-	g_Config.cluster_table_path = NULL;
-	g_Config.outer_ip[0] = 0;
-	cJSON_Delete(g_Config.cjson_root);
-	g_Config.cjson_root = NULL;
+	free(conf->connect_options);
+	conf->connect_options = NULL;
+	conf->connect_options_cnt = 0;
+	free((char*)conf->log.pathname);
+	conf->log.pathname = NULL;
+	free((char*)conf->module_path);
+	conf->module_path = NULL;
+	free((char*)conf->cluster_table_path);
+	conf->cluster_table_path = NULL;
+	conf->outer_ip[0] = 0;
+	cJSON_Delete(conf->cjson_root);
+	conf->cjson_root = NULL;
 }
-
-Config_t* ptr_g_Config(void) { return &g_Config; }
 
 #ifdef __cplusplus
 }

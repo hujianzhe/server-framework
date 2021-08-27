@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-__declspec_dllexport Reactor_t* ptr_g_ReactorAccept(void);
+__declspec_dllexport Reactor_t* acceptReactor(void);
 __declspec_dllexport Reactor_t* targetReactor(size_t key);
 __declspec_dllexport Reactor_t* selectReactor(void);
 

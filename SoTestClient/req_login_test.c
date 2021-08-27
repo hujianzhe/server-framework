@@ -6,11 +6,11 @@
 void retLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON* cjson_ret_root;
 
-	logInfo(ptr_g_Log(), "recv: %s", (char*)ctrl->data);
+	logInfo(ptrBSG()->log, "recv: %s", (char*)ctrl->data);
 
 	cjson_ret_root = cJSON_Parse(NULL, (char*)ctrl->data);
 	if (!cjson_ret_root) {
-		logErr(ptr_g_Log(), "cJSON_Parse error");
+		logErr(ptrBSG()->log, "cJSON_Parse error");
 		return;
 	}
 
@@ -19,7 +19,7 @@ void retLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 
 		cjson_sessoin_id = cJSON_Field(cjson_ret_root, "session_id");
 		if (!cjson_sessoin_id) {
-			logErr(ptr_g_Log(), "miss session id field");
+			logErr(ptrBSG()->log, "miss session id field");
 			break;
 		}
 		channelSessionId(ctrl->channel) = cjson_sessoin_id->valueint;

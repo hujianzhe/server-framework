@@ -23,6 +23,7 @@ typedef struct TaskThread_t {
 	int(*fn_init)(struct TaskThread_t* thrd, int argc, char** argv);
 	void(*fn_destroy)(struct TaskThread_t* thrd);
 	UserMsg_t* __fn_init_fiber_msg;
+	const char* errmsg;
 } TaskThread_t;
 
 #ifdef __cplusplus

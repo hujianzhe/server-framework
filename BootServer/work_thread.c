@@ -46,8 +46,9 @@ static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 	if (thrd->__fn_init_fiber_msg == ctrl) {
 		thrd->__fn_init_fiber_msg = NULL;
 		if (!thrd->fn_init(thrd, thrd->init_argc, thrd->init_argv)) {
-			fprintf(stderr, "task thread init failure\n");
-			g_Valid = 0;
+			thrd->errmsg = strFormat(NULL, "task thread fn_init failure\n");
+			ptrBSG()->valid = 0;
+			return;
 		}
 	}
 	else if (USER_MSG_EXTRA_TIMER_EVENT == ctrl->param.type) {
@@ -74,39 +75,41 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	time_t cur_sec;
 	TaskThread_t* thread = (TaskThread_t*)arg;
 	RBTimer_t* due_timer[] = { &thread->timer, &thread->rpc_timer, &thread->fiber_sleep_timer };
+	Config_t* conf = ptrBSG()->conf;
+	Log_t* log = ptrBSG()->log;
 	// init rpc
-	if (g_Config.rpc_fiber) {
+	if (conf->rpc_fiber) {
 		Fiber_t* thread_fiber = fiberFromThread();
 		if (!thread_fiber) {
-			fputs("fiberFromThread error", stderr);
-			g_Valid = 0;
+			thread->errmsg = strFormat(NULL, "task thread fiberFromThread error\n");
+			ptrBSG()->valid = 0;
 			return 1;
 		}
 		thread->f_rpc = (RpcFiberCore_t*)malloc(sizeof(RpcFiberCore_t));
 		if (!thread->f_rpc) {
-			fputs("malloc(sizeof(RpcFiberCore_t)) error", stderr);
-			g_Valid = 0;
+			thread->errmsg = strFormat(NULL, "task thread malloc(sizeof(RpcFiberCore_t)) error\n");
+			ptrBSG()->valid = 0;
 			return 1;
 		}
-		if (!rpcFiberCoreInit(thread->f_rpc, thread_fiber, g_Config.rpc_fiber_stack_size,
+		if (!rpcFiberCoreInit(thread->f_rpc, thread_fiber, conf->rpc_fiber_stack_size,
 				(void(*)(RpcFiberCore_t*, void*))rpc_fiber_msg_handler))
 		{
-			fputs("rpcFiberCoreInit error", stderr);
-			g_Valid = 0;
+			thread->errmsg = strFormat(NULL, "task thread rpcFiberCoreInit error\n");
+			ptrBSG()->valid = 0;
 			return 1;
 		}
 		thread->f_rpc->base.runthread = thread;
 	}
-	else if (g_Config.rpc_async) {
+	else if (conf->rpc_async) {
 		thread->a_rpc = (RpcAsyncCore_t*)malloc(sizeof(RpcAsyncCore_t));
 		if (!thread->a_rpc) {
-			fputs("malloc(sizeof(RpcAsyncCore_t)) error", stderr);
-			g_Valid = 0;
+			thread->errmsg = strFormat(NULL, "task thread malloc(sizeof(RpcAsyncCore_t)) error\n");
+			ptrBSG()->valid = 0;
 			return 1;
 		}
 		if (!rpcAsyncCoreInit(thread->a_rpc)) {
-			fputs("rpcAsyncCoreInit error", stderr);
-			g_Valid = 0;
+			thread->errmsg = strFormat(NULL, "task thread rpcAsyncCoreInit error\n");
+			ptrBSG()->valid = 0;
 			return 1;
 		}
 		thread->a_rpc->base.runthread = thread;
@@ -118,13 +121,14 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			thread->__fn_init_fiber_msg = &fn_init_fiber_msg;
 			rpcFiberCoreResumeMsg(thread->f_rpc, &fn_init_fiber_msg);
 		}
-		else if (!thread->fn_init(thread, g_MainArgc, g_MainArgv)) {
-			fprintf(stderr, "task thread init failure\n");
-			g_Valid = 0;
+		else if (!thread->fn_init(thread, ptrBSG()->argc, ptrBSG()->argv)) {
+			thread->errmsg = strFormat(NULL, "task thread fn_init failure\n");
+			ptrBSG()->valid = 0;
+			return 1;
 		}
 	}
 	// start loop
-	while (g_Valid) {
+	while (ptrBSG()->valid) {
 		if (rbtimerDueFirst(due_timer, sizeof(due_timer) / sizeof(due_timer[0]), &timer_min_msec)) {
 			cur_msec = gmtimeMillisecond();
 			if (timer_min_msec > cur_msec) {
@@ -172,9 +176,9 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							ctrl->channel = session->channel_client;
 					}
 				}
-				if (g_Config.enqueue_timeout_msec > 0 && ctrl->enqueue_time_msec > 0) {
+				if (conf->enqueue_timeout_msec > 0 && ctrl->enqueue_time_msec > 0) {
 					cur_msec = gmtimeMillisecond();
-					if (cur_msec - ctrl->enqueue_time_msec >= g_Config.enqueue_timeout_msec) {
+					if (cur_msec - ctrl->enqueue_time_msec >= conf->enqueue_timeout_msec) {
 						ctrl->on_free(ctrl);
 						continue;
 					}
@@ -212,17 +216,17 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			else if (REACTOR_CHANNEL_FREE_CMD == internal->type) {
 				Channel_t* channel = pod_container_of(internal, Channel_t, _.freecmd);
 				if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
-					logInfo(&g_Log, "channel(%p) detach, reason:%d, connected times: %u",
+					logInfo(log, "channel(%p) detach, reason:%d, connected times: %u",
 						channel, channel->_.detach_error, channel->_.connected_times);
 				}
 				else if (channel->_.flag & CHANNEL_FLAG_SERVER) {
-					logInfo(&g_Log, "channel(%p) detach, reason:%d", channel, channel->_.detach_error);
+					logInfo(log, "channel(%p) detach, reason:%d", channel, channel->_.detach_error);
 				}
 				else {
 					IPString_t listen_ip;
 					unsigned short listen_port;
 					sockaddrDecode(&channel->_.listen_addr.sa, listen_ip, &listen_port);
-					logInfo(&g_Log, "listen ip(%s) port(%u) detach", listen_ip, listen_port);
+					logInfo(log, "listen ip(%s) port(%u) detach", listen_ip, listen_port);
 				}
 
 				if ((channel->_.flag & CHANNEL_FLAG_CLIENT) ||
@@ -314,8 +318,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 
 /**************************************************************************************/
 
-extern TaskThread_t* g_DefTaskThreadPtr;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -360,6 +362,7 @@ TaskThread_t* newTaskThread(void) {
 	t->fn_init = NULL;
 	t->fn_destroy = NULL;
 	t->__fn_init_fiber_msg = NULL;
+	t->errmsg = NULL;
 	return t;
 err:
 	if (dq_ok) {
@@ -387,14 +390,12 @@ BOOL runTaskThread(TaskThread_t* t) {
 
 void freeTaskThread(TaskThread_t* t) {
 	if (t) {
-		if (t == g_DefTaskThreadPtr) {
-			g_DefTaskThreadPtr = NULL;
-		}
 		dataqueueDestroy(&t->dq);
 		rbtimerDestroy(&t->timer);
 		rbtimerDestroy(&t->rpc_timer);
 		rbtimerDestroy(&t->fiber_sleep_timer);
 		freeDispatch(t->dispatch);
+		free((void*)t->errmsg);
 		free(t);
 	}
 }

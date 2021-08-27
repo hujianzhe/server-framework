@@ -25,9 +25,9 @@ static void rpc_async_req_login_test(RpcAsyncCore_t* rpc, RpcItem_t* rpc_item) {
 		IPString_t ip;
 		unsigned short port;
 		sockaddrDecode(&channel->_.connect_addr.sa, ip, &port);
-		logErr(ptr_g_Log(), "%s channel(%p) connect %s:%hu failure", __FUNCTION__, channel, ip, port);
+		logErr(ptrBSG()->log, "%s channel(%p) connect %s:%hu failure", __FUNCTION__, channel, ip, port);
 	}
-	g_Invalid();
+	ptrBSG()->valid = 0;
 }
 
 static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
@@ -67,7 +67,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 }
 
 static int test_timer(RBTimer_t* timer, RBTimerEvent_t* e) {
-	logInfo(ptr_g_Log(), "test_timer============================================");
+	logInfo(ptrBSG()->log, "test_timer============================================");
 	e->timestamp_msec += e->interval_msec;
 	rbtimerAddEvent(timer, e);
 	return 0;
@@ -90,8 +90,8 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	rbtimerEventSet(timer_event, gmtimeMillisecond() / 1000 * 1000 + 1000, test_timer, NULL, 1000);
 	rbtimerAddEvent(&thrd->timer, timer_event);
 
-	for (i = 0; i < ptr_g_Config()->connect_options_cnt; ++i) {
-		ConfigConnectOption_t* option = ptr_g_Config()->connect_options + i;
+	for (i = 0; i < ptrBSG()->conf->connect_options_cnt; ++i) {
+		ConfigConnectOption_t* option = ptrBSG()->conf->connect_options + i;
 		RpcItem_t* rpc_item;
 		Sockaddr_t connect_addr;
 		Channel_t* c;
@@ -109,7 +109,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			return 0;
 		}
-		logInfo(ptr_g_Log(), "channel(%p) connecting......", c);
+		logInfo(ptrBSG()->log, "channel(%p) connecting......", c);
 		if (thrd->f_rpc || thrd->a_rpc) {
 			c->_.on_syn_ack = defaultRpcOnSynAck;
 			channelUserData(c)->dq = &thrd->dq;
@@ -129,7 +129,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 						return 0;
 				}
 				else {
-					logErr(ptr_g_Log(), "channel(%p) connect %s:%u failure", c, option->ip, option->port);
+					logErr(ptrBSG()->log, "channel(%p) connect %s:%u failure", c, option->ip, option->port);
 					return 0;
 				}
 			}

@@ -14,8 +14,8 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	unsigned int i;
 
 	// listen extra port
-	for (i = 0; i < ptr_g_Config()->listen_options_cnt; ++i) {
-		ConfigListenOption_t* option = ptr_g_Config()->listen_options + i;
+	for (i = 0; i < ptrBSG()->conf->listen_options_cnt; ++i) {
+		ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
 		Channel_t* c;
 		if (!strcmp(option->protocol, "http")) {
 			c = openListenerHttp(option->ip, option->port, NULL, &thrd->dq);
@@ -24,13 +24,13 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 			continue;
 		}
 		if (!c) {
-			logErr(ptr_g_Log(), "listen failure, ip:%s, port:%u ......", option->ip, option->port);
+			logErr(ptrBSG()->log, "listen failure, ip:%s, port:%u ......", option->ip, option->port);
 			return 0;
 		}
 		reactorCommitCmd(acceptReactor(), &c->_.o->regcmd);
 	}
 
-	logInfo(ptr_g_Log(), "init ok ......");
+	logInfo(ptrBSG()->log, "init ok ......");
 	return 1;
 }
 

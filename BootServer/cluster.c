@@ -1,4 +1,3 @@
-#include "config.h"
 #include "global.h"
 #include "cluster.h"
 #include "work_thread.h"
@@ -227,11 +226,12 @@ ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name,
 void broadcastClusterGroup(DataQueue_t* dq, struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt) {
 	ClusterNodeGroup_t* grp = get_cluster_node_group(t, grp_name);
 	if (grp) {
+		int self_id = ptrBSG()->conf->clsnd.id;
 		size_t i;
 		for (i = 0; i < grp->clsnds.len; ++i) {
 			Channel_t* channel;
 			ClusterNode_t* clsnd = grp->clsnds.buf[i];
-			if (clsnd->id == g_Config.clsnd.id) {
+			if (clsnd->id == self_id) {
 				continue;
 			}
 			channel = connectClusterNode(clsnd, dq);
@@ -248,7 +248,8 @@ void broadcastClusterTable(DataQueue_t* dq, struct ClusterTable_t* t, const Iobu
 	for (cur = t->nodelist.head; cur; cur = cur->next) {
 		Channel_t* channel;
 		ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_listnode);
-		if (clsnd->id == g_Config.clsnd.id) {
+		int self_id = ptrBSG()->conf->clsnd.id;
+		if (clsnd->id == self_id) {
 			continue;
 		}
 		channel = connectClusterNode(clsnd, dq);

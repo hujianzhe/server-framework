@@ -7,7 +7,7 @@ void reqLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	cJSON *cjson_ret_root;
 	InnerMsg_t ret_msg;
 
-	logInfo(ptr_g_Log(), "%s recv: %s", __FUNCTION__, (char*)ctrl->data);
+	logInfo(ptrBSG()->log, "%s recv: %s", __FUNCTION__, (char*)ctrl->data);
 
 	channelSessionId(ctrl->channel) = allocSessionId();
 

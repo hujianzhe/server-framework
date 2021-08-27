@@ -33,7 +33,8 @@ void freeClusterNode(ClusterNode_t* clsnd) {
 
 Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq) {
 	Channel_t* channel;
-	if (clsnd->id == g_Config.clsnd.id) {
+	int self_id = ptrBSG()->conf->clsnd.id;
+	if (clsnd->id == self_id) {
 		return NULL;
 	}
 	channel = sessionChannel(&clsnd->session);
@@ -50,7 +51,7 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq) {
 			return NULL;
 		}
 
-		hs_data = strFormat(&hs_datalen, "{\"id\":%d}", g_Config.clsnd.id);
+		hs_data = strFormat(&hs_datalen, "{\"id\":%d}", self_id);
 		if (!hs_data) {
 			return NULL;
 		}

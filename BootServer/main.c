@@ -16,184 +16,38 @@ extern "C" {
 #endif
 
 static void sigintHandler(int signo) {
-	g_Valid = 0;
-	dataqueueWake(&g_DefTaskThreadPtr->dq);
-	wakeupNetThreads();
+	stopBootServerGlobal();
 }
 
 int main(int argc, char** argv) {
-	int configinitok = 0, loginitok = 0, netthreadresourceinitok = 0,
-		taskthreadinitok = 0, taskthreadrunok = 0;
-	struct ClusterTable_t* clstbl = NULL;
-	int(*fn_init)(struct TaskThread_t* thrd, int argc, char** argv);
-	void(*fn_destroy)(struct TaskThread_t* thrd);
-	//
 	if (argc < 2) {
 		fputs("need a config file to boot ...", stderr);
 		return 1;
 	}
-	// save boot arguments
-	g_MainArgc = argc;
-	g_MainArgv = argv;
-	// load config
-	if (!initConfig(argv[1], &g_Config)) {
-		fprintf(stderr, "initConfig(%s) error\n", argv[1]);
-		goto err;
-	}
-	configinitok = 1;
-	// init log
-	if (!logInit(&g_Log, "", g_Config.log.pathname)) {
-		fprintf(stderr, "logInit(%s) error\n", g_Config.log.pathname);
-		goto err;
-	}
-	g_Log.m_maxfilesize = g_Config.log.maxfilesize;
-	loginitok = 1;
-#ifdef USE_STATIC_MODULE
-	fn_init = init;
-	fn_destroy = destroy;
-#else
-	// load module
-	if (g_Config.module_path && g_Config.module_path[0]) {
-		g_ModulePtr = moduleLoad(g_Config.module_path);
-		if (!g_ModulePtr) {
-			fprintf(stderr, "moduleLoad(%s) failure\n", g_Config.module_path);
-			logErr(&g_Log, "moduleLoad(%s) failure", g_Config.module_path);
-			goto err;
-		}
-		fn_init = (int(*)(TaskThread_t*, int, char**))moduleSymbolAddress(g_ModulePtr, "init");
-		if (!fn_init) {
-			fprintf(stderr, "moduleSymbolAddress(%s, \"init\") failure\n", g_Config.module_path);
-			logErr(&g_Log, "moduleSymbolAddress(%s, \"init\") failure", g_Config.module_path);
-			goto err;
-		}
-		fn_destroy = (void(*)(TaskThread_t*))moduleSymbolAddress(g_ModulePtr, "destroy");
-	}
-#endif
-	// input boot cluster node info
-	logInfo(&g_Log, "module_path(%s) socktype:%s, ip:%s, port:%u, pid:%zu",
-		g_Config.module_path ? g_Config.module_path : "",
-		if_socktype2string(g_Config.clsnd.socktype), g_Config.clsnd.ip, g_Config.clsnd.port, processId());
-
-	printf("module_path(%s) socktype:%s, ip:%s, port:%u, pid:%zu\n",
-		g_Config.module_path ? g_Config.module_path : "",
-		if_socktype2string(g_Config.clsnd.socktype), g_Config.clsnd.ip, g_Config.clsnd.port, processId());
-	// init cluster data
-	clstbl = newClusterTable();
-	if (!clstbl) {
-		fputs("newClusterTable failure\n", stderr);
-		logErr(&g_Log, "newClusterTable failure");
-		goto err;
-	}
-	if (g_Config.cluster_table_path && g_Config.cluster_table_path[0]) {
-		ClusterNode_t* clsnd;
-		const char* load_cluster_table_errmsg;
-		char* cluster_table_filedata = fileReadAllData(g_Config.cluster_table_path, NULL);
-		if (!cluster_table_filedata) {
-			fprintf(stderr, "fileReadAllData(%s) failure\n", g_Config.cluster_table_path);
-			logErr(&g_Log, "fileReadAllData(%s) failure", g_Config.cluster_table_path);
-			goto err;
-		}
-		if (!loadClusterTableFromJsonData(clstbl, cluster_table_filedata, &load_cluster_table_errmsg)) {
-			fprintf(stderr, "loadClusterTableFromJsonData failure: %s\n", load_cluster_table_errmsg);
-			logErr(&g_Log, "loadClusterTableFromJsonData failure: %s", load_cluster_table_errmsg);
-			free(cluster_table_filedata);
-			goto err;
-		}
-		free(cluster_table_filedata);
-		clsnd = getClusterNodeById(clstbl, g_Config.clsnd.id);
-		if (!clsnd || clsnd->id != g_Config.clsnd.id) {
-			fprintf(stderr, "self cluster node(id:%d) isn't in cluster table\n", g_Config.clsnd.id);
-			logErr(&g_Log, "self cluster node(id:%d) isn't in cluster table", g_Config.clsnd.id);
-			goto err;
-		}
-		if (clsnd->socktype != g_Config.clsnd.socktype ||
-			clsnd->port != g_Config.clsnd.port ||
-			strcmp(clsnd->ip, g_Config.clsnd.ip))
-		{
-			fprintf(stderr, "self cluster node isn't find, id:%d, socktype:%s, ip:%s, port:%u\n",
-				g_Config.clsnd.id,
-				if_socktype2string(g_Config.clsnd.socktype),
-				g_Config.clsnd.ip,
-				g_Config.clsnd.port
-			);
-			logErr(&g_Log, "self cluster node isn't find, id:%d, socktype:%s, ip:%s, port:%u",
-				g_Config.clsnd.id,
-				if_socktype2string(g_Config.clsnd.socktype),
-				g_Config.clsnd.ip,
-				g_Config.clsnd.port
-			);
-			goto err;
-		}
-	}
-	// init net thread resource
-	if (!newNetThreadResource(g_Config.net_thread_cnt)) {
-		goto err;
-	}
-	netthreadresourceinitok = 1;
-	// init task thread
-	g_DefTaskThreadPtr = newTaskThread();
-	if (!g_DefTaskThreadPtr) {
-		goto err;
-	}
-	taskthreadinitok = 1;
-	g_DefTaskThreadPtr->clstbl = clstbl;
-	g_DefTaskThreadPtr->init_argc = argc;
-	g_DefTaskThreadPtr->init_argv = argv;
-	g_DefTaskThreadPtr->fn_init = fn_init;
-	g_DefTaskThreadPtr->fn_destroy = fn_destroy;
-	// listen self cluster node port
-	if (g_Config.clsnd.port) {
-		Channel_t* c = openListenerInner(g_Config.clsnd.socktype, g_Config.clsnd.ip, g_Config.clsnd.port, &g_DefTaskThreadPtr->dq);
-		if (!c) {
-			fprintf(stderr, "listen self cluster node err, ip:%s, port:%u\n", g_Config.clsnd.ip, g_Config.clsnd.port);
-			logErr(&g_Log, "listen self cluster node err, ip:%s, port:%u", g_Config.clsnd.ip, g_Config.clsnd.port);
-			goto err;
-		}
-		reactorCommitCmd(acceptReactor(), &c->_.o->regcmd);
-	}
-	// run reactor thread
-	if (!runNetThreads()) {
-		goto err;
-	}
 	// reg SIGINT signal
 	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR) {
-		goto err;
+		fputs("signalRegHandler(SIGINT) failure", stderr);
+		return 1;
 	}
-	// run task thread
-	if (!runTaskThread(g_DefTaskThreadPtr)) {
-		goto err;
+	// int BootServerGlobal
+	if (!initBootServerGlobal(argv[1])) {
+		fprintf(stderr, "initBootServerGlobal err:%s\n", getBSGErrmsg());
+		return 1;
 	}
-	taskthreadrunok = 1;
-	// wait thread exit
-	threadJoin(g_DefTaskThreadPtr->tid, NULL);
-	g_Valid = 0;
-	joinNetThreads();
-	goto end;
-err:
-	g_Valid = 0;
-	joinNetThreads();
-	if (taskthreadrunok) {
-		dataqueueWake(&g_DefTaskThreadPtr->dq);
-		threadJoin(g_DefTaskThreadPtr->tid, NULL);
+	// print boot cluster node info
+	printBootServerNodeInfo();
+	// run BootServer and wait BootServer end
+#ifdef USE_STATIC_MODULE
+	runBootServerGlobal(argc, argv, init, destroy);
+#else
+	runBootServerGlobal(argc, argv, NULL, NULL);
+#endif
+	// print BootServer run error
+	if (getBSGErrmsg()) {
+		fputs(getBSGErrmsg(), stderr);
+		logErr(ptrBSG()->log, getBSGErrmsg());
 	}
-end:
-	if (taskthreadinitok) {
-		freeTaskThread(g_DefTaskThreadPtr);
-	}
-	if (g_ModulePtr) {
-		(void)moduleUnload(g_ModulePtr);
-	}
-	if (loginitok) {
-		logDestroy(&g_Log);
-	}
-	if (configinitok) {
-		freeConfig(&g_Config);
-	}
-	if (netthreadresourceinitok) {
-		freeNetThreadResource();
-	}
-	if (clstbl) {
-		freeClusterTable(clstbl);
-	}
+	// free BootServer
+	freeBootServerGlobal();
 	return 0;
 }

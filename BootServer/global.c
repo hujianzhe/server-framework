@@ -1,21 +1,199 @@
 #include "global.h"
 
-int g_MainArgc;
-char** g_MainArgv;
-void* g_ModulePtr;
-volatile int g_Valid = 1;
-Log_t g_Log;
-Config_t g_Config;
-TaskThread_t* g_DefTaskThreadPtr;
+static Log_t s_Log;
+static Config_t s_Config;
+static BootServerGlobal_t s_BSG, *s_PtrBSG;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void g_Invalid(void) { g_Valid = 0; }
-Log_t* ptr_g_Log(void) { return &g_Log; }
-Config_t* ptr_g_Config(void) { return &g_Config; }
-TaskThread_t* ptr_g_DefTaskThread(void) { return g_DefTaskThreadPtr; }
+BootServerGlobal_t* ptrBSG(void) { return s_PtrBSG; }
+const char* getBSGErrmsg(void) { return s_BSG.errmsg ? s_BSG.errmsg : ""; }
+
+BOOL initBootServerGlobal(const char* conf_path) {
+	if (s_PtrBSG) {
+		return TRUE;
+	}
+	// load config
+	if (!initConfig(conf_path, &s_Config)) {
+		s_BSG.errmsg = strFormat(NULL, "initConfig(%s) error\n", conf_path);
+		return FALSE;
+	}
+	s_BSG.conf = &s_Config;
+	// init log
+	if (!logInit(&s_Log, "", s_Config.log.pathname)) {
+		s_BSG.errmsg = strFormat(NULL, "logInit(%s) error\n", s_Config.log.pathname);
+		return FALSE;
+	}
+	s_Log.m_maxfilesize = s_Config.log.maxfilesize;
+	s_BSG.log = &s_Log;
+	// load module
+	if (s_Config.module_path && s_Config.module_path[0]) {
+		s_BSG.module = moduleLoad(s_Config.module_path);
+		if (!s_BSG.module) {
+			s_BSG.errmsg = strFormat(NULL, "moduleLoad(%s) failure\n", s_Config.module_path);
+			return FALSE;
+		}
+		s_BSG.fn_module_init = (int(*)(TaskThread_t*, int, char**))moduleSymbolAddress(s_BSG.module, "init");
+		if (!s_BSG.fn_module_init) {
+			s_BSG.errmsg = strFormat(NULL, "moduleSymbolAddress(%s, \"init\") failure\n", s_Config.module_path);
+			return FALSE;
+		}
+		s_BSG.fn_module_destroy = (void(*)(TaskThread_t*))moduleSymbolAddress(s_BSG.module, "destroy");
+	}
+	// init net thread resource
+	if (!newNetThreadResource(s_Config.net_thread_cnt)) {
+		s_BSG.errmsg = strFormat(NULL, "net thread resource create failure\n");
+		return FALSE;
+	}
+	// init task thread
+	s_BSG.default_task_thread = newTaskThread();
+	if (!s_BSG.default_task_thread) {
+		s_BSG.errmsg = strFormat(NULL, "default task thread create failure\n");
+		return FALSE;
+	}
+	// init cluster data
+	s_BSG.default_task_thread->clstbl = newClusterTable();
+	if (!s_BSG.default_task_thread->clstbl) {
+		s_BSG.errmsg = strFormat(NULL, "newClusterTable failure\n");
+		return FALSE;
+	}
+	if (s_Config.cluster_table_path && s_Config.cluster_table_path[0]) {
+		ClusterNode_t* clsnd;
+		const char* load_cluster_table_errmsg;
+		char* cluster_table_filedata = fileReadAllData(s_Config.cluster_table_path, NULL);
+		if (!cluster_table_filedata) {
+			s_BSG.errmsg = strFormat(NULL, "fileReadAllData(%s) failure\n", s_Config.cluster_table_path);
+			return FALSE;
+		}
+		if (!loadClusterTableFromJsonData(s_BSG.default_task_thread->clstbl, cluster_table_filedata, &load_cluster_table_errmsg)) {
+			s_BSG.errmsg = strFormat(NULL, "loadClusterTableFromJsonData failure: %s\n", load_cluster_table_errmsg);
+			free(cluster_table_filedata);
+			return FALSE;
+		}
+		free(cluster_table_filedata);
+		clsnd = getClusterNodeById(s_BSG.default_task_thread->clstbl, s_Config.clsnd.id);
+		if (!clsnd || clsnd->id != s_Config.clsnd.id) {
+			s_BSG.errmsg = strFormat(NULL, "self cluster node(id:%d) isn't in cluster table\n", s_Config.clsnd.id);
+			return FALSE;
+		}
+		if (clsnd->socktype != s_Config.clsnd.socktype ||
+			clsnd->port != s_Config.clsnd.port ||
+			strcmp(clsnd->ip, s_Config.clsnd.ip))
+		{
+			s_BSG.errmsg = strFormat(NULL, "self cluster node isn't find, id:%d, socktype:%s, ip:%s, port:%u\n",
+				s_Config.clsnd.id,
+				if_socktype2string(s_Config.clsnd.socktype),
+				s_Config.clsnd.ip,
+				s_Config.clsnd.port
+			);
+			return FALSE;
+		}
+	}
+	// init ok
+	s_BSG.valid = 1;
+	s_PtrBSG = &s_BSG;
+	return TRUE;
+}
+
+void printBootServerNodeInfo(void) {
+	logInfo(&s_Log, "module_path(%s) socktype:%s, ip:%s, port:%u, pid:%zu",
+		s_Config.module_path ? s_Config.module_path : "",
+		if_socktype2string(s_Config.clsnd.socktype), s_Config.clsnd.ip, s_Config.clsnd.port, processId());
+
+	fprintf(stderr, "module_path(%s) socktype:%s, ip:%s, port:%u, pid:%zu\n",
+			s_Config.module_path ? s_Config.module_path : "",
+			if_socktype2string(s_Config.clsnd.socktype), s_Config.clsnd.ip, s_Config.clsnd.port, processId());
+}
+
+BOOL runBootServerGlobal(int argc, char** argv, int(*fn_init)(TaskThread_t*, int, char**), void(*fn_destroy)(TaskThread_t*)) {
+	// listen self cluster node port
+	if (s_Config.clsnd.port) {
+		Channel_t* c = openListenerInner(s_Config.clsnd.socktype, s_Config.clsnd.ip, s_Config.clsnd.port, &s_BSG.default_task_thread->dq);
+		if (!c) {
+			s_BSG.errmsg = strFormat(NULL, "listen self cluster node err, ip:%s, port:%u\n", s_Config.clsnd.ip, s_Config.clsnd.port);
+			return FALSE;
+		}
+		reactorCommitCmd(acceptReactor(), &c->_.o->regcmd);
+	}
+	// run net thread
+	if (!runNetThreads()) {
+		s_BSG.errmsg = strFormat(NULL, "net thread run failure\n");
+		return FALSE;
+	}
+	// run task thread
+	s_BSG.argc = argc;
+	s_BSG.argv = argv;
+	s_BSG.default_task_thread->init_argc = argc;
+	s_BSG.default_task_thread->init_argv = argv;
+	if (fn_init) {
+		s_BSG.default_task_thread->fn_init = fn_init;
+	}
+	else {
+		s_BSG.default_task_thread->fn_init = s_BSG.fn_module_init;
+	}
+	if (fn_destroy) {
+		s_BSG.default_task_thread->fn_destroy = fn_destroy;
+	}
+	else {
+		s_BSG.default_task_thread->fn_destroy = s_BSG.fn_module_destroy;
+	}
+	if (!runTaskThread(s_BSG.default_task_thread)) {
+		s_BSG.errmsg = strFormat(NULL, "default task thread boot failure\n");
+		return FALSE;
+	}
+	// wait thread exit
+	threadJoin(s_BSG.default_task_thread->tid, NULL);
+	s_BSG.valid = 0;
+	joinNetThreads();
+	return TRUE;
+}
+
+void stopBootServerGlobal(void) {
+	if (!s_PtrBSG) {
+		return;
+	}
+	s_BSG.valid = 0;
+	if (s_BSG.default_task_thread) {
+		dataqueueWake(&s_BSG.default_task_thread->dq);
+	}
+	wakeupNetThreads();
+}
+
+void freeBootServerGlobal(void) {
+	if (!s_PtrBSG) {
+		return;
+	}
+	s_PtrBSG = NULL;
+	if (s_BSG.default_task_thread) {
+		freeClusterTable(s_BSG.default_task_thread->clstbl);
+		freeTaskThread(s_BSG.default_task_thread);
+		s_BSG.default_task_thread = NULL;
+	}
+	if (s_BSG.module) {
+		(void)moduleUnload(s_BSG.module);
+		s_BSG.module = NULL;
+		s_BSG.fn_module_init = NULL;
+		s_BSG.fn_module_destroy = NULL;
+	}
+	if (s_BSG.log) {
+		logDestroy(s_BSG.log);
+		s_BSG.log = NULL;
+	}
+	if (s_BSG.conf) {
+		freeConfig(s_BSG.conf);
+		s_BSG.conf = NULL;
+	}
+	freeNetThreadResource();
+	if (s_BSG.errmsg) {
+		free((void*)s_BSG.errmsg);
+		s_BSG.errmsg = NULL;
+	}
+	s_BSG.valid = 0;
+	s_BSG.argc = 0;
+	s_BSG.argv = NULL;
+}
 
 #ifdef __cplusplus
 }

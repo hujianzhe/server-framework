@@ -131,22 +131,22 @@ void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
 
 		fd = fdOpen(path, FILE_CREAT_BIT | FILE_WRITE_BIT | FILE_APPEND_BIT);
 		if (fd == INVALID_FD_HANDLE) {
-			logErr(ptr_g_Log(), "%s open failure", path);
+			logErr(ptrBSG()->log, "%s open failure", path);
 			free(path);
 			break;
 		}
-		logInfo(ptr_g_Log(), "%s open and ready write append %u bytes...", path, form_data->datalen);
+		logInfo(ptrBSG()->log, "%s open and ready write append %u bytes...", path, form_data->datalen);
 		
 		wrbytes = fdWrite(fd, form_data->data, form_data->datalen);
 		if (wrbytes != form_data->datalen) {
-			logErr(ptr_g_Log(), "%s write error", path);
+			logErr(ptrBSG()->log, "%s write error", path);
 			free(path);
 			fdClose(fd);
 			break;
 		}
 
 		fdClose(fd);
-		logInfo(ptr_g_Log(), "%s write %u bytes...", path, wrbytes);
+		logInfo(ptrBSG()->log, "%s write %u bytes...", path, wrbytes);
 		free(path);
 	}
 	if (cur) {

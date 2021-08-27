@@ -50,7 +50,7 @@ static void channel_reg_handler(ChannelBase_t* c, long long timestamp_msec) {
 	unsigned short port = 0;
 	const char* socktype_str;
 	if (!sockaddrDecode(&c->to_addr.sa, ip, &port)) {
-		logErr(&g_Log, "%s sockaddr decode error, ip:%s port:%hu", __FUNCTION__, ip, port);
+		logErr(ptrBSG()->log, "%s sockaddr decode error, ip:%s port:%hu", __FUNCTION__, ip, port);
 		return;
 	}
 
@@ -58,14 +58,14 @@ static void channel_reg_handler(ChannelBase_t* c, long long timestamp_msec) {
 	channel_flag = channel->_.flag;
 	socktype_str = (channel_flag & CHANNEL_FLAG_STREAM) ? "tcp" : "udp";
 	if (channel_flag & CHANNEL_FLAG_CLIENT) {
-		logInfo(&g_Log, "%s connect addr %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);
+		logInfo(ptrBSG()->log, "%s connect addr %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);
 		channelSendv(channel, NULL, 0, NETPACKET_SYN);
 	}
 	else if (channel_flag & CHANNEL_FLAG_LISTEN) {
-		logInfo(&g_Log, "%s listen addr %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);
+		logInfo(ptrBSG()->log, "%s listen addr %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);
 	}
 	else if (channel_flag & CHANNEL_FLAG_SERVER) {
-		logInfo(&g_Log, "%s server reg %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);
+		logInfo(ptrBSG()->log, "%s server reg %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);
 	}
 }
 
@@ -131,10 +131,10 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 	}
 	reactorCommitCmd(selectReactor(), &o->regcmd);
 	if (sockaddrDecode(peer_addr, ip, &port)) {
-		logInfo(&g_Log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
+		logInfo(ptrBSG()->log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
 	}
 	else {
-		logErr(&g_Log, "accept parse sockaddr error");
+		logErr(ptrBSG()->log, "accept parse sockaddr error");
 	}
 }
 
@@ -169,7 +169,7 @@ static void innerchannel_recv(Channel_t* c, const struct sockaddr* addr, Channel
 		if (message->datalen) {
 			memcpy(message->data, decode_result->bodyptr + cmdid_rpcid_sz, message->datalen);
 		}
-		if (g_Config.enqueue_timeout_msec > 0) {
+		if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
 			message->enqueue_time_msec = gmtimeMillisecond();
 		}
 		dataqueuePush(channelUserData(c)->dq, &message->internal._);
@@ -213,12 +213,12 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr*
 	}
 	if (flag & CHANNEL_FLAG_STREAM) {
 		if ((flag & CHANNEL_FLAG_CLIENT) || (flag & CHANNEL_FLAG_SERVER)) {
-			int on = g_Config.tcp_nodelay;
+			int on = ptrBSG()->conf->tcp_nodelay;
 			setsockopt(o->fd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on));
 		}
 	}
 	else {
-		c->_.dgram_ctx.cwndsize = g_Config.udp_cwndsize;
+		c->_.dgram_ctx.cwndsize = ptrBSG()->conf->udp_cwndsize;
 	}
 	return c;
 }
@@ -326,7 +326,7 @@ static void httpframe_recv(Channel_t* c, const struct sockaddr* addr, ChannelInb
 	if (message->datalen) {
 		memcpy(message->data, decode_result->bodyptr, message->datalen);
 	}
-	if (g_Config.enqueue_timeout_msec > 0) {
+	if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
 		message->enqueue_time_msec = gmtimeMillisecond();
 	}
 	dataqueuePush(channelUserData(c)->dq, &message->internal._);
@@ -352,10 +352,10 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const stru
 
 	reactorCommitCmd(selectReactor(), &o->regcmd);
 	if (sockaddrDecode(peer_addr, ip, &port)) {
-		logInfo(&g_Log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
+		logInfo(ptrBSG()->log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
 	}
 	else {
-		logErr(&g_Log, "accept parse sockaddr error");
+		logErr(ptrBSG()->log, "accept parse sockaddr error");
 	}
 }
 
@@ -503,10 +503,10 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 
 	reactorCommitCmd(selectReactor(), &o->regcmd);
 	if (sockaddrDecode(peer_addr, ip, &port)) {
-		logInfo(&g_Log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
+		logInfo(ptrBSG()->log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
 	}
 	else {
-		logErr(&g_Log, "accept parse sockaddr error");
+		logErr(ptrBSG()->log, "accept parse sockaddr error");
 	}
 }
 

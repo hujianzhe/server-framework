@@ -60,10 +60,10 @@ static unsigned int THREAD_CALL reactorThreadEntry(void* arg) {
 	Reactor_t* reactor = (Reactor_t*)arg;
 	NioEv_t e[4096];
 	int wait_msec = 1000;
-	while (g_Valid) {
+	while (ptrBSG()->valid) {
 		int n = reactorHandle(reactor, e, sizeof(e) / sizeof(e[0]), gmtimeMillisecond(), wait_msec);
 		if (n < 0) {
-			logErr(&g_Log, "reactorHandle error:%d", errnoGet());
+			logErr(ptrBSG()->log, "reactorHandle error:%d", errnoGet());
 			break;
 		}
 	}

@@ -172,8 +172,9 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					}
 					else {
 						Session_t* session = channelSession(ctrl->channel);
-						if (session && session->channel_client)
+						if (session && session->channel_client) {
 							ctrl->channel = session->channel_client;
+						}
 					}
 				}
 				if (conf->enqueue_timeout_msec > 0 && ctrl->enqueue_time_msec > 0) {
@@ -259,10 +260,12 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			RpcItem_t* rpc_item = (RpcItem_t*)e->arg;
 			iter_next = iter_cur->next;
 			rpc_item->timeout_ev = NULL;
-			if (thread->f_rpc)
+			if (thread->f_rpc) {
 				rpcFiberCoreCancel(thread->f_rpc, rpc_item);
-			else if (thread->a_rpc)
+			}
+			else if (thread->a_rpc) {
 				rpcAsyncCoreCancel(thread->a_rpc, rpc_item);
+			}
 			freeRpcItemWhenNormal(&thread->rpc_timer, rpc_item);
 		}
 		if (thread->f_rpc) {
@@ -325,8 +328,9 @@ extern "C" {
 TaskThread_t* newTaskThread(void) {
 	int dq_ok = 0, timer_ok = 0, rpc_timer_ok = 0, fiber_sleep_timer_ok = 0, dispatch_ok = 0;
 	TaskThread_t* t = (TaskThread_t*)malloc(sizeof(TaskThread_t));
-	if (!t)
+	if (!t) {
 		return NULL;
+	}
 
 	if (!dataqueueInit(&t->dq)) {
 		goto err;

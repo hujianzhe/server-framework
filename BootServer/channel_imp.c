@@ -235,7 +235,11 @@ Channel_t* openListenerInner(int socktype, const char* ip, unsigned short port, 
 	if (!o) {
 		return NULL;
 	}
-	if (!socketBindAddr(o->fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
+	if (!socketEnableReuseAddr(o->fd, TRUE)) {
+		reactorCommitCmd(NULL, &o->freecmd);
+		return NULL;
+	}
+	if (bind(o->fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
@@ -394,7 +398,11 @@ Channel_t* openListenerHttp(const char* ip, unsigned short port, FnChannelOnRecv
 	if (!o) {
 		return NULL;
 	}
-	if (!socketBindAddr(o->fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
+	if (!socketEnableReuseAddr(o->fd, TRUE)) {
+		reactorCommitCmd(NULL, &o->freecmd);
+		return NULL;
+	}
+	if (bind(o->fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
@@ -551,7 +559,11 @@ Channel_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelO
 	if (!o) {
 		return NULL;
 	}
-	if (!socketBindAddr(o->fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
+	if (!socketEnableReuseAddr(o->fd, TRUE)) {
+		reactorCommitCmd(NULL, &o->freecmd);
+		return NULL;
+	}
+	if (bind(o->fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}

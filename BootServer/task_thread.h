@@ -1,5 +1,5 @@
-#ifndef BOOT_SERVER_WORK_THREAD_H
-#define	BOOT_SERVER_WORK_THREAD_H
+#ifndef BOOT_SERVER_TASK_THREAD_H
+#define	BOOT_SERVER_TASK_THREAD_H
 
 #include "util/inc/component/dataqueue.h"
 #include "util/inc/component/rbtimer.h"
@@ -38,4 +38,4 @@ void freeTaskThread(TaskThread_t* t);
 }
 #endif
 
-#endif // !WORK_THREAD_H
+#endif // !TASK_THREAD_H

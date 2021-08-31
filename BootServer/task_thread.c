@@ -1,6 +1,6 @@
 #include "global.h"
 #include "config.h"
-#include "work_thread.h"
+#include "task_thread.h"
 #include <stdio.h>
 
 static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {

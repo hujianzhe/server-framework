@@ -1,6 +1,6 @@
 #include "global.h"
 #include "cluster.h"
-#include "work_thread.h"
+#include "task_thread.h"
 
 typedef struct ClusterTable_t {
 	List_t nodelist;

@@ -4,7 +4,7 @@
 #include "util/inc/component/rpc_core.h"
 #include "util/inc/component/rbtimer.h"
 #include "session_struct.h"
-#include "work_thread.h"
+#include "task_thread.h"
 
 #ifdef __cplusplus
 extern "C" {

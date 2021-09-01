@@ -76,7 +76,7 @@ static void channel_detach(ChannelBase_t* c) {
 
 /*************************************************************************/
 static const unsigned int CHANNEL_BASEHDRSIZE = 4;
-static const unsigned int CHANNEL_EXTHDRSIZE = 5;
+static const unsigned int CHANNEL_EXTHDRSIZE = 6;
 static unsigned int lengthfieldframe_hdrsize(Channel_t* c, unsigned int bodylen) {
 	return CHANNEL_BASEHDRSIZE + CHANNEL_EXTHDRSIZE;
 }
@@ -96,8 +96,9 @@ static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen,
 			decode_result->err = 1;
 			return;
 		}
-		decode_result->pktype = *data;
-		decode_result->pkseq = ntohl(*(unsigned int*)(data + 1));
+		decode_result->pktype = data[0];
+		decode_result->fragment_eof = data[1];
+		decode_result->pkseq = ntohl(*(unsigned int*)&data[2]);
 		data += CHANNEL_EXTHDRSIZE;
 		datalen -= CHANNEL_EXTHDRSIZE;
 
@@ -108,8 +109,10 @@ static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen,
 }
 
 static void innerchannel_encode(Channel_t* c, const ChannelOutbufEncodeParam_t* param) {
-	*(param->buf + CHANNEL_BASEHDRSIZE) = param->pktype;
-	*(unsigned int*)(param->buf + CHANNEL_BASEHDRSIZE + 1) = htonl(param->pkseq);
+	unsigned char* exthdr = param->buf + CHANNEL_BASEHDRSIZE;
+	exthdr[0] = param->pktype;
+	exthdr[1] = param->fragment_eof;
+	*(unsigned int*)&exthdr[2] = htonl(param->pkseq);
 	lengthfieldframeEncode(param->buf, CHANNEL_BASEHDRSIZE, param->bodylen + CHANNEL_EXTHDRSIZE);
 }
 
@@ -145,6 +148,7 @@ static void innerchannel_reply_ack(Channel_t* c, unsigned int seq, const struct 
 	encode_param.bodylen = 0;
 	encode_param.hdrlen = hdrsize;
 	encode_param.pkseq = seq;
+	encode_param.fragment_eof = 1;
 	encode_param.pktype = NETPACKET_ACK;
 	encode_param.buf = buf;
 	c->on_encode(c, &encode_param);

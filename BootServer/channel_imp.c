@@ -75,16 +75,15 @@ static void channel_detach(ChannelBase_t* c) {
 }
 
 /*************************************************************************/
-static const unsigned int CHANNEL_BASEHDRSIZE = 4;
-static const unsigned int CHANNEL_EXTHDRSIZE = 6;
-static unsigned int lengthfieldframe_hdrsize(Channel_t* c, unsigned int bodylen) {
-	return CHANNEL_BASEHDRSIZE + CHANNEL_EXTHDRSIZE;
-}
+#define	INNER_BASEHDRSIZE 4
+#define INNER_EXTHDRSIZE 6
+#define	INNER_HDRSIZE 10
+static unsigned int innerchannel_hdrsize(Channel_t* c, unsigned int bodylen) { return INNER_HDRSIZE; }
 
 static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen, ChannelInbufDecodeResult_t* decode_result) {
 	unsigned char* data;
 	unsigned int datalen;
-	int res = lengthfieldframeDecode(CHANNEL_BASEHDRSIZE, buf, buflen, &data, &datalen);
+	int res = lengthfieldframeDecode(INNER_BASEHDRSIZE, buf, buflen, &data, &datalen);
 	if (res < 0) {
 		decode_result->err = 1;
 	}
@@ -92,15 +91,15 @@ static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen,
 		decode_result->incomplete = 1;
 	}
 	else {
-		if (datalen < CHANNEL_EXTHDRSIZE) {
+		if (datalen < INNER_EXTHDRSIZE) {
 			decode_result->err = 1;
 			return;
 		}
 		decode_result->pktype = data[0];
 		decode_result->fragment_eof = data[1];
 		decode_result->pkseq = ntohl(*(unsigned int*)&data[2]);
-		data += CHANNEL_EXTHDRSIZE;
-		datalen -= CHANNEL_EXTHDRSIZE;
+		data += INNER_EXTHDRSIZE;
+		datalen -= INNER_EXTHDRSIZE;
 
 		decode_result->bodyptr = data;
 		decode_result->bodylen = datalen;
@@ -109,11 +108,11 @@ static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen,
 }
 
 static void innerchannel_encode(Channel_t* c, const ChannelOutbufEncodeParam_t* param) {
-	unsigned char* exthdr = param->buf + CHANNEL_BASEHDRSIZE;
+	unsigned char* exthdr = param->buf + INNER_BASEHDRSIZE;
 	exthdr[0] = param->pktype;
 	exthdr[1] = param->fragment_eof;
 	*(unsigned int*)&exthdr[2] = htonl(param->pkseq);
-	lengthfieldframeEncode(param->buf, CHANNEL_BASEHDRSIZE, param->bodylen + CHANNEL_EXTHDRSIZE);
+	lengthfieldframeEncode(param->buf, INNER_BASEHDRSIZE, param->bodylen + INNER_EXTHDRSIZE);
 }
 
 static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
@@ -142,17 +141,16 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 }
 
 static void innerchannel_reply_ack(Channel_t* c, unsigned int seq, const struct sockaddr* addr) {
-	unsigned int hdrsize = c->on_hdrsize(c, 0);
-	unsigned char* buf = (unsigned char*)alloca(hdrsize);
+	unsigned char buf[INNER_HDRSIZE];
 	ChannelOutbufEncodeParam_t encode_param;
 	encode_param.bodylen = 0;
-	encode_param.hdrlen = hdrsize;
+	encode_param.hdrlen = sizeof(buf);
 	encode_param.pkseq = seq;
 	encode_param.fragment_eof = 1;
 	encode_param.pktype = NETPACKET_ACK;
 	encode_param.buf = buf;
 	c->on_encode(c, &encode_param);
-	socketWrite(c->_.o->fd, buf, hdrsize, 0, addr, sockaddrLength(addr));
+	socketWrite(c->_.o->fd, buf, sizeof(buf), 0, addr, sockaddrLength(addr));
 }
 
 static void innerchannel_recv(Channel_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {
@@ -201,7 +199,7 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr*
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = channel_reg_handler;
 	c->_.on_detach = channel_detach;
-	c->on_hdrsize = lengthfieldframe_hdrsize;
+	c->on_hdrsize = innerchannel_hdrsize;
 	c->on_decode = innerchannel_decode;
 	c->on_encode = innerchannel_encode;
 	c->dgram.on_reply_ack = innerchannel_reply_ack;

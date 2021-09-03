@@ -15,15 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cmd.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="test_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="init.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="req_login_test.c">
@@ -32,5 +27,13 @@
     <ClCompile Include="test_handler.c">
       <Filter>源文件</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cmd.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="test_handler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -15,39 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="channel_imp.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="config.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="dispatch.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="global.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="msg_struct.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="rpc_helper.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="session_struct.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cluster_node.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cluster.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="net_thread.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cluster_action.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\component\channel.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -66,6 +33,9 @@
     <ClInclude Include="util\inc\component\memheap_mt.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\component\memref.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="util\inc\component\rbtimer.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -78,30 +48,6 @@
     <ClInclude Include="util\inc\component\websocketframe.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\cpp\container_utility.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\cpp\cpp_compiler_define.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\cpp\exception.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\cpp\lexical_cast.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\cpp\nullptr.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\cpp\string_split.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\cpp\unordered_map.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\cpp\unordered_set.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\crt\cJSON.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -111,7 +57,19 @@
     <ClInclude Include="util\inc\crt\cXML.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\crt\dynarr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\dynbuf.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\export_free.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="util\inc\crt\math.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\datastruct\arrheap.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\datastruct\base64.h">
@@ -129,7 +87,13 @@
     <ClInclude Include="util\inc\datastruct\hashtable.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\datastruct\lengthfieldframe.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="util\inc\datastruct\list.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\datastruct\md5.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\datastruct\memfunc.h">
@@ -195,6 +159,9 @@
     <ClInclude Include="util\inc\sysapi\time.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\sysapi\vkeycode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="util\inc\all.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -204,40 +171,37 @@
     <ClInclude Include="util\inc\platform_define.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\crt\dynbuf.h">
+    <ClInclude Include="channel_imp.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\datastruct\md5.h">
+    <ClInclude Include="cluster.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\cpp\array.h">
+    <ClInclude Include="cluster_action.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\cpp\type_traits.h">
+    <ClInclude Include="cluster_node.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\cpp\unique_ptr.h">
+    <ClInclude Include="config.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\cpp\shared_ptr.h">
+    <ClInclude Include="dispatch.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\cpp\weak_ptr.h">
+    <ClInclude Include="global.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\datastruct\arrheap.h">
+    <ClInclude Include="msg_struct.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\datastruct\lengthfieldframe.h">
+    <ClInclude Include="net_thread.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\component\memref.h">
+    <ClInclude Include="rpc_helper.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\crt\export_free.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\dynarr.h">
+    <ClInclude Include="session_struct.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="task_thread.h">
@@ -245,42 +209,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="channel_imp.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="config.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="dispatch.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="global.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="main.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="msg_struct.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="rpc_helper.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="session_struct.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster_node.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="net_thread.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster_action.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="util\src\component\channel.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -297,6 +225,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\memheap_mt.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\component\memref.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\rbtimer.c">
@@ -320,6 +251,15 @@
     <ClCompile Include="util\src\crt\cXML.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="util\src\crt\dynarr.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\dynbuf.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\export_free.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="util\src\crt\math.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -338,7 +278,13 @@
     <ClCompile Include="util\src\datastruct\hashtable.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="util\src\datastruct\lengthfieldframe.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="util\src\datastruct\list.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\datastruct\md5.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\datastruct\memfunc.c">
@@ -398,22 +344,37 @@
     <ClCompile Include="util\src\sysapi\time.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\crt\dynbuf.c">
+    <ClCompile Include="channel_imp.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\datastruct\md5.c">
+    <ClCompile Include="cluster.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\datastruct\lengthfieldframe.c">
+    <ClCompile Include="cluster_action.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\component\memref.c">
+    <ClCompile Include="cluster_node.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\crt\export_free.c">
+    <ClCompile Include="config.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\crt\dynarr.c">
+    <ClCompile Include="dispatch.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="global.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="msg_struct.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="net_thread.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="rpc_helper.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="session_struct.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="task_thread.c">

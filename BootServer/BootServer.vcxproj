@@ -19,33 +19,33 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{CA93C673-968E-4916-BB23-C714E02CDB44}</ProjectGuid>
+    <ProjectGuid>{8E45FE68-58EB-473F-874E-427DF9477854}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>BootServer</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -87,10 +87,10 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;DECLSPEC_DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;BOOTSERVER_EXPORTS;DECLSPEC_DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -100,10 +100,10 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;DECLSPEC_DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;BOOTSERVER_EXPORTS;DECLSPEC_DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -115,10 +115,10 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;BOOTSERVER_EXPORTS;DECLSPEC_DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -132,10 +132,10 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;BOOTSERVER_EXPORTS;DECLSPEC_DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -153,6 +153,7 @@
     <ClInclude Include="net_thread.h" />
     <ClInclude Include="rpc_helper.h" />
     <ClInclude Include="session_struct.h" />
+    <ClInclude Include="task_thread.h" />
     <ClInclude Include="util\inc\all.h" />
     <ClInclude Include="util\inc\compiler_define.h" />
     <ClInclude Include="util\inc\component\channel.h" />
@@ -166,19 +167,6 @@
     <ClInclude Include="util\inc\component\reactor.h" />
     <ClInclude Include="util\inc\component\rpc_core.h" />
     <ClInclude Include="util\inc\component\websocketframe.h" />
-    <ClInclude Include="util\inc\cpp\array.h" />
-    <ClInclude Include="util\inc\cpp\container_utility.h" />
-    <ClInclude Include="util\inc\cpp\cpp_compiler_define.h" />
-    <ClInclude Include="util\inc\cpp\exception.h" />
-    <ClInclude Include="util\inc\cpp\lexical_cast.h" />
-    <ClInclude Include="util\inc\cpp\nullptr.h" />
-    <ClInclude Include="util\inc\cpp\shared_ptr.h" />
-    <ClInclude Include="util\inc\cpp\string_split.h" />
-    <ClInclude Include="util\inc\cpp\type_traits.h" />
-    <ClInclude Include="util\inc\cpp\unique_ptr.h" />
-    <ClInclude Include="util\inc\cpp\unordered_map.h" />
-    <ClInclude Include="util\inc\cpp\unordered_set.h" />
-    <ClInclude Include="util\inc\cpp\weak_ptr.h" />
     <ClInclude Include="util\inc\crt\cJSON.h" />
     <ClInclude Include="util\inc\crt\collision_detection.h" />
     <ClInclude Include="util\inc\crt\cXML.h" />
@@ -217,7 +205,7 @@
     <ClInclude Include="util\inc\sysapi\statistics.h" />
     <ClInclude Include="util\inc\sysapi\terminal.h" />
     <ClInclude Include="util\inc\sysapi\time.h" />
-    <ClInclude Include="task_thread.h" />
+    <ClInclude Include="util\inc\sysapi\vkeycode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="channel_imp.c" />
@@ -227,11 +215,11 @@
     <ClCompile Include="config.c" />
     <ClCompile Include="dispatch.c" />
     <ClCompile Include="global.c" />
-    <ClCompile Include="main.c" />
     <ClCompile Include="msg_struct.c" />
     <ClCompile Include="net_thread.c" />
     <ClCompile Include="rpc_helper.c" />
     <ClCompile Include="session_struct.c" />
+    <ClCompile Include="task_thread.c" />
     <ClCompile Include="util\src\component\channel.c" />
     <ClCompile Include="util\src\component\dataqueue.c" />
     <ClCompile Include="util\src\component\db.c" />
@@ -277,7 +265,6 @@
     <ClCompile Include="util\src\sysapi\statistics.c" />
     <ClCompile Include="util\src\sysapi\terminal.c" />
     <ClCompile Include="util\src\sysapi\time.c" />
-    <ClCompile Include="task_thread.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -4,10 +4,6 @@
 #include "test_handler.h"
 #include <stdio.h>
 
-#if defined(_WIN32) || defined(_WIN64)
-#pragma comment(lib, "BootServer.lib")
-#endif
-
 static void websocket_recv(Channel_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {
 	if (decode_result->bodylen > 0) {
 		UserMsg_t* message;
@@ -52,11 +48,7 @@ static void websocket_recv(Channel_t* c, const struct sockaddr* addr, ChannelInb
 	}
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-__declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
+int init(TaskThread_t* thrd, int argc, char** argv) {
 	int i;
 	// register dispatch
 	regNumberDispatch(thrd->dispatch, CMD_REQ_TEST, reqTest);
@@ -90,7 +82,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	return 1;
 }
 
-__declspec_dllexport void destroy(TaskThread_t* thrd) {
+void destroy(TaskThread_t* thrd) {
 
 }
 

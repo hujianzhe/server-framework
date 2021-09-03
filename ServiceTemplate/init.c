@@ -1,15 +1,7 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
 
-#if defined(_WIN32) || defined(_WIN64)
-#pragma comment(lib, "BootServer.lib")
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-__declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
+int init(TaskThread_t* thrd, int argc, char** argv) {
 	ConfigConnectOption_t* option = NULL;
 	unsigned int i;
 
@@ -34,7 +26,7 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	return 1;
 }
 
-__declspec_dllexport void destroy(void) {
+void destroy(void) {
 
 }
 

@@ -33,11 +33,10 @@
 		}
 	],
 	"log" : {
-		"pathname" : "./SoTestServer",
+		"pathname" : "./SoTestServer200",
 		"maxfilesize_mb" : 10
 	},
 	"net_thread_cnt" : 0,
-	"module_path" : "./SoTestServer.dll",
 	"cluster_table_path" : "./cluster_table_config_template.txt",
 	"rpc_fiber_stack_size_kb" : 64,
 	"rpc_fiber" : 1,

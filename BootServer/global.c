@@ -28,20 +28,6 @@ BOOL initBootServerGlobal(const char* conf_path) {
 	}
 	s_Log.m_maxfilesize = s_Config.log.maxfilesize;
 	s_BSG.log = &s_Log;
-	// load module
-	if (s_Config.module_path && s_Config.module_path[0]) {
-		s_BSG.module = moduleLoad(s_Config.module_path);
-		if (!s_BSG.module) {
-			s_BSG.errmsg = strFormat(NULL, "moduleLoad(%s) failure\n", s_Config.module_path);
-			return FALSE;
-		}
-		s_BSG.fn_module_init = (int(*)(TaskThread_t*, int, char**))moduleSymbolAddress(s_BSG.module, "init");
-		if (!s_BSG.fn_module_init) {
-			s_BSG.errmsg = strFormat(NULL, "moduleSymbolAddress(%s, \"init\") failure\n", s_Config.module_path);
-			return FALSE;
-		}
-		s_BSG.fn_module_destroy = (void(*)(TaskThread_t*))moduleSymbolAddress(s_BSG.module, "destroy");
-	}
 	// init net thread resource
 	if (!newNetThreadResource(s_Config.net_thread_cnt)) {
 		s_BSG.errmsg = strFormat(NULL, "net thread resource create failure\n");
@@ -98,13 +84,13 @@ BOOL initBootServerGlobal(const char* conf_path) {
 }
 
 void printBootServerNodeInfo(void) {
-	logInfo(&s_Log, "module_path(%s) socktype:%s, ip:%s, port:%u, pid:%zu",
-		s_Config.module_path ? s_Config.module_path : "",
-		if_socktype2string(s_Config.clsnd.socktype), s_Config.clsnd.ip, s_Config.clsnd.port, processId());
+	logInfo(&s_Log, "server boot, clsnd_id:%d, socktype:%s, ip:%s, port:%u, pid:%zu",
+		s_Config.clsnd.id, if_socktype2string(s_Config.clsnd.socktype),
+		s_Config.clsnd.ip, s_Config.clsnd.port, processId());
 
-	fprintf(stderr, "module_path(%s) socktype:%s, ip:%s, port:%u, pid:%zu\n",
-			s_Config.module_path ? s_Config.module_path : "",
-			if_socktype2string(s_Config.clsnd.socktype), s_Config.clsnd.ip, s_Config.clsnd.port, processId());
+	fprintf(stderr, "server boot, clsnd_id:%d, socktype:%s, ip:%s, port:%u, pid:%zu\n",
+		s_Config.clsnd.id, if_socktype2string(s_Config.clsnd.socktype),
+		s_Config.clsnd.ip, s_Config.clsnd.port, processId());
 }
 
 BOOL runBootServerGlobal(int argc, char** argv, int(*fn_init)(TaskThread_t*, int, char**), void(*fn_destroy)(TaskThread_t*)) {
@@ -127,18 +113,8 @@ BOOL runBootServerGlobal(int argc, char** argv, int(*fn_init)(TaskThread_t*, int
 	s_BSG.argv = argv;
 	s_BSG.default_task_thread->init_argc = argc;
 	s_BSG.default_task_thread->init_argv = argv;
-	if (fn_init) {
-		s_BSG.default_task_thread->fn_init = fn_init;
-	}
-	else {
-		s_BSG.default_task_thread->fn_init = s_BSG.fn_module_init;
-	}
-	if (fn_destroy) {
-		s_BSG.default_task_thread->fn_destroy = fn_destroy;
-	}
-	else {
-		s_BSG.default_task_thread->fn_destroy = s_BSG.fn_module_destroy;
-	}
+	s_BSG.default_task_thread->fn_init = fn_init;
+	s_BSG.default_task_thread->fn_destroy = fn_destroy;
 	if (!runTaskThread(s_BSG.default_task_thread)) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread boot failure\n");
 		return FALSE;
@@ -170,12 +146,6 @@ void freeBootServerGlobal(void) {
 		freeClusterTable(s_BSG.default_task_thread->clstbl);
 		freeTaskThread(s_BSG.default_task_thread);
 		s_BSG.default_task_thread = NULL;
-	}
-	if (s_BSG.module) {
-		(void)moduleUnload(s_BSG.module);
-		s_BSG.module = NULL;
-		s_BSG.fn_module_init = NULL;
-		s_BSG.fn_module_destroy = NULL;
 	}
 	if (s_BSG.log) {
 		logDestroy(s_BSG.log);

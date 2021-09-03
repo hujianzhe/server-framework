@@ -1,19 +1,12 @@
 #include "global.h"
-#include "config.h"
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#ifdef USE_STATIC_MODULE
-#ifdef __cplusplus
-extern "C" {
+#if defined(_WIN32) || defined(_WIN64)
+#pragma comment(lib, "BootServer.lib")
 #endif
-	int init(TaskThread_t*, int, char**);
-	void destroy(TaskThread_t*);
-#ifdef __cplusplus
-}
-#endif
-#endif
+
+extern int init(TaskThread_t*, int, char**);
+extern void destroy(TaskThread_t*);
 
 static void sigintHandler(int signo) {
 	stopBootServerGlobal();
@@ -37,11 +30,7 @@ int main(int argc, char** argv) {
 	// print boot cluster node info
 	printBootServerNodeInfo();
 	// run BootServer and wait BootServer end
-#ifdef USE_STATIC_MODULE
 	runBootServerGlobal(argc, argv, init, destroy);
-#else
-	runBootServerGlobal(argc, argv, NULL, NULL);
-#endif
 	// print BootServer run error
 	if (getBSGErrmsg()) {
 		fputs(getBSGErrmsg(), stderr);

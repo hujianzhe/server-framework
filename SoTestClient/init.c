@@ -4,10 +4,6 @@
 #include "test_handler.h"
 #include <stdio.h>
 
-#if defined(_WIN32) || defined(_WIN64)
-#pragma comment(lib, "BootServer.lib")
-#endif
-
 static int start_req_login_test(Channel_t* channel) {
 	InnerMsg_t msg;
 	makeInnerMsg(&msg, CMD_REQ_LOGIN_TEST, NULL, 0);
@@ -73,11 +69,7 @@ static int test_timer(RBTimer_t* timer, RBTimerEvent_t* e) {
 	return 0;
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-__declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
+int init(TaskThread_t* thrd, int argc, char** argv) {
 	int i;
 	RBTimerEvent_t* timer_event;
 
@@ -155,10 +147,6 @@ __declspec_dllexport int init(TaskThread_t* thrd, int argc, char** argv) {
 	return 1;
 }
 
-__declspec_dllexport void destroy(TaskThread_t* thrd) {
+void destroy(TaskThread_t* thrd) {
 
 }
-
-#ifdef __cplusplus
-}
-#endif

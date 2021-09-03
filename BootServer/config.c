@@ -148,14 +148,6 @@ Config_t* initConfig(const char* path, Config_t* conf) {
 			conf->net_thread_cnt = 1;
 		}
 
-		cjson = cJSON_Field(root, "module_path");
-		if (cjson) {
-			conf->module_path = strdup(cjson->valuestring);
-			if (!conf->module_path) {
-				break;
-			}
-		}
-
 		cjson = cJSON_Field(root, "cluster_table_path");
 		if (cjson) {
 			conf->cluster_table_path = strdup(cjson->valuestring);
@@ -249,8 +241,6 @@ void freeConfig(Config_t* conf) {
 	conf->connect_options_cnt = 0;
 	free((char*)conf->log.pathname);
 	conf->log.pathname = NULL;
-	free((char*)conf->module_path);
-	conf->module_path = NULL;
 	free((char*)conf->cluster_table_path);
 	conf->cluster_table_path = NULL;
 	conf->outer_ip[0] = 0;

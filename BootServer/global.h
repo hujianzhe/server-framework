@@ -19,9 +19,6 @@
 typedef struct BootServerGlobal_t {
 	int argc;
 	char** argv;
-	void* module;
-	int (*fn_module_init)(TaskThread_t*, int, char**);
-	void (*fn_module_destroy)(TaskThread_t*);
 	volatile int valid;
 	Log_t* log;
 	Config_t* conf;

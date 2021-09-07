@@ -51,11 +51,11 @@ typedef struct Dispatch_t {
 extern "C" {
 #endif
 
-__declspec_dllexport UserMsg_t* newUserMsg(size_t datalen);
+__declspec_dll UserMsg_t* newUserMsg(size_t datalen);
 
 Dispatch_t* newDispatch(void);
-__declspec_dllexport int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchCallback_t func);
-__declspec_dllexport int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchCallback_t func);
+__declspec_dll int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchCallback_t func);
+__declspec_dll int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchCallback_t func);
 DispatchCallback_t getStringDispatch(Dispatch_t* dispatch, const char* str);
 DispatchCallback_t getNumberDispatch(Dispatch_t* dispatch, int cmd);
 void freeDispatch(Dispatch_t* dispatch);

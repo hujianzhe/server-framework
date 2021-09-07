@@ -28,7 +28,7 @@ extern "C" {
 
 ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned short port);
 void freeClusterNode(ClusterNode_t* clsnd);
-__declspec_dllexport Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq);
+__declspec_dll Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq);
 
 #ifdef __cplusplus
 }

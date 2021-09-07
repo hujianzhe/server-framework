@@ -20,14 +20,14 @@ typedef struct Session_t {
 extern "C" {
 #endif
 
-__declspec_dllexport int allocSessionId(void);
-__declspec_dllexport Session_t* initSession(Session_t* session);
+__declspec_dll int allocSessionId(void);
+__declspec_dll Session_t* initSession(Session_t* session);
 
 void sessionChannelReplaceClient(Session_t* session, Channel_t* channel);
 void sessionChannelReplaceServer(Session_t* session, Channel_t* channel);
-__declspec_dllexport void sessionDisconnect(Session_t* session);
-__declspec_dllexport void sessionUnbindChannel(Session_t* session);
-__declspec_dllexport Channel_t* sessionChannel(Session_t* session);
+__declspec_dll void sessionDisconnect(Session_t* session);
+__declspec_dll void sessionUnbindChannel(Session_t* session);
+__declspec_dll Channel_t* sessionChannel(Session_t* session);
 
 #ifdef __cplusplus
 }

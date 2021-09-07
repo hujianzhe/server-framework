@@ -7,9 +7,9 @@
 extern "C" {
 #endif
 
-__declspec_dllexport Reactor_t* acceptReactor(void);
-__declspec_dllexport Reactor_t* targetReactor(size_t key);
-__declspec_dllexport Reactor_t* selectReactor(void);
+__declspec_dll Reactor_t* acceptReactor(void);
+__declspec_dll Reactor_t* targetReactor(size_t key);
+__declspec_dll Reactor_t* selectReactor(void);
 
 int newNetThreadResource(unsigned int cnt);
 void freeNetThreadResource(void);

@@ -30,14 +30,14 @@ typedef struct BootServerGlobal_t {
 extern "C" {
 #endif
 
-__declspec_dllexport BootServerGlobal_t* ptrBSG(void);
-__declspec_dllexport const char* getBSGErrmsg(void);
+__declspec_dll BootServerGlobal_t* ptrBSG(void);
+__declspec_dll const char* getBSGErrmsg(void);
 
-__declspec_dllexport BOOL initBootServerGlobal(const char* conf_path);
-__declspec_dllexport void printBootServerNodeInfo(void);
-__declspec_dllexport BOOL runBootServerGlobal(int argc, char** argv, int(*fn_init)(TaskThread_t*, int, char**), void(*fn_destroy)(TaskThread_t*));
-__declspec_dllexport void stopBootServerGlobal(void);
-__declspec_dllexport void freeBootServerGlobal(void);
+__declspec_dll BOOL initBootServerGlobal(const char* conf_path);
+__declspec_dll void printBootServerNodeInfo(void);
+__declspec_dll BOOL runBootServerGlobal(int argc, char** argv, int(*fn_init)(TaskThread_t*, int, char**), void(*fn_destroy)(TaskThread_t*));
+__declspec_dll void stopBootServerGlobal(void);
+__declspec_dll void freeBootServerGlobal(void);
 
 #ifdef __cplusplus
 }

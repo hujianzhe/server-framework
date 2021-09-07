@@ -28,20 +28,20 @@ typedef struct ClusterNodeGroup_t {
 extern "C" {
 #endif
 
-__declspec_dllexport struct ClusterTable_t* newClusterTable(void);
-__declspec_dllexport ClusterNode_t* getClusterNodeById(struct ClusterTable_t* t, int clsnd_id);
-__declspec_dllexport void getClusterNodes(struct ClusterTable_t* t, DynArrClusterNodePtr_t* v);
-__declspec_dllexport void getClusterGroupNodes(struct ClusterTable_t* t, const char* grp_name, DynArrClusterNodePtr_t* v);
-__declspec_dllexport void freeClusterTable(struct ClusterTable_t* t);
+__declspec_dll struct ClusterTable_t* newClusterTable(void);
+__declspec_dll ClusterNode_t* getClusterNodeById(struct ClusterTable_t* t, int clsnd_id);
+__declspec_dll void getClusterNodes(struct ClusterTable_t* t, DynArrClusterNodePtr_t* v);
+__declspec_dll void getClusterGroupNodes(struct ClusterTable_t* t, const char* grp_name, DynArrClusterNodePtr_t* v);
+__declspec_dll void freeClusterTable(struct ClusterTable_t* t);
 
 struct ClusterNodeGroup_t* newClusterNodeGroup(const char* name);
 int regClusterNodeToGroup(struct ClusterNodeGroup_t* grp, ClusterNode_t* clsnd);
 void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp);
 void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t** grps, size_t grp_cnt);
 
-__declspec_dllexport ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name, int mode, unsigned int key);
-__declspec_dllexport void broadcastClusterGroup(struct DataQueue_t* dq, struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt);
-__declspec_dllexport void broadcastClusterTable(struct DataQueue_t* dq, struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt);
+__declspec_dll ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name, int mode, unsigned int key);
+__declspec_dll void broadcastClusterGroup(struct DataQueue_t* dq, struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt);
+__declspec_dll void broadcastClusterTable(struct DataQueue_t* dq, struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt);
 
 #ifdef __cplusplus
 }

@@ -85,7 +85,3 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 void destroy(TaskThread_t* thrd) {
 
 }
-
-#ifdef __cplusplus
-}
-#endif

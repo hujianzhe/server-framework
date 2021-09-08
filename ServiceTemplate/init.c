@@ -26,10 +26,6 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 	return 1;
 }
 
-void destroy(void) {
+void destroy(TaskThread_t* thrd) {
 
 }
-
-#ifdef __cplusplus
-}
-#endif

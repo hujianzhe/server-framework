@@ -6,6 +6,7 @@ TARGET_PATH += .
 COMPILE_OPTION := -Wno-deprecated -Wno-parentheses
 MACRO := -D_REENTRANT
 LIB_FILE := $(PWD)/../BootServer/libBootServerDynamic.so
+DEBUG_LIB_FILE := $(PWD)/../BootServer/libBootServerDynamicDebug.so
 INCLUDE_PATH :=
 
 #DEFAULT_LINK := -lpthread -lm -ldl
@@ -23,7 +24,7 @@ TARGET := $(TARGET_PATH)/SoTestServer.exe
 all:
 
 debug:
-	$(COMPILER) $(MACRO) -D_DEBUG -g $(COMPILE_OPTION) $(INCLUDE_PATH) $(SOURCE_C_FILE) $(SOURCE_CPP_FILE) $(LIB_FILE) -o $(TARGET) $(DEFAULT_LINK)
+	$(COMPILER) $(MACRO) -D_DEBUG -g $(COMPILE_OPTION) $(INCLUDE_PATH) $(SOURCE_C_FILE) $(SOURCE_CPP_FILE) $(DEBUG_LIB_FILE) -o $(TARGET) $(DEFAULT_LINK)
 
 release:
 	$(COMPILER) $(MACRO) -DNDEBUG -O1 $(COMPILE_OPTION) $(INCLUDE_PATH) $(SOURCE_C_FILE) $(SOURCE_CPP_FILE) $(LIB_FILE) -o $(TARGET) $(DEFAULT_LINK)

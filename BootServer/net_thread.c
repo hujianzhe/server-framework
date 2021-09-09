@@ -1,7 +1,6 @@
 #include "global.h"
 #include "net_thread.h"
 
-static Thread_t* s_ReactorThreads;
 static Reactor_t* s_Reactors;
 static size_t s_ReactorCnt;
 static size_t s_BootReactorThreadCnt;
@@ -20,17 +19,14 @@ Reactor_t* selectReactor(void) {
 
 int newNetThreadResource(unsigned int cnt) {
 	int i;
-	size_t nbytes;
 	if (!networkSetupEnv()) {
 		return 0;
 	}
 	s_ReactorCnt = cnt;
-	nbytes = (sizeof(Thread_t) + sizeof(Reactor_t)) * (s_ReactorCnt + 1);
-	s_Reactors = (Reactor_t*)malloc(nbytes);
+	s_Reactors = (Reactor_t*)malloc(sizeof(Reactor_t) * (s_ReactorCnt + 1));
 	if (!s_Reactors) {
 		return 0;
 	}
-	s_ReactorThreads = (Thread_t*)(s_Reactors + s_ReactorCnt + 1);
 
 	for (i = 0; i < s_ReactorCnt + 1; ++i) {
 		if (!reactorInit(s_Reactors + i)) {
@@ -42,6 +38,7 @@ int newNetThreadResource(unsigned int cnt) {
 			reactorDestroy(s_Reactors + i);
 		}
 		free(s_Reactors);
+		s_Reactors = NULL;
 		return 0;
 	}
 	return 1;
@@ -51,7 +48,6 @@ void freeNetThreadResource(void) {
 	if (s_Reactors) {
 		free(s_Reactors);
 		s_Reactors = NULL;
-		s_ReactorThreads = NULL;
 	}
 	networkCleanEnv();
 }
@@ -83,7 +79,7 @@ static unsigned int THREAD_CALL reactorThreadEntry(void* arg) {
 BOOL runNetThreads(void) {
 	int i;
 	for (i = 0; i < s_ReactorCnt + 1; ++i) {
-		if (!threadCreate(s_ReactorThreads + i, reactorThreadEntry, s_Reactors + i)) {
+		if (!threadCreate(&s_Reactors[i].m_runthread, reactorThreadEntry, s_Reactors + i)) {
 			break;
 		}
 	}
@@ -100,7 +96,7 @@ void wakeupNetThreads(void) {
 
 void joinNetThreads(void) {
 	while (s_BootReactorThreadCnt) {
-		threadJoin(s_ReactorThreads[--s_BootReactorThreadCnt], NULL);
+		threadJoin(s_Reactors[--s_BootReactorThreadCnt].m_runthread, NULL);
 	}
 }
 

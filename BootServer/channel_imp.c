@@ -16,17 +16,6 @@ static ChannelUserData_t* init_channel_user_data(ChannelUserData_t* ud) {
 	return ud;
 }
 
-static int defaultOnHeartbeat(ChannelBase_t* c, int heartbeat_times) {
-	if (heartbeat_times < c->heartbeat_maxtimes) {
-		Channel_t* channel = pod_container_of(c, Channel_t, _);
-		InnerMsg_t msg;
-		makeInnerMsgEmpty(&msg);
-		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
-		return 1;
-	}
-	return 0;
-}
-
 void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	Channel_t* channel = pod_container_of(c, Channel_t, _);
 	ChannelUserData_t* ud = (ChannelUserData_t*)channel->userdata;
@@ -183,6 +172,17 @@ static void innerchannel_recv(Channel_t* c, const struct sockaddr* addr, Channel
 	}
 }
 
+static int innerchannel_heartbeat(ChannelBase_t* c, int heartbeat_times) {
+	if (heartbeat_times < c->heartbeat_maxtimes) {
+		Channel_t* channel = pod_container_of(c, Channel_t, _);
+		InnerMsg_t msg;
+		makeInnerMsgEmpty(&msg);
+		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
+		return 1;
+	}
+	return 0;
+}
+
 /**************************************************************************/
 
 Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
@@ -208,7 +208,7 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr*
 	if (flag & CHANNEL_FLAG_CLIENT) {
 		c->_.heartbeat_timeout_sec = 10;
 		c->_.heartbeat_maxtimes = 3;
-		c->_.on_heartbeat = defaultOnHeartbeat;
+		c->_.on_heartbeat = innerchannel_heartbeat;
 	}
 	else if (flag & CHANNEL_FLAG_SERVER) {
 		c->_.heartbeat_timeout_sec = 20;

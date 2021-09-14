@@ -5,8 +5,9 @@ TARGET_PATH += .
 
 COMPILE_OPTION := -Wno-deprecated -Wno-parentheses
 MACRO := -D_REENTRANT
-LIB_FILE := $(PWD)/../BootServer/libBootServerDynamic.so
-DEBUG_LIB_FILE := $(PWD)/../BootServer/libBootServerDynamicDebug.so
+LIB_PATH := $(PWD)/..
+LIB_FILE := $(LIB_PATH)/BootServer/libBootServerDynamic.so
+DEBUG_LIB_FILE := $(LIB_PATH)/BootServer/libBootServerDynamicDebug.so
 INCLUDE_PATH :=
 
 #DEFAULT_LINK := -lpthread -lm -ldl

@@ -3,7 +3,9 @@
 
 #include "util/inc/all.h"
 #include "config.h"
-#include "channel_imp.h"
+#include "channel_proc_imp.h"
+#include "channel_inner.h"
+#include "channel_web.h"
 #include "cluster_node.h"
 #include "cluster.h"
 #include "cluster_action.h"

@@ -171,9 +171,6 @@
     <ClInclude Include="util\inc\platform_define.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="channel_imp.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="cluster.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -205,6 +202,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="task_thread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="channel_inner.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="channel_web.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="channel_proc_imp.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -344,9 +350,6 @@
     <ClCompile Include="util\src\sysapi\time.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="channel_imp.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="cluster.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -378,6 +381,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="task_thread.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="channel_inner.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="channel_web.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="channel_proc_imp.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

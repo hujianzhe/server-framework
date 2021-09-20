@@ -142,7 +142,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="channel_imp.h" />
+    <ClInclude Include="channel_proc_imp.h" />
+    <ClInclude Include="channel_inner.h" />
+    <ClInclude Include="channel_web.h" />
     <ClInclude Include="cluster.h" />
     <ClInclude Include="cluster_action.h" />
     <ClInclude Include="cluster_node.h" />
@@ -208,7 +210,9 @@
     <ClInclude Include="util\inc\sysapi\vkeycode.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="channel_imp.c" />
+    <ClCompile Include="channel_proc_imp.c" />
+    <ClCompile Include="channel_inner.c" />
+    <ClCompile Include="channel_web.c" />
     <ClCompile Include="cluster.c" />
     <ClCompile Include="cluster_action.c" />
     <ClCompile Include="cluster_node.c" />

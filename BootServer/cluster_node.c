@@ -72,7 +72,7 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq) {
 			return NULL;
 		}
 		clsnd->connection_num++;
-		sessionChannelReplaceClient(&clsnd->session, channel);
+		sessionReplaceChannel(&clsnd->session, channel);
 		reactorCommitCmd(selectReactor(), &o->regcmd);
 		// handshake
 		makeInnerMsg(&msg, 0, hs_data, hs_datalen)->rpc_status = RPC_STATUS_HAND_SHAKE;

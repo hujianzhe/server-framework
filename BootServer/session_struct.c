@@ -21,7 +21,7 @@ Session_t* initSession(Session_t* session) {
 	session->reconnect_timestamp_sec = 0;
 	session->channel_client = NULL;
 	session->channel_server = NULL;
-	session->id = 0;
+	session->id = NULL;
 	session->userdata = NULL;
 	session->disconnect = NULL;
 	session->destroy = NULL;
@@ -35,30 +35,39 @@ void sessionChannelReplaceClient(Session_t* session, Channel_t* channel) {
 	}
 	if (old_channel) {
 		channelSession(old_channel) = NULL;
-		channelSessionId(old_channel) = 0;
 		channelSendv(old_channel, NULL, 0, NETPACKET_FIN);
 	}
 	session->channel_client = channel;
 	if (channel) {
 		channelSession(channel) = session;
-		channelSessionId(channel) = session->id;
 	}
 }
 
-void sessionChannelReplaceServer(Session_t* session, Channel_t* channel) {
-	Channel_t* old_channel = session->channel_server;
-	if (old_channel == channel) {
+void sessionReplaceChannel(Session_t* session, Channel_t* channel) {
+	Channel_t* old_channel;
+	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
+		old_channel = session->channel_client;
+		if (old_channel == channel) {
+			return;
+		}
+		session->channel_client = channel;
+	}
+	else if (channel->_.flag & CHANNEL_FLAG_SERVER) {
+		old_channel = session->channel_server;
+		if (old_channel == channel) {
+			return;
+		}
+		session->channel_server = channel;
+	}
+	else {
 		return;
 	}
 	if (old_channel) {
 		channelSession(old_channel) = NULL;
-		channelSessionId(old_channel) = 0;
 		channelSendv(old_channel, NULL, 0, NETPACKET_FIN);
 	}
-	session->channel_server = channel;
 	if (channel) {
 		channelSession(channel) = session;
-		channelSessionId(channel) = session->id;
 	}
 }
 
@@ -66,13 +75,11 @@ void sessionDisconnect(Session_t* session) {
 	if (session->channel_client) {
 		channelSendv(session->channel_client, NULL, 0, NETPACKET_FIN);
 		channelSession(session->channel_client) = NULL;
-		channelSessionId(session->channel_client) = 0;
 		session->channel_client = NULL;
 	}
 	if (session->channel_server) {
 		channelSendv(session->channel_server, NULL, 0, NETPACKET_FIN);
 		channelSession(session->channel_server) = NULL;
-		channelSessionId(session->channel_server) = 0;
 		session->channel_server = NULL;
 	}
 }
@@ -80,12 +87,10 @@ void sessionDisconnect(Session_t* session) {
 void sessionUnbindChannel(Session_t* session) {
 	if (session->channel_client) {
 		channelSession(session->channel_client) = NULL;
-		channelSessionId(session->channel_client) = 0;
 		session->channel_client = NULL;
 	}
 	if (session->channel_server) {
 		channelSession(session->channel_server) = NULL;
-		channelSessionId(session->channel_server) = 0;
 		session->channel_server = NULL;
 	}
 }

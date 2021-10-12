@@ -8,7 +8,6 @@ struct RpcItem_t;
 struct Session_t;
 struct DataQueue_t;
 typedef struct ChannelUserData_t {
-	int session_id;
 	struct Session_t* session;
 	struct RpcItem_t* rpc_syn_ack_item;
 	struct DataQueue_t* dq;
@@ -20,7 +19,6 @@ typedef void(*FnChannelOnRecv_t)(Channel_t*, const struct sockaddr*, ChannelInbu
 
 #define	channelUserData(channel)	((ChannelUserData_t*)((channel)->userdata))
 #define	channelSession(channel)		(((ChannelUserData_t*)((channel)->userdata))->session)
-#define	channelSessionId(channel)	(((ChannelUserData_t*)((channel)->userdata))->session_id)
 
 #ifdef __cplusplus
 extern "C" {

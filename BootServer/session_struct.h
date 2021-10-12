@@ -10,7 +10,7 @@ typedef struct Session_t {
 	time_t reconnect_timestamp_sec;
 	Channel_t* channel_client;
 	Channel_t* channel_server;
-	int id;
+	char* id;
 	void* userdata;
 	void(*disconnect)(struct Session_t*);
 	void(*destroy)(struct Session_t*);
@@ -22,9 +22,7 @@ extern "C" {
 
 __declspec_dll int allocSessionId(void);
 __declspec_dll Session_t* initSession(Session_t* session);
-
-void sessionChannelReplaceClient(Session_t* session, Channel_t* channel);
-void sessionChannelReplaceServer(Session_t* session, Channel_t* channel);
+__declspec_dll void sessionReplaceChannel(Session_t* session, Channel_t* channel);
 __declspec_dll void sessionDisconnect(Session_t* session);
 __declspec_dll void sessionUnbindChannel(Session_t* session);
 __declspec_dll Channel_t* sessionChannel(Session_t* session);

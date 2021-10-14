@@ -243,8 +243,8 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					freeRpcItemWhenChannelDetach(thread, channel);
 					if (session && !sessionChannel(session)) {
 						session->reconnect_timestamp_sec = cur_sec + session->reconnect_delay_sec;
-						if (session->disconnect) {
-							session->disconnect(session);
+						if (session->on_disconnect) {
+							session->on_disconnect(thread, session);
 						}
 					}
 				}

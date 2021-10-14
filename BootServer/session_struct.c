@@ -7,14 +7,6 @@ static Atom32_t CHANNEL_SESSION_ID = 0;
 extern "C" {
 #endif
 
-int allocSessionId(void) {
-	int session_id;
-	do {
-		session_id = _xadd32(&CHANNEL_SESSION_ID, 1) + 1;
-	} while (0 == session_id);
-	return session_id;
-}
-
 Session_t* initSession(Session_t* session) {
 	session->has_reg = 0;
 	session->reconnect_delay_sec = 0;
@@ -23,7 +15,7 @@ Session_t* initSession(Session_t* session) {
 	session->channel_server = NULL;
 	session->id = NULL;
 	session->userdata = NULL;
-	session->disconnect = NULL;
+	session->on_disconnect = NULL;
 	session->destroy = NULL;
 	return session;
 }

@@ -4,6 +4,8 @@
 #include "util/inc/component/channel.h"
 #include <time.h>
 
+struct TaskThread_t;
+
 typedef struct Session_t {
 	short has_reg;
 	int reconnect_delay_sec;
@@ -12,7 +14,7 @@ typedef struct Session_t {
 	Channel_t* channel_server;
 	char* id;
 	void* userdata;
-	void(*disconnect)(struct Session_t*);
+	void(*on_disconnect)(struct TaskThread_t*, struct Session_t*);
 	void(*destroy)(struct Session_t*);
 } Session_t;
 
@@ -20,7 +22,6 @@ typedef struct Session_t {
 extern "C" {
 #endif
 
-__declspec_dll int allocSessionId(void);
 __declspec_dll Session_t* initSession(Session_t* session);
 __declspec_dll void sessionReplaceChannel(Session_t* session, Channel_t* channel);
 __declspec_dll void sessionDisconnect(Session_t* session);

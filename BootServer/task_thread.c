@@ -324,8 +324,29 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 extern "C" {
 #endif
 
+static DynArr_t(TaskThread_t*) s_allTaskThreads;
+static Atom32_t s_allTaskThreadsSpinLock;
+
+static int __save_task_thread(TaskThread_t* t) {
+	int save_ok;
+	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
+	dynarrInsert(&s_allTaskThreads, s_allTaskThreads.len, t, save_ok);
+	_xchg32(&s_allTaskThreadsSpinLock, 0);
+	return save_ok;
+}
+
+static void __remove_task_thread(TaskThread_t* t) {
+	size_t idx;
+	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
+	dynarrFindValue(&s_allTaskThreads, t, idx);
+	if (idx != -1) {
+		dynarrRemoveIdx(&s_allTaskThreads, idx);
+	}
+	_xchg32(&s_allTaskThreadsSpinLock, 0);
+}
+
 TaskThread_t* newTaskThread(void) {
-	int dq_ok = 0, timer_ok = 0, rpc_timer_ok = 0, fiber_sleep_timer_ok = 0, dispatch_ok = 0;
+	int dq_ok = 0, timer_ok = 0, rpc_timer_ok = 0, fiber_sleep_timer_ok = 0, dispatch_ok = 0, save_ok = 0;
 	TaskThread_t* t = (TaskThread_t*)malloc(sizeof(TaskThread_t));
 	if (!t) {
 		return NULL;
@@ -356,6 +377,10 @@ TaskThread_t* newTaskThread(void) {
 		goto err;
 	}
 	dispatch_ok = 1;
+
+	if (!__save_task_thread(t)) {
+		goto err;
+	}
 
 	t->f_rpc = NULL;
 	t->a_rpc = NULL;
@@ -393,6 +418,7 @@ BOOL runTaskThread(TaskThread_t* t) {
 
 void freeTaskThread(TaskThread_t* t) {
 	if (t) {
+		__remove_task_thread(t);
 		dataqueueDestroy(&t->dq);
 		rbtimerDestroy(&t->timer);
 		rbtimerDestroy(&t->rpc_timer);
@@ -401,6 +427,21 @@ void freeTaskThread(TaskThread_t* t) {
 		free((void*)t->errmsg);
 		free(t);
 	}
+}
+
+TaskThread_t* currentTaskThread(void) {
+	Thread_t tid = threadSelf();
+	TaskThread_t* thrd = NULL;
+	size_t i;
+	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
+	for (i = 0; i < s_allTaskThreads.len; ++i) {
+		thrd = s_allTaskThreads.buf[i];
+		if (threadEqual(tid, thrd->tid)) {
+			break;
+		}
+	}
+	_xchg32(&s_allTaskThreadsSpinLock, 0);
+	return thrd;
 }
 
 #ifdef __cplusplus

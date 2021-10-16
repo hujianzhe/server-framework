@@ -3,8 +3,6 @@
 
 #include "session_struct.h"
 
-struct DataQueue_t;
-
 enum {
 	CLSND_STATUS_NORMAL = 0,
 	CLSND_STATUS_INACTIVE = 1
@@ -28,7 +26,7 @@ extern "C" {
 
 ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned short port);
 void freeClusterNode(ClusterNode_t* clsnd);
-__declspec_dll Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq);
+__declspec_dll Channel_t* connectClusterNode(ClusterNode_t* clsnd);
 
 #ifdef __cplusplus
 }

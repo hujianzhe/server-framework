@@ -223,7 +223,7 @@ ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name,
 	return dst_clsnd;
 }
 
-void broadcastClusterGroup(DataQueue_t* dq, struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt) {
+void broadcastClusterGroup(struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt) {
 	ClusterNodeGroup_t* grp = get_cluster_node_group(t, grp_name);
 	if (grp) {
 		int self_id = ptrBSG()->conf->clsnd.id;
@@ -234,7 +234,7 @@ void broadcastClusterGroup(DataQueue_t* dq, struct ClusterTable_t* t, const char
 			if (clsnd->id == self_id) {
 				continue;
 			}
-			channel = connectClusterNode(clsnd, dq);
+			channel = connectClusterNode(clsnd);
 			if (!channel) {
 				continue;
 			}
@@ -243,7 +243,7 @@ void broadcastClusterGroup(DataQueue_t* dq, struct ClusterTable_t* t, const char
 	}
 }
 
-void broadcastClusterTable(DataQueue_t* dq, struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt) {
+void broadcastClusterTable(struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt) {
 	ListNode_t* cur;
 	for (cur = t->nodelist.head; cur; cur = cur->next) {
 		Channel_t* channel;
@@ -252,7 +252,7 @@ void broadcastClusterTable(DataQueue_t* dq, struct ClusterTable_t* t, const Iobu
 		if (clsnd->id == self_id) {
 			continue;
 		}
-		channel = connectClusterNode(clsnd, dq);
+		channel = connectClusterNode(clsnd);
 		if (!channel) {
 			continue;
 		}

@@ -5,7 +5,7 @@
 void frpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 	char test_data[] = "this text is from client ^.^";
 	InnerMsg_t msg;
-	RpcItem_t* rpc_item = newRpcItemFiberReady(thrd, channel, 1000);
+	RpcItem_t* rpc_item = newRpcItemFiberReady(channel, 1000);
 	if (!rpc_item) {
 		return;
 	}
@@ -27,7 +27,7 @@ void arpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 	// test code
 	char test_data[] = "this text is from client ^.^";
 	InnerMsg_t msg;
-	RpcItem_t* rpc_item = newRpcItemAsyncReady(thrd, channel, 1000, NULL, rpcRetTest);
+	RpcItem_t* rpc_item = newRpcItemAsyncReady(channel, 1000, NULL, rpcRetTest);
 	if (!rpc_item) {
 		return;
 	}

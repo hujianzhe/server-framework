@@ -69,50 +69,7 @@ static RpcItem_t* ready_rpc_item(TaskThread_t* thrd, RpcItem_t* rpc_item, long l
 	return rpc_item;
 }
 
-RpcItem_t* newRpcItemFiberReady(TaskThread_t* thrd, Channel_t* channel, long long timeout_msec) {
-	RpcItem_t* rpc_item;
-	if (!channel->_.valid) {
-		return NULL;
-	}
-	rpc_item = new_rpc_item();
-	if (!rpc_item) {
-		return NULL;
-	}
-	if (!ready_rpc_item(thrd, rpc_item, timeout_msec)) {
-		free(rpc_item);
-		return NULL;
-	}
-	if (!rpcFiberCoreRegItem(thrd->f_rpc, rpc_item, channel)) {
-		freeRpcItem(thrd, rpc_item);
-		return NULL;
-	}
-	return rpc_item;
-}
-
-RpcItem_t* newRpcItemAsyncReady(TaskThread_t* thrd, Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcAsyncCore_t*, RpcItem_t*)) {
-	RpcItem_t* rpc_item;
-	if (!channel->_.valid) {
-		return NULL;
-	}
-	rpc_item = new_rpc_item();
-	if (!rpc_item) {
-		return NULL;
-	}
-	if (!ready_rpc_item(thrd, rpc_item, timeout_msec)) {
-		free(rpc_item);
-		return NULL;
-	}
-	if (!rpcAsyncCoreRegItem(thrd->a_rpc, rpc_item, channel, req_arg, ret_callback)) {
-		freeRpcItem(thrd, rpc_item);
-		return NULL;
-	}
-	return rpc_item;
-}
-
-void freeRpcItem(TaskThread_t* thrd, RpcItem_t* rpc_item) {
-	if (!rpc_item) {
-		return;
-	}
+static void free_rpc_item(TaskThread_t* thrd, RpcItem_t* rpc_item) {
 	if (rpc_item->timeout_ev) {
 		rbtimerDelEvent(&thrd->rpc_timer, (RBTimerEvent_t*)rpc_item->timeout_ev);
 	}
@@ -125,10 +82,73 @@ void freeRpcItem(TaskThread_t* thrd, RpcItem_t* rpc_item) {
 	free(rpc_item);
 }
 
-BOOL newFiberSleepMillsecond(TaskThread_t* thrd, long long timeout_msec) {
+RpcItem_t* newRpcItemFiberReady(Channel_t* channel, long long timeout_msec) {
+	RpcItem_t* rpc_item;
+	TaskThread_t* thrd;
+	if (!channel->_.valid) {
+		return NULL;
+	}
+	thrd = currentTaskThread();
+	if (!thrd) {
+		return NULL;
+	}
+	rpc_item = new_rpc_item();
+	if (!rpc_item) {
+		return NULL;
+	}
+	if (!ready_rpc_item(thrd, rpc_item, timeout_msec)) {
+		free(rpc_item);
+		return NULL;
+	}
+	if (!rpcFiberCoreRegItem(thrd->f_rpc, rpc_item, channel)) {
+		free_rpc_item(thrd, rpc_item);
+		return NULL;
+	}
+	return rpc_item;
+}
+
+RpcItem_t* newRpcItemAsyncReady(Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcAsyncCore_t*, RpcItem_t*)) {
+	RpcItem_t* rpc_item;
+	TaskThread_t* thrd;
+	if (!channel->_.valid) {
+		return NULL;
+	}
+	thrd = currentTaskThread();
+	if (!thrd) {
+		return NULL;
+	}
+	rpc_item = new_rpc_item();
+	if (!rpc_item) {
+		return NULL;
+	}
+	if (!ready_rpc_item(thrd, rpc_item, timeout_msec)) {
+		free(rpc_item);
+		return NULL;
+	}
+	if (!rpcAsyncCoreRegItem(thrd->a_rpc, rpc_item, channel, req_arg, ret_callback)) {
+		free_rpc_item(thrd, rpc_item);
+		return NULL;
+	}
+	return rpc_item;
+}
+
+void freeRpcItem(RpcItem_t* rpc_item) {
+	TaskThread_t* thrd;
+	if (!rpc_item) {
+		return;
+	}
+	thrd = currentTaskThread();
+	if (!thrd) {
+		return;
+	}
+	free_rpc_item(thrd, rpc_item);
+}
+
+BOOL newFiberSleepMillsecond(long long timeout_msec) {
 	RpcItem_t* rpc_item;
 	RBTimerEvent_t* timeout_ev;
-	if (!thrd->f_rpc) {
+	TaskThread_t* thrd = currentTaskThread();
+	if (!thrd || !thrd->f_rpc) {
 		return FALSE;
 	}
 	if (timeout_msec <= 0) {

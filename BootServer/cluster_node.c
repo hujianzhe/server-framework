@@ -1,4 +1,3 @@
-#include "config.h"
 #include "global.h"
 #include "cluster_node.h"
 #include <string.h>
@@ -31,7 +30,7 @@ void freeClusterNode(ClusterNode_t* clsnd) {
 	free(clsnd);
 }
 
-Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq) {
+Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 	Channel_t* channel;
 	int self_id = ptrBSG()->conf->clsnd.id;
 	if (clsnd->id == self_id) {
@@ -44,10 +43,16 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq) {
 		int hs_datalen;
 		Sockaddr_t saddr;
 		ReactorObject_t* o;
+		TaskThread_t* thrd;
 
 		if (clsnd->session.reconnect_timestamp_sec > 0 &&
 			time(NULL) < clsnd->session.reconnect_timestamp_sec)
 		{
+			return NULL;
+		}
+
+		thrd = currentTaskThread();
+		if (!thrd) {
 			return NULL;
 		}
 
@@ -65,7 +70,7 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd, struct DataQueue_t* dq) {
 			free(hs_data);
 			return NULL;
 		}
-		channel = openChannelInner(o, CHANNEL_FLAG_CLIENT, &saddr.sa, dq);
+		channel = openChannelInner(o, CHANNEL_FLAG_CLIENT, &saddr.sa, &thrd->dq);
 		if (!channel) {
 			reactorCommitCmd(NULL, &o->freecmd);
 			free(hs_data);

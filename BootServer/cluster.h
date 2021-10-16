@@ -40,8 +40,8 @@ void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp);
 void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t** grps, size_t grp_cnt);
 
 __declspec_dll ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name, int mode, unsigned int key);
-__declspec_dll void broadcastClusterGroup(struct DataQueue_t* dq, struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt);
-__declspec_dll void broadcastClusterTable(struct DataQueue_t* dq, struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt);
+__declspec_dll void broadcastClusterGroup(struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt);
+__declspec_dll void broadcastClusterTable(struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt);
 
 #ifdef __cplusplus
 }

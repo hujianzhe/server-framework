@@ -32,18 +32,20 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 	int i, cnt_rpc = 0;
 	RpcItem_t* rpc_item;
 	for (i = 0; i < 2; ++i) {
-		rpc_item = newRpcItemFiberReady(thrd, channel, 1000);
-		if (!rpc_item)
+		rpc_item = newRpcItemFiberReady(channel, 1000);
+		if (!rpc_item) {
 			continue;
+		}
 		makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		//rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 		rpc_item->udata = CMD_REQ_ParallelTest1;
 		cnt_rpc++;
 
-		rpc_item = newRpcItemFiberReady(thrd, channel, 1000);
-		if (!rpc_item)
+		rpc_item = newRpcItemFiberReady(channel, 1000);
+		if (!rpc_item) {
 			continue;
+		}
 		makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
 		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		//rpc_item = rpcFiberCoreYield(thrd->f_rpc);
@@ -106,7 +108,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 			c->_.on_syn_ack = defaultRpcOnSynAck;
 			channelUserData(c)->dq = &thrd->dq;
 			if (thrd->f_rpc) {
-				rpc_item = newRpcItemFiberReady(thrd, c, 5000);
+				rpc_item = newRpcItemFiberReady(c, 5000);
 				if (!rpc_item) {
 					reactorCommitCmd(NULL, &o->freecmd);
 					reactorCommitCmd(NULL, &c->_.freecmd);
@@ -126,7 +128,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 				}
 			}
 			else {
-				rpc_item = newRpcItemAsyncReady(thrd, c, 5000, NULL, rpc_async_req_login_test);
+				rpc_item = newRpcItemAsyncReady(c, 5000, NULL, rpc_async_req_login_test);
 				if (!rpc_item) {
 					reactorCommitCmd(NULL, &o->freecmd);
 					reactorCommitCmd(NULL, &c->_.freecmd);

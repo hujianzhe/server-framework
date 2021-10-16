@@ -8,7 +8,7 @@ void retLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 
 	// test code
 	if (thrd->f_rpc) {
-		newFiberSleepMillsecond(thrd, 5000);
+		newFiberSleepMillsecond(5000);
 		frpc_test_code(thrd, ctrl->channel);
 	}
 	else if (thrd->a_rpc)

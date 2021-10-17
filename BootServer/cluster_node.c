@@ -87,6 +87,27 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 	return channel;
 }
 
+void clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt) {
+	Channel_t* c;
+	unsigned int i;
+	if (clsnd->id == ptrBSG()->conf->clsnd.id) {
+		return;
+	}
+	for (i = 0; i < iovcnt; ++i) {
+		if (iobufLen(iov + i) > 0) {
+			break;
+		}
+	}
+	if (i == iovcnt) {
+		return;
+	}
+	c = connectClusterNode(clsnd);
+	if (!c) {
+		return;
+	}
+	channelSendv(c, iov, iovcnt, NETPACKET_FRAGMENT);
+}
+
 #ifdef __cplusplus
 }
 #endif

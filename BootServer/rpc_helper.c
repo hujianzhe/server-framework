@@ -182,6 +182,38 @@ BOOL newFiberSleepMillsecond(long long timeout_msec) {
 	return TRUE;
 }
 
+RpcItem_t* sendClsndRpcReqFiberNoSche(ClusterNode_t* clsnd, InnerMsg_t* msg, long long timeout_msec) {
+	RpcItem_t* rpc_item;
+	Channel_t* channel = connectClusterNode(clsnd);
+	if (!channel) {
+		return NULL;
+	}
+	rpc_item = newRpcItemFiberReady(channel, timeout_msec);
+	if (!rpc_item) {
+		return NULL;
+	}
+	msg->rpc_status = RPC_STATUS_REQ;
+	msg->htonl_rpcid = htonl(rpc_item->id);
+	channelSendv(channel, msg->iov, sizeof(msg->iov) / sizeof(msg->iov[0]), NETPACKET_FRAGMENT);
+	return rpc_item;
+}
+
+RpcItem_t* sendClsndRpcReqAsync(ClusterNode_t* clsnd, InnerMsg_t* msg, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcAsyncCore_t*, RpcItem_t*)) {
+	RpcItem_t* rpc_item;
+	Channel_t* channel = connectClusterNode(clsnd);
+	if (!channel) {
+		return NULL;
+	}
+	rpc_item = newRpcItemAsyncReady(channel, timeout_msec, req_arg, ret_callback);
+	if (!rpc_item) {
+		return NULL;
+	}
+	msg->rpc_status = RPC_STATUS_REQ;
+	msg->htonl_rpcid = htonl(rpc_item->id);
+	channelSendv(channel, msg->iov, sizeof(msg->iov) / sizeof(msg->iov[0]), NETPACKET_FRAGMENT);
+	return rpc_item;
+}
+
 #ifdef __cplusplus
 }
 #endif

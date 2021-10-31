@@ -12,15 +12,15 @@ ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char
 	ClusterNode_t* clsnd = NULL;
 	do {
 		cJSON* cjson_id;
-		root = cJSON_Parse(NULL, json_data);
+		root = cJSON_FromString(json_data, 0);
 		if (!root) {
 			break;
 		}
-		cjson_id = cJSON_Field(root, "id");
+		cjson_id = cJSON_GetField(root, "id");
 		if (!cjson_id) {
 			break;
 		}
-		clsnd = getClusterNodeById(t, cjson_id->valueint);
+		clsnd = getClusterNodeById(t, cJSON_GetInteger(cjson_id));
 		if (!clsnd) {
 			break;
 		}
@@ -37,18 +37,18 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 	cJSON* root;
 	size_t i;
 
-	root = cJSON_Parse(NULL, json_data);
+	root = cJSON_FromString(json_data, 1);
 	if (!root) {
 		*errmsg = "parse json data error";
 		return NULL;
 	}
-	cjson_nodes = cJSON_Field(root, "cluster_nodes");
+	cjson_nodes = cJSON_GetField(root, "cluster_nodes");
 	if (!cjson_nodes) {
 		*errmsg = "json data miss field cluster_nodes";
 		cJSON_Delete(root);
 		return NULL;
 	}
-	cjson_grps = cJSON_Field(root, "cluster_node_groups");
+	cjson_grps = cJSON_GetField(root, "cluster_node_groups");
 	if (!cjson_grps) {
 		*errmsg = "json data miss field cluster_node_groups";
 		cJSON_Delete(root);
@@ -62,28 +62,28 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 		cJSON *id, * cjson_socktype, *ip, *port;
 		int socktype;
 
-		id = cJSON_Field(cjson_clsnd, "id");
+		id = cJSON_GetField(cjson_clsnd, "id");
 		if (!id) {
 			continue;
 		}
-		ip = cJSON_Field(cjson_clsnd, "ip");
+		ip = cJSON_GetField(cjson_clsnd, "ip");
 		if (!ip) {
 			continue;
 		}
-		port = cJSON_Field(cjson_clsnd, "port");
+		port = cJSON_GetField(cjson_clsnd, "port");
 		if (!port) {
 			continue;
 		}
-		cjson_socktype = cJSON_Field(cjson_clsnd, "socktype");
+		cjson_socktype = cJSON_GetField(cjson_clsnd, "socktype");
 		if (!cjson_socktype) {
 			continue;
 		}
-		socktype = if_string2socktype(cjson_socktype->valuestring);
+		socktype = if_string2socktype(cJSON_GetStringPtr(cjson_socktype));
 		if (0 == socktype) {
 			continue;
 		}
 
-		clsnd = getClusterNodeById(t, id->valueint);
+		clsnd = getClusterNodeById(t, cJSON_GetInteger(id));
 		if (clsnd) {
 			clsnd->status = CLSND_STATUS_NORMAL;
 		}
@@ -91,13 +91,13 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 			ListNode_t* lcur;
 			for (lcur = new_clsnds.head; lcur; lcur = lcur->next) {
 				ClusterNode_t* obj = pod_container_of(lcur, ClusterNode_t, m_listnode);
-				if (id->valueint == obj->id) {
+				if (cJSON_GetInteger(id) == obj->id) {
 					clsnd = obj;
 					break;
 				}
 			}
 			if (!clsnd) {
-				clsnd = newClusterNode(id->valueint, socktype, ip->valuestring, port->valueint);
+				clsnd = newClusterNode(cJSON_GetInteger(id), socktype, cJSON_GetStringPtr(ip), cJSON_GetInteger(port));
 				if (!clsnd) {
 					break;
 				}
@@ -111,31 +111,28 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 	for (cjson_clsnd = cjson_grps->child; cjson_clsnd; cjson_clsnd = cjson_clsnd->next) {
 		ClusterNode_t* clsnd;
 		struct ClusterNodeGroup_t* grp;
-		cJSON *name, *id, *hashkey_array, *weight_num;
+		cJSON *name, *id;
 		int ret_ok;
 		size_t i;
 
-		name = cJSON_Field(cjson_clsnd, "name");
-		if (!name || !name->valuestring || !name->valuestring[0]) {
+		name = cJSON_GetField(cjson_clsnd, "name");
+		if (!name || !cJSON_GetStringPtr(name) || !cJSON_GetStringLength(name)) {
 			continue;
 		}
-		id = cJSON_Field(cjson_clsnd, "id");
+		id = cJSON_GetField(cjson_clsnd, "id");
 		if (!id) {
 			continue;
 		}
-		weight_num = cJSON_Field(cjson_clsnd, "weight_num");
-		hashkey_array = cJSON_Field(cjson_clsnd, "hash_key");
-
 		ret_ok = 1;
 		grp = NULL;
 		for (i = 0; i < new_grps.len; ++i) {
-			if (!strcmp(new_grps.buf[i]->name, name->valuestring)) {
+			if (!strcmp(new_grps.buf[i]->name, cJSON_GetStringPtr(name))) {
 				grp = new_grps.buf[i];
 				break;
 			}
 		}
 		if (!grp) {
-			grp = newClusterNodeGroup(name->valuestring);
+			grp = newClusterNodeGroup(cJSON_GetStringPtr(name));
 			if (!grp) {
 				break;
 			}
@@ -145,11 +142,11 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 			}
 		}
 
-		clsnd = getClusterNodeById(t, id->valueint);
+		clsnd = getClusterNodeById(t, cJSON_GetInteger(id));
 		if (!clsnd) {
 			for (lcur = new_clsnds.head; lcur; lcur = lcur->next) {
 				ClusterNode_t* obj = pod_container_of(lcur, ClusterNode_t, m_listnode);
-				if (id->valueint == obj->id) {
+				if (cJSON_GetInteger(id) == obj->id) {
 					clsnd = obj;
 					break;
 				}
@@ -163,12 +160,11 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 		}
 		do {
 			cJSON* key;
-			int hashkey_arrlen;
+			cJSON* hashkey_array = cJSON_GetField(cjson_clsnd, "hash_key");
 			if (!hashkey_array) {
 				break;
 			}
-			hashkey_arrlen = cJSON_Size(hashkey_array);
-			if (hashkey_arrlen <= 0) {
+			if (cJSON_ChildNum(hashkey_array) <= 0) {
 				break;
 			}
 			for (key = hashkey_array->child; key; key = key->next) {
@@ -178,11 +174,11 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 				} *data;
 				RBTreeNode_t* exist_node;
 				unsigned int hashkey;
-				if (key->valuedouble < 1.0) {
-					hashkey = key->valuedouble * UINT_MAX;
+				if (cJSON_GetDouble(key) < 1.0) {
+					hashkey = cJSON_GetDouble(key) * UINT_MAX;
 				}
 				else {
-					hashkey = key->valueint;
+					hashkey = cJSON_GetInteger(key);
 				}
 				*(void**)&data = malloc(sizeof(*data));
 				if (!data) {
@@ -203,7 +199,8 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 				RBTreeNode_t _;
 				ClusterNode_t* clsnd;
 			} *data;
-			if (!weight_num || weight_num->valueint <= 0) {
+			cJSON* weight_num = cJSON_GetField(cjson_clsnd, "weight_num");
+			if (!weight_num || cJSON_GetInteger(weight_num) <= 0) {
 				break;
 			}
 			*(void**)&data = malloc(sizeof(*data));
@@ -211,7 +208,7 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 				ret_ok = 0;
 				break;
 			}
-			grp->total_weight += weight_num->valueint;
+			grp->total_weight += cJSON_GetInteger(weight_num);
 			data->_.key.u32 = grp->total_weight;
 			data->clsnd = clsnd;
 			rbtreeInsertNode(&grp->weight_num_ring, &data->_);

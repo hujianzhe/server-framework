@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-ClusterNode_t* newClusterNode(int id, int socktype, IPString_t ip, unsigned short port) {
+ClusterNode_t* newClusterNode(int id, int socktype, const IPString_t ip, unsigned short port) {
 	ClusterNode_t* clsnd = (ClusterNode_t*)malloc(sizeof(ClusterNode_t));
 	if (clsnd) {
 		initSession(&clsnd->session);

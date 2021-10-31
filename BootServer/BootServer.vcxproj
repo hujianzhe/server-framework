@@ -169,12 +169,12 @@
     <ClInclude Include="util\inc\component\reactor.h" />
     <ClInclude Include="util\inc\component\rpc_core.h" />
     <ClInclude Include="util\inc\component\websocketframe.h" />
-    <ClInclude Include="util\inc\crt\cJSON.h" />
     <ClInclude Include="util\inc\crt\collision_detection.h" />
     <ClInclude Include="util\inc\crt\cXML.h" />
     <ClInclude Include="util\inc\crt\dynarr.h" />
     <ClInclude Include="util\inc\crt\dynbuf.h" />
     <ClInclude Include="util\inc\crt\export_free.h" />
+    <ClInclude Include="util\inc\crt\json.h" />
     <ClInclude Include="util\inc\crt\math.h" />
     <ClInclude Include="util\inc\datastruct\arrheap.h" />
     <ClInclude Include="util\inc\datastruct\base64.h" />
@@ -235,12 +235,12 @@
     <ClCompile Include="util\src\component\reactor.c" />
     <ClCompile Include="util\src\component\rpc_core.c" />
     <ClCompile Include="util\src\component\websocketframe.c" />
-    <ClCompile Include="util\src\crt\cJSON.c" />
     <ClCompile Include="util\src\crt\collision_detection.c" />
     <ClCompile Include="util\src\crt\cXML.c" />
     <ClCompile Include="util\src\crt\dynarr.c" />
     <ClCompile Include="util\src\crt\dynbuf.c" />
     <ClCompile Include="util\src\crt\export_free.c" />
+    <ClCompile Include="util\src\crt\json.c" />
     <ClCompile Include="util\src\crt\math.c" />
     <ClCompile Include="util\src\datastruct\base64.c" />
     <ClCompile Include="util\src\datastruct\bstree.c" />

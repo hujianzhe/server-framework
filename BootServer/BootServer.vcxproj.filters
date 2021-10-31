@@ -48,9 +48,6 @@
     <ClInclude Include="util\inc\component\websocketframe.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\crt\cJSON.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\crt\collision_detection.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -213,6 +210,9 @@
     <ClInclude Include="channel_proc_imp.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\crt\json.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="util\src\component\channel.c">
@@ -246,9 +246,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\websocketframe.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\cJSON.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\collision_detection.c">
@@ -390,6 +387,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="channel_proc_imp.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\json.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

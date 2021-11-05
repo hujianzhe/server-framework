@@ -214,6 +214,12 @@ RpcItem_t* sendClsndRpcReqAsync(ClusterNode_t* clsnd, InnerMsg_t* msg, long long
 	return rpc_item;
 }
 
+void dispatchRpcReply(UserMsg_t* req_ctrl, int code, const void* data, unsigned int len) {
+	InnerMsg_t msg;
+	makeInnerMsgRpcResp(&msg, req_ctrl->rpcid, code, data, len);
+	channelSendv(req_ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+}
+
 #ifdef __cplusplus
 }
 #endif

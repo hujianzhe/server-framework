@@ -14,6 +14,10 @@ typedef struct InnerMsg_t {
 } InnerMsg_t;
 
 enum {
+	INNER_MSG_IOV_CNT = 3
+};
+
+enum {
 	RPC_STATUS_REQ = 'R',
 	RPC_STATUS_RESP = 'T',
 	RPC_STATUS_HAND_SHAKE = 'S',

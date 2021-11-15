@@ -5,11 +5,13 @@
 #include "util/inc/crt/dynarr.h"
 #include "util/inc/datastruct/rbtree.h"
 
-#define	CLUSTER_TARGET_USE_HASH_MOD			1
-#define	CLUSTER_TARGET_USE_HASH_RING		2
-#define	CLUSTER_TARGET_USE_ROUND_ROBIN		3
-#define	CLUSTER_TARGET_USE_WEIGHT_RANDOM	4
-#define	CLUSTER_TARGET_USE_RANDOM			5
+enum {
+	CLUSTER_TARGET_USE_HASH_MOD	= 1,
+	CLUSTER_TARGET_USE_HASH_RING = 2,
+	CLUSTER_TARGET_USE_ROUND_ROBIN = 3,
+	CLUSTER_TARGET_USE_WEIGHT_RANDOM = 4,
+	CLUSTER_TARGET_USE_RANDOM = 5
+};
 
 struct ClusterTable_t;
 typedef DynArr_t(ClusterNode_t*) DynArrClusterNodePtr_t;

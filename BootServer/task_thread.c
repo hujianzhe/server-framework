@@ -27,7 +27,7 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 				channelSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
 			}
 		}
-		else {
+		else if (ctrl->be_from_cluster) {
 			InnerMsg_t ret_msg;
 			if (RPC_STATUS_REQ == ctrl->rpc_status) {
 				makeInnerMsgRpcResp(&ret_msg, ctrl->rpcid, 0, NULL, 0);

@@ -14,7 +14,8 @@ typedef struct InnerMsg_t {
 } InnerMsg_t;
 
 enum {
-	INNER_MSG_IOV_CNT = 3
+	INNER_MSG_HEAD_PART_IOV_CNT = 3,
+	INNER_MSG_IOV_CNT = 4
 };
 
 enum {

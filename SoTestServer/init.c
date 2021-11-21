@@ -52,6 +52,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 	int i;
 	// register dispatch
 	regNumberDispatch(thrd->dispatch, CMD_REQ_TEST, reqTest);
+	regNumberDispatch(thrd->dispatch, CMD_REQ_TEST_CALLBACK, reqTestCallback);
 	regNumberDispatch(thrd->dispatch, CMD_REQ_LOGIN_TEST, reqLoginTest);
 	regStringDispatch(thrd->dispatch, "/reqHttpTest", reqHttpTest);
 	regStringDispatch(thrd->dispatch, "/reqSoTest", reqSoTest);

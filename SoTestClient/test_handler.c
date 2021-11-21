@@ -2,10 +2,30 @@
 #include "cmd.h"
 #include "test_handler.h"
 
+static void frpc_callback(RpcItem_t* rpc_item) {
+	if (rpc_item->ret_msg) {
+		UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
+		printf("rpc(%d) %s callback ... %s\n",
+			rpc_item->id, (char*)rpc_item->async_req_arg, ret_msg->data);
+	}
+	else {
+		printf("rpc callback(%d)..... failure timeout or cancel\n", rpc_item->id);
+	}
+}
+
 void frpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 	char test_data[] = "this text is from client ^.^";
 	InnerMsg_t msg;
-	RpcItem_t* rpc_item = newRpcItemFiberReady(channel, 1000);
+	RpcItem_t* rpc_item;
+	//
+	rpc_item = newRpcItemFiberReady(channel, 1000, "abcdefg", frpc_callback);
+	if (!rpc_item) {
+		return;
+	}
+	makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST_CALLBACK, test_data, sizeof(test_data));
+	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	//
+	rpc_item = newRpcItemFiberReady(channel, 1000, NULL, NULL);
 	if (!rpc_item) {
 		return;
 	}
@@ -19,8 +39,17 @@ void frpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 		printf("rpc(%d) say hello world ... %s\n", rpc_item->id, ret_msg->data);
 	}
 	else {
-		puts("rpc call failure timeout or cancel");
+		printf("rpc(%d) call failure timeout or cancel\n", rpc_item->id);
+		return;
 	}
+	/*
+	rpc_item = newRpcItemFiberReady(channel, 1000, "abcdefg", frpc_callback);
+	if (!rpc_item) {
+		return;
+	}
+	makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST_CALLBACK, test_data, sizeof(test_data));
+	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	*/
 }
 
 void arpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
@@ -45,7 +74,7 @@ void notifyTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		arpc_test_code(thrd, ctrl->channel);
 }
 
-void rpcRetTest(RpcAsyncCore_t* rpc, RpcItem_t* rpc_item) {
+void rpcRetTest(RpcItem_t* rpc_item) {
 	UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
 	if (!ret_msg) {
 		puts("rpc call failure timeout or cancel");

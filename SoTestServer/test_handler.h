@@ -1,6 +1,7 @@
 #ifndef TEST_HANDLER_H
 #define	TEST_HANDLER_H
 
+extern void reqTestCallback(TaskThread_t*, UserMsg_t*);
 extern void reqTest(TaskThread_t*, UserMsg_t*);
 extern void reqHttpTest(TaskThread_t*, UserMsg_t*);
 extern void reqSoTest(TaskThread_t*, UserMsg_t*);

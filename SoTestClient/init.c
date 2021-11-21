@@ -11,7 +11,7 @@ static int start_req_login_test(Channel_t* channel) {
 	return 1;
 }
 
-static void rpc_async_req_login_test(RpcAsyncCore_t* rpc, RpcItem_t* rpc_item) {
+static void rpc_async_req_login_test(RpcItem_t* rpc_item) {
 	Channel_t* channel = (Channel_t*)rpc_item->udata;
 	if (rpc_item->ret_msg) {
 		if (start_req_login_test(channel))
@@ -32,7 +32,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 	int i, cnt_rpc = 0;
 	RpcItem_t* rpc_item;
 	for (i = 0; i < 2; ++i) {
-		rpc_item = newRpcItemFiberReady(channel, 1000);
+		rpc_item = newRpcItemFiberReady(channel, 1000, NULL, NULL);
 		if (!rpc_item) {
 			continue;
 		}
@@ -42,7 +42,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 		rpc_item->udata = CMD_REQ_ParallelTest1;
 		cnt_rpc++;
 
-		rpc_item = newRpcItemFiberReady(channel, 1000);
+		rpc_item = newRpcItemFiberReady(channel, 1000, NULL, NULL);
 		if (!rpc_item) {
 			continue;
 		}
@@ -108,7 +108,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 			c->_.on_syn_ack = defaultRpcOnSynAck;
 			channelUserData(c)->dq = &thrd->dq;
 			if (thrd->f_rpc) {
-				rpc_item = newRpcItemFiberReady(c, 5000);
+				rpc_item = newRpcItemFiberReady(c, 5000, NULL, NULL);
 				if (!rpc_item) {
 					reactorCommitCmd(NULL, &o->freecmd);
 					reactorCommitCmd(NULL, &c->_.freecmd);

@@ -18,7 +18,7 @@ void frpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 	InnerMsg_t msg;
 	RpcItem_t* rpc_item;
 	//
-	rpc_item = newRpcItemFiberReady(channel, 1000, "abcdefg", frpc_callback);
+	rpc_item = newRpcItemFiberReady(channel, 1000, (void*)"abcdefg", frpc_callback);
 	if (!rpc_item) {
 		return;
 	}

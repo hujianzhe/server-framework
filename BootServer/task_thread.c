@@ -357,17 +357,17 @@ TaskThread_t* newTaskThread(void) {
 	}
 	dq_ok = 1;
 
-	if (!rbtimerInit(&t->timer, TRUE)) {
+	if (!rbtimerInit(&t->timer)) {
 		goto err;
 	}
 	timer_ok = 1;
 
-	if (!rbtimerInit(&t->rpc_timer, TRUE)) {
+	if (!rbtimerInit(&t->rpc_timer)) {
 		goto err;
 	}
 	rpc_timer_ok = 1;
 
-	if (!rbtimerInit(&t->fiber_sleep_timer, FALSE)) {
+	if (!rbtimerInit(&t->fiber_sleep_timer)) {
 		goto err;
 	}
 	fiber_sleep_timer_ok = 1;

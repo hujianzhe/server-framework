@@ -34,6 +34,7 @@ typedef struct Config_t {
 	int rpc_fiber;
 	unsigned int rpc_fiber_stack_size;
 	int rpc_async;
+	int rpc_timeout_items_maxcnt;
 	int tcp_nodelay;
 	int udp_cwndsize;
 	int enqueue_timeout_msec;

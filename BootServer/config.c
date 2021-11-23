@@ -197,6 +197,15 @@ Config_t* initConfig(const char* path, Config_t* conf) {
 			conf->rpc_async = cJSON_GetInteger(cjson);
 		}
 
+		conf->rpc_timeout_items_maxcnt = 32;
+		cjson = cJSON_GetField(root, "rpc_timeout_items_maxcnt");
+		if (cjson) {
+			int val = cJSON_GetInteger(cjson);
+			if (val > 0) {
+				conf->rpc_timeout_items_maxcnt = val;
+			}
+		}
+
 		cjson = cJSON_GetField(root, "tcp_nodelay");
 		if (cjson) {
 			conf->tcp_nodelay = cJSON_GetInteger(cjson);

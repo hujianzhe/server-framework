@@ -13,8 +13,8 @@ typedef struct TaskThread_t {
 	Thread_t tid;
 	DataQueue_t dq;
 	RBTimer_t timer;
-	RBTimer_t rpc_timer;
-	RBTimer_t fiber_sleep_timer;
+	RpcItem_t** rpc_timeout_items;
+	int rpc_timeout_items_maxcnt;
 	struct Dispatch_t* dispatch;
 	RpcFiberCore_t* f_rpc;
 	RpcAsyncCore_t* a_rpc;

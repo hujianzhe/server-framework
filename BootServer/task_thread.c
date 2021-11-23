@@ -70,14 +70,20 @@ static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 
 static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	ListNode_t* iter_cur, *iter_next;
-	int wait_msec;
-	long long cur_msec, timer_min_msec;
-	time_t cur_sec;
 	TaskThread_t* thread = (TaskThread_t*)arg;
-	RBTimer_t* due_timer[] = { &thread->timer, &thread->rpc_timer, &thread->fiber_sleep_timer };
 	Config_t* conf = ptrBSG()->conf;
 	Log_t* log = ptrBSG()->log;
+	RpcBaseCore_t* rpc_base;
 	// init rpc
+	if (conf->rpc_fiber || conf->rpc_async) {
+		thread->rpc_timeout_items = (RpcItem_t**)malloc(sizeof(RpcItem_t*) * conf->rpc_timeout_items_maxcnt);
+		if (!thread->rpc_timeout_items) {
+			thread->errmsg = strFormat(NULL, "task thread malloc(sizeof(sizeof(RpcItem_t*)) * conf->rpc_timeout_items_maxcnt) error\n");
+			ptrBSG()->valid = 0;
+			return 1;
+		}
+		thread->rpc_timeout_items_maxcnt = conf->rpc_timeout_items_maxcnt;
+	}
 	if (conf->rpc_fiber) {
 		Fiber_t* thread_fiber = fiberFromThread();
 		if (!thread_fiber) {
@@ -99,6 +105,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			return 1;
 		}
 		thread->f_rpc->base.runthread = thread;
+		rpc_base = &thread->f_rpc->base;
 	}
 	else if (conf->rpc_async) {
 		thread->a_rpc = (RpcAsyncCore_t*)malloc(sizeof(RpcAsyncCore_t));
@@ -113,6 +120,10 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			return 1;
 		}
 		thread->a_rpc->base.runthread = thread;
+		rpc_base = &thread->a_rpc->base;
+	}
+	else {
+		rpc_base = NULL;
 	}
 	// call global init function
 	if (thread->fn_init) {
@@ -129,22 +140,33 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	}
 	// start loop
 	while (ptrBSG()->valid) {
-		if (rbtimerDueFirst(due_timer, sizeof(due_timer) / sizeof(due_timer[0]), &timer_min_msec)) {
-			cur_msec = gmtimeMillisecond();
-			if (timer_min_msec > cur_msec) {
-				wait_msec = timer_min_msec - cur_msec;
+		int i, n;
+		long long cur_msec;
+		long long t[2] = {
+			rbtimerMiniumTimestamp(&thread->timer),
+			rpcGetMiniumTimeoutTimestamp(rpc_base)
+		};
+		int wait_msec = -1;
+		for (i = 0; i < sizeof(t) / sizeof(t[0]); ++i) {
+			if (t[i] < 0) {
+				continue;
 			}
-			else {
-				wait_msec = 0;
+			if (wait_msec < 0 || t[i] < wait_msec) {
+				wait_msec = t[i];
 			}
 		}
-		else {
-			wait_msec = -1;
+		if (wait_msec > 0) {
+			cur_msec = gmtimeMillisecond();
+			if (wait_msec <= cur_msec) {
+				wait_msec = 0;
+			}
+			else {
+				wait_msec -= cur_msec;
+			}
 		}
 		iter_cur = dataqueuePopWait(&thread->dq, wait_msec, ~0);
 		// handle message and event
 		cur_msec = gmtimeMillisecond();
-		cur_sec = cur_msec / 1000;
 		for (; iter_cur; iter_cur = iter_next) {
 			ReactorCmd_t* internal = (ReactorCmd_t*)iter_cur;
 			iter_next = iter_cur->next;
@@ -189,7 +211,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						if (!rpc_item) {
 							continue;
 						}
-						freeRpcItemWhenNormal(&thread->rpc_timer, rpc_item);
+						freeRpcItemWhenNormal(rpc_item);
 					}
 					else {
 						rpcFiberCoreResumeMsg(thread->f_rpc, ctrl);
@@ -202,7 +224,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						if (!rpc_item) {
 							continue;
 						}
-						freeRpcItemWhenNormal(&thread->rpc_timer, rpc_item);
+						freeRpcItemWhenNormal(rpc_item);
 					}
 					else {
 						call_dispatch(thread, ctrl);
@@ -242,6 +264,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					}
 					freeRpcItemWhenChannelDetach(thread, channel);
 					if (session && !sessionChannel(session)) {
+						time_t cur_sec = cur_msec / 1000;
 						session->reconnect_timestamp_sec = cur_sec + session->reconnect_delay_sec;
 						if (session->on_disconnect) {
 							session->on_disconnect(thread, session);
@@ -254,18 +277,22 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 
 		// handle timer event
 		cur_msec = gmtimeMillisecond();
-		for (iter_cur = rbtimerTimeout(&thread->rpc_timer, cur_msec); iter_cur; iter_cur = iter_next) {
-			RBTimerEvent_t* e = pod_container_of(iter_cur, RBTimerEvent_t, m_listnode);
-			RpcItem_t* rpc_item = (RpcItem_t*)e->arg;
-			iter_next = iter_cur->next;
-			rpc_item->timeout_ev = NULL;
+		if (rpc_base) {
+			n = rpcGetTimeoutItems(rpc_base, cur_msec, thread->rpc_timeout_items, thread->rpc_timeout_items_maxcnt);
 			if (thread->f_rpc) {
-				rpcFiberCoreCancel(thread->f_rpc, rpc_item);
+				for (i = 0; i < n; ++i) {
+					RpcItem_t* rpc_item = thread->rpc_timeout_items[i];
+					rpcFiberCoreCancel(thread->f_rpc, rpc_item);
+					freeRpcItemWhenNormal(rpc_item);
+				}
 			}
-			else if (thread->a_rpc) {
-				rpcAsyncCoreCancel(thread->a_rpc, rpc_item);
+			else {
+				for (i = 0; i < n; ++i) {
+					RpcItem_t* rpc_item = thread->rpc_timeout_items[i];
+					rpcAsyncCoreCancel(thread->a_rpc, rpc_item);
+					freeRpcItemWhenNormal(rpc_item);
+				}
 			}
-			freeRpcItemWhenNormal(&thread->rpc_timer, rpc_item);
 		}
 		if (thread->f_rpc) {
 			UserMsg_t timer_msg;
@@ -275,13 +302,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				iter_next = iter_cur->next;
 				timer_msg.param.timer_event = e;
 				rpcFiberCoreResumeMsg(thread->f_rpc, &timer_msg);
-			}
-			for (iter_cur = rbtimerTimeout(&thread->fiber_sleep_timer, cur_msec); iter_cur; iter_cur = iter_next) {
-				RBTimerEvent_t* e = pod_container_of(iter_cur, RBTimerEvent_t, m_listnode);
-				RpcItem_t* rpc_item = (RpcItem_t*)e->arg;
-				iter_next = iter_cur->next;
-				rpc_item->timeout_ev = NULL;
-				rpcFiberCoreCancel(thread->f_rpc, rpc_item);
 			}
 		}
 		else {
@@ -346,7 +366,7 @@ static void __remove_task_thread(TaskThread_t* t) {
 }
 
 TaskThread_t* newTaskThread(void) {
-	int dq_ok = 0, timer_ok = 0, rpc_timer_ok = 0, fiber_sleep_timer_ok = 0, dispatch_ok = 0, save_ok = 0;
+	int dq_ok = 0, timer_ok = 0, dispatch_ok = 0;
 	TaskThread_t* t = (TaskThread_t*)malloc(sizeof(TaskThread_t));
 	if (!t) {
 		return NULL;
@@ -362,16 +382,6 @@ TaskThread_t* newTaskThread(void) {
 	}
 	timer_ok = 1;
 
-	if (!rbtimerInit(&t->rpc_timer)) {
-		goto err;
-	}
-	rpc_timer_ok = 1;
-
-	if (!rbtimerInit(&t->fiber_sleep_timer)) {
-		goto err;
-	}
-	fiber_sleep_timer_ok = 1;
-
 	t->dispatch = newDispatch();
 	if (!t->dispatch) {
 		goto err;
@@ -382,6 +392,8 @@ TaskThread_t* newTaskThread(void) {
 		goto err;
 	}
 
+	t->rpc_timeout_items = NULL;
+	t->rpc_timeout_items_maxcnt = 0;
 	t->f_rpc = NULL;
 	t->a_rpc = NULL;
 	t->clstbl = NULL;
@@ -399,12 +411,6 @@ err:
 	if (timer_ok) {
 		rbtimerDestroy(&t->timer);
 	}
-	if (rpc_timer_ok) {
-		rbtimerDestroy(&t->rpc_timer);
-	}
-	if (fiber_sleep_timer_ok) {
-		rbtimerDestroy(&t->fiber_sleep_timer);
-	}
 	if (dispatch_ok) {
 		freeDispatch(t->dispatch);
 	}
@@ -421,10 +427,9 @@ void freeTaskThread(TaskThread_t* t) {
 		__remove_task_thread(t);
 		dataqueueDestroy(&t->dq);
 		rbtimerDestroy(&t->timer);
-		rbtimerDestroy(&t->rpc_timer);
-		rbtimerDestroy(&t->fiber_sleep_timer);
 		freeDispatch(t->dispatch);
 		free((void*)t->errmsg);
+		free(t->rpc_timeout_items);
 		free(t);
 	}
 }

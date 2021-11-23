@@ -22,7 +22,7 @@ __declspec_dll RpcItem_t* sendClsndRpcReqFiber(ClusterNode_t* clsnd, InnerMsg_t*
 __declspec_dll RpcItem_t* sendClsndRpcReqAsync(ClusterNode_t* clsnd, InnerMsg_t* msg, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*));
 __declspec_dll void dispatchRpcReply(UserMsg_t* req_ctrl, int code, const void* data, unsigned int len);
 
-void freeRpcItemWhenNormal(RBTimer_t* rpc_timer, RpcItem_t* rpc_item);
+void freeRpcItemWhenNormal(RpcItem_t* rpc_item);
 void freeRpcItemWhenChannelDetach(TaskThread_t* thrd, Channel_t* channel);
 
 #ifdef __cplusplus

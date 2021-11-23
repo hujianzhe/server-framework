@@ -126,8 +126,7 @@ BOOL newFiberSleepMillsecond(long long timeout_msec) {
 		free(rpc_item);
 		return FALSE;
 	}
-	rpc_item = rpcFiberCoreYield(thrd->f_rpc);
-	free(rpc_item);
+	rpcFiberCoreYield(thrd->f_rpc);
 	return TRUE;
 }
 

@@ -107,7 +107,6 @@ void freeRpcItem(RpcItem_t* rpc_item) {
 
 BOOL newFiberSleepMillsecond(long long timeout_msec) {
 	RpcItem_t* rpc_item;
-	RBTimerEvent_t* timeout_ev;
 	TaskThread_t* thrd = currentTaskThread();
 	if (!thrd || !thrd->f_rpc) {
 		return FALSE;

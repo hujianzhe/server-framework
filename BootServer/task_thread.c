@@ -75,15 +75,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	Log_t* log = ptrBSG()->log;
 	RpcBaseCore_t* rpc_base;
 	// init rpc
-	if (conf->rpc_fiber || conf->rpc_async) {
-		thread->rpc_timeout_items = (RpcItem_t**)malloc(sizeof(RpcItem_t*) * conf->once_rpc_timeout_items_maxcnt);
-		if (!thread->rpc_timeout_items) {
-			thread->errmsg = strFormat(NULL, "task thread malloc(sizeof(sizeof(RpcItem_t*)) * conf->once_rpc_timeout_items_maxcnt) error\n");
-			ptrBSG()->valid = 0;
-			return 1;
-		}
-		thread->rpc_timeout_items_maxcnt = conf->once_rpc_timeout_items_maxcnt;
-	}
 	if (conf->rpc_fiber) {
 		Fiber_t* thread_fiber = fiberFromThread();
 		if (!thread_fiber) {
@@ -278,20 +269,18 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		// handle timer event
 		cur_msec = gmtimeMillisecond();
 		if (rpc_base) {
-			n = rpcGetTimeoutItems(rpc_base, cur_msec, thread->rpc_timeout_items, thread->rpc_timeout_items_maxcnt);
-			if (thread->f_rpc) {
-				for (i = 0; i < n; ++i) {
-					RpcItem_t* rpc_item = thread->rpc_timeout_items[i];
+			for (i = 0; i < conf->once_rpc_timeout_items_maxcnt; ++i) {
+				RpcItem_t* rpc_item = rpcGetTimeoutItem(rpc_base, cur_msec);
+				if (!rpc_item) {
+					break;
+				}
+				if (thread->f_rpc) {
 					rpcFiberCoreCancel(thread->f_rpc, rpc_item);
-					freeRpcItemWhenNormal(rpc_item);
 				}
-			}
-			else {
-				for (i = 0; i < n; ++i) {
-					RpcItem_t* rpc_item = thread->rpc_timeout_items[i];
+				else {
 					rpcAsyncCoreCancel(thread->a_rpc, rpc_item);
-					freeRpcItemWhenNormal(rpc_item);
 				}
+				freeRpcItemWhenNormal(rpc_item);
 			}
 		}
 		if (thread->f_rpc) {
@@ -396,8 +385,6 @@ TaskThread_t* newTaskThread(void) {
 		goto err;
 	}
 
-	t->rpc_timeout_items = NULL;
-	t->rpc_timeout_items_maxcnt = 0;
 	t->f_rpc = NULL;
 	t->a_rpc = NULL;
 	t->clstbl = NULL;
@@ -433,7 +420,6 @@ void freeTaskThread(TaskThread_t* t) {
 		rbtimerDestroy(&t->timer);
 		freeDispatch(t->dispatch);
 		free((void*)t->errmsg);
-		free(t->rpc_timeout_items);
 		free(t);
 	}
 }

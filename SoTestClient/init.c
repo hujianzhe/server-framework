@@ -80,8 +80,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 	regNumberDispatch(thrd->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
 
 	// add timer
-	timer_event = (RBTimerEvent_t*)malloc(sizeof(RBTimerEvent_t));
-	rbtimerEventSet(timer_event, gmtimeMillisecond() / 1000 * 1000 + 1000, test_timer, NULL, 1000);
+	timer_event = rbtimerNewEvent(gmtimeMillisecond() / 1000 * 1000 + 1000, 1000, test_timer, NULL);
 	rbtimerAddEvent(&thrd->timer, timer_event);
 
 	for (i = 0; i < ptrBSG()->conf->connect_options_cnt; ++i) {

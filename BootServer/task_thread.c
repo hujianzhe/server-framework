@@ -76,13 +76,13 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	RpcBaseCore_t* rpc_base;
 	// init rpc
 	if (conf->rpc_fiber || conf->rpc_async) {
-		thread->rpc_timeout_items = (RpcItem_t**)malloc(sizeof(RpcItem_t*) * conf->rpc_timeout_items_maxcnt);
+		thread->rpc_timeout_items = (RpcItem_t**)malloc(sizeof(RpcItem_t*) * conf->once_rpc_timeout_items_maxcnt);
 		if (!thread->rpc_timeout_items) {
-			thread->errmsg = strFormat(NULL, "task thread malloc(sizeof(sizeof(RpcItem_t*)) * conf->rpc_timeout_items_maxcnt) error\n");
+			thread->errmsg = strFormat(NULL, "task thread malloc(sizeof(sizeof(RpcItem_t*)) * conf->once_rpc_timeout_items_maxcnt) error\n");
 			ptrBSG()->valid = 0;
 			return 1;
 		}
-		thread->rpc_timeout_items_maxcnt = conf->rpc_timeout_items_maxcnt;
+		thread->rpc_timeout_items_maxcnt = conf->once_rpc_timeout_items_maxcnt;
 	}
 	if (conf->rpc_fiber) {
 		Fiber_t* thread_fiber = fiberFromThread();
@@ -164,7 +164,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				wait_msec -= cur_msec;
 			}
 		}
-		iter_cur = dataqueuePopWait(&thread->dq, wait_msec, ~0);
+		iter_cur = dataqueuePopWait(&thread->dq, wait_msec, conf->once_handle_msg_maxcnt);
 		// handle message and event
 		cur_msec = gmtimeMillisecond();
 		for (; iter_cur; iter_cur = iter_next) {
@@ -297,17 +297,21 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		if (thread->f_rpc) {
 			UserMsg_t timer_msg;
 			timer_msg.param.type = USER_MSG_EXTRA_TIMER_EVENT;
-			for (iter_cur = rbtimerTimeout(&thread->timer, cur_msec); iter_cur; iter_cur = iter_next) {
-				RBTimerEvent_t* e = pod_container_of(iter_cur, RBTimerEvent_t, m_listnode);
-				iter_next = iter_cur->next;
+			for (i = 0; i < conf->once_timeout_events_maxcnt; ++i) {
+				RBTimerEvent_t* e = rbtimerTimeoutPopup(&thread->timer, cur_msec);
+				if (!e) {
+					break;
+				}
 				timer_msg.param.timer_event = e;
 				rpcFiberCoreResumeMsg(thread->f_rpc, &timer_msg);
 			}
 		}
 		else {
-			for (iter_cur = rbtimerTimeout(&thread->timer, cur_msec); iter_cur; iter_cur = iter_next) {
-				RBTimerEvent_t* e = pod_container_of(iter_cur, RBTimerEvent_t, m_listnode);
-				iter_next = iter_cur->next;
+			for (i = 0; i < conf->once_timeout_events_maxcnt; ++i) {
+				RBTimerEvent_t* e = rbtimerTimeoutPopup(&thread->timer, cur_msec);
+				if (!e) {
+					break;
+				}
 				e->callback(&thread->timer, e);
 			}
 		}

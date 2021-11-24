@@ -197,12 +197,30 @@ Config_t* initConfig(const char* path, Config_t* conf) {
 			conf->rpc_async = cJSON_GetInteger(cjson);
 		}
 
-		conf->rpc_timeout_items_maxcnt = 32;
-		cjson = cJSON_GetField(root, "rpc_timeout_items_maxcnt");
+		conf->once_rpc_timeout_items_maxcnt = 32;
+		cjson = cJSON_GetField(root, "once_rpc_timeout_items_maxcnt");
 		if (cjson) {
 			int val = cJSON_GetInteger(cjson);
 			if (val > 0) {
-				conf->rpc_timeout_items_maxcnt = val;
+				conf->once_rpc_timeout_items_maxcnt = val;
+			}
+		}
+
+		conf->once_timeout_events_maxcnt = 32;
+		cjson = cJSON_GetField(root, "once_timeout_events_maxcnt");
+		if (cjson) {
+			int val = cJSON_GetInteger(cjson);
+			if (val > 0) {
+				conf->once_timeout_events_maxcnt = val;
+			}
+		}
+
+		conf->once_handle_msg_maxcnt = -1;
+		cjson = cJSON_GetField(root, "once_handle_msg_maxcnt");
+		if (cjson) {
+			int val = cJSON_GetInteger(cjson);
+			if (val > 0) {
+				conf->once_handle_msg_maxcnt = val;
 			}
 		}
 

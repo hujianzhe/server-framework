@@ -17,31 +17,25 @@ void freeRpcItemWhenNormal(RpcItem_t* rpc_item) {
 }
 
 void freeRpcItemWhenChannelDetach(TaskThread_t* thrd, Channel_t* channel) {
-	List_t rpcitemlist;
-	ListNode_t* cur, *next;
-
-	listInit(&rpcitemlist);
 	if (thrd->f_rpc) {
-		rpcRemoveBatchNode(&thrd->f_rpc->base, channel, &rpcitemlist);
+		while (1) {
+			RpcItem_t* rpc_item = rpcGetBatchNodeItem(&thrd->f_rpc->base, channel);
+			if (!rpc_item) {
+				break;
+			}
+			rpcFiberCoreCancel(thrd->f_rpc, rpc_item);
+			free(rpc_item);
+		}
 	}
 	else if (thrd->a_rpc) {
-		rpcRemoveBatchNode(&thrd->a_rpc->base, channel, &rpcitemlist);
-	}
-	else {
-		return;
-	}
-	for (cur = rpcitemlist.head; cur; cur = next) {
-		RpcItem_t* rpc_item = pod_container_of(cur, RpcItem_t, m_listnode);
-		next = cur->next;
-
-		if (thrd->f_rpc) {
-			rpcFiberCoreCancel(thrd->f_rpc, rpc_item);
-		}
-		else if (thrd->a_rpc) {
+		while (1) {
+			RpcItem_t* rpc_item = rpcGetBatchNodeItem(&thrd->a_rpc->base, channel);
+			if (!rpc_item) {
+				break;
+			}
 			rpcAsyncCoreCancel(thrd->a_rpc, rpc_item);
+			free(rpc_item);
 		}
-
-		free(rpc_item);
 	}
 }
 

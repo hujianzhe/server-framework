@@ -131,7 +131,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	}
 	// start loop
 	while (ptrBSG()->valid) {
-		int i, n;
+		int i;
 		long long cur_msec;
 		long long t[2] = {
 			rbtimerMiniumTimestamp(&thread->timer),

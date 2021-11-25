@@ -189,8 +189,8 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 				data->clsnd = clsnd;
 				exist_node = rbtreeInsertNode(&grp->consistent_hash_ring, &data->_);
 				if (exist_node != &data->_) {
+					rbtreeReplaceNode(&grp->consistent_hash_ring, exist_node, &data->_);
 					free(exist_node);
-					rbtreeReplaceNode(exist_node, &data->_);
 				}
 			}
 		} while (0);

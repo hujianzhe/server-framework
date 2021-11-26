@@ -80,7 +80,7 @@ int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchCallback_t 
 		item->func = func;
 		exist_node = hashtableInsertNode(&dispatch->s_StringDispatchTable, &item->m_hashnode);
 		if (exist_node != &item->m_hashnode) {
-			hashtableReplaceNode(exist_node, &item->m_hashnode);
+			hashtableReplaceNode(&dispatch->s_StringDispatchTable, exist_node, &item->m_hashnode);
 			free(pod_container_of(exist_node, DispatchItem_t, m_hashnode));
 		}
 		return 1;
@@ -95,7 +95,7 @@ int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchCallback_t func) {
 		item->func = func;
 		exist_node = hashtableInsertNode(&dispatch->s_NumberDispatchTable, &item->m_hashnode);
 		if (exist_node != &item->m_hashnode) {
-			hashtableReplaceNode(exist_node, &item->m_hashnode);
+			hashtableReplaceNode(&dispatch->s_NumberDispatchTable, exist_node, &item->m_hashnode);
 			free(pod_container_of(exist_node, DispatchItem_t, m_hashnode));
 		}
 		return 1;

@@ -24,7 +24,7 @@ typedef void(*FnChannelOnRecv_t)(Channel_t*, const struct sockaddr*, ChannelInbu
 extern "C" {
 #endif
 
-__declspec_dll ChannelUserData_t* initChannelUserDtata(ChannelUserData_t* ud, struct DataQueue_t* dq);
+__declspec_dll ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, struct DataQueue_t* dq);
 __declspec_dll void defaultChannelOnReg(ChannelBase_t* c, long long timestamp_msec);
 __declspec_dll void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec);
 __declspec_dll void defaultChannelOnDetach(ChannelBase_t* c);

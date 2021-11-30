@@ -117,7 +117,7 @@ Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* 
 	}
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	c->userdata = initChannelUserDtata(ud, dq);
+	c->userdata = initChannelUserData(ud, dq);
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = defaultChannelOnReg;
 	c->_.on_detach = defaultChannelOnDetach;
@@ -270,7 +270,7 @@ static Channel_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struc
 	}
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	c->userdata = initChannelUserDtata(ud, dq);
+	c->userdata = initChannelUserData(ud, dq);
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = defaultChannelOnReg;
 	c->_.on_detach = defaultChannelOnDetach;

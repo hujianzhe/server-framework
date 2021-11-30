@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-ChannelUserData_t* initChannelUserDtata(ChannelUserData_t* ud, DataQueue_t* dq) {
+ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, DataQueue_t* dq) {
 	ud->session = NULL;
 	ud->rpc_syn_ack_item = NULL;
 	ud->dq = dq;

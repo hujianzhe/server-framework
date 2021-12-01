@@ -11,6 +11,7 @@ extern "C" {
 ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, DataQueue_t* dq) {
 	ud->session = NULL;
 	ud->rpc_syn_ack_item = NULL;
+	ud->rpc_recv_item = NULL;
 	ud->dq = dq;
 	ud->ws_handshake_state = 0;
 	return ud;

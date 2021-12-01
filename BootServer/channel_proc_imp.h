@@ -10,6 +10,7 @@ struct DataQueue_t;
 typedef struct ChannelUserData_t {
 	struct Session_t* session;
 	struct RpcItem_t* rpc_syn_ack_item;
+	struct RpcItem_t* rpc_recv_item;
 	struct DataQueue_t* dq;
 	int ws_handshake_state;
 	int text_data_print_log;

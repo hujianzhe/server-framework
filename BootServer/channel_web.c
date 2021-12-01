@@ -56,6 +56,7 @@ static void httpframe_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 }
 
 static void httpframe_recv(Channel_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {
+	ChannelUserData_t* ud;
 	HttpFrame_t* httpframe = (HttpFrame_t*)decode_result->userdata;
 	UserMsg_t* message = newUserMsg(decode_result->bodylen);
 	if (!message) {
@@ -70,9 +71,18 @@ static void httpframe_recv(Channel_t* c, const struct sockaddr* addr, ChannelInb
 	message->param.type = USER_MSG_EXTRA_HTTP_FRAME;
 	message->param.httpframe = httpframe;
 	message->cmdstr = httpframe->uri;
-	message->rpc_status = 0;
 	message->cmdid = 0;
-	message->rpcid = 0;
+
+	ud = (ChannelUserData_t*)c->userdata;
+	if (ud->rpc_recv_item) {
+		message->rpc_status = RPC_STATUS_RESP;
+		message->rpcid = ud->rpc_recv_item->id;
+		ud->rpc_recv_item = NULL;
+	}
+	else {
+		message->rpc_status = 0;
+		message->rpcid = 0;
+	}
 	if (message->datalen) {
 		memcpy(message->data, decode_result->bodyptr, message->datalen);
 	}

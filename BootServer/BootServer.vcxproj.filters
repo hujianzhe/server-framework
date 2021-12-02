@@ -66,6 +66,9 @@
     <ClInclude Include="util\inc\crt\math.h">
       <Filter>头文件</Filter>
     </ClInclude>
+	<ClInclude Include="util\inc\crt\math_vec3.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="util\inc\datastruct\arrheap.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -264,6 +267,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\math.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+	<ClCompile Include="util\src\crt\math_vec3.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\datastruct\base64.c">

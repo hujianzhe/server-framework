@@ -176,6 +176,7 @@
     <ClInclude Include="util\inc\crt\export_free.h" />
     <ClInclude Include="util\inc\crt\json.h" />
     <ClInclude Include="util\inc\crt\math.h" />
+    <ClInclude Include="util\inc\crt\math_vec3.h" />
     <ClInclude Include="util\inc\datastruct\arrheap.h" />
     <ClInclude Include="util\inc\datastruct\base64.h" />
     <ClInclude Include="util\inc\datastruct\bstree.h" />
@@ -242,6 +243,7 @@
     <ClCompile Include="util\src\crt\export_free.c" />
     <ClCompile Include="util\src\crt\json.c" />
     <ClCompile Include="util\src\crt\math.c" />
+    <ClCompile Include="util\src\crt\math_vec3.c" />
     <ClCompile Include="util\src\datastruct\base64.c" />
     <ClCompile Include="util\src\datastruct\bstree.c" />
     <ClCompile Include="util\src\datastruct\graph.c" />

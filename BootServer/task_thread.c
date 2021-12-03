@@ -137,7 +137,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			rbtimerMiniumTimestamp(&thread->timer),
 			rpcGetMiniumTimeoutTimestamp(rpc_base)
 		};
-		int wait_msec = -1;
+		long long wait_msec = -1;
 		for (i = 0; i < sizeof(t) / sizeof(t[0]); ++i) {
 			if (t[i] < 0) {
 				continue;

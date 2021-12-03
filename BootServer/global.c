@@ -10,6 +10,7 @@ extern "C" {
 
 BootServerGlobal_t* ptrBSG(void) { return s_PtrBSG; }
 const char* getBSGErrmsg(void) { return s_BSG.errmsg ? s_BSG.errmsg : ""; }
+int checkStopBSG(void) { return s_PtrBSG ? !(s_PtrBSG->valid) : 1; }
 
 BOOL initBootServerGlobal(const char* conf_path) {
 	if (s_PtrBSG) {

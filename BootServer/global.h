@@ -34,6 +34,7 @@ extern "C" {
 
 __declspec_dll BootServerGlobal_t* ptrBSG(void);
 __declspec_dll const char* getBSGErrmsg(void);
+__declspec_dll int checkStopBSG(void);
 
 __declspec_dll BOOL initBootServerGlobal(const char* conf_path);
 __declspec_dll void printBootServerNodeInfo(void);

@@ -4,6 +4,7 @@
 #include "util/inc/component/dataqueue.h"
 #include "util/inc/component/rbtimer.h"
 #include "util/inc/component/rpc_core.h"
+#include "util/inc/datastruct/random.h"
 
 struct Dispatch_t;
 struct ClusterTable_t;
@@ -23,6 +24,8 @@ typedef struct TaskThread_t {
 	void(*fn_destroy)(struct TaskThread_t* thrd);
 	struct UserMsg_t* __fn_init_fiber_msg;
 	const char* errmsg;
+	Rand48_t rand48_ctx;
+	RandMT19937_t randmt19937_ctx;
 } TaskThread_t;
 
 #ifdef __cplusplus

@@ -359,7 +359,7 @@ static void __remove_task_thread(TaskThread_t* t) {
 }
 
 TaskThread_t* newTaskThread(void) {
-	int dq_ok = 0, timer_ok = 0, dispatch_ok = 0;
+	int dq_ok = 0, timer_ok = 0, dispatch_ok = 0, seedval = 0;
 	TaskThread_t* t = (TaskThread_t*)malloc(sizeof(TaskThread_t));
 	if (!t) {
 		return NULL;
@@ -394,6 +394,9 @@ TaskThread_t* newTaskThread(void) {
 	t->fn_destroy = NULL;
 	t->__fn_init_fiber_msg = NULL;
 	t->errmsg = NULL;
+	seedval = time(NULL);
+	rand48Seed(&t->rand48_ctx, seedval);
+	mt19937Seed(&t->randmt19937_ctx, seedval);
 	return t;
 err:
 	if (dq_ok) {

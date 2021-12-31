@@ -66,7 +66,7 @@
     <ClInclude Include="util\inc\crt\math.h">
       <Filter>头文件</Filter>
     </ClInclude>
-	<ClInclude Include="util\inc\crt\math_vec3.h">
+    <ClInclude Include="util\inc\crt\math_vec3.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\datastruct\arrheap.h">
@@ -216,6 +216,9 @@
     <ClInclude Include="util\inc\crt\json.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\crt\octree.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="util\src\component\channel.c">
@@ -269,7 +272,7 @@
     <ClCompile Include="util\src\crt\math.c">
       <Filter>源文件</Filter>
     </ClCompile>
-	<ClCompile Include="util\src\crt\math_vec3.c">
+    <ClCompile Include="util\src\crt\math_vec3.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\datastruct\base64.c">
@@ -396,6 +399,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\json.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\octree.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

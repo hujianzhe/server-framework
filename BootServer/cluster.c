@@ -59,6 +59,7 @@ void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp) {
 		rbtreeRemoveNode(&grp->consistent_hash_ring, tcur);
 		free(tcur);
 	}
+	dynarrFreeMemory(&grp->clsnds);
 	free((void*)grp->name);
 	free(grp);
 }

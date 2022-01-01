@@ -309,6 +309,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	if (thread->f_rpc) {
 		rpcFiberCoreDestroy(thread->f_rpc);
 		fiberFree(thread->f_rpc->sche_fiber);
+		free(thread->f_rpc);
 	}
 	else if (thread->a_rpc) {
 		rpcAsyncCoreDestroy(thread->a_rpc);

@@ -180,6 +180,10 @@ Channel_t* openListenerInner(int socktype, const char* ip, unsigned short port, 
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
+	if (!socketEnableReusePort(o->fd, TRUE)) {
+		reactorCommitCmd(NULL, &o->freecmd);
+		return NULL;
+	}
 	if (bind(o->fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;

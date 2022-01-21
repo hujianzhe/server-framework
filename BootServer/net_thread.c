@@ -22,18 +22,16 @@ int newNetThreadResource(unsigned int cnt) {
 	if (!networkSetupEnv()) {
 		return 0;
 	}
-	s_ReactorCnt = cnt;
-	s_Reactors = (Reactor_t*)malloc(sizeof(Reactor_t) * (s_ReactorCnt + 1));
+	s_Reactors = (Reactor_t*)malloc(sizeof(Reactor_t) * (cnt + 1));
 	if (!s_Reactors) {
 		return 0;
 	}
-
-	for (i = 0; i < s_ReactorCnt + 1; ++i) {
+	for (i = 0; i < cnt + 1; ++i) {
 		if (!reactorInit(s_Reactors + i)) {
 			break;
 		}
 	}
-	if (i != s_ReactorCnt + 1) {
+	if (i != cnt + 1) {
 		while (i--) {
 			reactorDestroy(s_Reactors + i);
 		}
@@ -41,13 +39,19 @@ int newNetThreadResource(unsigned int cnt) {
 		s_Reactors = NULL;
 		return 0;
 	}
+	s_ReactorCnt = cnt;
 	return 1;
 }
 
 void freeNetThreadResource(void) {
 	if (s_Reactors) {
+		int i;
+		for (i = 0; i < s_ReactorCnt + 1; ++i) {
+			reactorDestroy(s_Reactors + i);
+		}
 		free(s_Reactors);
 		s_Reactors = NULL;
+		s_ReactorCnt = 0;
 	}
 	networkCleanEnv();
 }

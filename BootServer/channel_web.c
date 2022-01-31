@@ -285,8 +285,15 @@ static Channel_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struc
 	c->_.on_reg = defaultChannelOnReg;
 	c->_.on_detach = defaultChannelOnDetach;
 	c->on_recv = websocket_recv;
+	flag = c->_.flag;
 	if (flag & CHANNEL_FLAG_SERVER) {
 		c->_.heartbeat_timeout_sec = 20;
+	}
+	if (flag & CHANNEL_FLAG_STREAM) {
+		if ((flag & CHANNEL_FLAG_CLIENT) || (flag & CHANNEL_FLAG_SERVER)) {
+			int on = ptrBSG()->conf->tcp_nodelay;
+			setsockopt(o->fd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on));
+		}
 	}
 	return c;
 }

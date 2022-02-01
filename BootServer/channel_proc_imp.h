@@ -12,7 +12,8 @@ typedef struct ChannelUserData_t {
 	struct RpcItem_t* rpc_syn_ack_item;
 	struct RpcItem_t* rpc_recv_item;
 	struct DataQueue_t* dq;
-	int ws_handshake_state;
+	short ws_handshake_state;
+	short ws_prev_is_fin;
 	int text_data_print_log;
 } ChannelUserData_t;
 

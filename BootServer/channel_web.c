@@ -189,7 +189,8 @@ static unsigned int websocket_hdrsize(Channel_t* c, unsigned int bodylen) {
 static void websocket_encode(Channel_t* c, const ChannelOutbufEncodeParam_t* param) {
 	ChannelUserData_t* ud = (ChannelUserData_t*)c->userdata;
 	if (ud->ws_handshake_state > 1) {
-		websocketframeEncode(param->buf, 1, WEBSOCKET_BINARY_FRAME, param->bodylen);
+		websocketframeEncode(param->buf, param->fragment_eof, ud->ws_prev_is_fin, WEBSOCKET_BINARY_FRAME, param->bodylen);
+		ud->ws_prev_is_fin = param->fragment_eof;
 	}
 	else {
 		ud->ws_handshake_state = 2;

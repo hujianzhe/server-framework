@@ -14,6 +14,7 @@ ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, DataQueue_t* dq) {
 	ud->rpc_recv_item = NULL;
 	ud->dq = dq;
 	ud->ws_handshake_state = 0;
+	ud->ws_prev_is_fin = 1;
 	return ud;
 }
 

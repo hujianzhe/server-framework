@@ -64,12 +64,13 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 	}
 }
 
-static int test_timer(RBTimer_t* timer, RBTimerEvent_t* e) {
+static void test_timer(RBTimer_t* timer, RBTimerEvent_t* e) {
 	logInfo(ptrBSG()->log, "test_timer============================================");
-	e->timestamp_msec += e->interval_msec;
+	e->timestamp += e->interval;
 	rbtimerAddEvent(timer, e);
-	return 0;
 }
+
+static void free_rbtimer_event(RBTimerEvent_t* e) { free(e); }
 
 int init(TaskThread_t* thrd, int argc, char** argv) {
 	int i;
@@ -80,8 +81,14 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 	regNumberDispatch(thrd->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
 
 	// add timer
-	timer_event = rbtimerNewEvent(gmtimeMillisecond() / 1000 * 1000 + 1000, 1000, test_timer, NULL);
-	rbtimerAddEvent(&thrd->timer, timer_event);
+	timer_event = (RBTimerEvent_t*)calloc(1, sizeof(RBTimerEvent_t));
+	if (timer_event) {
+		timer_event->timestamp = gmtimeMillisecond() / 1000 * 1000 + 1000;
+		timer_event->interval = 1000;
+		timer_event->callback = test_timer;
+		timer_event->on_free = free_rbtimer_event;
+		rbtimerAddEvent(&thrd->timer, timer_event);
+	}
 
 	for (i = 0; i < ptrBSG()->conf->connect_options_cnt; ++i) {
 		ConfigConnectOption_t* option = ptrBSG()->conf->connect_options + i;

@@ -159,10 +159,10 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		// handle message and event
 		cur_msec = gmtimeMillisecond();
 		for (; iter_cur; iter_cur = iter_next) {
-			ReactorCmd_t* internal = (ReactorCmd_t*)iter_cur;
+			ReactorCmd_t* rc = pod_container_of(iter_cur, ReactorCmd_t, _);
 			iter_next = iter_cur->next;
-			if (REACTOR_USER_CMD == internal->type) {
-				UserMsg_t* ctrl = pod_container_of(internal , UserMsg_t, internal);
+			if (REACTOR_USER_CMD == rc->type) {
+				UserMsg_t* ctrl = pod_container_of(rc, UserMsg_t, internal);
 				if (ctrl->be_from_cluster) {
 					if (RPC_STATUS_HAND_SHAKE == ctrl->rpc_status) {
 						Channel_t* channel = ctrl->channel;
@@ -225,8 +225,8 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					call_dispatch(thread, ctrl);
 				}
 			}
-			else if (REACTOR_CHANNEL_FREE_CMD == internal->type) {
-				Channel_t* channel = pod_container_of(internal, Channel_t, _.freecmd);
+			else if (REACTOR_CHANNEL_FREE_CMD == rc->type) {
+				Channel_t* channel = pod_container_of(rc, Channel_t, _.freecmd);
 				if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
 					logInfo(log, "channel(%p) detach, reason:%d, connected times: %u",
 						channel, channel->_.detach_error, channel->_.connected_times);
@@ -310,22 +310,13 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		rpcFiberCoreDestroy(thread->f_rpc);
 		fiberFree(thread->f_rpc->sche_fiber);
 		free(thread->f_rpc);
+		thread->f_rpc = NULL;
 	}
 	else if (thread->a_rpc) {
 		rpcAsyncCoreDestroy(thread->a_rpc);
+		thread->a_rpc = NULL;
 	}
-	for (iter_cur = rbtimerClean(&thread->timer); iter_cur; iter_cur = iter_next) {
-		iter_next = iter_cur->next;
-		free(pod_container_of(iter_cur, RBTimerEvent_t, m_listnode));
-	}
-	for (iter_cur = dataqueueClean(&thread->dq); iter_cur; iter_cur = iter_next) {
-		ReactorCmd_t* internal = (ReactorCmd_t*)iter_cur;
-		iter_next = iter_cur->next;
-		if (REACTOR_USER_CMD == internal->type) {
-			UserMsg_t* ctrl = pod_container_of(internal, UserMsg_t, internal);
-			ctrl->on_free(ctrl);
-		}
-	}
+
 	if (thread->fn_destroy) {
 		thread->fn_destroy(thread);
 	}
@@ -418,9 +409,17 @@ BOOL runTaskThread(TaskThread_t* t) {
 }
 
 void freeTaskThread(TaskThread_t* t) {
+	ListNode_t *lcur, *lnext;
 	if (t) {
 		__remove_task_thread(t);
-		dataqueueDestroy(&t->dq);
+		for (lcur = dataqueueDestroy(&t->dq); lcur; lcur = lnext) {
+			ReactorCmd_t* rc = pod_container_of(lcur, ReactorCmd_t, _);
+			lnext = lcur->next;
+			if (REACTOR_USER_CMD == rc->type) {
+				UserMsg_t* ctrl = pod_container_of(rc, UserMsg_t, internal);
+				ctrl->on_free(ctrl);
+			}
+		}
 		rbtimerDestroy(&t->timer);
 		freeDispatch(t->dispatch);
 		free((void*)t->errmsg);

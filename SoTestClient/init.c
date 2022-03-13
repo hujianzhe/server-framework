@@ -70,8 +70,6 @@ static void test_timer(RBTimer_t* timer, RBTimerEvent_t* e) {
 	rbtimerAddEvent(timer, e);
 }
 
-static void free_rbtimer_event(RBTimerEvent_t* e) { free(e); }
-
 int init(TaskThread_t* thrd, int argc, char** argv) {
 	int i;
 	RBTimerEvent_t* timer_event;
@@ -86,7 +84,6 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 		timer_event->timestamp = gmtimeMillisecond() / 1000 * 1000 + 1000;
 		timer_event->interval = 1000;
 		timer_event->callback = test_timer;
-		timer_event->on_free = free_rbtimer_event;
 		rbtimerAddEvent(&thrd->timer, timer_event);
 	}
 

@@ -10,7 +10,7 @@ LIB_FILE := $(LIB_PATH)/BootServer/libBootServerDynamic.so
 DEBUG_LIB_FILE := $(LIB_PATH)/BootServer/libBootServerDynamicDebug.so
 INCLUDE_PATH :=
 
-#DEFAULT_LINK := -lpthread -lm -ldl
+DEFAULT_LINK := -pthread
 #ifeq ($(shell uname), Linux)
 #DEFAULT_LINK += -lrt
 #endif

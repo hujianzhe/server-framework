@@ -230,20 +230,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			}
 			else if (REACTOR_CHANNEL_FREE_CMD == rc->type) {
 				Channel_t* channel = pod_container_of(rc, Channel_t, _.freecmd);
-				if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
-					logInfo(log, "channel(%p) detach, reason:%d, connected times: %u",
-						channel, channel->_.detach_error, channel->_.connected_times);
-				}
-				else if (channel->_.flag & CHANNEL_FLAG_SERVER) {
-					logInfo(log, "channel(%p) detach, reason:%d", channel, channel->_.detach_error);
-				}
-				else {
-					IPString_t listen_ip;
-					unsigned short listen_port;
-					sockaddrDecode(&channel->_.listen_addr.sa, listen_ip, &listen_port);
-					logInfo(log, "listen ip(%s) port(%u) detach", listen_ip, listen_port);
-				}
-
 				if ((channel->_.flag & CHANNEL_FLAG_CLIENT) ||
 					(channel->_.flag & CHANNEL_FLAG_SERVER))
 				{

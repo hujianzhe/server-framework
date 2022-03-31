@@ -6,6 +6,9 @@
 static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	DispatchCallback_t callback;
 	Dispatch_t* dispatch = thrd->dispatch;
+	if (thrd->filter_callback && thrd->filter_callback(thrd, ctrl)) {
+		return;
+	}
 	if (ctrl->cmdstr) {
 		callback = getStringDispatch(dispatch, ctrl->cmdstr);
 	}
@@ -245,6 +248,10 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 					(channel->_.flag & CHANNEL_FLAG_SERVER))
 				{
 					Session_t* session = channelSession(channel);
+					freeRpcItemWhenChannelDetach(thread, channel);
+					if (thread->on_channel_detach) {
+						thread->on_channel_detach(thread, channel);
+					}
 					if (session) {
 						if (session->channel_client == channel) {
 							session->channel_client = NULL;
@@ -252,13 +259,12 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						if (session->channel_server == channel) {
 							session->channel_server = NULL;
 						}
-					}
-					freeRpcItemWhenChannelDetach(thread, channel);
-					if (session && !sessionChannel(session)) {
-						time_t cur_sec = cur_msec / 1000;
-						session->reconnect_timestamp_sec = cur_sec + session->reconnect_delay_sec;
-						if (session->on_disconnect) {
-							session->on_disconnect(thread, session);
+						if (!sessionChannel(session)) {
+							time_t cur_sec = cur_msec / 1000;
+							session->reconnect_timestamp_sec = cur_sec + session->reconnect_delay_sec;
+							if (session->on_disconnect) {
+								session->on_disconnect(thread, session);
+							}
 						}
 					}
 				}
@@ -389,6 +395,8 @@ TaskThread_t* newTaskThread(void) {
 	seedval = time(NULL);
 	rand48Seed(&t->rand48_ctx, seedval);
 	mt19937Seed(&t->randmt19937_ctx, seedval);
+	t->filter_callback = NULL;
+	t->on_channel_detach = NULL;
 	return t;
 err:
 	if (dq_ok) {

@@ -34,3 +34,4 @@ core.*
 *.dSYM
 .DS_Store
 /BootServer/util
+/db_api

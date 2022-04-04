@@ -35,6 +35,13 @@ InnerMsg_t* makeInnerMsg(InnerMsg_t* msg, int cmdid, const void* data, unsigned 
 	return msg;
 }
 
+InnerMsg_t* makeInnerMsgRpcReq(InnerMsg_t* msg, int rpcid, int cmdid, const void* data, unsigned int len) {
+	makeInnerMsg(msg, cmdid, data, len);
+	msg->rpc_status = RPC_STATUS_REQ;
+	msg->htonl_rpcid = htonl(rpcid);
+	return msg;
+}
+
 InnerMsg_t* makeInnerMsgRpcResp(InnerMsg_t* msg, int rpcid, int retcode, const void* data, unsigned int len) {
 	makeInnerMsg(msg, retcode, data, len);
 	msg->rpc_status = RPC_STATUS_RESP;

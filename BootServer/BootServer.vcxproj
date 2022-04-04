@@ -160,7 +160,6 @@
     <ClInclude Include="util\inc\compiler_define.h" />
     <ClInclude Include="util\inc\component\channel.h" />
     <ClInclude Include="util\inc\component\dataqueue.h" />
-    <ClInclude Include="util\inc\component\db.h" />
     <ClInclude Include="util\inc\component\httpframe.h" />
     <ClInclude Include="util\inc\component\log.h" />
     <ClInclude Include="util\inc\component\memheap_mt.h" />
@@ -228,7 +227,6 @@
     <ClCompile Include="task_thread.c" />
     <ClCompile Include="util\src\component\channel.c" />
     <ClCompile Include="util\src\component\dataqueue.c" />
-    <ClCompile Include="util\src\component\db.c" />
     <ClCompile Include="util\src\component\httpframe.c" />
     <ClCompile Include="util\src\component\log.c" />
     <ClCompile Include="util\src\component\memheap_mt.c" />

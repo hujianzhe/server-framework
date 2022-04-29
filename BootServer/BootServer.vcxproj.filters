@@ -15,13 +15,52 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cluster.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster_action.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster_node.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="dispatch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="global.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="msg_struct.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="net_thread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="rpc_helper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="session_struct.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="task_thread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="channel_inner.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="channel_web.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="channel_proc_imp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="util\inc\component\channel.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\component\dataqueue.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\component\db.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\component\httpframe.h">
@@ -48,7 +87,22 @@
     <ClInclude Include="util\inc\component\websocketframe.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\crt\collision_detection.h">
+    <ClInclude Include="util\inc\crt\geometry\aabb.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\geometry\collision_detection.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\geometry\line_segment.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\geometry\plane.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\geometry\sphere.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\geometry\triangle.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\crt\cXML.h">
@@ -63,10 +117,16 @@
     <ClInclude Include="util\inc\crt\export_free.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\crt\json.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="util\inc\crt\math.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\crt\math_vec3.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\octree.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\datastruct\arrheap.h">
@@ -171,63 +231,54 @@
     <ClInclude Include="util\inc\platform_define.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="cluster.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cluster_action.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cluster_node.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="config.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="dispatch.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="global.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="msg_struct.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="net_thread.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="rpc_helper.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="session_struct.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="task_thread.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="channel_inner.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="channel_web.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="channel_proc_imp.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\json.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\octree.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cluster.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster_action.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster_node.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="config.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="dispatch.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="global.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="msg_struct.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="net_thread.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="rpc_helper.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="session_struct.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="task_thread.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="channel_inner.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="channel_web.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="channel_proc_imp.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="util\src\component\channel.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\dataqueue.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\component\db.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\httpframe.c">
@@ -254,7 +305,22 @@
     <ClCompile Include="util\src\component\websocketframe.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\crt\collision_detection.c">
+    <ClCompile Include="util\src\crt\geometry\aabb.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\geometry\collision_detection.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\geometry\line_segment.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\geometry\plane.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\geometry\sphere.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\geometry\triangle.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\cXML.c">
@@ -269,10 +335,16 @@
     <ClCompile Include="util\src\crt\export_free.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="util\src\crt\json.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="util\src\crt\math.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\math_vec3.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\octree.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\datastruct\base64.c">
@@ -354,54 +426,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\sysapi\time.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster_action.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster_node.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="config.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="dispatch.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="global.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="msg_struct.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="net_thread.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="rpc_helper.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="session_struct.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="task_thread.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="channel_inner.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="channel_web.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="channel_proc_imp.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\json.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\octree.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

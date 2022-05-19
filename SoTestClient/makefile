@@ -5,6 +5,7 @@ TARGET_PATH += .
 
 COMPILE_OPTION := -Wno-deprecated -Wno-parentheses
 MACRO := -D_REENTRANT
+#ASAN := -fsanitize=address
 LIB_PATH := $(PWD)/..
 LIB_FILE := $(LIB_PATH)/BootServer/libBootServerDynamic.so
 DEBUG_LIB_FILE := $(LIB_PATH)/BootServer/libBootServerDynamicDebug.so
@@ -25,7 +26,7 @@ TARGET := $(TARGET_PATH)/SoTestClient.exe
 all:
 
 debug:
-	$(COMPILER) $(MACRO) -D_DEBUG -g -fsanitize=address $(COMPILE_OPTION) $(INCLUDE_PATH) $(SOURCE_C_FILE) $(SOURCE_CPP_FILE) $(DEBUG_LIB_FILE) -o $(TARGET) $(DEFAULT_LINK)
+	$(COMPILER) $(MACRO) -D_DEBUG -g $(ASAN) $(COMPILE_OPTION) $(INCLUDE_PATH) $(SOURCE_C_FILE) $(SOURCE_CPP_FILE) $(DEBUG_LIB_FILE) -o $(TARGET) $(DEFAULT_LINK)
 
 release:
 	$(COMPILER) $(MACRO) -DNDEBUG -O1 $(COMPILE_OPTION) $(INCLUDE_PATH) $(SOURCE_C_FILE) $(SOURCE_CPP_FILE) $(LIB_FILE) -o $(TARGET) $(DEFAULT_LINK)

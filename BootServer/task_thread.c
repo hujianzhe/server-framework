@@ -317,6 +317,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	}
 	else if (thread->a_rpc) {
 		rpcAsyncCoreDestroy(thread->a_rpc);
+		free(thread->a_rpc);
 		thread->a_rpc = NULL;
 	}
 

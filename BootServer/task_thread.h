@@ -23,7 +23,6 @@ typedef struct TaskThread_t {
 	char** init_argv;
 	int(*fn_init)(struct TaskThread_t* thrd, int argc, char** argv);
 	void(*fn_destroy)(struct TaskThread_t* thrd);
-	struct UserMsg_t* __fn_init_fiber_msg;
 	const char* errmsg;
 	Rand48_t rand48_ctx;
 	RandMT19937_t randmt19937_ctx;

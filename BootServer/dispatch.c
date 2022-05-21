@@ -7,7 +7,7 @@ typedef struct DispatchItem_t {
 } DispatchItem_t;
 
 static void free_user_msg(UserMsg_t* msg) {
-	if (USER_MSG_EXTRA_HTTP_FRAME == msg->param.type) {
+	if (USER_MSG_PARAM_HTTP_FRAME == msg->param.type) {
 		free(httpframeReset(msg->param.httpframe));
 	}
 	free(msg);

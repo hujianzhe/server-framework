@@ -4,8 +4,10 @@
 #include "util/inc/component/channel.h"
 
 enum {
-	USER_MSG_EXTRA_HTTP_FRAME = 1,
-	USER_MSG_EXTRA_TIMER_EVENT
+	USER_MSG_PARAM_INIT = 1,
+	USER_MSG_PARAM_HTTP_FRAME,
+	USER_MSG_PARAM_TIMER_EVENT,
+	USER_MSG_PARAM_CHANNEL_DETACH,
 };
 
 struct HttpFrame_t;

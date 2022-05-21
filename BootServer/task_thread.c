@@ -23,7 +23,7 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		dispatch->null_dispatch_callback(thrd, ctrl);
 	}
 	else {
-		if (USER_MSG_EXTRA_HTTP_FRAME == ctrl->param.type) {
+		if (USER_MSG_PARAM_HTTP_FRAME == ctrl->param.type) {
 			if (ctrl->param.httpframe) {
 				const char reply[] = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n";
 				channelSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
@@ -44,17 +44,40 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	ctrl->on_free(ctrl);
 }
 
+static void do_channel_detach(TaskThread_t* thrd, Channel_t* channel) {
+	Session_t* session = channelSession(channel);
+	if (thrd->on_channel_detach) {
+		thrd->on_channel_detach(thrd, channel);
+	}
+	if (session) {
+		if (session->channel_client == channel) {
+			session->channel_client = NULL;
+		}
+		if (session->channel_server == channel) {
+			session->channel_server = NULL;
+		}
+		if (!sessionChannel(session)) {
+			if (session->on_disconnect) {
+				session->on_disconnect(thrd, session);
+			}
+		}
+	}
+	reactorCommitCmd(NULL, &channel->_.freecmd);
+}
+
 static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 	TaskThread_t* thrd = (TaskThread_t*)rpc->base.runthread;
-	if (thrd->__fn_init_fiber_msg == ctrl) {
-		thrd->__fn_init_fiber_msg = NULL;
+	if (USER_MSG_PARAM_INIT == ctrl->param.type) {
 		if (!thrd->fn_init(thrd, thrd->init_argc, thrd->init_argv)) {
 			thrd->errmsg = strFormat(NULL, "task thread fn_init failure\n");
 			ptrBSG()->valid = 0;
 			return;
 		}
 	}
-	else if (USER_MSG_EXTRA_TIMER_EVENT == ctrl->param.type) {
+	else if (USER_MSG_PARAM_CHANNEL_DETACH == ctrl->param.type) {
+		do_channel_detach(thrd, ctrl->channel);
+	}
+	else if (USER_MSG_PARAM_TIMER_EVENT == ctrl->param.type) {
 		RBTimerEvent_t* e = ctrl->param.timer_event;
 		e->callback(&thrd->timer, e);
 	}
@@ -122,9 +145,9 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	// call global init function
 	if (thread->fn_init) {
 		if (thread->f_rpc) {
-			UserMsg_t fn_init_fiber_msg;
-			thread->__fn_init_fiber_msg = &fn_init_fiber_msg;
-			rpcFiberCoreResumeMsg(thread->f_rpc, &fn_init_fiber_msg);
+			UserMsg_t init_msg;
+			init_msg.param.type = USER_MSG_PARAM_INIT;
+			rpcFiberCoreResumeMsg(thread->f_rpc, &init_msg);
 		}
 		else if (!thread->fn_init(thread, ptrBSG()->argc, ptrBSG()->argv)) {
 			thread->errmsg = strFormat(NULL, "task thread fn_init failure\n");
@@ -233,28 +256,16 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				if ((channel->_.flag & CHANNEL_FLAG_CLIENT) ||
 					(channel->_.flag & CHANNEL_FLAG_SERVER))
 				{
-					Session_t* session = channelSession(channel);
 					freeRpcItemWhenChannelDetach(thread, channel);
-					if (thread->on_channel_detach) {
-						thread->on_channel_detach(thread, channel);
-					}
-					if (session) {
-						if (session->channel_client == channel) {
-							session->channel_client = NULL;
-						}
-						if (session->channel_server == channel) {
-							session->channel_server = NULL;
-						}
-						if (!sessionChannel(session)) {
-							time_t cur_sec = cur_msec / 1000;
-							session->reconnect_timestamp_sec = cur_sec + session->reconnect_delay_sec;
-							if (session->on_disconnect) {
-								session->on_disconnect(thread, session);
-							}
-						}
-					}
 				}
-				reactorCommitCmd(NULL, &channel->_.freecmd);
+				if (thread->f_rpc) {
+					UserMsg_t detach_msg;
+					detach_msg.param.type = USER_MSG_PARAM_CHANNEL_DETACH;
+					detach_msg.channel = channel;
+					rpcFiberCoreResumeMsg(thread->f_rpc, &detach_msg);
+					continue;
+				}
+				do_channel_detach(thread, channel);
 			}
 		}
 
@@ -277,7 +288,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 		}
 		if (thread->f_rpc) {
 			UserMsg_t timer_msg;
-			timer_msg.param.type = USER_MSG_EXTRA_TIMER_EVENT;
+			timer_msg.param.type = USER_MSG_PARAM_TIMER_EVENT;
 			for (i = 0; i < conf->once_timeout_events_maxcnt; ++i) {
 				RBTimerEvent_t* e = rbtimerTimeoutPopup(&thread->timer, cur_msec);
 				if (!e) {
@@ -376,7 +387,6 @@ TaskThread_t* newTaskThread(void) {
 	t->init_argv = NULL;
 	t->fn_init = NULL;
 	t->fn_destroy = NULL;
-	t->__fn_init_fiber_msg = NULL;
 	t->errmsg = NULL;
 	seedval = time(NULL);
 	rand48Seed(&t->rand48_ctx, seedval);

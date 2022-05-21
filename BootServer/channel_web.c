@@ -68,7 +68,7 @@ static void httpframe_recv(Channel_t* c, const struct sockaddr* addr, ChannelInb
 		memcpy(&message->peer_addr, addr, sockaddrLength(addr));
 	}
 	httpframe->uri[httpframe->pathlen] = 0;
-	message->param.type = USER_MSG_EXTRA_HTTP_FRAME;
+	message->param.type = USER_MSG_PARAM_HTTP_FRAME;
 	message->param.httpframe = httpframe;
 	message->cmdstr = httpframe->uri;
 	message->cmdid = 0;

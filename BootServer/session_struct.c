@@ -20,21 +20,6 @@ Session_t* initSession(Session_t* session) {
 	return session;
 }
 
-void sessionChannelReplaceClient(Session_t* session, Channel_t* channel) {
-	Channel_t* old_channel = session->channel_client;
-	if (old_channel == channel) {
-		return;
-	}
-	if (old_channel) {
-		channelSession(old_channel) = NULL;
-		channelSendv(old_channel, NULL, 0, NETPACKET_FIN);
-	}
-	session->channel_client = channel;
-	if (channel) {
-		channelSession(channel) = session;
-	}
-}
-
 void sessionReplaceChannel(Session_t* session, Channel_t* channel) {
 	Channel_t* old_channel;
 	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {

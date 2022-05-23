@@ -9,8 +9,8 @@ struct Session_t;
 struct DataQueue_t;
 typedef struct ChannelUserData_t {
 	struct Session_t* session;
-	struct RpcItem_t* rpc_syn_ack_item;
-	struct RpcItem_t* rpc_recv_item;
+	int rpc_id_syn_ack;
+	int rpc_id_recv;
 	struct DataQueue_t* dq;
 	short ws_handshake_state;
 	short ws_prev_is_fin;

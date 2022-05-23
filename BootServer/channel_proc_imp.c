@@ -10,8 +10,8 @@ extern "C" {
 
 ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, DataQueue_t* dq) {
 	ud->session = NULL;
-	ud->rpc_syn_ack_item = NULL;
-	ud->rpc_recv_item = NULL;
+	ud->rpc_id_syn_ack = 0;
+	ud->rpc_id_recv = 0;
 	ud->dq = dq;
 	ud->ws_handshake_state = 0;
 	ud->ws_prev_is_fin = 1;
@@ -24,13 +24,13 @@ void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	if (1 != c->connected_times) {
 		return;
 	}
-	if (ud->rpc_syn_ack_item) {
+	if (ud->rpc_id_syn_ack != 0) {
 		UserMsg_t* msg = newUserMsg(0);
 		msg->channel = channel;
-		msg->rpcid = ud->rpc_syn_ack_item->id;
+		msg->rpcid = ud->rpc_id_syn_ack;
 		msg->rpc_status = RPC_STATUS_RESP;
 		dataqueuePush(ud->dq, &msg->internal._);
-		ud->rpc_syn_ack_item = NULL;
+		ud->rpc_id_syn_ack = 0;
 	}
 }
 

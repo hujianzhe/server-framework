@@ -117,7 +117,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 					reactorCommitCmd(NULL, &c->_.freecmd);
 					return 1;
 				}
-				channelUserData(c)->rpc_syn_ack_item = rpc_item;
+				channelUserData(c)->rpc_id_syn_ack = rpc_item->id;
 				reactorCommitCmd(selectReactor(), &o->regcmd);
 				rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 				if (rpc_item->ret_msg) {
@@ -138,7 +138,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 					return 1;
 				}
 				rpc_item->udata = (size_t)c;
-				channelUserData(c)->rpc_syn_ack_item = rpc_item;
+				channelUserData(c)->rpc_id_syn_ack = rpc_item->id;
 				reactorCommitCmd(selectReactor(), &o->regcmd);
 			}
 		}

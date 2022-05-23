@@ -74,10 +74,10 @@ static void httpframe_recv(Channel_t* c, const struct sockaddr* addr, ChannelInb
 	message->cmdid = 0;
 
 	ud = (ChannelUserData_t*)c->userdata;
-	if (ud->rpc_recv_item) {
+	if (ud->rpc_id_recv != 0) {
 		message->rpc_status = RPC_STATUS_RESP;
-		message->rpcid = ud->rpc_recv_item->id;
-		ud->rpc_recv_item = NULL;
+		message->rpcid = ud->rpc_id_recv;
+		ud->rpc_id_recv = 0;
 	}
 	else {
 		message->rpc_status = 0;

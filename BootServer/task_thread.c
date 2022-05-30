@@ -196,15 +196,11 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						ctrl->on_free(ctrl);
 						if (clsnd) {
 							sessionReplaceChannel(&clsnd->session, channel);
+							clsnd->status = CLSND_STATUS_NORMAL;
 						}
 						else {
 							channelSendv(channel, NULL, 0, NETPACKET_FIN);
 						}
-						continue;
-					}
-					else if (RPC_STATUS_FLUSH_NODE == ctrl->rpc_status) {
-						flushClusterNodeFromJsonData(thread->clstbl, (char*)ctrl->data);
-						ctrl->on_free(ctrl);
 						continue;
 					}
 					else {

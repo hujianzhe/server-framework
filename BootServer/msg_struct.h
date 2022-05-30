@@ -22,7 +22,6 @@ enum {
 	RPC_STATUS_REQ = 'R',
 	RPC_STATUS_RESP = 'T',
 	RPC_STATUS_HAND_SHAKE = 'S',
-	RPC_STATUS_FLUSH_NODE = 'F',
 };
 
 #ifdef __cplusplus

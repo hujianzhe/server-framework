@@ -18,6 +18,30 @@ static struct ClusterNodeGroup_t* get_cluster_node_group(struct ClusterTable_t* 
 	return htnode ? pod_container_of(htnode, ClusterNodeGroup_t, m_htnode) : NULL;
 }
 
+static void add_cluster_node(struct ClusterTable_t* t, ClusterNode_t* clsnd) {
+	clsnd->status = CLSND_STATUS_NORMAL;
+	if (clsnd->session.has_reg) {
+		return;
+	}
+	hashtableInsertNode(&t->id_table, &clsnd->m_id_htnode);
+	listPushNodeBack(&t->nodelist, &clsnd->m_listnode);
+	clsnd->session.has_reg = 1;
+}
+
+static void add_cluster_group(struct ClusterTable_t* t, struct ClusterNodeGroup_t* grp) {
+	size_t j;
+	HashtableNode_t* exist_node = hashtableInsertNode(&t->grp_table, &grp->m_htnode);
+	if (exist_node != &grp->m_htnode) {
+		struct ClusterNodeGroup_t* exist_grp = pod_container_of(exist_node, ClusterNodeGroup_t, m_htnode);
+		hashtableReplaceNode(&t->grp_table, exist_node, &grp->m_htnode);
+		freeClusterNodeGroup(exist_grp);
+	}
+	for (j = 0; j < grp->clsnds.len; ++j) {
+		ClusterNode_t* clsnd = grp->clsnds.buf[j];
+		add_cluster_node(t, clsnd);
+	}
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -66,6 +90,7 @@ void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp) {
 
 void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t** grps, size_t grp_cnt) {
 	size_t i;
+	ListNode_t* lcur;
 	HashtableNode_t* curhtnode, * nexthtnode;
 	for (curhtnode = hashtableFirstNode(&t->grp_table); curhtnode; curhtnode = nexthtnode) {
 		ClusterNodeGroup_t* grp = pod_container_of(curhtnode, ClusterNodeGroup_t, m_htnode);
@@ -73,19 +98,13 @@ void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t
 		freeClusterNodeGroup(grp);
 	}
 	hashtableInit(&t->grp_table, t->grp_bulk, sizeof(t->grp_bulk) / sizeof(t->grp_bulk[0]), hashtableDefaultKeyCmpStr, hashtableDefaultKeyHashStr);
+	for (lcur = t->nodelist.head; lcur; lcur = lcur->next) {
+		ClusterNode_t* clsnd = pod_container_of(lcur, ClusterNode_t, m_listnode);
+		clsnd->status = CLSND_STATUS_INACTIVE;
+	}
+
 	for (i = 0; i < grp_cnt; ++i) {
-		size_t j;
-		ClusterNodeGroup_t* grp = grps[i];
-		hashtableInsertNode(&t->grp_table, &grp->m_htnode);
-		for (j = 0; j < grp->clsnds.len; ++j) {
-			ClusterNode_t* clsnd = grp->clsnds.buf[j];
-			if (clsnd->session.has_reg) {
-				continue;
-			}
-			hashtableInsertNode(&t->id_table, &clsnd->m_id_htnode);
-			listPushNodeBack(&t->nodelist, &clsnd->m_listnode);
-			clsnd->session.has_reg = 1;
-		}
+		add_cluster_group(t, grps[i]);
 	}
 }
 

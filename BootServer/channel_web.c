@@ -176,7 +176,8 @@ Channel_t* openListenerHttp(const char* ip, unsigned short port, FnChannelOnRecv
 
 /**************************************************************************/
 
-static unsigned int websocket_hdrsize(Channel_t* c, unsigned int bodylen) {
+static unsigned int websocket_hdrsize(ChannelBase_t* base, unsigned int bodylen) {
+	Channel_t* c = pod_container_of(base, Channel_t, _);
 	ChannelUserData_t* ud = (ChannelUserData_t*)c->userdata;
 	if (ud->ws_handshake_state > 1) {
 		return websocketframeEncodeHeadLength(bodylen);
@@ -301,7 +302,7 @@ static Channel_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struc
 
 Channel_t* openChannelWebsocketServer(ReactorObject_t* o, const struct sockaddr* addr, struct DataQueue_t* dq) {
 	Channel_t* c = openChannelWebsocket(o, CHANNEL_FLAG_SERVER, addr, dq);
-	c->on_hdrsize = websocket_hdrsize;
+	c->_.on_hdrsize = websocket_hdrsize;
 	c->on_decode = websocket_decode;
 	c->on_encode = websocket_encode;
 	return c;

@@ -50,7 +50,6 @@ void defaultChannelOnReg(ChannelBase_t* c, long long timestamp_msec) {
 	socktype_str = (channel_flag & CHANNEL_FLAG_STREAM) ? "tcp" : "udp";
 	if (channel_flag & CHANNEL_FLAG_CLIENT) {
 		logInfo(ptrBSG()->log, "%s connect addr %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);
-		channelSendv(channel, NULL, 0, NETPACKET_SYN);
 	}
 	else if (channel_flag & CHANNEL_FLAG_LISTEN) {
 		logInfo(ptrBSG()->log, "%s listen addr %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);

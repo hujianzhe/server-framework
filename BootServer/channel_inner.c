@@ -8,7 +8,7 @@ extern "C" {
 #define	INNER_BASEHDRSIZE 4
 #define INNER_EXTHDRSIZE 6
 #define	INNER_HDRSIZE 10
-static unsigned int innerchannel_hdrsize(Channel_t* c, unsigned int bodylen) { return INNER_HDRSIZE; }
+static unsigned int innerchannel_hdrsize(ChannelBase_t* c, unsigned int bodylen) { return INNER_HDRSIZE; }
 
 static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen, ChannelInbufDecodeResult_t* decode_result) {
 	unsigned char* data;
@@ -138,7 +138,7 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr*
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = defaultChannelOnReg;
 	c->_.on_detach = defaultChannelOnDetach;
-	c->on_hdrsize = innerchannel_hdrsize;
+	c->_.on_hdrsize = innerchannel_hdrsize;
 	c->on_decode = innerchannel_decode;
 	c->on_encode = innerchannel_encode;
 	c->dgram.on_reply_ack = innerchannel_reply_ack;

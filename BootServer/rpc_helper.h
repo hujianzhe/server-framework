@@ -13,10 +13,13 @@
 extern "C" {
 #endif
 
-__declspec_dll RpcItem_t* newRpcItemFiberReady(Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*));
-__declspec_dll RpcItem_t* newRpcItemAsyncReady(Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*));
+__declspec_dll RpcItem_t* newRpcItemFiberReady(const void* key, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*));
+__declspec_dll RpcItem_t* newRpcItemAsyncReady(const void* key, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*));
 __declspec_dll void freeRpcItem(RpcItem_t* rpc_item);
+
 __declspec_dll BOOL newFiberSleepMillsecond(long long timeout_msec);
+__declspec_dll RpcItem_t* newChannelRpcItemFiber(Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*));
+__declspec_dll RpcItem_t* newChannelRpcItemAsync(Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*));
 
 __declspec_dll RpcItem_t* sendClsndRpcReqFiber(ClusterNode_t* clsnd, InnerMsg_t* msg, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*));
 __declspec_dll RpcItem_t* sendClsndRpcReqAsync(ClusterNode_t* clsnd, InnerMsg_t* msg, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*));

@@ -32,7 +32,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 	int i, cnt_rpc = 0;
 	RpcItem_t* rpc_item;
 	for (i = 0; i < 2; ++i) {
-		rpc_item = newRpcItemFiberReady(channel, 1000, NULL, NULL);
+		rpc_item = newChannelRpcItemFiber(channel, 1000, NULL, NULL);
 		if (!rpc_item) {
 			continue;
 		}
@@ -42,7 +42,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 		rpc_item->udata = CMD_REQ_ParallelTest1;
 		cnt_rpc++;
 
-		rpc_item = newRpcItemFiberReady(channel, 1000, NULL, NULL);
+		rpc_item = newChannelRpcItemFiber(channel, 1000, NULL, NULL);
 		if (!rpc_item) {
 			continue;
 		}

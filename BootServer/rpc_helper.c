@@ -39,13 +39,9 @@ void freeRpcItemWhenChannelDetach(TaskThread_t* thrd, Channel_t* channel) {
 	}
 }
 
-RpcItem_t* newRpcItemFiberReady(Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
+RpcItem_t* newRpcItemFiberReady(const void* key, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
 	RpcItem_t* rpc_item;
-	TaskThread_t* thrd;
-	if (!channel->_.valid) {
-		return NULL;
-	}
-	thrd = currentTaskThread();
+	TaskThread_t* thrd = currentTaskThread();
 	if (!thrd) {
 		return NULL;
 	}
@@ -53,20 +49,16 @@ RpcItem_t* newRpcItemFiberReady(Channel_t* channel, long long timeout_msec, void
 	if (!rpc_item) {
 		return NULL;
 	}
-	if (!rpcFiberCoreRegItem(thrd->f_rpc, rpc_item, channel, req_arg, ret_callback)) {
+	if (!rpcFiberCoreRegItem(thrd->f_rpc, rpc_item, key, req_arg, ret_callback)) {
 		free(rpc_item);
 		return NULL;
 	}
 	return rpc_item;
 }
 
-RpcItem_t* newRpcItemAsyncReady(Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
+RpcItem_t* newRpcItemAsyncReady(const void* key, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
 	RpcItem_t* rpc_item;
-	TaskThread_t* thrd;
-	if (!channel->_.valid) {
-		return NULL;
-	}
-	thrd = currentTaskThread();
+	TaskThread_t* thrd = currentTaskThread();
 	if (!thrd) {
 		return NULL;
 	}
@@ -74,7 +66,7 @@ RpcItem_t* newRpcItemAsyncReady(Channel_t* channel, long long timeout_msec, void
 	if (!rpc_item) {
 		return NULL;
 	}
-	if (!rpcAsyncCoreRegItem(thrd->a_rpc, rpc_item, channel, req_arg, ret_callback)) {
+	if (!rpcAsyncCoreRegItem(thrd->a_rpc, rpc_item, key, req_arg, ret_callback)) {
 		free(rpc_item);
 		return NULL;
 	}
@@ -124,13 +116,27 @@ BOOL newFiberSleepMillsecond(long long timeout_msec) {
 	return TRUE;
 }
 
+RpcItem_t* newChannelRpcItemFiber(Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
+	if (!channel->_.valid) {
+		return NULL;
+	}
+	return newRpcItemFiberReady(channel, timeout_msec, req_arg, ret_callback);
+}
+
+RpcItem_t* newChannelRpcItemAsync(Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
+	if (!channel->_.valid) {
+		return NULL;
+	}
+	return newRpcItemAsyncReady(channel, timeout_msec, req_arg, ret_callback);
+}
+
 RpcItem_t* sendClsndRpcReqFiber(ClusterNode_t* clsnd, InnerMsg_t* msg, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
 	RpcItem_t* rpc_item;
 	Channel_t* channel = connectClusterNode(clsnd);
 	if (!channel) {
 		return NULL;
 	}
-	rpc_item = newRpcItemFiberReady(channel, timeout_msec, req_arg, ret_callback);
+	rpc_item = newChannelRpcItemFiber(channel, timeout_msec, req_arg, ret_callback);
 	if (!rpc_item) {
 		return NULL;
 	}
@@ -146,7 +152,7 @@ RpcItem_t* sendClsndRpcReqAsync(ClusterNode_t* clsnd, InnerMsg_t* msg, long long
 	if (!channel) {
 		return NULL;
 	}
-	rpc_item = newRpcItemAsyncReady(channel, timeout_msec, req_arg, ret_callback);
+	rpc_item = newChannelRpcItemAsync(channel, timeout_msec, req_arg, ret_callback);
 	if (!rpc_item) {
 		return NULL;
 	}

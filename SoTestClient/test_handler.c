@@ -18,14 +18,14 @@ void frpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 	InnerMsg_t msg;
 	RpcItem_t* rpc_item;
 	//
-	rpc_item = newRpcItemFiberReady(channel, 1000, (void*)"abcdefg", frpc_callback);
+	rpc_item = newChannelRpcItemFiber(channel, 1000, (void*)"abcdefg", frpc_callback);
 	if (!rpc_item) {
 		return;
 	}
 	makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST_CALLBACK, test_data, sizeof(test_data));
 	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	//
-	rpc_item = newRpcItemFiberReady(channel, 1000, NULL, NULL);
+	rpc_item = newChannelRpcItemFiber(channel, 1000, NULL, NULL);
 	if (!rpc_item) {
 		return;
 	}
@@ -43,7 +43,7 @@ void frpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 		return;
 	}
 	/*
-	rpc_item = newRpcItemFiberReady(channel, 1000, "abcdefg", frpc_callback);
+	rpc_item = newChannelRpcItemFiber(channel, 1000, "abcdefg", frpc_callback);
 	if (!rpc_item) {
 		return;
 	}
@@ -56,7 +56,7 @@ void arpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 	// test code
 	char test_data[] = "this text is from client ^.^";
 	InnerMsg_t msg;
-	RpcItem_t* rpc_item = newRpcItemAsyncReady(channel, 1000, NULL, rpcRetTest);
+	RpcItem_t* rpc_item = newChannelRpcItemAsync(channel, 1000, NULL, rpcRetTest);
 	if (!rpc_item) {
 		return;
 	}

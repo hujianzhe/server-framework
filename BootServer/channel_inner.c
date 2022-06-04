@@ -71,6 +71,7 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 }
 
 static void innerchannel_reply_ack(Channel_t* c, unsigned int seq, const struct sockaddr* addr) {
+	ReactorObject_t* o = c->_.o;
 	unsigned char buf[INNER_HDRSIZE];
 	ChannelOutbufEncodeParam_t encode_param;
 	encode_param.bodylen = 0;
@@ -80,7 +81,10 @@ static void innerchannel_reply_ack(Channel_t* c, unsigned int seq, const struct 
 	encode_param.pktype = NETPACKET_ACK;
 	encode_param.buf = buf;
 	c->on_encode(c, &encode_param);
-	sendto(c->_.o->fd, (char*)buf, sizeof(buf), 0, addr, sockaddrLength(addr));
+	if (o->m_connected) {
+		addr = NULL;
+	}
+	sendto(o->fd, (char*)buf, sizeof(buf), 0, addr, sockaddrLength(addr));
 }
 
 static void innerchannel_recv(Channel_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {

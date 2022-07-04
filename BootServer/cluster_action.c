@@ -155,11 +155,6 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 		if (cjson_hashkey_array) {
 			cJSON* key;
 			for (key = cjson_hashkey_array->child; key; key = key->next) {
-				struct {
-					RBTreeNode_t _;
-					ClusterNode_t* clsnd;
-				} *data;
-				RBTreeNode_t* exist_node;
 				unsigned int hashkey;
 				if (cJSON_GetDouble(key) < 1.0) {
 					hashkey = cJSON_GetDouble(key) * UINT_MAX;
@@ -167,36 +162,22 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 				else {
 					hashkey = cJSON_GetInteger(key);
 				}
-				*(void**)&data = malloc(sizeof(*data));
-				if (!data) {
+				if (!regClusterNodeToGroupByHashKey(grp, hashkey, clsnd)) {
 					goto err;
-				}
-				data->_.key.u32 = hashkey;
-				data->clsnd = clsnd;
-				exist_node = rbtreeInsertNode(&grp->consistent_hash_ring, &data->_);
-				if (exist_node != &data->_) {
-					rbtreeReplaceNode(&grp->consistent_hash_ring, exist_node, &data->_);
-					free(exist_node);
 				}
 			}
 		}
 		cjson_weight_num = cJSON_GetField(cjson_clsnd, "weight_num");
 		if (cjson_weight_num && (weight_num = cJSON_GetInteger(cjson_weight_num)) > 0) {
-			struct {
-				RBTreeNode_t _;
-				ClusterNode_t* clsnd;
-			} *data;
-			*(void**)&data = malloc(sizeof(*data));
-			if (!data) {
+			if (!regClusterNodeToGroupByWeight(grp, weight_num, clsnd)) {
 				goto err;
 			}
-			grp->total_weight += weight_num;
-			data->_.key.u32 = grp->total_weight;
-			data->clsnd = clsnd;
-			rbtreeInsertNode(&grp->weight_num_ring, &data->_);
 		}
 	}
-	replaceClusterNodeGroup(t, new_grps.buf, new_grps.len);
+	clearClusterNodeGroup(t);
+	for (i = 0; i < new_grps.len; ++i) {
+		replaceClusterNodeGroup(t, new_grps.buf[i]);
+	}
 	cJSON_Delete(root);
 	dynarrFreeMemory(&new_grps);
 	return t;

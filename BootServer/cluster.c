@@ -10,14 +10,6 @@ typedef struct ClusterTable_t {
 	HashtableNode_t* id_bulk[32];
 } ClusterTable_t;
 
-static struct ClusterNodeGroup_t* get_cluster_node_group(struct ClusterTable_t* t, const char* grp_name) {
-	HashtableNodeKey_t hkey;
-	HashtableNode_t* htnode;
-	hkey.ptr = grp_name;
-	htnode = hashtableSearchKey(&t->grp_table, hkey);
-	return htnode ? pod_container_of(htnode, ClusterNodeGroup_t, m_htnode) : NULL;
-}
-
 static void add_cluster_node(struct ClusterTable_t* t, ClusterNode_t* clsnd) {
 	clsnd->status = CLSND_STATUS_NORMAL;
 	if (clsnd->session.has_reg) {
@@ -26,20 +18,6 @@ static void add_cluster_node(struct ClusterTable_t* t, ClusterNode_t* clsnd) {
 	hashtableInsertNode(&t->id_table, &clsnd->m_id_htnode);
 	listPushNodeBack(&t->nodelist, &clsnd->m_listnode);
 	clsnd->session.has_reg = 1;
-}
-
-static void add_cluster_group(struct ClusterTable_t* t, struct ClusterNodeGroup_t* grp) {
-	size_t j;
-	HashtableNode_t* exist_node = hashtableInsertNode(&t->grp_table, &grp->m_htnode);
-	if (exist_node != &grp->m_htnode) {
-		struct ClusterNodeGroup_t* exist_grp = pod_container_of(exist_node, ClusterNodeGroup_t, m_htnode);
-		hashtableReplaceNode(&t->grp_table, exist_node, &grp->m_htnode);
-		freeClusterNodeGroup(exist_grp);
-	}
-	for (j = 0; j < grp->clsnds.len; ++j) {
-		ClusterNode_t* clsnd = grp->clsnds.buf[j];
-		add_cluster_node(t, clsnd);
-	}
 }
 
 #ifdef __cplusplus
@@ -71,6 +49,50 @@ int regClusterNodeToGroup(struct ClusterNodeGroup_t* grp, ClusterNode_t* clsnd) 
 	return ret_ok;
 }
 
+int regClusterNodeToGroupByHashKey(struct ClusterNodeGroup_t* grp, unsigned int hashkey, ClusterNode_t* clsnd) {
+	RBTreeNode_t* exist_node;
+	struct {
+		RBTreeNode_t _;
+		ClusterNode_t* clsnd;
+	} *data;
+	*(void**)&data = malloc(sizeof(*data));
+	if (!data) {
+		return 0;
+	}
+	data->_.key.u32 = hashkey;
+	data->clsnd = clsnd;
+	exist_node = rbtreeInsertNode(&grp->consistent_hash_ring, &data->_);
+	if (exist_node != &data->_) {
+		rbtreeReplaceNode(&grp->consistent_hash_ring, exist_node, &data->_);
+		free(exist_node);
+	}
+	return 1;
+}
+
+int regClusterNodeToGroupByWeight(struct ClusterNodeGroup_t* grp, int weight, ClusterNode_t* clsnd) {
+	RBTreeNode_t* exist_node;
+	struct {
+		RBTreeNode_t _;
+		ClusterNode_t* clsnd;
+	} *data;
+	*(void**)&data = malloc(sizeof(*data));
+	if (!data) {
+		return 0;
+	}
+	if (weight <= 0) {
+		weight = 1;
+	}
+	grp->total_weight += weight;
+	data->_.key.u32 = grp->total_weight;
+	data->clsnd = clsnd;
+	exist_node = rbtreeInsertNode(&grp->weight_num_ring, &data->_);
+	if (exist_node != &data->_) {
+		rbtreeReplaceNode(&grp->weight_num_ring, exist_node, &data->_);
+		free(exist_node);
+	}
+	return 1;
+}
+
 void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp) {
 	RBTreeNode_t* tcur, * tnext;
 	for (tcur = rbtreeFirstNode(&grp->weight_num_ring); tcur; tcur = tnext) {
@@ -88,7 +110,25 @@ void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp) {
 	free(grp);
 }
 
-void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t** grps, size_t grp_cnt) {
+struct ClusterTable_t* newClusterTable(void) {
+	ClusterTable_t* t = (ClusterTable_t*)malloc(sizeof(ClusterTable_t));
+	if (t) {
+		hashtableInit(&t->grp_table, t->grp_bulk, sizeof(t->grp_bulk) / sizeof(t->grp_bulk[0]), hashtableDefaultKeyCmpStr, hashtableDefaultKeyHashStr);
+		hashtableInit(&t->id_table, t->id_bulk, sizeof(t->id_bulk) / sizeof(t->id_bulk[0]), hashtableDefaultKeyCmp32, hashtableDefaultKeyHash32);
+		listInit(&t->nodelist);
+	}
+	return t;
+}
+
+struct ClusterNodeGroup_t* getClusterNodeGroup(struct ClusterTable_t* t, const char* grp_name) {
+	HashtableNodeKey_t hkey;
+	HashtableNode_t* htnode;
+	hkey.ptr = grp_name;
+	htnode = hashtableSearchKey(&t->grp_table, hkey);
+	return htnode ? pod_container_of(htnode, ClusterNodeGroup_t, m_htnode) : NULL;
+}
+
+void clearClusterNodeGroup(struct ClusterTable_t* t) {
 	size_t i;
 	ListNode_t* lcur;
 	HashtableNode_t* curhtnode, * nexthtnode;
@@ -102,20 +142,20 @@ void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t
 		ClusterNode_t* clsnd = pod_container_of(lcur, ClusterNode_t, m_listnode);
 		clsnd->status = CLSND_STATUS_INACTIVE;
 	}
-
-	for (i = 0; i < grp_cnt; ++i) {
-		add_cluster_group(t, grps[i]);
-	}
 }
 
-struct ClusterTable_t* newClusterTable(void) {
-	ClusterTable_t* t = (ClusterTable_t*)malloc(sizeof(ClusterTable_t));
-	if (t) {
-		hashtableInit(&t->grp_table, t->grp_bulk, sizeof(t->grp_bulk) / sizeof(t->grp_bulk[0]), hashtableDefaultKeyCmpStr, hashtableDefaultKeyHashStr);
-		hashtableInit(&t->id_table, t->id_bulk, sizeof(t->id_bulk) / sizeof(t->id_bulk[0]), hashtableDefaultKeyCmp32, hashtableDefaultKeyHash32);
-		listInit(&t->nodelist);
+void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t* grp) {
+	size_t j;
+	HashtableNode_t* exist_node = hashtableInsertNode(&t->grp_table, &grp->m_htnode);
+	if (exist_node != &grp->m_htnode) {
+		struct ClusterNodeGroup_t* exist_grp = pod_container_of(exist_node, ClusterNodeGroup_t, m_htnode);
+		hashtableReplaceNode(&t->grp_table, exist_node, &grp->m_htnode);
+		freeClusterNodeGroup(exist_grp);
 	}
-	return t;
+	for (j = 0; j < grp->clsnds.len; ++j) {
+		ClusterNode_t* clsnd = grp->clsnds.buf[j];
+		add_cluster_node(t, clsnd);
+	}
 }
 
 ClusterNode_t* getClusterNodeById(struct ClusterTable_t* t, int clsnd_id) {
@@ -140,7 +180,7 @@ void getClusterNodes(struct ClusterTable_t* t, DynArrClusterNodePtr_t* v) {
 
 void getClusterGroupNodes(struct ClusterTable_t* t, const char* grp_name, DynArrClusterNodePtr_t* v) {
 	int ret_ok;
-	ClusterNodeGroup_t* grp = get_cluster_node_group(t, grp_name);
+	ClusterNodeGroup_t* grp = getClusterNodeGroup(t, grp_name);
 	if (!grp) {
 		return;
 	}
@@ -167,7 +207,7 @@ void freeClusterTable(struct ClusterTable_t* t) {
 
 ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name, int mode, unsigned int key) {
 	ClusterNode_t* dst_clsnd;
-	ClusterNodeGroup_t* grp = get_cluster_node_group(t, grp_name);
+	ClusterNodeGroup_t* grp = getClusterNodeGroup(t, grp_name);
 	if (!grp) {
 		return NULL;
 	}
@@ -244,7 +284,7 @@ ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name,
 }
 
 void broadcastClusterGroup(struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt) {
-	ClusterNodeGroup_t* grp = get_cluster_node_group(t, grp_name);
+	ClusterNodeGroup_t* grp = getClusterNodeGroup(t, grp_name);
 	if (grp) {
 		int self_id = ptrBSG()->conf->clsnd.id;
 		size_t i;

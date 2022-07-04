@@ -129,7 +129,6 @@ struct ClusterNodeGroup_t* getClusterNodeGroup(struct ClusterTable_t* t, const c
 }
 
 void clearClusterNodeGroup(struct ClusterTable_t* t) {
-	size_t i;
 	ListNode_t* lcur;
 	HashtableNode_t* curhtnode, * nexthtnode;
 	for (curhtnode = hashtableFirstNode(&t->grp_table); curhtnode; curhtnode = nexthtnode) {

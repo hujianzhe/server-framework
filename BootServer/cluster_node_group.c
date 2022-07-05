@@ -1,4 +1,5 @@
 #include "cluster_node_group.h"
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {

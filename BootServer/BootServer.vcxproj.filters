@@ -111,9 +111,6 @@
     <ClInclude Include="util\inc\crt\dynarr.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\crt\dynbuf.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\crt\export_free.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -231,6 +228,12 @@
     <ClInclude Include="util\inc\platform_define.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\crt\geometry\geometry_def.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster_node_group.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cluster.c">
@@ -329,9 +332,6 @@
     <ClCompile Include="util\src\crt\dynarr.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\crt\dynbuf.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="util\src\crt\export_free.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -426,6 +426,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\sysapi\time.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster_node_group.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -148,6 +148,7 @@
     <ClInclude Include="cluster.h" />
     <ClInclude Include="cluster_action.h" />
     <ClInclude Include="cluster_node.h" />
+    <ClInclude Include="cluster_node_group.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="dispatch.h" />
     <ClInclude Include="global.h" />
@@ -170,10 +171,10 @@
     <ClInclude Include="util\inc\component\websocketframe.h" />
     <ClInclude Include="util\inc\crt\cXML.h" />
     <ClInclude Include="util\inc\crt\dynarr.h" />
-    <ClInclude Include="util\inc\crt\dynbuf.h" />
     <ClInclude Include="util\inc\crt\export_free.h" />
     <ClInclude Include="util\inc\crt\geometry\aabb.h" />
     <ClInclude Include="util\inc\crt\geometry\collision_detection.h" />
+    <ClInclude Include="util\inc\crt\geometry\geometry_def.h" />
     <ClInclude Include="util\inc\crt\geometry\line_segment.h" />
     <ClInclude Include="util\inc\crt\geometry\plane.h" />
     <ClInclude Include="util\inc\crt\geometry\sphere.h" />
@@ -222,6 +223,7 @@
     <ClCompile Include="cluster.c" />
     <ClCompile Include="cluster_action.c" />
     <ClCompile Include="cluster_node.c" />
+    <ClCompile Include="cluster_node_group.c" />
     <ClCompile Include="config.c" />
     <ClCompile Include="dispatch.c" />
     <ClCompile Include="global.c" />
@@ -242,7 +244,6 @@
     <ClCompile Include="util\src\component\websocketframe.c" />
     <ClCompile Include="util\src\crt\cXML.c" />
     <ClCompile Include="util\src\crt\dynarr.c" />
-    <ClCompile Include="util\src\crt\dynbuf.c" />
     <ClCompile Include="util\src\crt\export_free.c" />
     <ClCompile Include="util\src\crt\geometry\aabb.c" />
     <ClCompile Include="util\src\crt\geometry\collision_detection.c" />

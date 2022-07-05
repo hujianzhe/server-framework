@@ -73,6 +73,39 @@ int regClusterNodeToGroupByWeight(struct ClusterNodeGroup_t* grp, int weight, Cl
 	return 1;
 }
 
+void delCluserNodeFromGroup(struct ClusterNodeGroup_t* grp, int clsnd_id) {
+	RBTreeNode_t* rbcur, *rbnext;
+	struct {
+		RBTreeNode_t _;
+		ClusterNode_t* clsnd;
+	} *data;
+	size_t i;
+	for (i = 0; i < grp->clsnds.len; ++i) {
+		if (grp->clsnds.buf[i]->id) {
+			break;
+		}
+	}
+	if (i < grp->clsnds.len) {
+		dynarrRemoveIdx(&grp->clsnds, i);
+	}
+	for (rbcur = rbtreeFirstNode(&grp->consistent_hash_ring); rbcur; rbcur = rbnext) {
+		rbnext = rbtreeNextNode(rbcur);
+		*(void**)&data = rbcur;
+		if (clsnd_id == data->clsnd->id) {
+			rbtreeRemoveNode(&grp->consistent_hash_ring, rbcur);
+			free(data);
+		}
+	}
+	for (rbcur = rbtreeFirstNode(&grp->weight_num_ring); rbcur; rbcur = rbnext) {
+		rbnext = rbtreeNextNode(rbcur);
+		*(void**)&data = rbcur;
+		if (clsnd_id == data->clsnd->id) {
+			rbtreeRemoveNode(&grp->weight_num_ring, rbcur);
+			free(data);
+		}
+	}
+}
+
 void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp) {
 	RBTreeNode_t* tcur, *tnext;
 	for (tcur = rbtreeFirstNode(&grp->weight_num_ring); tcur; tcur = tnext) {

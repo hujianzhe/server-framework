@@ -26,6 +26,7 @@ __declspec_dll struct ClusterNodeGroup_t* newClusterNodeGroup(const char* name);
 __declspec_dll int regClusterNodeToGroup(struct ClusterNodeGroup_t* grp, ClusterNode_t* clsnd);
 __declspec_dll int regClusterNodeToGroupByHashKey(struct ClusterNodeGroup_t* grp, unsigned int hashkey, ClusterNode_t* clsnd);
 __declspec_dll int regClusterNodeToGroupByWeight(struct ClusterNodeGroup_t* grp, int weight, ClusterNode_t* clsnd);
+__declspec_dll void delCluserNodeFromGroup(struct ClusterNodeGroup_t* grp, int clsnd_id);
 __declspec_dll void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp);
 
 #ifdef __cplusplus

@@ -34,6 +34,7 @@ __declspec_dll struct ClusterNodeGroup_t* newClusterNodeGroup(const char* name);
 __declspec_dll int regClusterNodeToGroup(struct ClusterNodeGroup_t* grp, ClusterNode_t* clsnd);
 __declspec_dll int regClusterNodeToGroupByHashKey(struct ClusterNodeGroup_t* grp, unsigned int hashkey, ClusterNode_t* clsnd);
 __declspec_dll int regClusterNodeToGroupByWeight(struct ClusterNodeGroup_t* grp, int weight, ClusterNode_t* clsnd);
+__declspec_dll void delCluserNodeFromGroup(struct ClusterNodeGroup_t* grp, int clsnd_id);
 __declspec_dll void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp);
 
 __declspec_dll struct ClusterTable_t* newClusterTable(void);
@@ -43,6 +44,7 @@ __declspec_dll void getClusterNodes(struct ClusterTable_t* t, DynArrClusterNodeP
 __declspec_dll void getClusterGroupNodes(struct ClusterTable_t* t, const char* grp_name, DynArrClusterNodePtr_t* v);
 __declspec_dll void clearClusterNodeGroup(struct ClusterTable_t* t);
 __declspec_dll void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t* grp);
+__declspec_dll void inactiveClusterNode(struct ClusterTable_t* t, ClusterNode_t* clsnd);
 __declspec_dll void freeClusterTable(struct ClusterTable_t* t);
 __declspec_dll ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name, int mode, unsigned int key);
 __declspec_dll void broadcastClusterGroup(struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt);

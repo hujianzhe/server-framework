@@ -93,6 +93,39 @@ int regClusterNodeToGroupByWeight(struct ClusterNodeGroup_t* grp, int weight, Cl
 	return 1;
 }
 
+void delCluserNodeFromGroup(struct ClusterNodeGroup_t* grp, int clsnd_id) {
+	RBTreeNode_t* rbcur, *rbnext;
+	struct {
+		RBTreeNode_t _;
+		ClusterNode_t* clsnd;
+	} *data;
+	size_t i;
+	for (i = 0; i < grp->clsnds.len; ++i) {
+		if (grp->clsnds.buf[i]->id) {
+			break;
+		}
+	}
+	if (i < grp->clsnds.len) {
+		dynarrRemoveIdx(&grp->clsnds, i);
+	}
+	for (rbcur = rbtreeFirstNode(&grp->consistent_hash_ring); rbcur; rbcur = rbnext) {
+		rbnext = rbtreeNextNode(rbcur);
+		*(void**)&data = rbcur;
+		if (clsnd_id == data->clsnd->id) {
+			rbtreeRemoveNode(&grp->consistent_hash_ring, rbcur);
+			free(data);
+		}
+	}
+	for (rbcur = rbtreeFirstNode(&grp->weight_num_ring); rbcur; rbcur = rbnext) {
+		rbnext = rbtreeNextNode(rbcur);
+		*(void**)&data = rbcur;
+		if (clsnd_id == data->clsnd->id) {
+			rbtreeRemoveNode(&grp->weight_num_ring, rbcur);
+			free(data);
+		}
+	}
+}
+
 void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp) {
 	RBTreeNode_t* tcur, * tnext;
 	for (tcur = rbtreeFirstNode(&grp->weight_num_ring); tcur; tcur = tnext) {
@@ -202,6 +235,16 @@ void freeClusterTable(struct ClusterTable_t* t) {
 		}
 		free(t);
 	}
+}
+
+void inactiveClusterNode(struct ClusterTable_t* t, ClusterNode_t* clsnd) {
+	HashtableNode_t* curhtnode, * nexthtnode;
+	for (curhtnode = hashtableFirstNode(&t->grp_table); curhtnode; curhtnode = nexthtnode) {
+		ClusterNodeGroup_t* grp = pod_container_of(curhtnode, ClusterNodeGroup_t, m_htnode);
+		nexthtnode = hashtableNextNode(curhtnode);
+		delCluserNodeFromGroup(grp, clsnd->id);
+	}
+	clsnd->status = CLSND_STATUS_INACTIVE;
 }
 
 ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name, int mode, unsigned int key) {

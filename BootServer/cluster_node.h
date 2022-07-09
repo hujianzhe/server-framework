@@ -18,6 +18,7 @@ typedef struct ClusterNode_t {
 	unsigned short port;
 	int connection_num;
 	int status;
+	long long factor;
 } ClusterNode_t;
 
 #ifdef __cplusplus

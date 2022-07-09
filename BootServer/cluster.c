@@ -201,6 +201,26 @@ ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name,
 		*(void**)&data = exist_node;
 		dst_clsnd = data->clsnd;
 	}
+	else if (CLUSTER_TARGET_USE_FACTOR_MIN == mode) {
+		size_t i;
+		dst_clsnd = NULL;
+		for (i = 0; i < grp->clsnds.len; ++i) {
+			ClusterNode_t* clsnd = grp->clsnds.buf[i];
+			if (!dst_clsnd || dst_clsnd->factor > clsnd->factor) {
+				dst_clsnd = clsnd;
+			}
+		}
+	}
+	else if (CLUSTER_TARGET_USE_FACTOR_MAX == mode) {
+		size_t i;
+		dst_clsnd = NULL;
+		for (i = 0; i < grp->clsnds.len; ++i) {
+			ClusterNode_t* clsnd = grp->clsnds.buf[i];
+			if (!dst_clsnd || dst_clsnd->factor < clsnd->factor) {
+				dst_clsnd = clsnd;
+			}
+		}
+	}
 	else {
 		return NULL;
 	}

@@ -22,6 +22,7 @@ ClusterNode_t* newClusterNode(int id, int socktype, const IPString_t ip, unsigne
 		clsnd->port = port;
 		clsnd->connection_num = 0;
 		clsnd->status = CLSND_STATUS_NORMAL;
+		clsnd->factor = 0;
 	}
 	return clsnd;
 }

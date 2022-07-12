@@ -6,8 +6,8 @@ typedef struct ClusterTable_t {
 	List_t nodelist;
 	Hashtable_t grp_table;
 	HashtableNode_t* grp_bulk[32];
-	Hashtable_t id_table;
-	HashtableNode_t* id_bulk[32];
+	Hashtable_t ident_table;
+	HashtableNode_t* ident_bulk[32];
 } ClusterTable_t;
 
 static void add_cluster_node(struct ClusterTable_t* t, ClusterNode_t* clsnd) {
@@ -15,7 +15,7 @@ static void add_cluster_node(struct ClusterTable_t* t, ClusterNode_t* clsnd) {
 	if (clsnd->session.has_reg) {
 		return;
 	}
-	hashtableInsertNode(&t->id_table, &clsnd->m_id_htnode);
+	hashtableInsertNode(&t->ident_table, &clsnd->m_ident_htnode);
 	listPushNodeBack(&t->nodelist, &clsnd->m_listnode);
 	clsnd->session.has_reg = 1;
 }
@@ -28,7 +28,7 @@ struct ClusterTable_t* newClusterTable(void) {
 	ClusterTable_t* t = (ClusterTable_t*)malloc(sizeof(ClusterTable_t));
 	if (t) {
 		hashtableInit(&t->grp_table, t->grp_bulk, sizeof(t->grp_bulk) / sizeof(t->grp_bulk[0]), hashtableDefaultKeyCmpStr, hashtableDefaultKeyHashStr);
-		hashtableInit(&t->id_table, t->id_bulk, sizeof(t->id_bulk) / sizeof(t->id_bulk[0]), hashtableDefaultKeyCmp32, hashtableDefaultKeyHash32);
+		hashtableInit(&t->ident_table, t->ident_bulk, sizeof(t->ident_bulk) / sizeof(t->ident_bulk[0]), hashtableDefaultKeyCmpStr, hashtableDefaultKeyHashStr);
 		listInit(&t->nodelist);
 	}
 	return t;
@@ -72,12 +72,12 @@ void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t
 	}
 }
 
-ClusterNode_t* getClusterNodeById(struct ClusterTable_t* t, int clsnd_id) {
+ClusterNode_t* getClusterNodeById(struct ClusterTable_t* t, const char* clsnd_ident) {
 	HashtableNodeKey_t hkey;
 	HashtableNode_t* htnode;
-	hkey.i32 = clsnd_id;
-	htnode = hashtableSearchKey(&t->id_table, hkey);
-	return htnode ? pod_container_of(htnode, ClusterNode_t, m_id_htnode) : NULL;
+	hkey.ptr = clsnd_ident;
+	htnode = hashtableSearchKey(&t->ident_table, hkey);
+	return htnode ? pod_container_of(htnode, ClusterNode_t, m_ident_htnode) : NULL;
 }
 
 void getClusterNodes(struct ClusterTable_t* t, DynArrClusterNodePtr_t* v) {
@@ -113,7 +113,7 @@ void freeClusterTable(struct ClusterTable_t* t) {
 		for (curlnode = t->nodelist.head; curlnode; curlnode = nextlnode) {
 			ClusterNode_t* clsnd = pod_container_of(curlnode, ClusterNode_t, m_listnode);
 			nextlnode = curlnode->next;
-			free(clsnd);
+			freeClusterNode(clsnd);
 		}
 		free(t);
 	}
@@ -124,7 +124,7 @@ void inactiveClusterNode(struct ClusterTable_t* t, ClusterNode_t* clsnd) {
 	for (curhtnode = hashtableFirstNode(&t->grp_table); curhtnode; curhtnode = nexthtnode) {
 		ClusterNodeGroup_t* grp = pod_container_of(curhtnode, ClusterNodeGroup_t, m_htnode);
 		nexthtnode = hashtableNextNode(curhtnode);
-		delCluserNodeFromGroup(grp, clsnd->id);
+		delCluserNodeFromGroup(grp, clsnd->ident);
 	}
 	clsnd->status = CLSND_STATUS_INACTIVE;
 }
@@ -230,12 +230,12 @@ ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name,
 void broadcastClusterGroup(struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt) {
 	ClusterNodeGroup_t* grp = getClusterNodeGroup(t, grp_name);
 	if (grp) {
-		int self_id = ptrBSG()->conf->clsnd.id;
+		const char* self_ident = ptrBSG()->conf->clsnd.ident;
 		size_t i;
 		for (i = 0; i < grp->clsnds.len; ++i) {
 			Channel_t* channel;
 			ClusterNode_t* clsnd = grp->clsnds.buf[i];
-			if (clsnd->id == self_id) {
+			if (0 == strcmp(clsnd->ident, self_ident)) {
 				continue;
 			}
 			channel = connectClusterNode(clsnd);
@@ -248,12 +248,12 @@ void broadcastClusterGroup(struct ClusterTable_t* t, const char* grp_name, const
 }
 
 void broadcastClusterTable(struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt) {
+	const char* self_ident = ptrBSG()->conf->clsnd.ident;
 	ListNode_t* cur;
 	for (cur = t->nodelist.head; cur; cur = cur->next) {
 		Channel_t* channel;
 		ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_listnode);
-		int self_id = ptrBSG()->conf->clsnd.id;
-		if (clsnd->id == self_id) {
+		if (0 == strcmp(clsnd->ident, self_ident)) {
 			continue;
 		}
 		channel = connectClusterNode(clsnd);

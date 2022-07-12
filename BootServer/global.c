@@ -60,17 +60,17 @@ BOOL initBootServerGlobal(const char* conf_path) {
 			return FALSE;
 		}
 		free(cluster_table_filedata);
-		clsnd = getClusterNodeById(s_BSG.default_task_thread->clstbl, s_Config.clsnd.id);
-		if (!clsnd || clsnd->id != s_Config.clsnd.id) {
-			s_BSG.errmsg = strFormat(NULL, "self cluster node(id:%d) isn't in cluster table\n", s_Config.clsnd.id);
+		clsnd = getClusterNodeById(s_BSG.default_task_thread->clstbl, s_Config.clsnd.ident);
+		if (!clsnd || strcmp(clsnd->ident, s_Config.clsnd.ident)) {
+			s_BSG.errmsg = strFormat(NULL, "self cluster node(ident:%s) isn't in cluster table\n", s_Config.clsnd.ident);
 			return FALSE;
 		}
 		if (clsnd->socktype != s_Config.clsnd.socktype ||
 			clsnd->port != s_Config.clsnd.port ||
 			strcmp(clsnd->ip, s_Config.clsnd.ip))
 		{
-			s_BSG.errmsg = strFormat(NULL, "self cluster node isn't find, id:%d, socktype:%s, ip:%s, port:%u\n",
-				s_Config.clsnd.id,
+			s_BSG.errmsg = strFormat(NULL, "self cluster node isn't find, ident:%s, socktype:%s, ip:%s, port:%u\n",
+				s_Config.clsnd.ident,
 				if_socktype2string(s_Config.clsnd.socktype),
 				s_Config.clsnd.ip,
 				s_Config.clsnd.port
@@ -85,12 +85,12 @@ BOOL initBootServerGlobal(const char* conf_path) {
 }
 
 void printBootServerNodeInfo(void) {
-	logInfo(&s_Log, "server boot, clsnd_id:%d, socktype:%s, ip:%s, port:%u, pid:%zu",
-		s_Config.clsnd.id, if_socktype2string(s_Config.clsnd.socktype),
+	logInfo(&s_Log, "server boot, clsnd_ident:%s, socktype:%s, ip:%s, port:%u, pid:%zu",
+		s_Config.clsnd.ident, if_socktype2string(s_Config.clsnd.socktype),
 		s_Config.clsnd.ip, s_Config.clsnd.port, processId());
 
-	fprintf(stderr, "server boot, clsnd_id:%d, socktype:%s, ip:%s, port:%u, pid:%zu\n",
-		s_Config.clsnd.id, if_socktype2string(s_Config.clsnd.socktype),
+	fprintf(stderr, "server boot, clsnd_ident:%s, socktype:%s, ip:%s, port:%u, pid:%zu\n",
+		s_Config.clsnd.ident, if_socktype2string(s_Config.clsnd.socktype),
 		s_Config.clsnd.ip, s_Config.clsnd.port, processId());
 }
 
@@ -153,7 +153,7 @@ void freeBootServerGlobal(void) {
 		s_BSG.log = NULL;
 	}
 	if (s_BSG.conf) {
-		freeConfig(s_BSG.conf);
+		resetConfig(s_BSG.conf);
 		s_BSG.conf = NULL;
 	}
 	freeNetThreadResource();

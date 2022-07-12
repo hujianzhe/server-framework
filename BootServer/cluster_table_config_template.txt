@@ -1,55 +1,19 @@
 {
     "version" : 1,
     "cluster_nodes" : [
-        {
-            "id" : 100,
-            "socktype" : "SOCK_DGRAM",
-            "ip" : "127.0.0.1",
-            "port" : 51000
-        },
-        {
-            "id" : 101,
-            "socktype" : "SOCK_DGRAM",
-            "ip" : "127.0.0.1",
-            "port" : 52000
-        },
-        {
-            "id" : 200,
-            "socktype" : "SOCK_DGRAM",
+		{
+            "ident" : "test200",
+            "socktype" : "SOCK_STREAM",
             "ip" : "127.0.0.1",
             "port" : 40001
-        },
-		{
-            "id" : 300,
-            "socktype" : "SOCK_DGRAM",
-            "ip" : "127.0.0.1",
-            "port" : 41001
         }
     ],
     "cluster_node_groups" : [
-        {
-            "name" : "svr_test",
-            "id" : 100,
-            "weight_num" : 1,
-            "hash_key" : [ 0.2, 0.6 ]
-        },
-        {
-            "name" : "svr_test",
-            "id" : 101,
-            "weight_num" : 1,
-            "hash_key" : [ 0.4, 0.8 ]
-        },
-        {
-            "name" : "so_test_server",
-            "id" : 200,
-            "weight_num" : 1,
-            "hash_key" : []
-        },
 		{
-            "name" : "so_test_client",
-            "id" : 300,
+            "name" : "test",
+            "ident" : "test200",
             "weight_num" : 1,
-            "hash_key" : []
+            "hash_key" : [ 0.2, 0.4 ]
         }
     ]
 }

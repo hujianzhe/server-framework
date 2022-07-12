@@ -19,7 +19,7 @@ typedef struct Config_t {
 	unsigned int connect_options_cnt;
 	IPString_t outer_ip;
 	struct {
-		int id;
+		const char* ident;
 		int socktype;
 		IPString_t ip;
 		unsigned short port;
@@ -48,7 +48,7 @@ extern "C" {
 #endif
 
 Config_t* initConfig(const char* path, Config_t* conf);
-void freeConfig(Config_t* conf);
+void resetConfig(Config_t* conf);
 
 #ifdef __cplusplus
 }

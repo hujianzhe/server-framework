@@ -74,7 +74,7 @@ int regClusterNodeToGroupByWeight(struct ClusterNodeGroup_t* grp, int weight, Cl
 	return 1;
 }
 
-void delCluserNodeFromGroup(struct ClusterNodeGroup_t* grp, int clsnd_id) {
+void delCluserNodeFromGroup(struct ClusterNodeGroup_t* grp, const char* clsnd_ident) {
 	RBTreeNode_t* rbcur, *rbnext;
 	struct {
 		RBTreeNode_t _;
@@ -82,7 +82,7 @@ void delCluserNodeFromGroup(struct ClusterNodeGroup_t* grp, int clsnd_id) {
 	} *data;
 	size_t i;
 	for (i = 0; i < grp->clsnds.len; ++i) {
-		if (grp->clsnds.buf[i]->id) {
+		if (0 == strcmp(grp->clsnds.buf[i]->ident, clsnd_ident)) {
 			break;
 		}
 	}
@@ -92,7 +92,7 @@ void delCluserNodeFromGroup(struct ClusterNodeGroup_t* grp, int clsnd_id) {
 	for (rbcur = rbtreeFirstNode(&grp->consistent_hash_ring); rbcur; rbcur = rbnext) {
 		rbnext = rbtreeNextNode(rbcur);
 		*(void**)&data = rbcur;
-		if (clsnd_id == data->clsnd->id) {
+		if (0 == strcmp(clsnd_ident, data->clsnd->ident)) {
 			rbtreeRemoveNode(&grp->consistent_hash_ring, rbcur);
 			free(data);
 		}
@@ -100,7 +100,7 @@ void delCluserNodeFromGroup(struct ClusterNodeGroup_t* grp, int clsnd_id) {
 	for (rbcur = rbtreeFirstNode(&grp->weight_num_ring); rbcur; rbcur = rbnext) {
 		rbnext = rbtreeNextNode(rbcur);
 		*(void**)&data = rbcur;
-		if (clsnd_id == data->clsnd->id) {
+		if (0 == strcmp(clsnd_ident, data->clsnd->ident)) {
 			rbtreeRemoveNode(&grp->weight_num_ring, rbcur);
 			free(data);
 		}

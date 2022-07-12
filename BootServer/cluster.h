@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 __declspec_dll struct ClusterTable_t* newClusterTable(void);
-__declspec_dll ClusterNode_t* getClusterNodeById(struct ClusterTable_t* t, int clsnd_id);
+__declspec_dll ClusterNode_t* getClusterNodeById(struct ClusterTable_t* t, const char* clsnd_ident);
 __declspec_dll struct ClusterNodeGroup_t* getClusterNodeGroup(struct ClusterTable_t* t, const char* grp_name);
 __declspec_dll void getClusterNodes(struct ClusterTable_t* t, DynArrClusterNodePtr_t* v);
 __declspec_dll void getClusterGroupNodes(struct ClusterTable_t* t, const char* grp_name, DynArrClusterNodePtr_t* v);

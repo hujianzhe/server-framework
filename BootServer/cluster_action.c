@@ -2,6 +2,7 @@
 #include "global.h"
 #include "cluster_action.h"
 #include <limits.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,16 +12,16 @@ ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char
 	cJSON* root;
 	ClusterNode_t* clsnd = NULL;
 	do {
-		cJSON* cjson_id;
-		root = cJSON_FromString(json_data, 0);
+		cJSON* cjson_ident;
+		root = cJSON_FromString(json_data, 1);
 		if (!root) {
 			break;
 		}
-		cjson_id = cJSON_GetField(root, "id");
-		if (!cjson_id) {
+		cjson_ident = cJSON_GetField(root, "ident");
+		if (!cjson_ident) {
 			break;
 		}
-		clsnd = getClusterNodeById(t, cJSON_GetInteger(cjson_id));
+		clsnd = getClusterNodeById(t, cJSON_GetStringPtr(cjson_ident));
 		if (!clsnd) {
 			break;
 		}
@@ -29,15 +30,15 @@ ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char
 	return clsnd;
 }
 
-static ClusterNode_t* find_clsnd_(struct ClusterTable_t* t, List_t* new_clsnds, int id) {
+static ClusterNode_t* find_clsnd_(struct ClusterTable_t* t, List_t* new_clsnds, const char* ident) {
 	ListNode_t* lcur;
-	ClusterNode_t* clsnd = getClusterNodeById(t, id);
+	ClusterNode_t* clsnd = getClusterNodeById(t, ident);
 	if (clsnd) {
 		return clsnd;
 	}
 	for (lcur = new_clsnds->head; lcur; lcur = lcur->next) {
 		clsnd = pod_container_of(lcur, ClusterNode_t, m_listnode);
-		if (id == clsnd->id) {
+		if (0 == strcmp(ident, clsnd->ident)) {
 			return clsnd;
 		}
 	}
@@ -74,12 +75,12 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 	listInit(&new_clsnds);
 	for (cjson_clsnd = cjson_nodes->child; cjson_clsnd; cjson_clsnd = cjson_clsnd->next) {
 		ClusterNode_t* clsnd;
-		cJSON *cjson_id, * cjson_socktype, *ip, *port;
+		cJSON *cjson_ident, * cjson_socktype, *ip, *port;
 		int socktype;
-		int id;
+		const char* ident;
 
-		cjson_id = cJSON_GetField(cjson_clsnd, "id");
-		if (!cjson_id) {
+		cjson_ident = cJSON_GetField(cjson_clsnd, "ident");
+		if (!cjson_ident) {
 			continue;
 		}
 		ip = cJSON_GetField(cjson_clsnd, "ip");
@@ -98,12 +99,12 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 		if (0 == socktype) {
 			continue;
 		}
-		id = cJSON_GetInteger(cjson_id);
+		ident = cJSON_GetStringPtr(cjson_ident);
 
-		if (find_clsnd_(t, &new_clsnds, id)) {
+		if (find_clsnd_(t, &new_clsnds, ident)) {
 			continue;
 		}
-		clsnd = newClusterNode(id, socktype, cJSON_GetStringPtr(ip), cJSON_GetInteger(port));
+		clsnd = newClusterNode(ident, socktype, cJSON_GetStringPtr(ip), cJSON_GetInteger(port));
 		if (!clsnd) {
 			goto err;
 		}
@@ -112,17 +113,17 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 	for (cjson_clsnd = cjson_grps->child; cjson_clsnd; cjson_clsnd = cjson_clsnd->next) {
 		ClusterNode_t* clsnd;
 		struct ClusterNodeGroup_t* grp;
-		cJSON *cjson_name, *cjson_id, *cjson_hashkey_array, *cjson_weight_num;
-		const char* name;
-		int ret_ok, id, weight_num;
+		cJSON *cjson_name, *cjson_ident, *cjson_hashkey_array, *cjson_weight_num;
+		const char* name, *ident;
+		int ret_ok, weight_num;
 
 		cjson_name = cJSON_GetField(cjson_clsnd, "name");
 		name = cJSON_GetStringPtr(cjson_name);
 		if (!name || 0 == *name) {
 			continue;
 		}
-		cjson_id = cJSON_GetField(cjson_clsnd, "id");
-		if (!cjson_id) {
+		cjson_ident = cJSON_GetField(cjson_clsnd, "ident");
+		if (!cjson_ident) {
 			continue;
 		}
 		ret_ok = 1;
@@ -143,8 +144,8 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 				goto err;
 			}
 		}
-		id = cJSON_GetInteger(cjson_id);
-		clsnd = find_clsnd_(t, &new_clsnds, id);
+		ident = cJSON_GetStringPtr(cjson_ident);
+		clsnd = find_clsnd_(t, &new_clsnds, ident);
 		if (!clsnd) {
 			continue;
 		}

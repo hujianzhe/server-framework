@@ -6,35 +6,44 @@
 extern "C" {
 #endif
 
-ClusterNode_t* newClusterNode(int id, int socktype, const IPString_t ip, unsigned short port) {
+ClusterNode_t* newClusterNode(const char* ident, int socktype, const IPString_t ip, unsigned short port) {
 	ClusterNode_t* clsnd = (ClusterNode_t*)malloc(sizeof(ClusterNode_t));
-	if (clsnd) {
-		initSession(&clsnd->session);
-		clsnd->m_id_htnode.key.i32 = id;
-		clsnd->id = id;
-		clsnd->socktype = socktype;
-		if (ip) {
-			strcpy(clsnd->ip, ip);
-		}
-		else {
-			clsnd->ip[0] = 0;
-		}
-		clsnd->port = port;
-		clsnd->connection_num = 0;
-		clsnd->status = CLSND_STATUS_NORMAL;
-		clsnd->factor = 0;
+	if (!clsnd) {
+		return NULL;
 	}
+	clsnd->ident = strdup(ident);
+	if (!clsnd->ident) {
+		free(clsnd);
+		return NULL;
+	}
+	clsnd->m_ident_htnode.key.ptr = clsnd->ident;
+	clsnd->socktype = socktype;
+	if (ip) {
+		strcpy(clsnd->ip, ip);
+	}
+	else {
+		clsnd->ip[0] = 0;
+	}
+	clsnd->port = port;
+	clsnd->connection_num = 0;
+	clsnd->status = CLSND_STATUS_NORMAL;
+	clsnd->factor = 0;
+	initSession(&clsnd->session);
 	return clsnd;
 }
 
 void freeClusterNode(ClusterNode_t* clsnd) {
+	if (!clsnd) {
+		return;
+	}
+	free((void*)clsnd->ident);
 	free(clsnd);
 }
 
 Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 	Channel_t* channel;
-	int self_id = ptrBSG()->conf->clsnd.id;
-	if (clsnd->id == self_id) {
+	const char* self_ident = ptrBSG()->conf->clsnd.ident;
+	if (0 == strcmp(clsnd->ident, self_ident)) {
 		return NULL;
 	}
 	channel = sessionChannel(&clsnd->session);
@@ -57,7 +66,7 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 			return NULL;
 		}
 
-		hs_data = strFormat(&hs_datalen, "{\"id\":%d}", self_id);
+		hs_data = strFormat(&hs_datalen, "{\"ident\":%s}", self_ident);
 		if (!hs_data) {
 			return NULL;
 		}
@@ -91,7 +100,7 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 void clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt) {
 	Channel_t* c;
 	unsigned int i;
-	if (clsnd->id == ptrBSG()->conf->clsnd.id) {
+	if (0 == strcmp(clsnd->ident, ptrBSG()->conf->clsnd.ident)) {
 		return;
 	}
 	for (i = 0; i < iovcnt; ++i) {

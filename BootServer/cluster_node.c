@@ -66,7 +66,7 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 			return NULL;
 		}
 
-		hs_data = strFormat(&hs_datalen, "{\"ident\":%s}", self_ident);
+		hs_data = strFormat(&hs_datalen, "{\"ident\":\"%s\"}", self_ident);
 		if (!hs_data) {
 			return NULL;
 		}

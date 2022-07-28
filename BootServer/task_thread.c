@@ -189,6 +189,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 			iter_next = iter_cur->next;
 			if (REACTOR_USER_CMD == rc->type) {
 				UserMsg_t* ctrl = pod_container_of(rc, UserMsg_t, internal);
+				Session_t* session;
 				if (ctrl->be_from_cluster) {
 					if (RPC_STATUS_HAND_SHAKE == ctrl->rpc_status) {
 						Channel_t* channel = ctrl->channel;
@@ -203,12 +204,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						}
 						continue;
 					}
-					else {
-						Session_t* session = channelSession(ctrl->channel);
-						if (session && session->channel_client) {
-							ctrl->channel = session->channel_client;
-						}
-					}
 				}
 				if (conf->enqueue_timeout_msec > 0 && ctrl->enqueue_time_msec > 0) {
 					cur_msec = gmtimeMillisecond();
@@ -217,6 +212,11 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 						continue;
 					}
 				}
+				session = channelSession(ctrl->channel);
+				if (session && session->channel_client) {
+					ctrl->channel = session->channel_client;
+				}
+
 				if (thread->f_rpc) {
 					if (RPC_STATUS_RESP == ctrl->rpc_status) {
 						RpcItem_t* rpc_item = rpcFiberCoreResume(thread->f_rpc, ctrl->rpcid, ctrl);

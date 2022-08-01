@@ -42,11 +42,13 @@ void freeClusterNode(ClusterNode_t* clsnd) {
 
 Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 	Channel_t* channel;
+	Session_t* session;
 	const char* self_ident = ptrBSG()->conf->clsnd.ident;
 	if (0 == strcmp(clsnd->ident, self_ident)) {
 		return NULL;
 	}
-	channel = sessionChannel(&clsnd->session);
+	session = &clsnd->session;
+	channel = sessionChannel(session);
 	if (!channel) {
 		InnerMsg_t msg;
 		char* hs_data;
@@ -66,9 +68,14 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 			return NULL;
 		}
 
-		hs_data = strFormat(&hs_datalen, "{\"ident\":\"%s\"}", self_ident);
-		if (!hs_data) {
-			return NULL;
+		if (session->on_handshake) {
+			hs_data = NULL;
+		}
+		else {
+			hs_data = strFormat(&hs_datalen, "{\"ident\":\"%s\"}", self_ident);
+			if (!hs_data) {
+				return NULL;
+			}
 		}
 
 		if (!sockaddrEncode(&saddr.sa, ipstrFamily(clsnd->ip), clsnd->ip, clsnd->port)) {
@@ -90,9 +97,14 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 		sessionReplaceChannel(&clsnd->session, channel);
 		reactorCommitCmd(selectReactor(), &o->regcmd);
 		// handshake
-		makeInnerMsg(&msg, 0, hs_data, hs_datalen)->rpc_status = RPC_STATUS_HAND_SHAKE;
-		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-		free(hs_data);
+		if (session->on_handshake) {
+			session->on_handshake(session, channel);
+		}
+		else {
+			makeInnerMsg(&msg, 0, hs_data, hs_datalen)->rpc_status = RPC_STATUS_HAND_SHAKE;
+			channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+			free(hs_data);
+		}
 	}
 	return channel;
 }

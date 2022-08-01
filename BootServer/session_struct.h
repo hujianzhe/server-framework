@@ -16,7 +16,7 @@ typedef struct Session_t {
 	void* userdata;
 	void(*on_disconnect)(struct TaskThread_t*, struct Session_t*);
 	void(*destroy)(struct Session_t*);
-	void(*on_handshake)(struct Session_t*, Channel_t*);
+	Channel_t*(*on_handshake)(struct Session_t*, const char* ip, unsigned short port);
 } Session_t;
 
 #ifdef __cplusplus

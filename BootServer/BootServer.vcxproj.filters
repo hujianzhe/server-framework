@@ -234,6 +234,9 @@
     <ClInclude Include="cluster_node_group.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\crt\math_quat.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cluster.c">
@@ -429,6 +432,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="cluster_node_group.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\math_quat.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -237,6 +237,9 @@
     <ClInclude Include="util\inc\crt\math_quat.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\crt\geometry\obb.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cluster.c">
@@ -435,6 +438,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\math_quat.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\geometry\obb.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

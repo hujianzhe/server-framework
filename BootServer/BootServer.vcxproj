@@ -176,6 +176,7 @@
     <ClInclude Include="util\inc\crt\geometry\collision_detection.h" />
     <ClInclude Include="util\inc\crt\geometry\geometry_def.h" />
     <ClInclude Include="util\inc\crt\geometry\line_segment.h" />
+    <ClInclude Include="util\inc\crt\geometry\obb.h" />
     <ClInclude Include="util\inc\crt\geometry\plane.h" />
     <ClInclude Include="util\inc\crt\geometry\sphere.h" />
     <ClInclude Include="util\inc\crt\geometry\triangle.h" />
@@ -249,6 +250,7 @@
     <ClCompile Include="util\src\crt\geometry\aabb.c" />
     <ClCompile Include="util\src\crt\geometry\collision_detection.c" />
     <ClCompile Include="util\src\crt\geometry\line_segment.c" />
+    <ClCompile Include="util\src\crt\geometry\obb.c" />
     <ClCompile Include="util\src\crt\geometry\plane.c" />
     <ClCompile Include="util\src\crt\geometry\sphere.c" />
     <ClCompile Include="util\src\crt\geometry\triangle.c" />

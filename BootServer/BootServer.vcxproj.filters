@@ -240,6 +240,9 @@
     <ClInclude Include="util\inc\crt\geometry\obb.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\crt\geometry\collision_intersect.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cluster.c">
@@ -441,6 +444,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\geometry\obb.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\geometry\collision_intersect.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

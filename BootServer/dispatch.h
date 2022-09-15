@@ -24,6 +24,7 @@ typedef struct UserMsg_t {
 		union {
 			struct HttpFrame_t* httpframe;
 			struct RBTimerEvent_t* timer_event; /* fiber use */
+			const void* value; /* any value */
 		};
 	} param;
 	long long enqueue_time_msec;

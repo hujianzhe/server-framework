@@ -6,18 +6,20 @@
 static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	DispatchCallback_t callback;
 	Dispatch_t* dispatch = thrd->dispatch;
-	if (thrd->filter_callback && thrd->filter_callback(thrd, ctrl)) {
-		return;
-	}
+
 	if (ctrl->cmdstr) {
 		callback = getStringDispatch(dispatch, ctrl->cmdstr);
 	}
 	else {
 		callback = getNumberDispatch(dispatch, ctrl->cmdid);
 	}
-
 	if (callback) {
-		callback(thrd, ctrl);
+		if (thrd->filter_callback) {
+			thrd->filter_callback(thrd, callback, ctrl);
+		}
+		else {
+			callback(thrd, ctrl);
+		}
 	}
 	else if (dispatch->null_dispatch_callback) {
 		dispatch->null_dispatch_callback(thrd, ctrl);

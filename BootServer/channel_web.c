@@ -1,6 +1,28 @@
 #include "global.h"
 #include "channel_web.h"
 
+typedef struct ChannelUserDataHttp_t {
+	ChannelUserData_t _;
+	int rpc_id_recv;
+} ChannelUserDataHttp_t;
+
+typedef struct ChannelUserDataWebsocket_t {
+	ChannelUserData_t _;
+	short ws_handshake_state;
+	short ws_prev_is_fin;
+} ChannelUserDataWebsocket_t;
+
+static ChannelUserData_t* init_channel_user_data_http(ChannelUserDataHttp_t* ud, struct DataQueue_t* dq) {
+	ud->rpc_id_recv = 0;
+	return initChannelUserData(&ud->_, dq);
+}
+
+static ChannelUserData_t* init_channel_user_data_websocket(ChannelUserDataWebsocket_t* ud, struct DataQueue_t* dq) {
+	ud->ws_handshake_state = 0;
+	ud->ws_prev_is_fin = 1;
+	return initChannelUserData(&ud->_, dq);
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -55,8 +77,13 @@ static void httpframe_decode(Channel_t* c, unsigned char* buf, size_t buflen, Ch
 	}
 }
 
+static void free_user_msg(UserMsg_t* msg) {
+	free(httpframeReset(msg->param.httpframe));
+	free(msg);
+}
+
 static void httpframe_recv(Channel_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {
-	ChannelUserData_t* ud;
+	ChannelUserDataHttp_t* ud;
 	HttpFrame_t* httpframe = (HttpFrame_t*)decode_result->userdata;
 	UserMsg_t* message = newUserMsg(decode_result->bodylen);
 	if (!message) {
@@ -72,8 +99,9 @@ static void httpframe_recv(Channel_t* c, const struct sockaddr* addr, ChannelInb
 	message->param.httpframe = httpframe;
 	message->cmdstr = httpframe->uri;
 	message->cmdid = 0;
+	message->on_free = free_user_msg;
 
-	ud = (ChannelUserData_t*)c->userdata;
+	ud = (ChannelUserDataHttp_t*)channelUserData(c);
 	if (ud->rpc_id_recv != 0) {
 		message->rpc_status = RPC_STATUS_RESP;
 		message->rpcid = ud->rpc_id_recv;
@@ -120,15 +148,14 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const stru
 }
 
 Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
-	ChannelUserData_t* ud;
-	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserData_t), addr);
+	ChannelUserDataHttp_t* ud;
+	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserDataHttp_t), addr);
 	if (!c) {
 		return NULL;
 	}
 	//
-	ud = (ChannelUserData_t*)(c + 1);
-	c->userdata = initChannelUserData(ud, dq);
-	// c->_.write_fragment_size = 500;
+	ud = (ChannelUserDataHttp_t*)(c + 1);
+	channelSetUserData(c, init_channel_user_data_http(ud, dq));
 	c->_.on_reg = defaultChannelOnReg;
 	c->_.on_detach = defaultChannelOnDetach;
 	c->on_decode = httpframe_decode;
@@ -178,17 +205,15 @@ Channel_t* openListenerHttp(const char* ip, unsigned short port, FnChannelOnRecv
 
 static unsigned int websocket_hdrsize(ChannelBase_t* base, unsigned int bodylen) {
 	Channel_t* c = pod_container_of(base, Channel_t, _);
-	ChannelUserData_t* ud = (ChannelUserData_t*)c->userdata;
+	ChannelUserDataWebsocket_t* ud = (ChannelUserDataWebsocket_t*)channelUserData(c);
 	if (ud->ws_handshake_state > 1) {
 		return websocketframeEncodeHeadLength(bodylen);
 	}
-	else {
-		return 0;
-	}
+	return 0;
 }
 
 static void websocket_encode(Channel_t* c, const ChannelOutbufEncodeParam_t* param) {
-	ChannelUserData_t* ud = (ChannelUserData_t*)c->userdata;
+	ChannelUserDataWebsocket_t* ud = (ChannelUserDataWebsocket_t*)channelUserData(c);
 	if (ud->ws_handshake_state > 1) {
 		websocketframeEncode(param->buf, param->fragment_eof, ud->ws_prev_is_fin, WEBSOCKET_BINARY_FRAME, param->bodylen);
 		ud->ws_prev_is_fin = param->fragment_eof;
@@ -199,7 +224,7 @@ static void websocket_encode(Channel_t* c, const ChannelOutbufEncodeParam_t* par
 }
 
 static void websocket_decode(Channel_t* c, unsigned char* buf, size_t buflen, ChannelInbufDecodeResult_t* decode_result) {
-	ChannelUserData_t* ud = (ChannelUserData_t*)c->userdata;
+	ChannelUserDataWebsocket_t* ud = (ChannelUserDataWebsocket_t*)channelUserData(c);
 	if (ud->ws_handshake_state >= 1) {
 		unsigned char* data;
 		unsigned long long datalen;
@@ -275,14 +300,14 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 }
 
 static Channel_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
-	ChannelUserData_t* ud;
-	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserData_t), addr);
+	ChannelUserDataWebsocket_t* ud;
+	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserDataWebsocket_t), addr);
 	if (!c) {
 		return NULL;
 	}
 	//
-	ud = (ChannelUserData_t*)(c + 1);
-	c->userdata = initChannelUserData(ud, dq);
+	ud = (ChannelUserDataWebsocket_t*)(c + 1);
+	channelSetUserData(c, init_channel_user_data_websocket(ud, dq));
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = defaultChannelOnReg;
 	c->_.on_detach = defaultChannelOnDetach;

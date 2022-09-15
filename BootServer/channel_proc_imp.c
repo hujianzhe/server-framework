@@ -10,17 +10,15 @@ extern "C" {
 
 ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, DataQueue_t* dq) {
 	ud->session = NULL;
-	ud->rpc_id_syn_ack = 0;
-	ud->rpc_id_recv = 0;
 	ud->dq = dq;
-	ud->ws_handshake_state = 0;
-	ud->ws_prev_is_fin = 1;
+	ud->rpc_id_syn_ack = 0;
+	ud->text_data_print_log = 0;
 	return ud;
 }
 
 void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	Channel_t* channel = pod_container_of(c, Channel_t, _);
-	ChannelUserData_t* ud = (ChannelUserData_t*)channel->userdata;
+	ChannelUserData_t* ud = channelUserData(channel);
 	if (1 != c->connected_times) {
 		return;
 	}

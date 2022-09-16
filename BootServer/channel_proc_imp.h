@@ -15,9 +15,9 @@ typedef struct ChannelUserData_t {
 
 typedef void(*FnChannelOnRecv_t)(Channel_t*, const struct sockaddr*, ChannelInbufDecodeResult_t*);
 
-#define	channelUserData(channel)	((ChannelUserData_t*)((channel)->userdata))
-#define	channelSetUserData(channel, ud)	((channel)->userdata = (ud))
-#define	channelSession(channel)		(((ChannelUserData_t*)((channel)->userdata))->session)
+#define	channelUserData(channel)	((ChannelUserData_t*)((channel)->_.userdata))
+#define	channelSetUserData(channel, ud)	((channel)->_.userdata = (ud))
+#define	channelSession(channel)		(((ChannelUserData_t*)((channel)->_.userdata))->session)
 
 #ifdef __cplusplus
 extern "C" {

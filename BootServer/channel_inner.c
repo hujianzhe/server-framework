@@ -132,7 +132,7 @@ static int innerchannel_heartbeat(ChannelBase_t* c, int heartbeat_times) {
 
 Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
 	ChannelUserData_t* ud;
-	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserData_t), addr);
+	Channel_t* c = reactorobjectOpenChannel(sizeof(Channel_t) + sizeof(ChannelUserData_t), flag, o, addr);
 	if (!c) {
 		return NULL;
 	}

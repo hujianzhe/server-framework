@@ -149,7 +149,7 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const stru
 
 Channel_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
 	ChannelUserDataHttp_t* ud;
-	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserDataHttp_t), addr);
+	Channel_t* c = reactorobjectOpenChannel(sizeof(Channel_t) + sizeof(ChannelUserDataHttp_t), flag, o, addr);
 	if (!c) {
 		return NULL;
 	}
@@ -301,7 +301,7 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 
 static Channel_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
 	ChannelUserDataWebsocket_t* ud;
-	Channel_t* c = reactorobjectOpenChannel(o, flag, sizeof(ChannelUserDataWebsocket_t), addr);
+	Channel_t* c = reactorobjectOpenChannel(sizeof(Channel_t) + sizeof(ChannelUserDataWebsocket_t), flag, o, addr);
 	if (!c) {
 		return NULL;
 	}

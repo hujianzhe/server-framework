@@ -33,7 +33,6 @@ void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 }
 
 void defaultChannelOnReg(ChannelBase_t* c, long long timestamp_msec) {
-	Channel_t* channel;
 	unsigned short channel_flag;
 	IPString_t ip = { 0 };
 	unsigned short port = 0;
@@ -43,8 +42,7 @@ void defaultChannelOnReg(ChannelBase_t* c, long long timestamp_msec) {
 		return;
 	}
 
-	channel = pod_container_of(c, Channel_t, _);
-	channel_flag = channel->_.flag;
+	channel_flag = c->flag;
 	socktype_str = (channel_flag & CHANNEL_FLAG_STREAM) ? "tcp" : "udp";
 	if (channel_flag & CHANNEL_FLAG_CLIENT) {
 		logInfo(ptrBSG()->log, "%s connect addr %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);

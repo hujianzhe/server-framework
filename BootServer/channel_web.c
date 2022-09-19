@@ -212,11 +212,11 @@ static unsigned int websocket_hdrsize(ChannelBase_t* base, unsigned int bodylen)
 	return 0;
 }
 
-static void websocket_encode(Channel_t* c, const ChannelOutbufEncodeParam_t* param) {
+static void websocket_encode(Channel_t* c, NetPacket_t* packet) {
 	ChannelUserDataWebsocket_t* ud = (ChannelUserDataWebsocket_t*)channelUserData(c);
 	if (ud->ws_handshake_state > 1) {
-		websocketframeEncode(param->buf, param->fragment_eof, ud->ws_prev_is_fin, WEBSOCKET_BINARY_FRAME, param->bodylen);
-		ud->ws_prev_is_fin = param->fragment_eof;
+		websocketframeEncode(packet->buf, packet->fragment_eof, ud->ws_prev_is_fin, WEBSOCKET_BINARY_FRAME, packet->bodylen);
+		ud->ws_prev_is_fin = packet->fragment_eof;
 	}
 	else {
 		ud->ws_handshake_state = 2;

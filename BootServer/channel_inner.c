@@ -37,12 +37,12 @@ static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen,
 	}
 }
 
-static void innerchannel_encode(Channel_t* c, const ChannelOutbufEncodeParam_t* param) {
-	unsigned char* exthdr = param->buf + INNER_BASEHDRSIZE;
-	exthdr[0] = param->pktype;
-	exthdr[1] = param->fragment_eof;
-	*(unsigned int*)&exthdr[2] = htonl(param->pkseq);
-	lengthfieldframeEncode(param->buf, INNER_BASEHDRSIZE, param->bodylen + INNER_EXTHDRSIZE);
+static void innerchannel_encode(Channel_t* c, NetPacket_t* packet) {
+	unsigned char* exthdr = packet->buf + INNER_BASEHDRSIZE;
+	exthdr[0] = packet->type;
+	exthdr[1] = packet->fragment_eof;
+	*(unsigned int*)&exthdr[2] = htonl(packet->seq);
+	lengthfieldframeEncode(packet->buf, INNER_BASEHDRSIZE, packet->bodylen + INNER_EXTHDRSIZE);
 }
 
 static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
@@ -72,19 +72,19 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 
 static void innerchannel_reply_ack(Channel_t* c, unsigned int seq, const struct sockaddr* addr) {
 	ReactorObject_t* o = c->_.o;
-	unsigned char buf[INNER_HDRSIZE];
-	ChannelOutbufEncodeParam_t encode_param;
-	encode_param.bodylen = 0;
-	encode_param.hdrlen = sizeof(buf);
-	encode_param.pkseq = seq;
-	encode_param.fragment_eof = 1;
-	encode_param.pktype = NETPACKET_ACK;
-	encode_param.buf = buf;
-	c->on_encode(c, &encode_param);
+	unsigned char buf[sizeof(NetPacket_t) + INNER_HDRSIZE];
+	NetPacket_t* packet = (NetPacket_t*)buf;
+
+	packet->bodylen = 0;
+	packet->hdrlen = INNER_HDRSIZE;
+	packet->seq = seq;
+	packet->fragment_eof = 1;
+	packet->type = NETPACKET_ACK;
+	c->on_encode(c, packet);
 	if (o->m_connected) {
 		addr = NULL;
 	}
-	sendto(o->fd, (char*)buf, sizeof(buf), 0, addr, sockaddrLength(addr));
+	sendto(o->fd, (char*)packet->buf, packet->hdrlen + packet->bodylen, 0, addr, sockaddrLength(addr));
 }
 
 static void innerchannel_recv(Channel_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {

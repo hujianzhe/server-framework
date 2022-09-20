@@ -13,7 +13,7 @@ static void frpc_callback(RpcItem_t* rpc_item) {
 	}
 }
 
-void frpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
+void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 	char test_data[] = "this text is from client ^.^";
 	InnerMsg_t msg;
 	RpcItem_t* rpc_item;
@@ -23,14 +23,14 @@ void frpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 		return;
 	}
 	makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST_CALLBACK, test_data, sizeof(test_data));
-	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	//
 	rpc_item = newChannelRpcItemFiber(channel, 1000, NULL, NULL);
 	if (!rpc_item) {
 		return;
 	}
 	makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST, test_data, sizeof(test_data));
-	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 	if (rpc_item->ret_msg) {
 		UserMsg_t* ret_msg = (UserMsg_t*)rpc_item->ret_msg;
@@ -48,11 +48,11 @@ void frpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 		return;
 	}
 	makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST_CALLBACK, test_data, sizeof(test_data));
-	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	*/
 }
 
-void arpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
+void arpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 	// test code
 	char test_data[] = "this text is from client ^.^";
 	InnerMsg_t msg;
@@ -61,7 +61,7 @@ void arpc_test_code(TaskThread_t* thrd, Channel_t* channel) {
 		return;
 	}
 	makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_TEST, test_data, sizeof(test_data));
-	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 }
 
 void notifyTest(TaskThread_t* thrd, UserMsg_t* ctrl) {

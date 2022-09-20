@@ -16,7 +16,7 @@ void freeRpcItemWhenNormal(RpcItem_t* rpc_item) {
 	free(rpc_item);
 }
 
-void freeRpcItemWhenChannelDetach(TaskThread_t* thrd, Channel_t* channel) {
+void freeRpcItemWhenChannelDetach(TaskThread_t* thrd, ChannelBase_t* channel) {
 	if (thrd->f_rpc) {
 		while (1) {
 			RpcItem_t* rpc_item = rpcGetBatchNodeItem(&thrd->f_rpc->base, channel);
@@ -116,15 +116,15 @@ BOOL newFiberSleepMillsecond(long long timeout_msec) {
 	return TRUE;
 }
 
-RpcItem_t* newChannelRpcItemFiber(Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
-	if (!channel->_.valid) {
+RpcItem_t* newChannelRpcItemFiber(ChannelBase_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
+	if (!channel->valid) {
 		return NULL;
 	}
 	return newRpcItemFiberReady(channel, timeout_msec, req_arg, ret_callback);
 }
 
-RpcItem_t* newChannelRpcItemAsync(Channel_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
-	if (!channel->_.valid) {
+RpcItem_t* newChannelRpcItemAsync(ChannelBase_t* channel, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
+	if (!channel->valid) {
 		return NULL;
 	}
 	return newRpcItemAsyncReady(channel, timeout_msec, req_arg, ret_callback);
@@ -132,7 +132,7 @@ RpcItem_t* newChannelRpcItemAsync(Channel_t* channel, long long timeout_msec, vo
 
 RpcItem_t* sendClsndRpcReqFiber(ClusterNode_t* clsnd, InnerMsg_t* msg, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
 	RpcItem_t* rpc_item;
-	Channel_t* channel = connectClusterNode(clsnd);
+	ChannelBase_t* channel = connectClusterNode(clsnd);
 	if (!channel) {
 		return NULL;
 	}
@@ -142,13 +142,13 @@ RpcItem_t* sendClsndRpcReqFiber(ClusterNode_t* clsnd, InnerMsg_t* msg, long long
 	}
 	msg->rpc_status = RPC_STATUS_REQ;
 	msg->htonl_rpcid = htonl(rpc_item->id);
-	channelSendv(channel, msg->iov, sizeof(msg->iov) / sizeof(msg->iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(channel, msg->iov, sizeof(msg->iov) / sizeof(msg->iov[0]), NETPACKET_FRAGMENT);
 	return rpc_item;
 }
 
 RpcItem_t* sendClsndRpcReqAsync(ClusterNode_t* clsnd, InnerMsg_t* msg, long long timeout_msec, void* req_arg, void(*ret_callback)(RpcItem_t*)) {
 	RpcItem_t* rpc_item;
-	Channel_t* channel = connectClusterNode(clsnd);
+	ChannelBase_t* channel = connectClusterNode(clsnd);
 	if (!channel) {
 		return NULL;
 	}
@@ -158,7 +158,7 @@ RpcItem_t* sendClsndRpcReqAsync(ClusterNode_t* clsnd, InnerMsg_t* msg, long long
 	}
 	msg->rpc_status = RPC_STATUS_REQ;
 	msg->htonl_rpcid = htonl(rpc_item->id);
-	channelSendv(channel, msg->iov, sizeof(msg->iov) / sizeof(msg->iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(channel, msg->iov, sizeof(msg->iov) / sizeof(msg->iov[0]), NETPACKET_FRAGMENT);
 	return rpc_item;
 }
 
@@ -166,7 +166,7 @@ void dispatchRpcReply(UserMsg_t* req_ctrl, int code, const void* data, unsigned 
 	InnerMsg_t msg;
 	if (RPC_STATUS_REQ == req_ctrl->rpc_status) {
 		makeInnerMsgRpcResp(&msg, req_ctrl->rpcid, code, data, len);
-		channelSendv(req_ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		channelbaseSendv(req_ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	}
 }
 

@@ -13,10 +13,10 @@ typedef struct ChannelUserData_t {
 	int text_data_print_log;
 } ChannelUserData_t;
 
-typedef void(*FnChannelOnRecv_t)(Channel_t*, const struct sockaddr*, ChannelInbufDecodeResult_t*);
+typedef void(*FnChannelOnRecv_t)(ChannelBase_t*, const struct sockaddr*, ChannelInbufDecodeResult_t*);
 
-#define	channelUserData(channel)	((ChannelUserData_t*)((channel)->_.userdata))
-#define	channelSetUserData(channel, ud)	((channel)->_.userdata = (ud))
+#define	channelUserData(channel)	((ChannelUserData_t*)((channel)->userdata))
+#define	channelSetUserData(channel, ud)	((channel)->userdata = (ud))
 #define	channelSession(channel)		(channelUserData(channel)->session)
 
 #ifdef __cplusplus

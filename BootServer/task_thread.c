@@ -28,8 +28,8 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		if (USER_MSG_PARAM_HTTP_FRAME == ctrl->param.type) {
 			if (ctrl->param.httpframe) {
 				const char reply[] = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n";
-				channelSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
-				channelSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
+				channelbaseSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
+				channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
 			}
 		}
 		else if (ctrl->be_from_cluster) {
@@ -40,13 +40,13 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 			else {
 				makeInnerMsg(&ret_msg, 0, NULL, 0);
 			}
-			channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
+			channelbaseSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 		}
 	}
 	ctrl->on_free(ctrl);
 }
 
-static void do_channel_detach(TaskThread_t* thrd, Channel_t* channel) {
+static void do_channel_detach(TaskThread_t* thrd, ChannelBase_t* channel) {
 	Session_t* session = channelSession(channel);
 	if (thrd->on_channel_detach) {
 		thrd->on_channel_detach(thrd, channel);
@@ -64,7 +64,7 @@ static void do_channel_detach(TaskThread_t* thrd, Channel_t* channel) {
 			}
 		}
 	}
-	reactorCommitCmd(NULL, &channel->_.freecmd);
+	reactorCommitCmd(NULL, &channel->freecmd);
 }
 
 static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
@@ -84,11 +84,11 @@ static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 		e->callback(&thrd->timer, e);
 	}
 	else {
-		Channel_t* c = ctrl->channel;
+		ChannelBase_t* c = ctrl->channel;
 		if (c) {
-			channelbaseAddRef(&c->_);
+			channelbaseAddRef(c);
 			call_dispatch(thrd, ctrl);
-			reactorCommitCmd(NULL, &c->_.freecmd);
+			reactorCommitCmd(NULL, &c->freecmd);
 		}
 		else {
 			call_dispatch(thrd, ctrl);
@@ -194,7 +194,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				Session_t* session;
 				if (ctrl->be_from_cluster) {
 					if (RPC_STATUS_HAND_SHAKE == ctrl->rpc_status) {
-						Channel_t* channel = ctrl->channel;
+						ChannelBase_t* channel = ctrl->channel;
 						ClusterNode_t* clsnd = flushClusterNodeFromJsonData(thread->clstbl, (char*)ctrl->data);
 						ctrl->on_free(ctrl);
 						if (clsnd) {
@@ -202,7 +202,7 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 							clsnd->status = CLSND_STATUS_NORMAL;
 						}
 						else {
-							channelSendv(channel, NULL, 0, NETPACKET_FIN);
+							channelbaseSendv(channel, NULL, 0, NETPACKET_FIN);
 						}
 						continue;
 					}
@@ -250,9 +250,9 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 				}
 			}
 			else if (REACTOR_CHANNEL_FREE_CMD == rc->type) {
-				Channel_t* channel = pod_container_of(rc, Channel_t, _.freecmd);
-				if ((channel->_.flag & CHANNEL_FLAG_CLIENT) ||
-					(channel->_.flag & CHANNEL_FLAG_SERVER))
+				ChannelBase_t* channel = pod_container_of(rc, ChannelBase_t, freecmd);
+				if ((channel->flag & CHANNEL_FLAG_CLIENT) ||
+					(channel->flag & CHANNEL_FLAG_SERVER))
 				{
 					freeRpcItemWhenChannelDetach(thread, channel);
 				}

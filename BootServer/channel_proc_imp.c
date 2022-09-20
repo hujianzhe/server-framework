@@ -17,14 +17,13 @@ ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, DataQueue_t* dq) {
 }
 
 void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
-	Channel_t* channel = pod_container_of(c, Channel_t, _);
-	ChannelUserData_t* ud = channelUserData(channel);
+	ChannelUserData_t* ud = channelUserData(c);
 	if (1 != c->connected_times) {
 		return;
 	}
 	if (ud->rpc_id_syn_ack != 0) {
 		UserMsg_t* msg = newUserMsg(0);
-		msg->channel = channel;
+		msg->channel = c;
 		msg->rpcid = ud->rpc_id_syn_ack;
 		msg->rpc_status = RPC_STATUS_RESP;
 		dataqueuePush(ud->dq, &msg->internal._);
@@ -56,8 +55,7 @@ void defaultChannelOnReg(ChannelBase_t* c, long long timestamp_msec) {
 }
 
 void defaultChannelOnDetach(ChannelBase_t* c) {
-	Channel_t* channel = pod_container_of(c, Channel_t, _);
-	dataqueuePush(channelUserData(channel)->dq, &c->freecmd._);
+	dataqueuePush(channelUserData(c)->dq, &c->freecmd._);
 }
 
 #ifdef __cplusplus

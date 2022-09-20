@@ -40,8 +40,8 @@ void freeClusterNode(ClusterNode_t* clsnd) {
 	free(clsnd);
 }
 
-Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
-	Channel_t* channel;
+ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
+	ChannelBase_t* channel;
 	Session_t* session;
 	const char* self_ident = ptrBSG()->conf->clsnd.ident;
 	if (0 == strcmp(clsnd->ident, self_ident)) {
@@ -97,14 +97,14 @@ Channel_t* connectClusterNode(ClusterNode_t* clsnd) {
 		reactorCommitCmd(selectReactor(), &o->regcmd);
 		/* default handshake */
 		makeInnerMsg(&msg, 0, hs_data, hs_datalen)->rpc_status = RPC_STATUS_HAND_SHAKE;
-		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		free(hs_data);
 	}
 	return channel;
 }
 
 void clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt) {
-	Channel_t* c;
+	ChannelBase_t* c;
 	unsigned int i;
 	if (0 == strcmp(clsnd->ident, ptrBSG()->conf->clsnd.ident)) {
 		return;
@@ -121,7 +121,7 @@ void clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt) 
 	if (!c) {
 		return;
 	}
-	channelSendv(c, iov, iovcnt, NETPACKET_FRAGMENT);
+	channelbaseSendv(c, iov, iovcnt, NETPACKET_FRAGMENT);
 }
 
 #ifdef __cplusplus

@@ -6,7 +6,7 @@ void reqTestCallback(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	char test_data[] = "your callback is from server ^.^";
 	InnerMsg_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
-	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 }
 
 void reqTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
@@ -16,7 +16,7 @@ void reqTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
 
 	makeInnerMsg(&msg, CMD_NOTIFY_TEST, NULL, 0);
-	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
 	if (RPC_STATUS_REQ == ctrl->rpc_status) {
 		makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
@@ -24,7 +24,7 @@ void reqTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	else {
 		makeInnerMsg(&msg, CMD_RET_TEST, test_data, sizeof(test_data));
 	}
-	channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 }
 
 void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
@@ -45,8 +45,8 @@ void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (!reply) {
 		return;
 	}
-	channelSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
-	channelSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
+	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
+	channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
 	free(reply);
 	return;
 }
@@ -69,15 +69,15 @@ void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (!reply) {
 		return;
 	}
-	channelSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
-	channelSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
+	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
+	channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
 	free(reply);
 }
 
 void reqWebsocketTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	const char reply[] = "This text is from Server &.&, [reply websocket]";
 	printf("%s recv: %s\n", __FUNCTION__, ctrl->data);
-	channelSend(ctrl->channel, reply, strlen(reply), NETPACKET_FRAGMENT);
+	channelbaseSend(ctrl->channel, reply, strlen(reply), NETPACKET_FRAGMENT);
 }
 
 void reqParallelTest1(TaskThread_t* thrd, UserMsg_t* ctrl) {
@@ -88,7 +88,7 @@ void reqParallelTest1(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (RPC_STATUS_REQ == ctrl->rpc_status) {
 		InnerMsg_t msg;
 		makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
-		channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	}
 }
 
@@ -100,7 +100,7 @@ void reqParallelTest2(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (RPC_STATUS_REQ == ctrl->rpc_status) {
 		InnerMsg_t msg;
 		makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
-		channelSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	}
 }
 
@@ -166,7 +166,7 @@ void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (!reply) {
 		return;
 	}
-	channelSend(ctrl->channel, reply, replylen, NETPACKET_FRAGMENT);
-	channelSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
+	channelbaseSend(ctrl->channel, reply, replylen, NETPACKET_FRAGMENT);
+	channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
 	free(reply);
 }

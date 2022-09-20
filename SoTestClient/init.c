@@ -4,29 +4,30 @@
 #include "test_handler.h"
 #include <stdio.h>
 
-static int start_req_login_test(Channel_t* channel) {
+static int start_req_login_test(ChannelBase_t* channel) {
 	InnerMsg_t msg;
 	makeInnerMsg(&msg, CMD_REQ_LOGIN_TEST, NULL, 0);
-	channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	return 1;
 }
 
 static void rpc_async_req_login_test(RpcItem_t* rpc_item) {
-	Channel_t* channel = (Channel_t*)rpc_item->udata;
+	ChannelBase_t* channel = (ChannelBase_t*)rpc_item->udata;
 	if (rpc_item->ret_msg) {
-		if (start_req_login_test(channel))
+		if (start_req_login_test(channel)) {
 			return;
+		}
 	}
 	else {
 		IPString_t ip;
 		unsigned short port;
-		sockaddrDecode(&channel->_.connect_addr.sa, ip, &port);
+		sockaddrDecode(&channel->connect_addr.sa, ip, &port);
 		logErr(ptrBSG()->log, "%s channel(%p) connect %s:%hu failure", __FUNCTION__, channel, ip, port);
 	}
 	ptrBSG()->valid = 0;
 }
 
-static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
+static void frpc_test_paralle(TaskThread_t* thrd, ChannelBase_t* channel) {
 	InnerMsg_t msg;
 	char test_data[] = "test paralle ^.^";
 	int i, cnt_rpc = 0;
@@ -37,7 +38,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 			continue;
 		}
 		makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
-		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		//rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 		rpc_item->udata = CMD_REQ_ParallelTest1;
 		cnt_rpc++;
@@ -47,7 +48,7 @@ static void frpc_test_paralle(TaskThread_t* thrd, Channel_t* channel) {
 			continue;
 		}
 		makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
-		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 		//rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 		rpc_item->udata = CMD_REQ_ParallelTest2;
 		cnt_rpc++;
@@ -91,15 +92,17 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 		ConfigConnectOption_t* option = ptrBSG()->conf->connect_options + i;
 		RpcItem_t* rpc_item;
 		Sockaddr_t connect_addr;
-		Channel_t* c;
+		ChannelBase_t* c;
 		ReactorObject_t* o;
 		int domain = ipstrFamily(option->ip);
 
-		if (!sockaddrEncode(&connect_addr.sa, domain, option->ip, option->port))
+		if (!sockaddrEncode(&connect_addr.sa, domain, option->ip, option->port)) {
 			return 0;
+		}
 		o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.sa.sa_family, option->socktype, 0);
-		if (!o)
+		if (!o) {
 			return 0;
+		}
 		o->stream.max_connect_timeout_sec = 5;
 		c = openChannelInner(o, CHANNEL_FLAG_CLIENT, &connect_addr.sa, &thrd->dq);
 		if (!c) {
@@ -108,13 +111,12 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 		}
 		logInfo(ptrBSG()->log, "channel(%p) connecting......", c);
 		if (thrd->f_rpc || thrd->a_rpc) {
-			c->_.on_syn_ack = defaultRpcOnSynAck;
-			channelUserData(c)->dq = &thrd->dq;
+			c->on_syn_ack = defaultRpcOnSynAck;
 			if (thrd->f_rpc) {
 				rpc_item = newRpcItemFiberReady(c, 5000, NULL, NULL);
 				if (!rpc_item) {
 					reactorCommitCmd(NULL, &o->freecmd);
-					reactorCommitCmd(NULL, &c->_.freecmd);
+					reactorCommitCmd(NULL, &c->freecmd);
 					return 1;
 				}
 				channelUserData(c)->rpc_id_syn_ack = rpc_item->id;
@@ -122,8 +124,9 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 				rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 				if (rpc_item->ret_msg) {
 					frpc_test_paralle(thrd, c);
-					if (!start_req_login_test(c))
+					if (!start_req_login_test(c)) {
 						return 0;
+					}
 				}
 				else {
 					logErr(ptrBSG()->log, "channel(%p) connect %s:%u failure", c, option->ip, option->port);
@@ -134,7 +137,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 				rpc_item = newRpcItemAsyncReady(c, 5000, NULL, rpc_async_req_login_test);
 				if (!rpc_item) {
 					reactorCommitCmd(NULL, &o->freecmd);
-					reactorCommitCmd(NULL, &c->_.freecmd);
+					reactorCommitCmd(NULL, &c->freecmd);
 					return 1;
 				}
 				rpc_item->udata = (size_t)c;
@@ -144,8 +147,9 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 		}
 		else {
 			reactorCommitCmd(selectReactor(), &o->regcmd);
-			if (!start_req_login_test(c))
+			if (!start_req_login_test(c)) {
 				return 0;
+			}
 		}
 	}
 

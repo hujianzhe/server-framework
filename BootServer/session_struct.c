@@ -21,16 +21,16 @@ Session_t* initSession(Session_t* session) {
 	return session;
 }
 
-void sessionReplaceChannel(Session_t* session, Channel_t* channel) {
-	Channel_t* old_channel;
-	if (channel->_.flag & CHANNEL_FLAG_CLIENT) {
+void sessionReplaceChannel(Session_t* session, ChannelBase_t* channel) {
+	ChannelBase_t* old_channel;
+	if (channel->flag & CHANNEL_FLAG_CLIENT) {
 		old_channel = session->channel_client;
 		if (old_channel == channel) {
 			return;
 		}
 		session->channel_client = channel;
 	}
-	else if (channel->_.flag & CHANNEL_FLAG_SERVER) {
+	else if (channel->flag & CHANNEL_FLAG_SERVER) {
 		old_channel = session->channel_server;
 		if (old_channel == channel) {
 			return;
@@ -42,7 +42,7 @@ void sessionReplaceChannel(Session_t* session, Channel_t* channel) {
 	}
 	if (old_channel) {
 		channelSession(old_channel) = NULL;
-		channelSendv(old_channel, NULL, 0, NETPACKET_FIN);
+		channelbaseSendv(old_channel, NULL, 0, NETPACKET_FIN);
 	}
 	if (channel) {
 		channelSession(channel) = session;
@@ -51,12 +51,12 @@ void sessionReplaceChannel(Session_t* session, Channel_t* channel) {
 
 void sessionDisconnect(Session_t* session) {
 	if (session->channel_client) {
-		channelSendv(session->channel_client, NULL, 0, NETPACKET_FIN);
+		channelbaseSendv(session->channel_client, NULL, 0, NETPACKET_FIN);
 		channelSession(session->channel_client) = NULL;
 		session->channel_client = NULL;
 	}
 	if (session->channel_server) {
-		channelSendv(session->channel_server, NULL, 0, NETPACKET_FIN);
+		channelbaseSendv(session->channel_server, NULL, 0, NETPACKET_FIN);
 		channelSession(session->channel_server) = NULL;
 		session->channel_server = NULL;
 	}
@@ -73,7 +73,7 @@ void sessionUnbindChannel(Session_t* session) {
 	}
 }
 
-Channel_t* sessionChannel(Session_t* session) {
+ChannelBase_t* sessionChannel(Session_t* session) {
 	if (session->channel_client) {
 		return session->channel_client;
 	}

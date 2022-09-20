@@ -9,5 +9,5 @@ void reqLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	logInfo(ptrBSG()->log, "%s recv: %s", __FUNCTION__, (char*)ctrl->data);
 
 	makeInnerMsg(&ret_msg, CMD_RET_LOGIN_TEST, NULL, 0);
-	channelSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
 }

@@ -97,12 +97,12 @@ void printBootServerNodeInfo(void) {
 BOOL runBootServerGlobal(int argc, char** argv, int(*fn_init)(TaskThread_t*, int, char**), void(*fn_destroy)(TaskThread_t*)) {
 	// listen self cluster node port
 	if (s_Config.clsnd.port) {
-		Channel_t* c = openListenerInner(s_Config.clsnd.socktype, s_Config.clsnd.ip, s_Config.clsnd.port, &s_BSG.default_task_thread->dq);
+		ChannelBase_t* c = openListenerInner(s_Config.clsnd.socktype, s_Config.clsnd.ip, s_Config.clsnd.port, &s_BSG.default_task_thread->dq);
 		if (!c) {
 			s_BSG.errmsg = strFormat(NULL, "listen self cluster node err, ip:%s, port:%u\n", s_Config.clsnd.ip, s_Config.clsnd.port);
 			return FALSE;
 		}
-		reactorCommitCmd(acceptReactor(), &c->_.o->regcmd);
+		reactorCommitCmd(acceptReactor(), &c->o->regcmd);
 	}
 	// run net thread
 	if (!runNetThreads()) {

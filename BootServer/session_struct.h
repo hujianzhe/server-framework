@@ -10,13 +10,13 @@ typedef struct Session_t {
 	short has_reg;
 	int reconnect_delay_sec;
 	time_t reconnect_timestamp_sec;
-	Channel_t* channel_client;
-	Channel_t* channel_server;
+	ChannelBase_t* channel_client;
+	ChannelBase_t* channel_server;
 	char* id;
 	void* userdata;
 	void(*on_disconnect)(struct TaskThread_t*, struct Session_t*);
 	void(*destroy)(struct Session_t*);
-	Channel_t*(*on_handshake)(struct Session_t*, const char* ip, unsigned short port);
+	ChannelBase_t*(*on_handshake)(struct Session_t*, const char* ip, unsigned short port);
 } Session_t;
 
 #ifdef __cplusplus
@@ -24,10 +24,10 @@ extern "C" {
 #endif
 
 __declspec_dll Session_t* initSession(Session_t* session);
-__declspec_dll void sessionReplaceChannel(Session_t* session, Channel_t* channel);
+__declspec_dll void sessionReplaceChannel(Session_t* session, ChannelBase_t* channel);
 __declspec_dll void sessionDisconnect(Session_t* session);
 __declspec_dll void sessionUnbindChannel(Session_t* session);
-__declspec_dll Channel_t* sessionChannel(Session_t* session);
+__declspec_dll ChannelBase_t* sessionChannel(Session_t* session);
 
 #ifdef __cplusplus
 }

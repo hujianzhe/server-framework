@@ -10,7 +10,7 @@ extern "C" {
 #define	INNER_HDRSIZE 10
 static unsigned int innerchannel_hdrsize(ChannelBase_t* c, unsigned int bodylen) { return INNER_HDRSIZE; }
 
-static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen, ChannelInbufDecodeResult_t* decode_result) {
+static void innerchannel_decode(ChannelBase_t* c, unsigned char* buf, size_t buflen, ChannelInbufDecodeResult_t* decode_result) {
 	unsigned char* data;
 	unsigned int datalen;
 	int res = lengthfieldframeDecode(INNER_BASEHDRSIZE, buf, buflen, &data, &datalen);
@@ -37,7 +37,7 @@ static void innerchannel_decode(Channel_t* c, unsigned char* buf, size_t buflen,
 	}
 }
 
-static void innerchannel_encode(Channel_t* c, NetPacket_t* packet) {
+static void innerchannel_encode(ChannelBase_t* c, NetPacket_t* packet) {
 	unsigned char* exthdr = packet->buf + INNER_BASEHDRSIZE;
 	exthdr[0] = packet->type;
 	exthdr[1] = packet->fragment_eof;
@@ -46,9 +46,8 @@ static void innerchannel_encode(Channel_t* c, NetPacket_t* packet) {
 }
 
 static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
-	Channel_t* listen_channel = pod_container_of(listen_c, Channel_t, _);
 	ReactorObject_t* listen_o = listen_c->o;
-	Channel_t* conn_channel;
+	ChannelBase_t* conn_channel;
 	IPString_t ip;
 	unsigned short port;
 	ReactorObject_t* o = reactorobjectOpen(newfd, listen_o->domain, listen_o->socktype, listen_o->protocol);
@@ -56,7 +55,7 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 		socketClose(newfd);
 		return;
 	}
-	conn_channel = openChannelInner(o, CHANNEL_FLAG_SERVER, peer_addr, channelUserData(listen_channel)->dq);
+	conn_channel = openChannelInner(o, CHANNEL_FLAG_SERVER, peer_addr, channelUserData(listen_c)->dq);
 	if (!conn_channel) {
 		reactorCommitCmd(NULL, &o->freecmd);
 		return;
@@ -70,8 +69,8 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 	}
 }
 
-static void innerchannel_reply_ack(Channel_t* c, unsigned int seq, const struct sockaddr* addr) {
-	ReactorObject_t* o = c->_.o;
+static void innerchannel_reply_ack(ChannelBase_t* c, unsigned int seq, const struct sockaddr* addr) {
+	ReactorObject_t* o = c->o;
 	unsigned char buf[sizeof(NetPacket_t) + INNER_HDRSIZE];
 	NetPacket_t* packet = (NetPacket_t*)buf;
 
@@ -80,14 +79,14 @@ static void innerchannel_reply_ack(Channel_t* c, unsigned int seq, const struct 
 	packet->seq = seq;
 	packet->fragment_eof = 1;
 	packet->type = NETPACKET_ACK;
-	c->on_encode(c, packet);
+	innerchannel_encode(c, packet);
 	if (o->m_connected) {
 		addr = NULL;
 	}
 	sendto(o->fd, (char*)packet->buf, packet->hdrlen + packet->bodylen, 0, addr, sockaddrLength(addr));
 }
 
-static void innerchannel_recv(Channel_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {
+static void innerchannel_recv(ChannelBase_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {
 	unsigned int cmdid_rpcid_sz = 9;
 	if (decode_result->bodylen >= cmdid_rpcid_sz) {
 		UserMsg_t* message = newUserMsg(decode_result->bodylen - cmdid_rpcid_sz);
@@ -96,7 +95,7 @@ static void innerchannel_recv(Channel_t* c, const struct sockaddr* addr, Channel
 		}
 		message->be_from_cluster = 1;
 		message->channel = c;
-		if (!(c->_.flag & CHANNEL_FLAG_STREAM)) {
+		if (!(c->flag & CHANNEL_FLAG_STREAM)) {
 			memcpy(&message->peer_addr, addr, sockaddrLength(addr));
 		}
 		message->rpc_status = *(decode_result->bodyptr);
@@ -110,19 +109,18 @@ static void innerchannel_recv(Channel_t* c, const struct sockaddr* addr, Channel
 		}
 		dataqueuePush(channelUserData(c)->dq, &message->internal._);
 	}
-	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
+	else if (c->flag & CHANNEL_FLAG_SERVER) {
 		InnerMsg_t packet;
 		makeInnerMsgEmpty(&packet);
-		channelSendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
+		channelbaseSendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 	}
 }
 
 static int innerchannel_heartbeat(ChannelBase_t* c, int heartbeat_times) {
 	if (heartbeat_times < c->heartbeat_maxtimes) {
-		Channel_t* channel = pod_container_of(c, Channel_t, _);
 		InnerMsg_t msg;
 		makeInnerMsgEmpty(&msg);
-		channelSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
+		channelbaseSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 		return 1;
 	}
 	return 0;
@@ -130,7 +128,7 @@ static int innerchannel_heartbeat(ChannelBase_t* c, int heartbeat_times) {
 
 /**************************************************************************/
 
-Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
+ChannelBase_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
 	ChannelUserData_t* ud;
 	Channel_t* c = reactorobjectOpenChannel(sizeof(Channel_t) + sizeof(ChannelUserData_t), flag, o, addr);
 	if (!c) {
@@ -138,7 +136,7 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr*
 	}
 	//
 	ud = (ChannelUserData_t*)(c + 1);
-	channelSetUserData(c, initChannelUserData(ud, dq));
+	channelSetUserData(&c->_, initChannelUserData(ud, dq));
 	// c->_.write_fragment_size = 500;
 	c->_.on_reg = defaultChannelOnReg;
 	c->_.on_detach = defaultChannelOnDetach;
@@ -165,13 +163,13 @@ Channel_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr*
 	else {
 		c->_.dgram_ctx.cwndsize = ptrBSG()->conf->udp_cwndsize;
 	}
-	return c;
+	return &c->_;
 }
 
-Channel_t* openListenerInner(int socktype, const char* ip, unsigned short port, struct DataQueue_t* dq) {
+ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short port, struct DataQueue_t* dq) {
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
-	Channel_t* c;
+	ChannelBase_t* c;
 	int domain = ipstrFamily(ip);
 	if (!sockaddrEncode(&local_saddr.sa, domain, ip, port)) {
 		return NULL;
@@ -203,8 +201,8 @@ Channel_t* openListenerInner(int socktype, const char* ip, unsigned short port, 
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
-	c->_.on_ack_halfconn = innerchannel_accept_callback;
-	c->_.on_detach = defaultChannelOnDetach;
+	c->on_ack_halfconn = innerchannel_accept_callback;
+	c->on_detach = defaultChannelOnDetach;
 	return c;
 }
 

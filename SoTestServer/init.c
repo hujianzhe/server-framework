@@ -4,7 +4,7 @@
 #include "test_handler.h"
 #include <stdio.h>
 
-static void websocket_recv(Channel_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {
+static void websocket_recv(ChannelBase_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {
 	if (decode_result->bodylen > 0) {
 		UserMsg_t* message;
 		char* cmdstr;
@@ -29,7 +29,7 @@ static void websocket_recv(Channel_t* c, const struct sockaddr* addr, ChannelInb
 			return;
 		}
 		message->channel = c;
-		if (!(c->_.flag & CHANNEL_FLAG_STREAM)) {
+		if (!(c->flag & CHANNEL_FLAG_STREAM)) {
 			memcpy(&message->peer_addr, addr, sockaddrLength(addr));
 		}
 		message->rpc_status = 0;
@@ -43,8 +43,8 @@ static void websocket_recv(Channel_t* c, const struct sockaddr* addr, ChannelInb
 		}
 		dataqueuePush(channelUserData(c)->dq, &message->internal._);
 	}
-	else if (c->_.flag & CHANNEL_FLAG_SERVER) {
-		channelSend(c, NULL, 0, NETPACKET_NO_ACK_FRAGMENT);
+	else if (c->flag & CHANNEL_FLAG_SERVER) {
+		channelbaseSend(c, NULL, 0, NETPACKET_NO_ACK_FRAGMENT);
 	}
 }
 
@@ -63,7 +63,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 	// listen extra port
 	for (i = 0; i < ptrBSG()->conf->listen_options_cnt; ++i) {
 		ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
-		Channel_t* c;
+		ChannelBase_t* c;
 		if (!strcmp(option->protocol, "http")) {
 			c = openListenerHttp(option->ip, option->port, NULL, &thrd->dq);
 		}
@@ -77,7 +77,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 			logErr(ptrBSG()->log, "listen failure, ip:%s, port:%u ......", option->ip, option->port);
 			return 0;
 		}
-		reactorCommitCmd(acceptReactor(), &c->_.o->regcmd);
+		reactorCommitCmd(acceptReactor(), &c->o->regcmd);
 	}
 
 	return 1;

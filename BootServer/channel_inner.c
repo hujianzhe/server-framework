@@ -116,14 +116,10 @@ static void innerchannel_recv(ChannelBase_t* c, const struct sockaddr* addr, Cha
 	}
 }
 
-static int innerchannel_heartbeat(ChannelBase_t* c, int heartbeat_times) {
-	if (heartbeat_times < c->heartbeat_maxtimes) {
-		InnerMsg_t msg;
-		makeInnerMsgEmpty(&msg);
-		channelbaseSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
-		return 1;
-	}
-	return 0;
+static void innerchannel_heartbeat(ChannelBase_t* c, int heartbeat_times) {
+	InnerMsg_t msg;
+	makeInnerMsgEmpty(&msg);
+	channelbaseSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 }
 
 /**************************************************************************/

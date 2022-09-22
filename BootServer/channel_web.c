@@ -82,7 +82,7 @@ static void free_user_msg(UserMsg_t* msg) {
 	free(msg);
 }
 
-static void httpframe_recv(ChannelBase_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {
+static void httpframe_recv(ChannelBase_t* c, const struct sockaddr* addr, const ChannelInbufDecodeResult_t* decode_result) {
 	ChannelUserDataHttp_t* ud;
 	HttpFrame_t* httpframe = (HttpFrame_t*)decode_result->userdata;
 	UserMsg_t* message = newUserMsg(decode_result->bodylen);
@@ -269,7 +269,7 @@ static void websocket_decode(ChannelBase_t* c, unsigned char* buf, size_t buflen
 	}
 }
 
-static void websocket_recv(ChannelBase_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {}
+static void websocket_recv(ChannelBase_t* c, const struct sockaddr* addr, const ChannelInbufDecodeResult_t* decode_result) {}
 
 static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
 	Channel_t* listen_channel = pod_container_of(listen_c, Channel_t, _);

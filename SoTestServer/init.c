@@ -4,7 +4,7 @@
 #include "test_handler.h"
 #include <stdio.h>
 
-static void websocket_recv(ChannelBase_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {
+static void websocket_recv(ChannelBase_t* c, const struct sockaddr* addr, const ChannelInbufDecodeResult_t* decode_result) {
 	if (decode_result->bodylen > 0) {
 		UserMsg_t* message;
 		char* cmdstr;

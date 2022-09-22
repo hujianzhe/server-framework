@@ -86,7 +86,7 @@ static void innerchannel_reply_ack(ChannelBase_t* c, unsigned int seq, const str
 	sendto(o->fd, (char*)packet->buf, packet->hdrlen + packet->bodylen, 0, addr, sockaddrLength(addr));
 }
 
-static void innerchannel_recv(ChannelBase_t* c, const struct sockaddr* addr, ChannelInbufDecodeResult_t* decode_result) {
+static void innerchannel_recv(ChannelBase_t* c, const struct sockaddr* addr, const ChannelInbufDecodeResult_t* decode_result) {
 	unsigned int cmdid_rpcid_sz = 9;
 	if (decode_result->bodylen >= cmdid_rpcid_sz) {
 		UserMsg_t* message = newUserMsg(decode_result->bodylen - cmdid_rpcid_sz);

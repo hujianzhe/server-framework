@@ -1,6 +1,17 @@
 #include "global.h"
 #include "channel_inner.h"
 
+typedef struct ChannelUserDataInner_t {
+	ChannelUserData_t _;
+	ChannelRWData_t rw;
+} ChannelUserDataInner_t;
+
+static ChannelUserData_t* init_channel_user_data_inner(ChannelUserDataInner_t* ud, ChannelBase_t* channel, struct DataQueue_t* dq) {
+	channelrwdataInit(&ud->rw, channel->flag);
+	channelbaseUseRWData(channel, &ud->rw);
+	return initChannelUserData(&ud->_, dq);
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -125,30 +136,30 @@ static void innerchannel_heartbeat(ChannelBase_t* c, int heartbeat_times) {
 /**************************************************************************/
 
 ChannelBase_t* openChannelInner(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
-	ChannelUserData_t* ud;
-	Channel_t* c = reactorobjectOpenChannel(sizeof(Channel_t) + sizeof(ChannelUserData_t), flag, o, addr);
+	ChannelUserDataInner_t* ud;
+	ChannelBase_t* c = channelbaseOpen(sizeof(ChannelBase_t) + sizeof(ChannelUserDataInner_t), flag, o, addr);
 	if (!c) {
 		return NULL;
 	}
 	//
-	ud = (ChannelUserData_t*)(c + 1);
-	channelSetUserData(&c->_, initChannelUserData(ud, dq));
+	ud = (ChannelUserDataInner_t*)(c + 1);
+	channelSetUserData(c, init_channel_user_data_inner(ud, c, dq));
 	// c->_.write_fragment_size = 500;
-	c->_.on_reg = defaultChannelOnReg;
-	c->_.on_detach = defaultChannelOnDetach;
-	c->_.on_hdrsize = innerchannel_hdrsize;
-	c->on_decode = innerchannel_decode;
-	c->on_encode = innerchannel_encode;
-	c->dgram.on_reply_ack = innerchannel_reply_ack;
-	c->on_recv = innerchannel_recv;
-	flag = c->_.flag;
+	ud->rw.base_proc.on_reg = defaultChannelOnReg;
+	ud->rw.base_proc.on_detach = defaultChannelOnDetach;
+	ud->rw.base_proc.on_hdrsize = innerchannel_hdrsize;
+	ud->rw.on_decode = innerchannel_decode;
+	ud->rw.on_encode = innerchannel_encode;
+	ud->rw.on_reply_ack = innerchannel_reply_ack;
+	ud->rw.on_recv = innerchannel_recv;
+	flag = c->flag;
 	if (flag & CHANNEL_FLAG_CLIENT) {
-		c->_.heartbeat_timeout_sec = 10;
-		c->_.heartbeat_maxtimes = 3;
-		c->_.on_heartbeat = innerchannel_heartbeat;
+		c->heartbeat_timeout_sec = 10;
+		c->heartbeat_maxtimes = 3;
+		ud->rw.base_proc.on_heartbeat = innerchannel_heartbeat;
 	}
 	else if (flag & CHANNEL_FLAG_SERVER) {
-		c->_.heartbeat_timeout_sec = 20;
+		c->heartbeat_timeout_sec = 20;
 	}
 	if (flag & CHANNEL_FLAG_STREAM) {
 		if ((flag & CHANNEL_FLAG_CLIENT) || (flag & CHANNEL_FLAG_SERVER)) {
@@ -157,15 +168,16 @@ ChannelBase_t* openChannelInner(ReactorObject_t* o, int flag, const struct socka
 		}
 	}
 	else {
-		c->_.dgram_ctx.cwndsize = ptrBSG()->conf->udp_cwndsize;
+		c->dgram_ctx.cwndsize = ptrBSG()->conf->udp_cwndsize;
 	}
-	return &c->_;
+	return c;
 }
 
 ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short port, struct DataQueue_t* dq) {
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
 	ChannelBase_t* c;
+	ChannelUserDataInner_t* ud;
 	int domain = ipstrFamily(ip);
 	if (!sockaddrEncode(&local_saddr.sa, domain, ip, port)) {
 		return NULL;
@@ -197,8 +209,9 @@ ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short po
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
-	c->on_ack_halfconn = innerchannel_accept_callback;
-	c->on_detach = defaultChannelOnDetach;
+	ud = (ChannelUserDataInner_t*)channelUserData(c);
+	ud->rw.base_proc.on_ack_halfconn = innerchannel_accept_callback;
+	ud->rw.base_proc.on_detach = defaultChannelOnDetach;
 	return c;
 }
 

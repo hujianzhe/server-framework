@@ -111,7 +111,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 		}
 		logInfo(ptrBSG()->log, "channel(%p) connecting......", c);
 		if (thrd->f_rpc || thrd->a_rpc) {
-			c->on_syn_ack = defaultRpcOnSynAck;
+			c->proc->on_syn_ack = defaultRpcOnSynAck;
 			if (thrd->f_rpc) {
 				rpc_item = newRpcItemFiberReady(c, 5000, NULL, NULL);
 				if (!rpc_item) {

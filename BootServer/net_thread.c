@@ -59,6 +59,7 @@ void freeNetThreadResource(void) {
 static unsigned int THREAD_CALL reactorThreadEntry(void* arg) {
 	Reactor_t* reactor;
 	NioEv_t* ev;
+	int res = 0;
 	const size_t ev_cnt = 4096;
 
 	ev = (NioEv_t*)malloc(sizeof(NioEv_t) * ev_cnt);
@@ -68,14 +69,14 @@ static unsigned int THREAD_CALL reactorThreadEntry(void* arg) {
 	reactor = (Reactor_t*)arg;
 
 	while (ptrBSG()->valid) {
-		int n = reactorHandle(reactor, ev, ev_cnt, 1000);
-		if (n < 0) {
+		res = reactorHandle(reactor, ev, ev_cnt, 1000);
+		if (res < 0) {
 			logErr(ptrBSG()->log, "reactorHandle error:%d", errnoGet());
 			break;
 		}
 	}
 	free(ev);
-	return 0;
+	return res < 0 ? -1 : 0;
 }
 
 BOOL runNetThreads(void) {

@@ -13,17 +13,14 @@ typedef struct {
 
 struct cJSON;
 typedef struct Config_t {
-	ConfigListenOption_t* listen_options;
+	const ConfigListenOption_t* listen_options;
 	unsigned int listen_options_cnt;
-	ConfigConnectOption_t* connect_options;
+	const ConfigConnectOption_t* connect_options;
 	unsigned int connect_options_cnt;
 	IPString_t outer_ip;
 	struct {
 		const char* ident;
-		int socktype;
-		IPString_t ip;
-		unsigned short port;
-		int readcache_max_size;
+		ConfigListenOption_t listen_option;
 	} clsnd;
 	struct {
 		const char* pathname;

@@ -99,7 +99,7 @@ static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	ListNode_t* iter_cur, *iter_next;
 	TaskThread_t* thread = (TaskThread_t*)arg;
-	Config_t* conf = ptrBSG()->conf;
+	const Config_t* conf = ptrBSG()->conf;
 	Log_t* log = ptrBSG()->log;
 	RpcBaseCore_t* rpc_base;
 	// init rpc

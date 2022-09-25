@@ -24,7 +24,7 @@ typedef struct BootServerGlobal_t {
 	char** argv;
 	volatile int valid;
 	Log_t* log;
-	Config_t* conf;
+	const Config_t* conf;
 	TaskThread_t* default_task_thread;
 	const char* errmsg;
 } BootServerGlobal_t;

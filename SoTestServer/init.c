@@ -62,7 +62,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 	regNumberDispatch(thrd->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);
 	// listen extra port
 	for (i = 0; i < ptrBSG()->conf->listen_options_cnt; ++i) {
-		ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
+		const ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
 		ChannelBase_t* c;
 		if (!strcmp(option->protocol, "http")) {
 			c = openListenerHttp(option->ip, option->port, NULL, &thrd->dq);

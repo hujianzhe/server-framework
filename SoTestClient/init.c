@@ -89,7 +89,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 	}
 
 	for (i = 0; i < ptrBSG()->conf->connect_options_cnt; ++i) {
-		ConfigConnectOption_t* option = ptrBSG()->conf->connect_options + i;
+		const ConfigConnectOption_t* option = ptrBSG()->conf->connect_options + i;
 		RpcItem_t* rpc_item;
 		Sockaddr_t connect_addr;
 		ChannelBase_t* c;

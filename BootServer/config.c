@@ -10,9 +10,48 @@
 extern "C" {
 #endif
 
+static ConfigListenOption_t* parse_listen_option(cJSON* cjson, ConfigListenOption_t* option_ptr) {
+	cJSON* protocol = cJSON_GetField(cjson, "protocol");
+	cJSON* ipnode = cJSON_GetField(cjson, "ip");
+	cJSON* portnode = cJSON_GetField(cjson, "port");
+	cJSON* socktype = cJSON_GetField(cjson, "socktype");
+	cJSON* readcache_max_size = cJSON_GetField(cjson, "readcache_max_size");
+
+	if (!protocol || !ipnode || !portnode) {
+		return NULL;
+	}
+	memset(option_ptr, 0, sizeof(*option_ptr));
+	option_ptr->protocol = strdup(cJSON_GetStringPtr(protocol));
+	if (!option_ptr->protocol) {
+		return NULL;
+	}
+	strcpy(option_ptr->ip, cJSON_GetStringPtr(ipnode));
+	option_ptr->port = cJSON_GetInteger(portnode);
+	if (!socktype) {
+		option_ptr->socktype = SOCK_STREAM;
+	}
+	else {
+		option_ptr->socktype = if_string2socktype(cJSON_GetStringPtr(socktype));
+		if (0 == option_ptr->socktype) {
+			NULL;
+		}
+	}
+	if (readcache_max_size && cJSON_GetInteger(readcache_max_size) > 0) {
+		option_ptr->readcache_max_size = cJSON_GetInteger(readcache_max_size);
+	}
+	else {
+		option_ptr->readcache_max_size = 0;
+	}
+	return option_ptr;
+}
+
+static ConfigConnectOption_t* parse_connect_option(cJSON* cjson, ConfigConnectOption_t* option_ptr) {
+	return parse_listen_option(cjson, option_ptr);
+}
+
 Config_t* initConfig(const char* path, Config_t* conf) {
 	cJSON* cjson;
-	cJSON *ident, *socktype, *ip, *port, *readcache_max_size;
+	cJSON *ident;
 	cJSON* root = cJSON_FromFile(path);
 	if (!root) {
 		return NULL;
@@ -27,73 +66,31 @@ Config_t* initConfig(const char* path, Config_t* conf) {
 	if (!ident) {
 		goto err;
 	}
-	socktype = cJSON_GetField(cjson, "socktype");
-	if (!socktype) {
-		goto err;
-	}
-	ip = cJSON_GetField(cjson, "ip");
-	if (!ip) {
-		goto err;
-	}
-	port = cJSON_GetField(cjson, "port");
-	if (!port) {
-		goto err;
-	}
-	readcache_max_size = cJSON_GetField(cjson, "readcache_max_size");
-	if (readcache_max_size && cJSON_GetInteger(readcache_max_size) > 0) {
-		conf->clsnd.readcache_max_size = cJSON_GetInteger(readcache_max_size);
-	}
 	conf->clsnd.ident = strdup(cJSON_GetStringPtr(ident));
 	if (!conf->clsnd.ident) {
 		goto err;
 	}
-	conf->clsnd.socktype = if_string2socktype(cJSON_GetStringPtr(socktype));
-	strcpy(conf->clsnd.ip, cJSON_GetStringPtr(ip));
-	conf->clsnd.port = cJSON_GetInteger(port);
+	if (!parse_listen_option(cjson, &conf->clsnd.listen_option)) {
+		goto err;
+	}
 
 	cjson = cJSON_GetField(root, "listen_options");
 	if (cjson) {
-		int i;
 		cJSON* childnode;
-		conf->listen_options_cnt = cJSON_ChildNum(cjson);
-		conf->listen_options = (ConfigListenOption_t*)malloc(sizeof(ConfigListenOption_t) * conf->listen_options_cnt);
-		if (!conf->listen_options) {
+		size_t n = cJSON_ChildNum(cjson);
+		ConfigListenOption_t* listen_options;
+
+		listen_options = (ConfigListenOption_t*)malloc(sizeof(ConfigListenOption_t) * n);
+		if (!listen_options) {
 			goto err;
 		}
-		i = 0;
+		conf->listen_options = listen_options;
+		conf->listen_options_cnt = 0;
 		for (childnode = cjson->child; childnode; childnode = childnode->next) {
-			ConfigListenOption_t* option_ptr;
-			cJSON* protocol = cJSON_GetField(childnode, "protocol");
-			cJSON* ipnode = cJSON_GetField(childnode, "ip");
-			cJSON* portnode = cJSON_GetField(childnode, "port");
-			cJSON* socktype = cJSON_GetField(childnode, "socktype");
-			cJSON* readcache_max_size = cJSON_GetField(childnode, "readcache_max_size");
-			if (!protocol || !ipnode || !portnode) {
-				continue;
-			}
-			option_ptr = &conf->listen_options[i++];
-			option_ptr->protocol = strdup(cJSON_GetStringPtr(protocol));
-			if (!option_ptr->protocol) {
+			ConfigListenOption_t* option_ptr = &listen_options[conf->listen_options_cnt++];
+			if (!parse_listen_option(childnode, option_ptr)) {
 				goto err;
 			}
-			strcpy(option_ptr->ip, cJSON_GetStringPtr(ipnode));
-			option_ptr->port = cJSON_GetInteger(portnode);
-			if (!socktype) {
-				option_ptr->socktype = SOCK_STREAM;
-			}
-			else {
-				option_ptr->socktype = if_string2socktype(cJSON_GetStringPtr(socktype));
-				if (0 == option_ptr->socktype) {
-					goto err;
-				}
-			}
-			if (readcache_max_size && cJSON_GetInteger(readcache_max_size) > 0) {
-				option_ptr->readcache_max_size = cJSON_GetInteger(readcache_max_size);
-			}
-			else {
-				option_ptr->readcache_max_size = 0;
-			}
-			conf->listen_options_cnt = i;
 		}
 	}
 
@@ -104,48 +101,22 @@ Config_t* initConfig(const char* path, Config_t* conf) {
 
 	cjson = cJSON_GetField(root, "connect_options");
 	if (cjson) {
-		int i;
 		cJSON* childnode;
-		conf->connect_options_cnt = cJSON_ChildNum(cjson);
-		conf->connect_options = (ConfigConnectOption_t*)malloc(sizeof(ConfigConnectOption_t) * conf->connect_options_cnt);
-		if (!conf->connect_options) {
+		ConfigConnectOption_t* connect_options;
+		size_t n = cJSON_ChildNum(cjson);
+
+		connect_options = (ConfigConnectOption_t*)malloc(sizeof(ConfigConnectOption_t) * n);
+		if (!connect_options) {
 			goto err;
 		}
-		i = 0;
+		conf->connect_options = connect_options;
+		conf->connect_options_cnt = 0;
 		for (childnode = cjson->child; childnode; childnode = childnode->next) {
-			ConfigConnectOption_t* option_ptr;
-			cJSON* protocol = cJSON_GetField(childnode, "protocol");
-			cJSON* ipnode = cJSON_GetField(childnode, "ip");
-			cJSON* portnode = cJSON_GetField(childnode, "port");
-			cJSON* socktype = cJSON_GetField(childnode, "socktype");
-			cJSON* readcache_max_size = cJSON_GetField(childnode, "readcache_max_size");
-			if (!protocol || !ipnode || !portnode) {
-				continue;
-			}
-			option_ptr = &conf->connect_options[i++];
-			option_ptr->protocol = strdup(cJSON_GetStringPtr(protocol));
-			if (!option_ptr->protocol) {
+			ConfigConnectOption_t* option_ptr = &connect_options[conf->connect_options_cnt++];
+			if (!parse_connect_option(childnode, option_ptr)) {
 				goto err;
 			}
-			strcpy(option_ptr->ip, cJSON_GetStringPtr(ipnode));
-			option_ptr->port = cJSON_GetInteger(portnode);
-			if (!socktype) {
-				option_ptr->socktype = SOCK_STREAM;
-			}
-			else {
-				option_ptr->socktype = if_string2socktype(cJSON_GetStringPtr(socktype));
-				if (0 == option_ptr->socktype) {
-					goto err;
-				}
-			}
-			if (readcache_max_size && cJSON_GetInteger(readcache_max_size) > 0) {
-				option_ptr->readcache_max_size = cJSON_GetInteger(readcache_max_size);
-			}
-			else {
-				option_ptr->readcache_max_size = 0;
-			}
 		}
-		conf->connect_options_cnt = i;
 	}
 
 	cjson = cJSON_GetField(root, "net_thread_cnt");
@@ -259,17 +230,19 @@ void resetConfig(Config_t* conf) {
 	for (i = 0; i < conf->listen_options_cnt; ++i) {
 		free((char*)conf->listen_options[i].protocol);
 	}
-	free(conf->listen_options);
+	free((void*)conf->listen_options);
 	conf->listen_options = NULL;
 	conf->listen_options_cnt = 0;
 
 	for (i = 0; i < conf->connect_options_cnt; ++i) {
 		free((char*)conf->connect_options[i].protocol);
 	}
-	free(conf->connect_options);
+	free((void*)conf->connect_options);
 	conf->connect_options = NULL;
 	conf->connect_options_cnt = 0;
 
+	free((char*)conf->clsnd.listen_option.protocol);
+	conf->clsnd.listen_option.protocol = NULL;
 	free((char*)conf->clsnd.ident);
 	conf->clsnd.ident = NULL;
 	free((char*)conf->log.pathname);

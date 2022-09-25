@@ -1,6 +1,7 @@
 {
 	"cluster" : {
 		"ident" : "test200",
+		"protocol" : "default",
 		"socktype" : "SOCK_STREAM",
 		"ip" : "127.0.0.1",
 		"port" : 40001,

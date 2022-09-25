@@ -48,6 +48,7 @@ BOOL initBootServerGlobal(const char* conf_path) {
 	}
 	if (s_Config.cluster_table_path && s_Config.cluster_table_path[0]) {
 		ClusterNode_t* clsnd;
+		ConfigListenOption_t* listen_opt;
 		const char* load_cluster_table_errmsg;
 		char* cluster_table_filedata = fileReadAllData(s_Config.cluster_table_path, NULL);
 		if (!cluster_table_filedata) {
@@ -65,16 +66,13 @@ BOOL initBootServerGlobal(const char* conf_path) {
 			s_BSG.errmsg = strFormat(NULL, "self cluster node(ident:%s) isn't in cluster table\n", s_Config.clsnd.ident);
 			return FALSE;
 		}
-		if (clsnd->socktype != s_Config.clsnd.socktype ||
-			clsnd->port != s_Config.clsnd.port ||
-			strcmp(clsnd->ip, s_Config.clsnd.ip))
+		listen_opt = &s_Config.clsnd.listen_option;
+		if (clsnd->socktype != listen_opt->socktype ||
+			clsnd->port != listen_opt->port ||
+			strcmp(clsnd->ip, listen_opt->ip))
 		{
 			s_BSG.errmsg = strFormat(NULL, "self cluster node isn't find, ident:%s, socktype:%s, ip:%s, port:%u\n",
-				s_Config.clsnd.ident,
-				if_socktype2string(s_Config.clsnd.socktype),
-				s_Config.clsnd.ip,
-				s_Config.clsnd.port
-			);
+				s_Config.clsnd.ident, if_socktype2string(listen_opt->socktype), listen_opt->ip, listen_opt->port);
 			return FALSE;
 		}
 	}
@@ -85,21 +83,23 @@ BOOL initBootServerGlobal(const char* conf_path) {
 }
 
 void printBootServerNodeInfo(void) {
+	ConfigListenOption_t* listen_opt = &s_Config.clsnd.listen_option;
 	logInfo(&s_Log, "server boot, clsnd_ident:%s, socktype:%s, ip:%s, port:%u, pid:%zu",
-		s_Config.clsnd.ident, if_socktype2string(s_Config.clsnd.socktype),
-		s_Config.clsnd.ip, s_Config.clsnd.port, processId());
+		s_Config.clsnd.ident, if_socktype2string(listen_opt->socktype),
+		listen_opt->ip, listen_opt->port, processId());
 
 	fprintf(stderr, "server boot, clsnd_ident:%s, socktype:%s, ip:%s, port:%u, pid:%zu\n",
-		s_Config.clsnd.ident, if_socktype2string(s_Config.clsnd.socktype),
-		s_Config.clsnd.ip, s_Config.clsnd.port, processId());
+		s_Config.clsnd.ident, if_socktype2string(listen_opt->socktype),
+		listen_opt->ip, listen_opt->port, processId());
 }
 
 BOOL runBootServerGlobal(int argc, char** argv, int(*fn_init)(TaskThread_t*, int, char**), void(*fn_destroy)(TaskThread_t*)) {
-	// listen self cluster node port
-	if (s_Config.clsnd.port) {
-		ChannelBase_t* c = openListenerInner(s_Config.clsnd.socktype, s_Config.clsnd.ip, s_Config.clsnd.port, &s_BSG.default_task_thread->dq);
+	// listen self cluster node port, if needed
+	ConfigListenOption_t* listen_opt = &s_Config.clsnd.listen_option;
+	if (!strcmp(listen_opt->protocol, "default")) {
+		ChannelBase_t* c = openListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, &s_BSG.default_task_thread->dq);
 		if (!c) {
-			s_BSG.errmsg = strFormat(NULL, "listen self cluster node err, ip:%s, port:%u\n", s_Config.clsnd.ip, s_Config.clsnd.port);
+			s_BSG.errmsg = strFormat(NULL, "listen self cluster node err, ip:%s, port:%u\n", listen_opt->ip, listen_opt->port);
 			return FALSE;
 		}
 		reactorCommitCmd(acceptReactor(), &c->o->regcmd);
@@ -153,7 +153,7 @@ void freeBootServerGlobal(void) {
 		s_BSG.log = NULL;
 	}
 	if (s_BSG.conf) {
-		resetConfig(s_BSG.conf);
+		resetConfig((Config_t*)s_BSG.conf);
 		s_BSG.conf = NULL;
 	}
 	freeNetThreadResource();

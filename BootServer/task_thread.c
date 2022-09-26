@@ -32,16 +32,11 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 				channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
 			}
 		}
+		/*
 		else if (ctrl->be_from_cluster) {
-			InnerMsg_t ret_msg;
-			if (RPC_STATUS_REQ == ctrl->rpc_status) {
-				makeInnerMsgRpcResp(&ret_msg, ctrl->rpcid, 0, NULL, 0);
-			}
-			else {
-				makeInnerMsg(&ret_msg, 0, NULL, 0);
-			}
-			channelbaseSendv(ctrl->channel, ret_msg.iov, sizeof(ret_msg.iov) / sizeof(ret_msg.iov[0]), NETPACKET_FRAGMENT);
+			channelbaseSendv(ctrl->channel, NULL, 0, NETPACKET_NO_ACK_FRAGMENT);
 		}
+		*/
 	}
 	ctrl->on_free(ctrl);
 }

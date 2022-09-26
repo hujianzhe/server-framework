@@ -1,7 +1,7 @@
 #ifndef BOOT_SERVER_SESSION_STRUCT_H
 #define	BOOT_SERVER_SESSION_STRUCT_H
 
-#include "util/inc/component/channel.h"
+#include "util/inc/component/reactor.h"
 #include <time.h>
 
 struct TaskThread_t;
@@ -14,9 +14,10 @@ typedef struct Session_t {
 	ChannelBase_t* channel_server;
 	char* id;
 	void* userdata;
-	void(*on_disconnect)(struct TaskThread_t*, struct Session_t*);
-	void(*destroy)(struct Session_t*);
-	ChannelBase_t*(*on_handshake)(struct Session_t*, const char* ip, unsigned short port);
+	/* interface */
+	ChannelBase_t*(*do_connect_handshake)(struct Session_t*, const char* ip, unsigned short port); /* optional */
+	void(*on_disconnect)(struct TaskThread_t*, struct Session_t*); /* optional */
+	void(*destroy)(struct Session_t*); /* optional */
 } Session_t;
 
 #ifdef __cplusplus

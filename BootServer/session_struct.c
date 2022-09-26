@@ -15,9 +15,9 @@ Session_t* initSession(Session_t* session) {
 	session->channel_server = NULL;
 	session->id = NULL;
 	session->userdata = NULL;
+	session->do_connect_handshake = NULL;
 	session->on_disconnect = NULL;
 	session->destroy = NULL;
-	session->on_handshake = NULL;
 	return session;
 }
 

@@ -68,8 +68,8 @@ ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 			return NULL;
 		}
 
-		if (session->on_handshake) { /* user self-defining connect-handshake action */
-			return session->on_handshake(session, clsnd->ip, clsnd->port);
+		if (session->do_connect_handshake) { /* user self-defining connect-handshake action */
+			return session->do_connect_handshake(session, clsnd->ip, clsnd->port);
 		}
 
 		hs_data = strFormat(&hs_datalen, "{\"ident\":\"%s\"}", self_ident);

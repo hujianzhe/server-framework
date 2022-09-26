@@ -94,8 +94,12 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 		Sockaddr_t connect_addr;
 		ChannelBase_t* c;
 		ReactorObject_t* o;
-		int domain = ipstrFamily(option->ip);
+		int domain;
 
+		if (strcmp(option->protocol, "default")) {
+			continue;
+		}
+		domain = ipstrFamily(option->ip);
 		if (!sockaddrEncode(&connect_addr.sa, domain, option->ip, option->port)) {
 			return 0;
 		}

@@ -32,11 +32,6 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 				channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
 			}
 		}
-		/*
-		else if (ctrl->be_from_cluster) {
-			channelbaseSendv(ctrl->channel, NULL, 0, NETPACKET_NO_ACK_FRAGMENT);
-		}
-		*/
 	}
 	ctrl->on_free(ctrl);
 }

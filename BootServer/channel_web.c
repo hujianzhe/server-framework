@@ -206,7 +206,7 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, FnChannelOn
 		return NULL;
 	}
 	ud = (ChannelUserDataHttp_t*)channelUserData(c);
-	ud->rw.base_proc.on_ack_halfconn = http_accept_callback;
+	c->on_ack_halfconn = http_accept_callback;
 	ud->rw.on_recv = fn ? fn : httpframe_recv;
 	return c;
 }
@@ -376,7 +376,7 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 		return NULL;
 	}
 	ud = (ChannelUserDataWebsocket_t*)channelUserData(c);
-	ud->rw.base_proc.on_ack_halfconn = websocket_accept_callback;
+	c->on_ack_halfconn = websocket_accept_callback;
 	ud->rw.on_recv = fn ? fn : websocket_recv;
 	return c;
 }

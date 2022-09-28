@@ -210,7 +210,7 @@ ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short po
 		return NULL;
 	}
 	ud = (ChannelUserDataInner_t*)channelUserData(c);
-	ud->rw.base_proc.on_ack_halfconn = innerchannel_accept_callback;
+	c->on_ack_halfconn = innerchannel_accept_callback;
 	ud->rw.base_proc.on_detach = defaultChannelOnDetach;
 	return c;
 }

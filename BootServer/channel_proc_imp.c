@@ -18,9 +18,6 @@ ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, DataQueue_t* dq) {
 
 void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	ChannelUserData_t* ud = channelUserData(c);
-	if (1 != c->connected_times) {
-		return;
-	}
 	if (ud->rpc_id_syn_ack != 0) {
 		UserMsg_t* msg = newUserMsg(0);
 		msg->channel = c;

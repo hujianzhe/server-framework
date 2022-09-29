@@ -5,6 +5,7 @@ typedef struct ChannelUserDataHttp_t {
 	ChannelUserData_t _;
 	ChannelRWData_t rw;
 	int rpc_id_recv;
+	HttpFrame_t* frame;
 } ChannelUserDataHttp_t;
 
 typedef struct ChannelUserDataWebsocket_t {
@@ -79,7 +80,7 @@ static void httpframe_decode(ChannelBase_t* c, unsigned char* buf, size_t buflen
 			decode_result->bodylen = 0;
 		}
 		decode_result->decodelen = res + frame->content_length;
-		decode_result->userdata = frame;
+		((ChannelUserDataHttp_t*)channelUserData(c))->frame = frame;
 	}
 }
 
@@ -89,9 +90,12 @@ static void free_user_msg(UserMsg_t* msg) {
 }
 
 static void httpframe_recv(ChannelBase_t* c, const struct sockaddr* addr, const ChannelInbufDecodeResult_t* decode_result) {
-	ChannelUserDataHttp_t* ud;
-	HttpFrame_t* httpframe = (HttpFrame_t*)decode_result->userdata;
-	UserMsg_t* message = newUserMsg(decode_result->bodylen);
+	ChannelUserDataHttp_t* ud = (ChannelUserDataHttp_t*)channelUserData(c);
+	HttpFrame_t* httpframe = ud->frame;
+	UserMsg_t* message;
+
+	ud->frame = NULL;
+	message = newUserMsg(decode_result->bodylen);
 	if (!message) {
 		free(httpframeReset(httpframe));
 		return;
@@ -107,7 +111,6 @@ static void httpframe_recv(ChannelBase_t* c, const struct sockaddr* addr, const 
 	message->cmdid = 0;
 	message->on_free = free_user_msg;
 
-	ud = (ChannelUserDataHttp_t*)channelUserData(c);
 	if (ud->rpc_id_recv != 0) {
 		message->rpc_status = RPC_STATUS_RESP;
 		message->rpcid = ud->rpc_id_recv;

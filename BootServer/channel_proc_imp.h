@@ -13,7 +13,7 @@ typedef struct ChannelUserData_t {
 	int text_data_print_log;
 } ChannelUserData_t;
 
-typedef void(*FnChannelOnRecv_t)(ChannelBase_t*, const struct sockaddr*, const ChannelInbufDecodeResult_t*);
+typedef void(*FnChannelOnRecv_t)(ChannelBase_t*, unsigned char*, size_t, const struct sockaddr*);
 
 #define	channelUserData(channel)	((ChannelUserData_t*)((channel)->userdata))
 #define	channelSetUserData(channel, ud)	((channel)->userdata = (ud))

@@ -97,10 +97,10 @@ static void innerchannel_reply_ack(ChannelBase_t* c, unsigned int seq, const str
 	sendto(o->fd, (char*)packet->buf, packet->hdrlen + packet->bodylen, 0, addr, sockaddrLength(addr));
 }
 
-static void innerchannel_recv(ChannelBase_t* c, const struct sockaddr* addr, const ChannelInbufDecodeResult_t* decode_result) {
+static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
 	unsigned int cmdid_rpcid_sz = 9;
-	if (decode_result->bodylen >= cmdid_rpcid_sz) {
-		UserMsg_t* message = newUserMsg(decode_result->bodylen - cmdid_rpcid_sz);
+	if (bodylen >= cmdid_rpcid_sz) {
+		UserMsg_t* message = newUserMsg(bodylen - cmdid_rpcid_sz);
 		if (!message) {
 			return;
 		}
@@ -109,11 +109,11 @@ static void innerchannel_recv(ChannelBase_t* c, const struct sockaddr* addr, con
 		if (!(c->flag & CHANNEL_FLAG_STREAM)) {
 			memcpy(&message->peer_addr, addr, sockaddrLength(addr));
 		}
-		message->rpc_status = *(decode_result->bodyptr);
-		message->retcode = message->cmdid = ntohl(*(int*)(decode_result->bodyptr + 1));
-		message->rpcid = ntohl(*(int*)(decode_result->bodyptr + 5));
+		message->rpc_status = *bodyptr;
+		message->retcode = message->cmdid = ntohl(*(int*)(bodyptr + 1));
+		message->rpcid = ntohl(*(int*)(bodyptr + 5));
 		if (message->datalen) {
-			memcpy(message->data, decode_result->bodyptr + cmdid_rpcid_sz, message->datalen);
+			memcpy(message->data, bodyptr + cmdid_rpcid_sz, message->datalen);
 		}
 		if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
 			message->enqueue_time_msec = gmtimeMillisecond();

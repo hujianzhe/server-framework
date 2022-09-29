@@ -89,13 +89,13 @@ static void free_user_msg(UserMsg_t* msg) {
 	free(msg);
 }
 
-static void httpframe_recv(ChannelBase_t* c, const struct sockaddr* addr, const ChannelInbufDecodeResult_t* decode_result) {
+static void httpframe_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
 	ChannelUserDataHttp_t* ud = (ChannelUserDataHttp_t*)channelUserData(c);
 	HttpFrame_t* httpframe = ud->frame;
 	UserMsg_t* message;
 
 	ud->frame = NULL;
-	message = newUserMsg(decode_result->bodylen);
+	message = newUserMsg(bodylen);
 	if (!message) {
 		free(httpframeReset(httpframe));
 		return;
@@ -121,7 +121,7 @@ static void httpframe_recv(ChannelBase_t* c, const struct sockaddr* addr, const 
 		message->rpcid = 0;
 	}
 	if (message->datalen) {
-		memcpy(message->data, decode_result->bodyptr, message->datalen);
+		memcpy(message->data, bodyptr, message->datalen);
 	}
 	if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
 		message->enqueue_time_msec = gmtimeMillisecond();
@@ -282,7 +282,7 @@ static void websocket_decode(ChannelBase_t* c, unsigned char* buf, size_t buflen
 	}
 }
 
-static void websocket_recv(ChannelBase_t* c, const struct sockaddr* addr, const ChannelInbufDecodeResult_t* decode_result) {}
+static void websocket_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {}
 
 static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
 	ChannelUserDataWebsocket_t* listen_ud = (ChannelUserDataWebsocket_t*)channelUserData(listen_c);

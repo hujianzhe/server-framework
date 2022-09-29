@@ -4,13 +4,13 @@
 #include "test_handler.h"
 #include <stdio.h>
 
-static void websocket_recv(ChannelBase_t* c, const struct sockaddr* addr, const ChannelInbufDecodeResult_t* decode_result) {
-	if (decode_result->bodylen > 0) {
+static void websocket_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
+	if (bodylen > 0) {
 		UserMsg_t* message;
 		char* cmdstr;
 		int cmdid;
 
-		cmdstr = strstr((char*)decode_result->bodyptr, "cmd");
+		cmdstr = strstr((char*)bodyptr, "cmd");
 		if (!cmdstr) {
 			return;
 		}
@@ -24,7 +24,7 @@ static void websocket_recv(ChannelBase_t* c, const struct sockaddr* addr, const 
 			return;
 		}
 
-		message = newUserMsg(decode_result->bodylen);
+		message = newUserMsg(bodylen);
 		if (!message) {
 			return;
 		}
@@ -36,7 +36,7 @@ static void websocket_recv(ChannelBase_t* c, const struct sockaddr* addr, const 
 		message->cmdid = cmdid;
 		message->rpcid = 0;
 		if (message->datalen) {
-			memcpy(message->data, decode_result->bodyptr, message->datalen);
+			memcpy(message->data, bodyptr, message->datalen);
 		}
 		if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
 			message->enqueue_time_msec = gmtimeMillisecond();

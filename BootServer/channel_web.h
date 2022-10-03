@@ -8,9 +8,8 @@ extern "C" {
 #endif
 
 __declspec_dll ChannelBase_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq);
-__declspec_dll ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct DataQueue_t* dq);
+__declspec_dll ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct DataQueue_t* dq);
 
-__declspec_dll ChannelBase_t* openChannelWebsocketServer(ReactorObject_t* o, const struct sockaddr* addr, struct DataQueue_t* dq);
 __declspec_dll ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct DataQueue_t* dq);
 
 #ifdef __cplusplus

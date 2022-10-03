@@ -65,7 +65,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 		const ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
 		ChannelBase_t* c;
 		if (!strcmp(option->protocol, "http")) {
-			c = openListenerHttp(option->ip, option->port, NULL, &thrd->dq);
+			c = openListenerHttp(option->ip, option->port, &thrd->dq);
 		}
 		else if (!strcmp(option->protocol, "websocket")) {
 			c = openListenerWebsocket(option->ip, option->port, websocket_recv, &thrd->dq);

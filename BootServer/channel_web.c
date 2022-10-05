@@ -9,6 +9,7 @@ typedef struct ChannelUserDataHttp_t {
 typedef struct ChannelUserDataWebsocket_t {
 	ChannelUserData_t _;
 	void(*on_recv)(ChannelBase_t* channel, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr);
+	DynArr_t(unsigned char) fragment_recv;
 	short ws_handshake_state;
 	short ws_prev_is_fin;
 } ChannelUserDataWebsocket_t;
@@ -19,6 +20,7 @@ static ChannelUserData_t* init_channel_user_data_http(ChannelUserDataHttp_t* ud,
 }
 
 static ChannelUserData_t* init_channel_user_data_websocket(ChannelUserDataWebsocket_t* ud, struct DataQueue_t* dq) {
+	dynarrInitZero(&ud->fragment_recv);
 	ud->ws_handshake_state = 0;
 	ud->ws_prev_is_fin = 1;
 	return initChannelUserData(&ud->_, dq);
@@ -229,16 +231,28 @@ static int websocket_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 		if (res < 0) {
 			return -1;
 		}
-		else if (0 == res) {
+		if (0 == res) {
 			return 0;
 		}
+		if (WEBSOCKET_CLOSE_FRAME == type) {
+			return -1;
+		}
+		if (is_fin && dynarrIsEmpty(&ud->fragment_recv)) {
+			ud->on_recv(c, data, datalen, addr);
+		}
 		else {
-			if (WEBSOCKET_CLOSE_FRAME == type) {
+			int ok;
+			dynarrCopyAppend(&ud->fragment_recv, data, datalen, ok);
+			if (!ok) {
 				return -1;
 			}
-			ud->on_recv(c, data, datalen, addr);
-			return res;
+			if (!is_fin) {
+				return res;
+			}
+			ud->on_recv(c, ud->fragment_recv.buf, ud->fragment_recv.len, addr);
+			dynarrClearData(&ud->fragment_recv);
 		}
+		return res;
 	}
 	else {
 		char* key;
@@ -293,6 +307,11 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 	}
 }
 
+static void websocket_on_free(ChannelBase_t* channel) {
+	ChannelUserDataWebsocket_t* ud = (ChannelUserDataWebsocket_t*)channelUserData(channel);
+	dynarrFreeMemory(&ud->fragment_recv);
+}
+
 static ChannelBaseProc_t s_websocket_proc = {
 	defaultChannelOnReg,
 	NULL,
@@ -301,7 +320,7 @@ static ChannelBaseProc_t s_websocket_proc = {
 	websocket_on_pre_send,
 	NULL,
 	defaultChannelOnDetach,
-	NULL
+	websocket_on_free
 };
 
 static ChannelBase_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {

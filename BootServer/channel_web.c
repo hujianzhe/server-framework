@@ -276,7 +276,6 @@ static int websocket_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 	}
 }
 
-static void websocket_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {}
 static ChannelBase_t* openChannelWebsocket(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq);
 static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
 	ChannelUserDataWebsocket_t* listen_ud = (ChannelUserDataWebsocket_t*)channelUserData(listen_c);
@@ -333,7 +332,6 @@ static ChannelBase_t* openChannelWebsocket(ReactorObject_t* o, int flag, const s
 	ud = (ChannelUserDataWebsocket_t*)(c + 1);
 	channelSetUserData(c, init_channel_user_data_websocket(ud, dq));
 	// c->_.write_fragment_size = 500;
-	ud->on_recv = websocket_recv;
 	c->proc = &s_websocket_proc;
 	flag = c->flag;
 	if (flag & CHANNEL_FLAG_SERVER) {
@@ -380,7 +378,7 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 	}
 	ud = (ChannelUserDataWebsocket_t*)channelUserData(c);
 	c->on_ack_halfconn = websocket_accept_callback;
-	ud->on_recv = fn ? fn : websocket_recv;
+	ud->on_recv = fn;
 	return c;
 }
 

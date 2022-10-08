@@ -6,12 +6,6 @@ typedef struct ChannelUserDataInner_t {
 	ChannelRWData_t rw;
 } ChannelUserDataInner_t;
 
-static ChannelUserData_t* init_channel_user_data_inner(ChannelUserDataInner_t* ud, ChannelBase_t* channel, struct DataQueue_t* dq) {
-	channelrwdataInit(&ud->rw, channel->flag);
-	channelbaseUseRWData(channel, &ud->rw);
-	return initChannelUserData(&ud->_, dq);
-}
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -54,30 +48,6 @@ static void innerchannel_encode(ChannelBase_t* c, NetPacket_t* packet) {
 	exthdr[1] = packet->fragment_eof;
 	*(unsigned int*)&exthdr[2] = htonl(packet->seq);
 	lengthfieldframeEncode(packet->buf, INNER_BASEHDRSIZE, packet->bodylen + INNER_EXTHDRSIZE);
-}
-
-static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
-	ReactorObject_t* listen_o = listen_c->o;
-	ChannelBase_t* conn_channel;
-	IPString_t ip;
-	unsigned short port;
-	ReactorObject_t* o = reactorobjectOpen(newfd, listen_o->domain, listen_o->socktype, listen_o->protocol);
-	if (!o) {
-		socketClose(newfd);
-		return;
-	}
-	conn_channel = openChannelInner(o, CHANNEL_FLAG_SERVER, peer_addr, channelUserData(listen_c)->dq);
-	if (!conn_channel) {
-		reactorCommitCmd(NULL, &o->freecmd);
-		return;
-	}
-	reactorCommitCmd(selectReactor(), &o->regcmd);
-	if (sockaddrDecode(peer_addr, ip, &port)) {
-		logInfo(ptrBSG()->log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
-	}
-	else {
-		logErr(ptrBSG()->log, "accept parse sockaddr error");
-	}
 }
 
 static void innerchannel_reply_ack(ChannelBase_t* c, unsigned int seq, const struct sockaddr* addr) {
@@ -127,11 +97,95 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 	}
 }
 
-static void innerchannel_heartbeat(ChannelBase_t* c, int heartbeat_times) {
+static ChannelRWDataProc_t s_inner_data_proc = {
+	innerchannel_decode,
+	innerchannel_recv,
+	innerchannel_encode,
+	innerchannel_reply_ack
+};
+
+static ChannelUserData_t* init_channel_user_data_inner(ChannelUserDataInner_t* ud, ChannelBase_t* channel, struct DataQueue_t* dq) {
+	channelrwInitData(&ud->rw, channel->flag, &s_inner_data_proc);
+	channelbaseUseRWData(channel, &ud->rw);
+	return initChannelUserData(&ud->_, dq);
+}
+
+/**************************************************************************/
+
+static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
+	ReactorObject_t* listen_o = listen_c->o;
+	ChannelBase_t* conn_channel;
+	IPString_t ip;
+	unsigned short port;
+	ReactorObject_t* o = reactorobjectOpen(newfd, listen_o->domain, listen_o->socktype, listen_o->protocol);
+	if (!o) {
+		socketClose(newfd);
+		return;
+	}
+	conn_channel = openChannelInner(o, CHANNEL_FLAG_SERVER, peer_addr, channelUserData(listen_c)->dq);
+	if (!conn_channel) {
+		reactorCommitCmd(NULL, &o->freecmd);
+		return;
+	}
+	reactorCommitCmd(selectReactor(), &o->regcmd);
+	if (sockaddrDecode(peer_addr, ip, &port)) {
+		logInfo(ptrBSG()->log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
+	}
+	else {
+		logErr(ptrBSG()->log, "accept parse sockaddr error");
+	}
+}
+
+static void innerchannel_on_heartbeat(ChannelBase_t* c, int heartbeat_times) {
 	InnerMsg_t msg;
 	makeInnerMsgEmpty(&msg);
 	channelbaseSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 }
+
+int innerchannel_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr) {
+	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag);
+	if (hook_proc->on_read) {
+		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
+		return hook_proc->on_read(&ud->rw, buf, len, timestamp_msec, from_addr);
+	}
+	return len;
+}
+
+int innerchannel_on_pre_send(ChannelBase_t* channel, NetPacket_t* packet, long long timestamp_msec) {
+	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag);
+	if (hook_proc->on_pre_send) {
+		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
+		return hook_proc->on_pre_send(&ud->rw, packet, timestamp_msec);
+	}
+	return 1;
+}
+
+void innerchannel_on_exec(ChannelBase_t* channel, long long timestamp_msec) {
+	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag);
+	if (hook_proc->on_exec) {
+		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
+		hook_proc->on_exec(&ud->rw, timestamp_msec);
+	}
+}
+
+void innerchannel_on_free(ChannelBase_t* channel) {
+	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag);
+	if (hook_proc->on_free) {
+		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
+		hook_proc->on_free(&ud->rw);
+	}
+}
+
+static ChannelBaseProc_t s_inner_proc = {
+	defaultChannelOnReg,
+	innerchannel_on_exec,
+	innerchannel_on_read,
+	innerchannel_hdrsize,
+	innerchannel_on_pre_send,
+	innerchannel_on_heartbeat,
+	defaultChannelOnDetach,
+	innerchannel_on_free
+};
 
 /**************************************************************************/
 
@@ -145,18 +199,11 @@ ChannelBase_t* openChannelInner(ReactorObject_t* o, int flag, const struct socka
 	ud = (ChannelUserDataInner_t*)(c + 1);
 	channelSetUserData(c, init_channel_user_data_inner(ud, c, dq));
 	// c->_.write_fragment_size = 500;
-	ud->rw.base_proc.on_reg = defaultChannelOnReg;
-	ud->rw.base_proc.on_detach = defaultChannelOnDetach;
-	ud->rw.base_proc.on_hdrsize = innerchannel_hdrsize;
-	ud->rw.on_decode = innerchannel_decode;
-	ud->rw.on_encode = innerchannel_encode;
-	ud->rw.on_reply_ack = innerchannel_reply_ack;
-	ud->rw.on_recv = innerchannel_recv;
+	c->proc = &s_inner_proc;
 	flag = c->flag;
 	if (flag & CHANNEL_FLAG_CLIENT) {
 		c->heartbeat_timeout_sec = 10;
 		c->heartbeat_maxtimes = 3;
-		ud->rw.base_proc.on_heartbeat = innerchannel_heartbeat;
 	}
 	else if (flag & CHANNEL_FLAG_SERVER) {
 		c->heartbeat_timeout_sec = 20;
@@ -177,7 +224,6 @@ ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short po
 	Sockaddr_t local_saddr;
 	ReactorObject_t* o;
 	ChannelBase_t* c;
-	ChannelUserDataInner_t* ud;
 	int domain = ipstrFamily(ip);
 	if (!sockaddrEncode(&local_saddr.sa, domain, ip, port)) {
 		return NULL;
@@ -209,9 +255,7 @@ ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short po
 		reactorCommitCmd(NULL, &o->freecmd);
 		return NULL;
 	}
-	ud = (ChannelUserDataInner_t*)channelUserData(c);
 	c->on_ack_halfconn = innerchannel_accept_callback;
-	ud->rw.base_proc.on_detach = defaultChannelOnDetach;
 	return c;
 }
 

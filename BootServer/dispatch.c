@@ -100,7 +100,7 @@ int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchCallback_t func) {
 	return 0;
 }
 
-DispatchCallback_t getStringDispatch(Dispatch_t* dispatch, const char* str) {
+DispatchCallback_t getStringDispatch(const Dispatch_t* dispatch, const char* str) {
 	HashtableNodeKey_t hkey;
 	HashtableNode_t* node;
 	hkey.ptr = str;
@@ -111,7 +111,7 @@ DispatchCallback_t getStringDispatch(Dispatch_t* dispatch, const char* str) {
 	return NULL;
 }
 
-DispatchCallback_t getNumberDispatch(Dispatch_t* dispatch, int cmd) {
+DispatchCallback_t getNumberDispatch(const Dispatch_t* dispatch, int cmd) {
 	HashtableNodeKey_t hkey;
 	HashtableNode_t* node;
 	hkey.i32 = cmd;

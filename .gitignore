@@ -7,7 +7,6 @@ core.*
 *.VC
 *.VC.*
 /.idea
-/web_client/.idea
 /cmake-build-debug
 /Debug
 /x64
@@ -34,4 +33,5 @@ core.*
 *.dSYM
 .DS_Store
 /BootServer/util
+/redis_cli_protocol
 /db_api

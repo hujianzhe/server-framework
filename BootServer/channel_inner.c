@@ -142,7 +142,7 @@ static void innerchannel_on_heartbeat(ChannelBase_t* c, int heartbeat_times) {
 	channelbaseSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
 }
 
-int innerchannel_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr) {
+static int innerchannel_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr) {
 	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag);
 	if (hook_proc->on_read) {
 		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
@@ -151,7 +151,7 @@ int innerchannel_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned in
 	return len;
 }
 
-int innerchannel_on_pre_send(ChannelBase_t* channel, NetPacket_t* packet, long long timestamp_msec) {
+static int innerchannel_on_pre_send(ChannelBase_t* channel, NetPacket_t* packet, long long timestamp_msec) {
 	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag);
 	if (hook_proc->on_pre_send) {
 		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
@@ -160,7 +160,7 @@ int innerchannel_on_pre_send(ChannelBase_t* channel, NetPacket_t* packet, long l
 	return 1;
 }
 
-void innerchannel_on_exec(ChannelBase_t* channel, long long timestamp_msec) {
+static void innerchannel_on_exec(ChannelBase_t* channel, long long timestamp_msec) {
 	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag);
 	if (hook_proc->on_exec) {
 		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
@@ -168,7 +168,7 @@ void innerchannel_on_exec(ChannelBase_t* channel, long long timestamp_msec) {
 	}
 }
 
-void innerchannel_on_free(ChannelBase_t* channel) {
+static void innerchannel_on_free(ChannelBase_t* channel) {
 	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag);
 	if (hook_proc->on_free) {
 		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);

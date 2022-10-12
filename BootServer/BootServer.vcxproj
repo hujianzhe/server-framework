@@ -144,6 +144,7 @@
   <ItemGroup>
     <ClInclude Include="channel_proc_imp.h" />
     <ClInclude Include="channel_inner.h" />
+    <ClInclude Include="channel_redis.h" />
     <ClInclude Include="channel_web.h" />
     <ClInclude Include="cluster.h" />
     <ClInclude Include="cluster_action.h" />
@@ -161,6 +162,7 @@
     <ClInclude Include="util\inc\compiler_define.h" />
     <ClInclude Include="util\inc\component\channel.h" />
     <ClInclude Include="util\inc\component\dataqueue.h" />
+    <ClInclude Include="util\inc\component\hiredis_cli_protocol.h" />
     <ClInclude Include="util\inc\component\httpframe.h" />
     <ClInclude Include="util\inc\component\log.h" />
     <ClInclude Include="util\inc\component\memheap_mt.h" />
@@ -222,6 +224,7 @@
   <ItemGroup>
     <ClCompile Include="channel_proc_imp.c" />
     <ClCompile Include="channel_inner.c" />
+    <ClCompile Include="channel_redis.c" />
     <ClCompile Include="channel_web.c" />
     <ClCompile Include="cluster.c" />
     <ClCompile Include="cluster_action.c" />
@@ -237,6 +240,7 @@
     <ClCompile Include="task_thread.c" />
     <ClCompile Include="util\src\component\channel.c" />
     <ClCompile Include="util\src\component\dataqueue.c" />
+    <ClCompile Include="util\src\component\hiredis_cli_protocol.c" />
     <ClCompile Include="util\src\component\httpframe.c" />
     <ClCompile Include="util\src\component\log.c" />
     <ClCompile Include="util\src\component\memheap_mt.c" />

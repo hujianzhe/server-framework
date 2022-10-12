@@ -72,7 +72,7 @@ static int websocket_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 		return res;
 	}
 	else {
-		char* key;
+		const char* key;
 		unsigned int keylen;
 		int res = websocketframeDecodeHandshake((char*)buf, buflen, &key, &keylen);
 		if (res < 0) {

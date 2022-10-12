@@ -51,9 +51,6 @@
     <ClInclude Include="channel_inner.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="channel_web.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="channel_proc_imp.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -249,6 +246,12 @@
     <ClInclude Include="util\inc\component\hiredis_cli_protocol.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="channel_websocket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="channel_http.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cluster.c">
@@ -285,9 +288,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="channel_inner.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="channel_web.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="channel_proc_imp.c">
@@ -459,6 +459,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\hiredis_cli_protocol.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="channel_websocket.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="channel_http.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

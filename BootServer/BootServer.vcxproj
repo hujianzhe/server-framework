@@ -145,7 +145,8 @@
     <ClInclude Include="channel_proc_imp.h" />
     <ClInclude Include="channel_inner.h" />
     <ClInclude Include="channel_redis.h" />
-    <ClInclude Include="channel_web.h" />
+    <ClInclude Include="channel_http.h" />
+    <ClInclude Include="channel_websocket.h" />
     <ClInclude Include="cluster.h" />
     <ClInclude Include="cluster_action.h" />
     <ClInclude Include="cluster_node.h" />
@@ -225,7 +226,8 @@
     <ClCompile Include="channel_proc_imp.c" />
     <ClCompile Include="channel_inner.c" />
     <ClCompile Include="channel_redis.c" />
-    <ClCompile Include="channel_web.c" />
+    <ClCompile Include="channel_http.c" />
+    <ClCompile Include="channel_websocket.c" />
     <ClCompile Include="cluster.c" />
     <ClCompile Include="cluster_action.c" />
     <ClCompile Include="cluster_node.c" />

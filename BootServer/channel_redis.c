@@ -158,7 +158,7 @@ ChannelBase_t* openChannelRedisClient(ReactorObject_t* o, const struct sockaddr*
 	return c;
 }
 
-void channelSendRedisCommand(ChannelBase_t* channel, int rpc_id, const char* format, ...) {
+void channelRedisClientAsyncSendCommand(ChannelBase_t* channel, int rpc_id, const char* format, ...) {
 	char* cmd;
 	int cmdlen;
 	va_list ap;

@@ -35,7 +35,7 @@ static void free_user_msg(UserMsg_t* msg) {
 
 static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr) {
 	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
-	RedisReplyReader_feed(ud->reader, buf, len);
+	RedisReplyReader_feed(ud->reader, (const char*)buf, len);
 	while (1) {
 		int ret, rpc_id;
 		RedisReply_t* reply;

@@ -72,24 +72,37 @@ static int websocket_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 		return res;
 	}
 	else {
-		const char* key;
-		unsigned int keylen;
-		int res = websocketframeDecodeHandshake((char*)buf, buflen, &key, &keylen);
+		const char* sec_key, *sec_protocol;
+		unsigned int sec_keylen, sec_protocol_len, sec_accept_len;
+		char sec_accept[60];
+		int res = websocketframeDecodeHandshakeRequest((char*)buf, buflen, &sec_key, &sec_keylen, &sec_protocol, &sec_protocol_len);
 		if (res < 0) {
 			return -1;
 		}
-		else if (0 == res) {
+		if (0 == res) {
 			return 0;
 		}
-		else {
-			char txt[162];
-			if (!websocketframeEncodeHandshake(key, keylen, txt)) {
+		if (!websocketframeComputeSecAccept(sec_key, sec_keylen, sec_accept)) {
+			return -1;
+		}
+		sec_accept_len = strlen(sec_accept);
+		if (sec_protocol) {
+			char* txt = websocketframeEncodeHandshakeResponseWithProtocol(sec_accept, sec_accept_len, sec_protocol, sec_protocol_len);
+			if (!txt) {
 				return -1;
 			}
 			channelbaseSend(c, txt, strlen(txt), NETPACKET_NO_ACK_FRAGMENT);
-			ud->ws_handshake_state = 1;
-			return res;
+			utilExportFree(txt);
 		}
+		else {
+			char txt[162];
+			if (!websocketframeEncodeHandshakeResponse(sec_accept, sec_accept_len, txt)) {
+				return -1;
+			}
+			channelbaseSend(c, txt, strlen(txt), NETPACKET_NO_ACK_FRAGMENT);
+		}
+		ud->ws_handshake_state = 1;
+		return res;
 	}
 }
 

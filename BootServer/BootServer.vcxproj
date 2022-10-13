@@ -161,7 +161,7 @@
     <ClInclude Include="task_thread.h" />
     <ClInclude Include="util\inc\all.h" />
     <ClInclude Include="util\inc\compiler_define.h" />
-    <ClInclude Include="util\inc\component\channel.h" />
+    <ClInclude Include="util\inc\component\net_channel_rw.h" />
     <ClInclude Include="util\inc\component\dataqueue.h" />
     <ClInclude Include="util\inc\component\log.h" />
     <ClInclude Include="util\inc\component\memheap_mt.h" />
@@ -240,7 +240,7 @@
     <ClCompile Include="rpc_helper.c" />
     <ClCompile Include="session_struct.c" />
     <ClCompile Include="task_thread.c" />
-    <ClCompile Include="util\src\component\channel.c" />
+    <ClCompile Include="util\src\component\net_channel_rw.c" />
     <ClCompile Include="util\src\component\dataqueue.c" />
     <ClCompile Include="util\src\component\log.c" />
     <ClCompile Include="util\src\component\memheap_mt.c" />

@@ -2,7 +2,7 @@
 #define	BOOT_SERVER_CHANNEL_PROC_IMP_H
 
 #include "util/inc/component/reactor.h"
-#include "util/inc/component/channel.h"
+#include "util/inc/component/net_channel_rw.h"
 
 struct Session_t;
 struct DataQueue_t;

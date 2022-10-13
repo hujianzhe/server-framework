@@ -54,9 +54,6 @@
     <ClInclude Include="channel_proc_imp.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\component\channel.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\component\dataqueue.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -252,6 +249,9 @@
     <ClInclude Include="util\inc\crt\protocol\websocketframe.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\component\net_channel_rw.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cluster.c">
@@ -291,9 +291,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="channel_proc_imp.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\component\channel.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\dataqueue.c">
@@ -465,6 +462,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\protocol\websocketframe.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\component\net_channel_rw.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,7 +1,7 @@
 #ifndef BOOT_SERVER_DISPATCH_H
 #define	BOOT_SERVER_DISPATCH_H
 
-#include "util/inc/component/channel.h"
+#include "util/inc/component/reactor.h"
 
 enum {
 	USER_MSG_PARAM_INIT = 1,

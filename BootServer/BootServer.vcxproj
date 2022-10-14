@@ -189,6 +189,7 @@
     <ClInclude Include="util\inc\crt\protocol\hiredis_cli_protocol.h" />
     <ClInclude Include="util\inc\crt\protocol\httpframe.h" />
     <ClInclude Include="util\inc\crt\protocol\websocketframe.h" />
+    <ClInclude Include="util\inc\crt\string.h" />
     <ClInclude Include="util\inc\datastruct\arrheap.h" />
     <ClInclude Include="util\inc\datastruct\base64.h" />
     <ClInclude Include="util\inc\datastruct\bstree.h" />
@@ -267,6 +268,7 @@
     <ClCompile Include="util\src\crt\protocol\hiredis_cli_protocol.c" />
     <ClCompile Include="util\src\crt\protocol\httpframe.c" />
     <ClCompile Include="util\src\crt\protocol\websocketframe.c" />
+    <ClCompile Include="util\src\crt\string.c" />
     <ClCompile Include="util\src\datastruct\base64.c" />
     <ClCompile Include="util\src\datastruct\bstree.c" />
     <ClCompile Include="util\src\datastruct\graph.c" />

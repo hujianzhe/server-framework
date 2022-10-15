@@ -54,7 +54,7 @@ static void do_channel_detach(TaskThread_t* thrd, ChannelBase_t* channel) {
 			}
 		}
 	}
-	reactorCommitCmd(NULL, &channel->freecmd);
+	channelbaseClose(channel);
 }
 
 static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
@@ -78,7 +78,7 @@ static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
 		if (c) {
 			channelbaseAddRef(c);
 			call_dispatch(thrd, ctrl);
-			reactorCommitCmd(NULL, &c->freecmd);
+			channelbaseClose(c);
 		}
 		else {
 			call_dispatch(thrd, ctrl);

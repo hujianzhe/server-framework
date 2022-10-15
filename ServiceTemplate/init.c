@@ -19,7 +19,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 			logErr(ptrBSG()->log, "listen failure, ip:%s, port:%u ......", option->ip, option->port);
 			return 0;
 		}
-		reactorCommitCmd(acceptReactor(), &c->o->regcmd);
+		channelbaseReg(acceptReactor(), c);
 	}
 
 	logInfo(ptrBSG()->log, "init ok ......");

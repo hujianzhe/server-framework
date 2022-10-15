@@ -93,7 +93,6 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 		RpcItem_t* rpc_item;
 		Sockaddr_t connect_addr;
 		ChannelBase_t* c;
-		ReactorObject_t* o;
 		int domain;
 
 		if (strcmp(option->protocol, "default")) {
@@ -103,28 +102,23 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 		if (!sockaddrEncode(&connect_addr.sa, domain, option->ip, option->port)) {
 			return 0;
 		}
-		o = reactorobjectOpen(INVALID_FD_HANDLE, connect_addr.sa.sa_family, option->socktype, 0);
-		if (!o) {
-			return 0;
-		}
-		o->stream.max_connect_timeout_sec = 5;
-		c = openChannelInner(o, CHANNEL_FLAG_CLIENT, &connect_addr.sa, &thrd->dq);
+		c = openChannelInner(CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, option->socktype, &connect_addr.sa, &thrd->dq);
 		if (!c) {
-			reactorCommitCmd(NULL, &o->freecmd);
+			channelbaseClose(c);
 			return 0;
 		}
+		c->o->stream.max_connect_timeout_sec = 5;
 		logInfo(ptrBSG()->log, "channel(%p) connecting......", c);
 		if (thrd->f_rpc || thrd->a_rpc) {
 			c->on_syn_ack = defaultRpcOnSynAck;
 			if (thrd->f_rpc) {
 				rpc_item = newRpcItemFiberReady(c, 5000, NULL, NULL);
 				if (!rpc_item) {
-					reactorCommitCmd(NULL, &o->freecmd);
-					reactorCommitCmd(NULL, &c->freecmd);
+					channelbaseClose(c);
 					return 1;
 				}
 				channelUserData(c)->rpc_id_syn_ack = rpc_item->id;
-				reactorCommitCmd(selectReactor(), &o->regcmd);
+				channelbaseReg(selectReactor(), c);
 				rpc_item = rpcFiberCoreYield(thrd->f_rpc);
 				if (rpc_item->ret_msg) {
 					frpc_test_paralle(thrd, c);
@@ -140,17 +134,16 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 			else {
 				rpc_item = newRpcItemAsyncReady(c, 5000, NULL, rpc_async_req_login_test);
 				if (!rpc_item) {
-					reactorCommitCmd(NULL, &o->freecmd);
-					reactorCommitCmd(NULL, &c->freecmd);
+					channelbaseClose(c);
 					return 1;
 				}
 				rpc_item->udata = (size_t)c;
 				channelUserData(c)->rpc_id_syn_ack = rpc_item->id;
-				reactorCommitCmd(selectReactor(), &o->regcmd);
+				channelbaseReg(selectReactor(), c);
 			}
 		}
 		else {
-			reactorCommitCmd(selectReactor(), &o->regcmd);
+			channelbaseReg(selectReactor(), c);
 			if (!start_req_login_test(c)) {
 				return 0;
 			}

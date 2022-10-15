@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-__declspec_dll ChannelBase_t* openChannelRedisClient(ReactorObject_t* o, const struct sockaddr* addr, struct DataQueue_t* dq);
+__declspec_dll ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, struct DataQueue_t* dq);
 __declspec_dll void channelRedisClientAsyncSendCommand(ChannelBase_t* channel, int rpc_id, const char* format, ...);
 
 #ifdef __cplusplus

@@ -140,15 +140,24 @@ static ChannelBaseProc_t s_redis_cli_proc = {
 extern "C" {
 #endif
 
-ChannelBase_t* openChannelRedisClient(ReactorObject_t* o, const struct sockaddr* addr, struct DataQueue_t* dq) {
+ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, struct DataQueue_t* dq) {
+	ChannelBase_t* c;
 	ChannelUserDataRedisClient_t* ud;
-	ChannelBase_t* c = channelbaseOpen(sizeof(ChannelBase_t) + sizeof(ChannelUserDataRedisClient_t), CHANNEL_FLAG_CLIENT, o, addr);
+	Sockaddr_t addr;
+	size_t sz;
+	int domain = ipstrFamily(ip);
+
+	if (!sockaddrEncode(&addr.sa, domain, ip, port)) {
+		return NULL;
+	}
+	sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataRedisClient_t);
+	c = channelbaseOpen(sz, CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, SOCK_STREAM, 0, &addr.sa);
 	if (!c) {
 		return NULL;
 	}
 	ud = (ChannelUserDataRedisClient_t*)(c + 1);
 	if (!init_channel_user_data_redis_cli(ud, dq)) {
-		reactorCommitCmd(NULL, &c->freecmd);
+		channelbaseClose(c);
 		return NULL;
 	}
 	channelSetUserData(c, &ud->_);

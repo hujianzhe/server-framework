@@ -26,9 +26,6 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 		return;
 	}
 	message->channel = c;
-	if (!(c->flag & CHANNEL_FLAG_STREAM)) {
-		memcpy(&message->peer_addr, addr, sockaddrLength(addr));
-	}
 	httpframe->uri[httpframe->pathlen] = 0;
 	message->param.type = USER_MSG_PARAM_HTTP_FRAME;
 	message->param.httpframe = httpframe;
@@ -96,23 +93,18 @@ static int httpframe_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 
 static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
 	ChannelBase_t* conn_channel;
-	ReactorObject_t* listen_o = listen_c->o;
 	IPString_t ip;
 	unsigned short port;
-	ReactorObject_t* o = reactorobjectOpen(newfd, listen_o->domain, listen_o->socktype, listen_o->protocol);
-	if (!o) {
+
+	conn_channel = openChannelHttp(CHANNEL_FLAG_SERVER, newfd, peer_addr, channelUserData(listen_c)->dq);
+	if (!conn_channel) {
 		socketClose(newfd);
 		return;
 	}
-	conn_channel = openChannelHttp(o, CHANNEL_FLAG_SERVER, peer_addr, channelUserData(listen_c)->dq);
-	if (!conn_channel) {
-		reactorCommitCmd(NULL, &o->freecmd);
-		return;
-	}
+	channelbaseReg(selectReactor(), conn_channel);
 
-	reactorCommitCmd(selectReactor(), &o->regcmd);
 	if (sockaddrDecode(peer_addr, ip, &port)) {
-		logInfo(ptrBSG()->log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
+		logInfo(ptrBSG()->log, "accept new socket(%zu), ip:%s, port:%hu", newfd, ip, port);
 	}
 	else {
 		logErr(ptrBSG()->log, "accept parse sockaddr error");
@@ -134,9 +126,10 @@ static ChannelBaseProc_t s_http_proc = {
 extern "C" {
 #endif
 
-ChannelBase_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockaddr* addr, struct DataQueue_t* dq) {
+ChannelBase_t* openChannelHttp(int flag, FD_t fd, const struct sockaddr* addr, struct DataQueue_t* dq) {
 	ChannelUserDataHttp_t* ud;
-	ChannelBase_t* c = channelbaseOpen(sizeof(ChannelBase_t) + sizeof(ChannelUserDataHttp_t), flag, o, addr);
+	size_t sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataHttp_t);
+	ChannelBase_t* c = channelbaseOpen(sz, flag, fd, SOCK_STREAM, 0, addr);
 	if (!c) {
 		return NULL;
 	}
@@ -153,40 +146,42 @@ ChannelBase_t* openChannelHttp(ReactorObject_t* o, int flag, const struct sockad
 
 ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct DataQueue_t* dq) {
 	Sockaddr_t local_saddr;
-	ReactorObject_t* o;
+	FD_t listen_fd;
 	ChannelBase_t* c;
 	ChannelUserDataHttp_t* ud;
+	size_t sz;
 	int domain = ipstrFamily(ip);
+
 	if (!sockaddrEncode(&local_saddr.sa, domain, ip, port)) {
 		return NULL;
 	}
-	o = reactorobjectOpen(INVALID_FD_HANDLE, domain, SOCK_STREAM, 0);
-	if (!o) {
+	listen_fd = socket(domain, SOCK_STREAM, 0);
+	if (INVALID_FD_HANDLE == listen_fd) {
 		return NULL;
 	}
-	if (!socketEnableReuseAddr(o->fd, TRUE)) {
-		reactorCommitCmd(NULL, &o->freecmd);
-		return NULL;
+	if (!socketEnableReuseAddr(listen_fd, TRUE)) {
+		goto err;
 	}
-	if (bind(o->fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
-		reactorCommitCmd(NULL, &o->freecmd);
-		return NULL;
+	if (bind(listen_fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
+		goto err;
 	}
-	if (!socketTcpListen(o->fd)) {
-		reactorCommitCmd(NULL, &o->freecmd);
-		return NULL;
+	if (!socketTcpListen(listen_fd)) {
+		goto err;
 	}
 
-	c = channelbaseOpen(sizeof(ChannelBase_t) + sizeof(ChannelUserDataHttp_t), CHANNEL_FLAG_LISTEN, o, &local_saddr.sa);
+	sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataHttp_t);
+	c = channelbaseOpen(sz, CHANNEL_FLAG_LISTEN, listen_fd, SOCK_STREAM, 0, &local_saddr.sa);
 	if (!c) {
-		reactorCommitCmd(NULL, &o->freecmd);
-		return NULL;
+		goto err;
 	}
 	c->proc = &s_http_proc;
 	c->on_ack_halfconn = http_accept_callback;
 	ud = (ChannelUserDataHttp_t*)(c + 1);
 	channelSetUserData(c, init_channel_user_data_http(ud, dq));
 	return c;
+err:
+	socketClose(listen_fd);
+	return NULL;
 }
 
 #ifdef __cplusplus

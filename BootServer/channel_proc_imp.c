@@ -39,7 +39,7 @@ void defaultChannelOnReg(ChannelBase_t* c, long long timestamp_msec) {
 	}
 
 	channel_flag = c->flag;
-	socktype_str = (channel_flag & CHANNEL_FLAG_STREAM) ? "tcp" : "udp";
+	socktype_str = (SOCK_STREAM == c->socktype) ? "tcp" : "udp";
 	if (channel_flag & CHANNEL_FLAG_CLIENT) {
 		logInfo(ptrBSG()->log, "%s connect addr %s(%s:%hu)", __FUNCTION__, socktype_str, ip, port);
 	}

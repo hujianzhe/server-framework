@@ -29,9 +29,6 @@ static void websocket_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t body
 			return;
 		}
 		message->channel = c;
-		if (!(c->flag & CHANNEL_FLAG_STREAM)) {
-			memcpy(&message->peer_addr, addr, sockaddrLength(addr));
-		}
 		message->rpc_status = 0;
 		message->cmdid = cmdid;
 		message->rpcid = 0;
@@ -77,7 +74,7 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 			logErr(ptrBSG()->log, "listen failure, ip:%s, port:%u ......", option->ip, option->port);
 			return 0;
 		}
-		reactorCommitCmd(acceptReactor(), &c->o->regcmd);
+		channelbaseReg(acceptReactor(), c);
 	}
 
 	return 1;

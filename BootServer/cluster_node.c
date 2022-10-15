@@ -54,7 +54,6 @@ ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 		char* hs_data;
 		int hs_datalen;
 		Sockaddr_t saddr;
-		ReactorObject_t* o;
 		TaskThread_t* thrd;
 
 		if (session->reconnect_timestamp_sec > 0 &&
@@ -81,20 +80,14 @@ ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 			free(hs_data);
 			return NULL;
 		}
-		o = reactorobjectOpen(INVALID_FD_HANDLE, saddr.sa.sa_family, clsnd->socktype, 0);
-		if (!o) {
-			free(hs_data);
-			return NULL;
-		}
-		channel = openChannelInner(o, CHANNEL_FLAG_CLIENT, &saddr.sa, &thrd->dq);
+		channel = openChannelInner(CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, clsnd->socktype, &saddr.sa, &thrd->dq);
 		if (!channel) {
-			reactorCommitCmd(NULL, &o->freecmd);
 			free(hs_data);
 			return NULL;
 		}
 		clsnd->connection_num++;
 		sessionReplaceChannel(session, channel);
-		reactorCommitCmd(selectReactor(), &o->regcmd);
+		channelbaseReg(selectReactor(), channel);
 		/* default handshake */
 		makeInnerMsg(&msg, 0, hs_data, hs_datalen)->rpc_status = RPC_STATUS_HAND_SHAKE;
 		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);

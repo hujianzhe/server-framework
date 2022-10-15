@@ -122,9 +122,10 @@ static ChannelBaseProc_t s_websocket_server_proc = {
 	websocket_on_free
 };
 
-static ChannelBase_t* openChannelWebsocketServer(ReactorObject_t* o, const struct sockaddr* addr, struct DataQueue_t* dq) {
+static ChannelBase_t* openChannelWebsocketServer(FD_t fd, const struct sockaddr* addr, struct DataQueue_t* dq) {
 	ChannelUserDataWebsocket_t* ud;
-	ChannelBase_t* c = channelbaseOpen(sizeof(ChannelBase_t) + sizeof(ChannelUserDataWebsocket_t), CHANNEL_FLAG_SERVER, o, addr);
+	size_t sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataWebsocket_t);
+	ChannelBase_t* c = channelbaseOpen(sz, CHANNEL_FLAG_SERVER, fd, SOCK_STREAM, 0, addr);
 	if (!c) {
 		return NULL;
 	}
@@ -141,30 +142,20 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 	ChannelUserDataWebsocket_t* listen_ud = (ChannelUserDataWebsocket_t*)channelUserData(listen_c);
 	ChannelBase_t* conn_channel;
 	ChannelUserDataWebsocket_t* conn_ud;
-	ReactorObject_t* listen_o = listen_c->o;
 	IPString_t ip;
 	unsigned short port;
-	int on;
-	ReactorObject_t* o = reactorobjectOpen(newfd, listen_o->domain, listen_o->socktype, listen_o->protocol);
-	if (!o) {
-		socketClose(newfd);
-		return;
-	}
-	on = ptrBSG()->conf->tcp_nodelay;
-	setsockopt(o->fd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on));
 
-	conn_channel = openChannelWebsocketServer(o, peer_addr, channelUserData(listen_c)->dq);
+	conn_channel = openChannelWebsocketServer(newfd, peer_addr, channelUserData(listen_c)->dq);
 	if (!conn_channel) {
-		reactorCommitCmd(NULL, &o->freecmd);
+		socketClose(newfd);
 		return;
 	}
 	conn_ud = (ChannelUserDataWebsocket_t*)channelUserData(conn_channel);
 	conn_ud->on_recv = listen_ud->on_recv;
-
-	reactorCommitCmd(selectReactor(), &o->regcmd);
+	channelbaseReg(selectReactor(), conn_channel);
 
 	if (sockaddrDecode(peer_addr, ip, &port)) {
-		logInfo(ptrBSG()->log, "accept new socket(%p), ip:%s, port:%hu", o, ip, port);
+		logInfo(ptrBSG()->log, "accept new socket(%zu), ip:%s, port:%hu", newfd, ip, port);
 	}
 	else {
 		logErr(ptrBSG()->log, "accept parse sockaddr error");
@@ -177,34 +168,31 @@ extern "C" {
 
 ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct DataQueue_t* dq) {
 	Sockaddr_t local_saddr;
-	ReactorObject_t* o;
+	FD_t listen_fd;
 	ChannelBase_t* c;
 	ChannelUserDataWebsocket_t* ud;
+	size_t sz;
 	int domain = ipstrFamily(ip);
 	if (!sockaddrEncode(&local_saddr.sa, domain, ip, port)) {
 		return NULL;
 	}
-	o = reactorobjectOpen(INVALID_FD_HANDLE, domain, SOCK_STREAM, 0);
-	if (!o) {
+	listen_fd = socket(domain, SOCK_STREAM, 0);
+	if (INVALID_FD_HANDLE == listen_fd) {
 		return NULL;
 	}
-	if (!socketEnableReuseAddr(o->fd, TRUE)) {
-		reactorCommitCmd(NULL, &o->freecmd);
-		return NULL;
+	if (!socketEnableReuseAddr(listen_fd, TRUE)) {
+		goto err;
 	}
-	if (bind(o->fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
-		reactorCommitCmd(NULL, &o->freecmd);
-		return NULL;
+	if (bind(listen_fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
+		goto err;
 	}
-	if (!socketTcpListen(o->fd)) {
-		reactorCommitCmd(NULL, &o->freecmd);
-		return NULL;
+	if (!socketTcpListen(listen_fd)) {
+		goto err;
 	}
-
-	c = channelbaseOpen(sizeof(ChannelBase_t) + sizeof(ChannelUserDataWebsocket_t), CHANNEL_FLAG_LISTEN, o, &local_saddr.sa);
+	sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataWebsocket_t);
+	c = channelbaseOpen(sz, CHANNEL_FLAG_LISTEN, listen_fd, SOCK_STREAM, 0, &local_saddr.sa);
 	if (!c) {
-		reactorCommitCmd(NULL, &o->freecmd);
-		return NULL;
+		goto err;
 	}
 	c->proc = &s_websocket_server_proc;
 	c->on_ack_halfconn = websocket_accept_callback;
@@ -212,6 +200,9 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 	channelSetUserData(c, init_channel_user_data_websocket(ud, dq));
 	ud->on_recv = fn;
 	return c;
+err:
+	socketClose(listen_fd);
+	return NULL;
 }
 
 #ifdef __cplusplus

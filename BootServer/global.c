@@ -102,7 +102,7 @@ BOOL runBootServerGlobal(int argc, char** argv, int(*fn_init)(TaskThread_t*, int
 			s_BSG.errmsg = strFormat(NULL, "listen self cluster node err, ip:%s, port:%u\n", listen_opt->ip, listen_opt->port);
 			return FALSE;
 		}
-		reactorCommitCmd(acceptReactor(), &c->o->regcmd);
+		channelbaseReg(acceptReactor(), c);
 	}
 	// run net thread
 	if (!runNetThreads()) {

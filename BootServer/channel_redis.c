@@ -3,6 +3,7 @@
 
 typedef struct ChannelUserDataRedisClient_t {
 	ChannelUserData_t _;
+	FnChannelRedisOnSubscribe_t on_subscribe;
 	RedisReplyReader_t* reader;
 	char* ping_cmd;
 	int ping_cmd_len;
@@ -56,6 +57,12 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 			if (0 == strncmp("message", reply->element[0]->str, reply->element[0]->len)) {
 				//std::string channel(reply->element[1]->str, reply->element[1]->len);
 				//reply->element[2]->str, reply->element[2]->len
+				if (reply->elements < 3) {
+					continue;
+				}
+				if (!ud->on_subscribe) {
+					continue;
+				}
 				message = newUserMsg(0);
 				if (!message) {
 					return -1;
@@ -63,7 +70,7 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 				message->on_free = free_user_msg;
 				message->channel = channel;
 				message->param.value = reply;
-				dataqueuePush(ud->_.dq, &message->internal._);
+				ud->on_subscribe(channel, message, reply);
 				continue;
 			}
 		}
@@ -140,7 +147,7 @@ static ChannelBaseProc_t s_redis_cli_proc = {
 extern "C" {
 #endif
 
-ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, struct DataQueue_t* dq) {
+ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnChannelRedisOnSubscribe_t on_subscribe, struct DataQueue_t* dq) {
 	ChannelBase_t* c;
 	ChannelUserDataRedisClient_t* ud;
 	Sockaddr_t addr;
@@ -160,6 +167,7 @@ ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, struc
 		channelbaseClose(c);
 		return NULL;
 	}
+	ud->on_subscribe = on_subscribe;
 	channelSetUserData(c, &ud->_);
 	c->proc = &s_redis_cli_proc;
 	c->heartbeat_timeout_sec = 10;

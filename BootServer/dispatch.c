@@ -25,6 +25,7 @@ UserMsg_t* newUserMsg(size_t datalen) {
 		msg->param.type = 0;
 		msg->param.httpframe = NULL;
 		msg->param.timer_event = NULL;
+		msg->param.value = NULL;
 		msg->enqueue_time_msec = -1;
 		msg->cmdstr = NULL;
 		msg->rpc_status = 0;

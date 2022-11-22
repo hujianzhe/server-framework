@@ -38,14 +38,20 @@ static void websocket_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t body
 		if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
 			message->enqueue_time_msec = gmtimeMillisecond();
 		}
-		dataqueuePush(channelUserData(c)->dq, &message->internal._);
+		if (RPC_STATUS_RESP == message->rpc_status) {
+			StackCoSche_resume_co(channelUserData(c)->sche, message->rpcid, message, (void(*)(void*))message->on_free);
+		}
+		else {
+			StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);
+		}
 	}
 	else if (c->flag & CHANNEL_FLAG_SERVER) {
 		channelbaseSend(c, NULL, 0, NETPACKET_NO_ACK_FRAGMENT);
 	}
 }
 
-int init(TaskThread_t* thrd, int argc, char** argv) {
+void init(struct StackCoSche_t* sche, void* arg) {
+	TaskThread_t* thrd = currentTaskThread();
 	int i;
 	// register dispatch
 	regNumberDispatch(thrd->dispatch, CMD_REQ_TEST, reqTest);
@@ -62,24 +68,18 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 		const ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
 		ChannelBase_t* c;
 		if (!strcmp(option->protocol, "http")) {
-			c = openListenerHttp(option->ip, option->port, &thrd->dq);
+			c = openListenerHttp(option->ip, option->port, sche);
 		}
 		else if (!strcmp(option->protocol, "websocket")) {
-			c = openListenerWebsocket(option->ip, option->port, websocket_recv, &thrd->dq);
+			c = openListenerWebsocket(option->ip, option->port, websocket_recv, sche);
 		}
 		else {
 			continue;
 		}
 		if (!c) {
 			logErr(ptrBSG()->log, "listen failure, ip:%s, port:%u ......", option->ip, option->port);
-			return 0;
+			return;
 		}
 		channelbaseReg(acceptReactor(), c);
 	}
-
-	return 1;
-}
-
-void destroy(TaskThread_t* thrd) {
-
 }

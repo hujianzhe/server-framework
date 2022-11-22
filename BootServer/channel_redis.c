@@ -10,7 +10,7 @@ typedef struct ChannelUserDataRedisClient_t {
 	DynArr_t(int) rpc_ids;
 } ChannelUserDataRedisClient_t;
 
-static ChannelUserData_t* init_channel_user_data_redis_cli(ChannelUserDataRedisClient_t* ud, struct DataQueue_t* dq) {
+static ChannelUserData_t* init_channel_user_data_redis_cli(ChannelUserDataRedisClient_t* ud, struct StackCoSche_t* sche) {
 	ud->ping_cmd_len = RedisCommand_format(&ud->ping_cmd, "PING");
 	if (ud->ping_cmd_len < 0) {
 		ud->ping_cmd = NULL;
@@ -23,7 +23,8 @@ static ChannelUserData_t* init_channel_user_data_redis_cli(ChannelUserDataRedisC
 		return NULL;
 	}
 	dynarrInitZero(&ud->rpc_ids);
-	return initChannelUserData(&ud->_, dq);
+	ud->on_subscribe = NULL;
+	return initChannelUserData(&ud->_, sche);
 }
 
 /********************************************************************/
@@ -93,7 +94,7 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 		message->param.value = reply;
 		message->rpc_status = RPC_STATUS_RESP;
 		message->rpcid = rpc_id;
-		dataqueuePush(ud->_.dq, &message->internal._);
+		StackCoSche_resume_co(ud->_.sche, rpc_id, message, (void(*)(void*))message->on_free);
 	}
 	return len;
 }
@@ -147,7 +148,7 @@ static ChannelBaseProc_t s_redis_cli_proc = {
 extern "C" {
 #endif
 
-ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnChannelRedisOnSubscribe_t on_subscribe, struct DataQueue_t* dq) {
+ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnChannelRedisOnSubscribe_t on_subscribe, struct StackCoSche_t* sche) {
 	ChannelBase_t* c;
 	ChannelUserDataRedisClient_t* ud;
 	Sockaddr_t addr;
@@ -163,7 +164,7 @@ ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnCha
 		return NULL;
 	}
 	ud = (ChannelUserDataRedisClient_t*)(c + 1);
-	if (!init_channel_user_data_redis_cli(ud, dq)) {
+	if (!init_channel_user_data_redis_cli(ud, sche)) {
 		channelbaseClose(c);
 		return NULL;
 	}

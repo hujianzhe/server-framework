@@ -149,7 +149,6 @@
   <ItemGroup>
     <ClCompile Include="init.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="req_login_test.c" />
     <ClCompile Include="test_handler.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

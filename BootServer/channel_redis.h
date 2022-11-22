@@ -11,7 +11,7 @@ typedef void(*FnChannelRedisOnSubscribe_t)(ChannelBase_t*, struct UserMsg_t*, Re
 extern "C" {
 #endif
 
-__declspec_dll ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnChannelRedisOnSubscribe_t on_subscribe, struct DataQueue_t* dq);
+__declspec_dll ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnChannelRedisOnSubscribe_t on_subscribe, struct StackCoSche_t* sche);
 __declspec_dll void channelRedisClientAsyncSendCommand(ChannelBase_t* channel, int rpc_id, const char* format, ...);
 
 #ifdef __cplusplus

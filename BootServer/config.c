@@ -159,22 +159,12 @@ Config_t* initConfig(const char* path, Config_t* conf) {
 		}
 	}
 
-	cjson = cJSON_GetField(root, "rpc_fiber");
-	if (cjson) {
-		conf->rpc_fiber = cJSON_GetInteger(cjson);
-	}
-
 	cjson = cJSON_GetField(root, "rpc_fiber_stack_size_kb");
 	if (cjson) {
 		conf->rpc_fiber_stack_size = cJSON_GetInteger(cjson) * 1024;
 	}
 	else {
 		conf->rpc_fiber_stack_size = 0x4000;
-	}
-
-	cjson = cJSON_GetField(root, "rpc_async");
-	if (cjson) {
-		conf->rpc_async = cJSON_GetInteger(cjson);
 	}
 
 	conf->once_rpc_timeout_items_maxcnt = 32;

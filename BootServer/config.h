@@ -28,9 +28,7 @@ typedef struct Config_t {
 	} log;
 	int net_thread_cnt;
 	const char* cluster_table_path;
-	int rpc_fiber;
 	unsigned int rpc_fiber_stack_size;
-	int rpc_async;
 	int once_rpc_timeout_items_maxcnt;
 	int once_timeout_events_maxcnt;
 	int once_handle_msg_maxcnt;

@@ -74,7 +74,6 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 		if (!message) {
 			return;
 		}
-		message->be_from_cluster = 1;
 		message->channel = c;
 		if (SOCK_STREAM != c->socktype) {
 			memcpy(&message->peer_addr, addr, sockaddrLength(addr));
@@ -88,7 +87,15 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 		if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
 			message->enqueue_time_msec = gmtimeMillisecond();
 		}
-		dataqueuePush(channelUserData(c)->dq, &message->internal._);
+		if (RPC_STATUS_RESP == message->rpc_status) {
+			StackCoSche_resume_co(channelUserData(c)->sche, message->rpcid, message, (void(*)(void*))message->on_free);
+		}
+		else if (RPC_STATUS_HAND_SHAKE == message->rpc_status) {
+			StackCoSche_function(channelUserData(c)->sche, TaskThread_default_clsnd_handshake, message, (void(*)(void*))message->on_free);
+		}
+		else {
+			StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);
+		}
 	}
 	else if (c->flag & CHANNEL_FLAG_SERVER) {
 		InnerMsg_t packet;
@@ -104,10 +111,10 @@ static ChannelRWDataProc_t s_inner_data_proc = {
 	innerchannel_reply_ack
 };
 
-static ChannelUserData_t* init_channel_user_data_inner(ChannelUserDataInner_t* ud, ChannelBase_t* channel, struct DataQueue_t* dq) {
+static ChannelUserData_t* init_channel_user_data_inner(ChannelUserDataInner_t* ud, ChannelBase_t* channel, struct StackCoSche_t* sche) {
 	channelrwInitData(&ud->rw, channel->flag, channel->socktype, &s_inner_data_proc);
 	channelbaseUseRWData(channel, &ud->rw);
-	return initChannelUserData(&ud->_, dq);
+	return initChannelUserData(&ud->_, sche);
 }
 
 /**************************************************************************/
@@ -117,7 +124,7 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 	IPString_t ip;
 	unsigned short port;
 
-	conn_channel = openChannelInner(CHANNEL_FLAG_SERVER, newfd, listen_c->socktype, peer_addr, channelUserData(listen_c)->dq);
+	conn_channel = openChannelInner(CHANNEL_FLAG_SERVER, newfd, listen_c->socktype, peer_addr, channelUserData(listen_c)->sche);
 	if (!conn_channel) {
 		socketClose(newfd);
 		return;
@@ -185,7 +192,7 @@ static ChannelBaseProc_t s_inner_proc = {
 
 /**************************************************************************/
 
-ChannelBase_t* openChannelInner(int flag, FD_t fd, int socktype, const struct sockaddr* addr, struct DataQueue_t* dq) {
+ChannelBase_t* openChannelInner(int flag, FD_t fd, int socktype, const struct sockaddr* addr, struct StackCoSche_t* sche) {
 	ChannelUserDataInner_t* ud;
 	size_t sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataInner_t);
 	ChannelBase_t* c = channelbaseOpen(sz, flag, fd, socktype, 0, addr);
@@ -194,7 +201,7 @@ ChannelBase_t* openChannelInner(int flag, FD_t fd, int socktype, const struct so
 	}
 	//
 	ud = (ChannelUserDataInner_t*)(c + 1);
-	channelSetUserData(c, init_channel_user_data_inner(ud, c, dq));
+	channelSetUserData(c, init_channel_user_data_inner(ud, c, sche));
 	c->proc = &s_inner_proc;
 	flag = c->flag;
 	if (flag & CHANNEL_FLAG_CLIENT) {
@@ -210,7 +217,7 @@ ChannelBase_t* openChannelInner(int flag, FD_t fd, int socktype, const struct so
 	return c;
 }
 
-ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short port, struct DataQueue_t* dq) {
+ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short port, struct StackCoSche_t* sche) {
 	Sockaddr_t local_saddr;
 	FD_t listen_fd;
 	ChannelBase_t* c;
@@ -236,7 +243,7 @@ ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short po
 			goto err;
 		}
 	}
-	c = openChannelInner(CHANNEL_FLAG_LISTEN, listen_fd, socktype, &local_saddr.sa, dq);
+	c = openChannelInner(CHANNEL_FLAG_LISTEN, listen_fd, socktype, &local_saddr.sa, sche);
 	if (!c) {
 		goto err;
 	}

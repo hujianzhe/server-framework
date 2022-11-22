@@ -8,9 +8,9 @@
 extern "C" {
 #endif
 
-ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, DataQueue_t* dq) {
+ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, struct StackCoSche_t* sche) {
 	ud->session = NULL;
-	ud->dq = dq;
+	ud->sche = sche;
 	ud->rpc_id_syn_ack = 0;
 	ud->text_data_print_log = 0;
 	return ud;
@@ -19,11 +19,7 @@ ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, DataQueue_t* dq) {
 void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	ChannelUserData_t* ud = channelUserData(c);
 	if (ud->rpc_id_syn_ack != 0) {
-		UserMsg_t* msg = newUserMsg(0);
-		msg->channel = c;
-		msg->rpcid = ud->rpc_id_syn_ack;
-		msg->rpc_status = RPC_STATUS_RESP;
-		dataqueuePush(ud->dq, &msg->internal._);
+		StackCoSche_resume_co(ud->sche, ud->rpc_id_syn_ack, NULL, NULL);
 		ud->rpc_id_syn_ack = 0;
 	}
 }
@@ -52,7 +48,8 @@ void defaultChannelOnReg(ChannelBase_t* c, long long timestamp_msec) {
 }
 
 void defaultChannelOnDetach(ChannelBase_t* c) {
-	dataqueuePush(channelUserData(c)->dq, &c->freecmd._);
+	ChannelUserData_t* ud = channelUserData(c);
+	StackCoSche_function(ud->sche, TaskThread_channel_base_detach, c, NULL);
 }
 
 #ifdef __cplusplus

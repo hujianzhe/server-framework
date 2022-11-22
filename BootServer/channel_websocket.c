@@ -9,11 +9,11 @@ typedef struct ChannelUserDataWebsocket_t {
 	short ws_prev_is_fin;
 } ChannelUserDataWebsocket_t;
 
-static ChannelUserData_t* init_channel_user_data_websocket(ChannelUserDataWebsocket_t* ud, struct DataQueue_t* dq) {
+static ChannelUserData_t* init_channel_user_data_websocket(ChannelUserDataWebsocket_t* ud, struct StackCoSche_t* sche) {
 	dynarrInitZero(&ud->fragment_recv);
 	ud->ws_handshake_state = 0;
 	ud->ws_prev_is_fin = 1;
-	return initChannelUserData(&ud->_, dq);
+	return initChannelUserData(&ud->_, sche);
 }
 
 /********************************************************************/
@@ -122,7 +122,7 @@ static ChannelBaseProc_t s_websocket_server_proc = {
 	websocket_on_free
 };
 
-static ChannelBase_t* openChannelWebsocketServer(FD_t fd, const struct sockaddr* addr, struct DataQueue_t* dq) {
+static ChannelBase_t* openChannelWebsocketServer(FD_t fd, const struct sockaddr* addr, struct StackCoSche_t* sche) {
 	ChannelUserDataWebsocket_t* ud;
 	size_t sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataWebsocket_t);
 	ChannelBase_t* c = channelbaseOpen(sz, CHANNEL_FLAG_SERVER, fd, SOCK_STREAM, 0, addr);
@@ -131,7 +131,7 @@ static ChannelBase_t* openChannelWebsocketServer(FD_t fd, const struct sockaddr*
 	}
 	//
 	ud = (ChannelUserDataWebsocket_t*)(c + 1);
-	channelSetUserData(c, init_channel_user_data_websocket(ud, dq));
+	channelSetUserData(c, init_channel_user_data_websocket(ud, sche));
 	// c->_.write_fragment_size = 500;
 	c->proc = &s_websocket_server_proc;
 	c->heartbeat_timeout_sec = 20;
@@ -145,7 +145,7 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 	IPString_t ip;
 	unsigned short port;
 
-	conn_channel = openChannelWebsocketServer(newfd, peer_addr, channelUserData(listen_c)->dq);
+	conn_channel = openChannelWebsocketServer(newfd, peer_addr, channelUserData(listen_c)->sche);
 	if (!conn_channel) {
 		socketClose(newfd);
 		return;
@@ -166,7 +166,7 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 extern "C" {
 #endif
 
-ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct DataQueue_t* dq) {
+ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct StackCoSche_t* sche) {
 	Sockaddr_t local_saddr;
 	FD_t listen_fd;
 	ChannelBase_t* c;
@@ -197,7 +197,7 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 	c->proc = &s_websocket_server_proc;
 	c->on_ack_halfconn = websocket_accept_callback;
 	ud = (ChannelUserDataWebsocket_t*)(c + 1);
-	channelSetUserData(c, init_channel_user_data_websocket(ud, dq));
+	channelSetUserData(c, init_channel_user_data_websocket(ud, sche));
 	ud->on_recv = fn;
 	return c;
 err:

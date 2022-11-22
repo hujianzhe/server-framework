@@ -5,8 +5,7 @@
 #pragma comment(lib, "BootServer.lib")
 #endif
 
-extern int init(TaskThread_t*, int, char**);
-extern void destroy(TaskThread_t*);
+extern void init(struct StackCoSche_t* sche, void* arg);
 
 static void sigintHandler(int signo) {
 	stopBootServerGlobal();
@@ -30,7 +29,7 @@ int main(int argc, char** argv) {
 	// print boot cluster node info
 	printBootServerNodeInfo();
 	// run BootServer and wait BootServer end
-	runBootServerGlobal(argc, argv, init, destroy);
+	runBootServerGlobal(argc, argv, init);
 	// print BootServer run error
 	if (getBSGErrmsg()) {
 		fputs(getBSGErrmsg(), stderr);

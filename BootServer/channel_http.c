@@ -6,15 +6,16 @@ typedef struct ChannelUserDataHttp_t {
 	int rpc_id_recv;
 } ChannelUserDataHttp_t;
 
-static ChannelUserData_t* init_channel_user_data_http(ChannelUserDataHttp_t* ud, struct DataQueue_t* dq) {
+static ChannelUserData_t* init_channel_user_data_http(ChannelUserDataHttp_t* ud, struct StackCoSche_t* sche) {
 	ud->rpc_id_recv = 0;
-	return initChannelUserData(&ud->_, dq);
+	return initChannelUserData(&ud->_, sche);
 }
 
 /**************************************************************************/
 
 static void free_user_msg(UserMsg_t* msg) {
-	free(httpframeReset(msg->param.httpframe));
+	HttpFrame_t* frame = (HttpFrame_t*)msg->param.value;
+	free(httpframeReset(frame));
 	free(msg);
 }
 
@@ -27,8 +28,7 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 	}
 	message->channel = c;
 	httpframe->uri[httpframe->pathlen] = 0;
-	message->param.type = USER_MSG_PARAM_HTTP_FRAME;
-	message->param.httpframe = httpframe;
+	message->param.value = httpframe;
 	message->cmdstr = httpframe->uri;
 	message->cmdid = 0;
 	message->on_free = free_user_msg;
@@ -49,7 +49,12 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 	if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
 		message->enqueue_time_msec = gmtimeMillisecond();
 	}
-	dataqueuePush(channelUserData(c)->dq, &message->internal._);
+	if (RPC_STATUS_RESP == message->rpc_status) {
+		StackCoSche_resume_co(channelUserData(c)->sche, message->rpcid, message, (void(*)(void*))message->on_free);
+	}
+	else {
+		StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);
+	}
 }
 
 static int httpframe_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int buflen, long long timestamp_msec, const struct sockaddr* addr) {
@@ -96,7 +101,7 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const stru
 	IPString_t ip;
 	unsigned short port;
 
-	conn_channel = openChannelHttp(CHANNEL_FLAG_SERVER, newfd, peer_addr, channelUserData(listen_c)->dq);
+	conn_channel = openChannelHttp(CHANNEL_FLAG_SERVER, newfd, peer_addr, channelUserData(listen_c)->sche);
 	if (!conn_channel) {
 		socketClose(newfd);
 		return;
@@ -126,7 +131,7 @@ static ChannelBaseProc_t s_http_proc = {
 extern "C" {
 #endif
 
-ChannelBase_t* openChannelHttp(int flag, FD_t fd, const struct sockaddr* addr, struct DataQueue_t* dq) {
+ChannelBase_t* openChannelHttp(int flag, FD_t fd, const struct sockaddr* addr, struct StackCoSche_t* sche) {
 	ChannelUserDataHttp_t* ud;
 	size_t sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataHttp_t);
 	ChannelBase_t* c = channelbaseOpen(sz, flag, fd, SOCK_STREAM, 0, addr);
@@ -135,7 +140,7 @@ ChannelBase_t* openChannelHttp(int flag, FD_t fd, const struct sockaddr* addr, s
 	}
 	//
 	ud = (ChannelUserDataHttp_t*)(c + 1);
-	channelSetUserData(c, init_channel_user_data_http(ud, dq));
+	channelSetUserData(c, init_channel_user_data_http(ud, sche));
 	c->proc = &s_http_proc;
 	flag = c->flag;
 	if (flag & CHANNEL_FLAG_SERVER) {
@@ -144,7 +149,7 @@ ChannelBase_t* openChannelHttp(int flag, FD_t fd, const struct sockaddr* addr, s
 	return c;
 }
 
-ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct DataQueue_t* dq) {
+ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct StackCoSche_t* sche) {
 	Sockaddr_t local_saddr;
 	FD_t listen_fd;
 	ChannelBase_t* c;
@@ -177,7 +182,7 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Data
 	c->proc = &s_http_proc;
 	c->on_ack_halfconn = http_accept_callback;
 	ud = (ChannelUserDataHttp_t*)(c + 1);
-	channelSetUserData(c, init_channel_user_data_http(ud, dq));
+	channelSetUserData(c, init_channel_user_data_http(ud, sche));
 	return c;
 err:
 	socketClose(listen_fd);

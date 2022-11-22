@@ -28,7 +28,7 @@ extern "C" {
 ClusterNode_t* newClusterNode(const char* ident, int socktype, const IPString_t ip, unsigned short port);
 void freeClusterNode(ClusterNode_t* clsnd);
 __declspec_dll ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd);
-__declspec_dll void clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt);
+__declspec_dll int clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt);
 
 #ifdef __cplusplus
 }

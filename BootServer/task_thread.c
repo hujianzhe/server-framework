@@ -24,20 +24,27 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	else if (dispatch->null_dispatch_callback) {
 		dispatch->null_dispatch_callback(thrd, ctrl);
 	}
-	else {
-		if (USER_MSG_PARAM_HTTP_FRAME == ctrl->param.type) {
-			if (ctrl->param.httpframe) {
-				const char reply[] = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n";
-				channelbaseSend(ctrl->channel, reply, sizeof(reply) - 1, NETPACKET_FRAGMENT);
-				channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
-			}
-		}
-	}
-	ctrl->on_free(ctrl);
 }
 
-static void do_channel_detach(TaskThread_t* thrd, ChannelBase_t* channel) {
+void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
+	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
+	UserMsg_t* ctrl = (UserMsg_t*)arg;
+	ChannelBase_t* c = ctrl->channel;
+	if (c) {
+		channelbaseAddRef(c);
+		call_dispatch(thrd, ctrl);
+		channelbaseClose(c);
+	}
+	else {
+		call_dispatch(thrd, ctrl);
+	}
+}
+
+void TaskThread_channel_base_detach(struct StackCoSche_t* sche, void* arg) {
+	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
+	ChannelBase_t* channel = (ChannelBase_t*)arg;
 	Session_t* session = channelSession(channel);
+
 	if (thrd->on_channel_detach) {
 		thrd->on_channel_detach(thrd, channel);
 	}
@@ -57,261 +64,25 @@ static void do_channel_detach(TaskThread_t* thrd, ChannelBase_t* channel) {
 	channelbaseClose(channel);
 }
 
-static void rpc_fiber_msg_handler(RpcFiberCore_t* rpc, UserMsg_t* ctrl) {
-	TaskThread_t* thrd = (TaskThread_t*)rpc->base.runthread;
-	if (USER_MSG_PARAM_INIT == ctrl->param.type) {
-		if (!thrd->fn_init(thrd, thrd->init_argc, thrd->init_argv)) {
-			thrd->errmsg = strFormat(NULL, "task thread fn_init failure\n");
-			ptrBSG()->valid = 0;
-			return;
-		}
-	}
-	else if (USER_MSG_PARAM_CHANNEL_DETACH == ctrl->param.type) {
-		do_channel_detach(thrd, ctrl->channel);
-	}
-	else if (USER_MSG_PARAM_TIMER_EVENT == ctrl->param.type) {
-		RBTimerEvent_t* e = ctrl->param.timer_event;
-		e->callback(&thrd->timer, e);
+void TaskThread_default_clsnd_handshake(struct StackCoSche_t* sche, void* arg) {
+	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
+	UserMsg_t* ctrl = (UserMsg_t*)arg;
+	ChannelBase_t* channel = ctrl->channel;
+	ClusterNode_t* clsnd = flushClusterNodeFromJsonData(thrd->clstbl, (char*)ctrl->data);
+	if (clsnd) {
+		sessionReplaceChannel(&clsnd->session, channel);
+		clsnd->status = CLSND_STATUS_NORMAL;
 	}
 	else {
-		ChannelBase_t* c = ctrl->channel;
-		if (c) {
-			channelbaseAddRef(c);
-			call_dispatch(thrd, ctrl);
-			channelbaseClose(c);
-		}
-		else {
-			call_dispatch(thrd, ctrl);
-		}
+		channelbaseSendv(channel, NULL, 0, NETPACKET_FIN);
 	}
 }
 
 static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
-	ListNode_t* iter_cur, *iter_next;
-	TaskThread_t* thread = (TaskThread_t*)arg;
-	const Config_t* conf = ptrBSG()->conf;
-	Log_t* log = ptrBSG()->log;
-	RpcBaseCore_t* rpc_base;
-	// init rpc
-	if (conf->rpc_fiber) {
-		Fiber_t* thread_fiber = fiberFromThread();
-		if (!thread_fiber) {
-			thread->errmsg = strFormat(NULL, "task thread fiberFromThread error\n");
-			ptrBSG()->valid = 0;
-			return 1;
-		}
-		thread->f_rpc = (RpcFiberCore_t*)malloc(sizeof(RpcFiberCore_t));
-		if (!thread->f_rpc) {
-			thread->errmsg = strFormat(NULL, "task thread malloc(sizeof(RpcFiberCore_t)) error\n");
-			ptrBSG()->valid = 0;
-			return 1;
-		}
-		if (!rpcFiberCoreInit(thread->f_rpc, thread_fiber, conf->rpc_fiber_stack_size,
-				(void(*)(RpcFiberCore_t*, void*))rpc_fiber_msg_handler))
-		{
-			thread->errmsg = strFormat(NULL, "task thread rpcFiberCoreInit error\n");
-			ptrBSG()->valid = 0;
-			return 1;
-		}
-		thread->f_rpc->base.runthread = thread;
-		rpc_base = &thread->f_rpc->base;
-	}
-	else if (conf->rpc_async) {
-		thread->a_rpc = (RpcAsyncCore_t*)malloc(sizeof(RpcAsyncCore_t));
-		if (!thread->a_rpc) {
-			thread->errmsg = strFormat(NULL, "task thread malloc(sizeof(RpcAsyncCore_t)) error\n");
-			ptrBSG()->valid = 0;
-			return 1;
-		}
-		if (!rpcAsyncCoreInit(thread->a_rpc)) {
-			thread->errmsg = strFormat(NULL, "task thread rpcAsyncCoreInit error\n");
-			ptrBSG()->valid = 0;
-			return 1;
-		}
-		thread->a_rpc->base.runthread = thread;
-		rpc_base = &thread->a_rpc->base;
-	}
-	else {
-		rpc_base = NULL;
-	}
-	// call global init function
-	if (thread->fn_init) {
-		if (thread->f_rpc) {
-			UserMsg_t init_msg;
-			init_msg.param.type = USER_MSG_PARAM_INIT;
-			rpcFiberCoreResumeMsg(thread->f_rpc, &init_msg);
-		}
-		else if (!thread->fn_init(thread, ptrBSG()->argc, ptrBSG()->argv)) {
-			thread->errmsg = strFormat(NULL, "task thread fn_init failure\n");
-			ptrBSG()->valid = 0;
-			return 1;
-		}
-	}
-	// start loop
-	while (ptrBSG()->valid) {
-		int i;
-		long long cur_msec;
-		long long t[2] = {
-			rbtimerMiniumTimestamp(&thread->timer),
-			rpcGetMiniumTimeoutTimestamp(rpc_base)
-		};
-		long long wait_msec = -1;
-		for (i = 0; i < sizeof(t) / sizeof(t[0]); ++i) {
-			if (t[i] < 0) {
-				continue;
-			}
-			if (wait_msec < 0 || t[i] < wait_msec) {
-				wait_msec = t[i];
-			}
-		}
-		if (wait_msec > 0) {
-			cur_msec = gmtimeMillisecond();
-			if (wait_msec <= cur_msec) {
-				wait_msec = 0;
-			}
-			else {
-				wait_msec -= cur_msec;
-			}
-		}
-		iter_cur = dataqueuePopWait(&thread->dq, wait_msec, conf->once_handle_msg_maxcnt);
-		// handle message and event
-		cur_msec = gmtimeMillisecond();
-		for (; iter_cur; iter_cur = iter_next) {
-			ReactorCmd_t* rc = pod_container_of(iter_cur, ReactorCmd_t, _);
-			iter_next = iter_cur->next;
-			if (REACTOR_USER_CMD == rc->type) {
-				UserMsg_t* ctrl = pod_container_of(rc, UserMsg_t, internal);
-				Session_t* session;
-				if (ctrl->be_from_cluster) {
-					if (RPC_STATUS_HAND_SHAKE == ctrl->rpc_status) {
-						ChannelBase_t* channel = ctrl->channel;
-						ClusterNode_t* clsnd = flushClusterNodeFromJsonData(thread->clstbl, (char*)ctrl->data);
-						ctrl->on_free(ctrl);
-						if (clsnd) {
-							sessionReplaceChannel(&clsnd->session, channel);
-							clsnd->status = CLSND_STATUS_NORMAL;
-						}
-						else {
-							channelbaseSendv(channel, NULL, 0, NETPACKET_FIN);
-						}
-						continue;
-					}
-				}
-				if (conf->enqueue_timeout_msec > 0 && ctrl->enqueue_time_msec > 0) {
-					cur_msec = gmtimeMillisecond();
-					if (cur_msec - ctrl->enqueue_time_msec >= conf->enqueue_timeout_msec) {
-						ctrl->on_free(ctrl);
-						continue;
-					}
-				}
-				session = channelSession(ctrl->channel);
-				if (session && session->channel_client) {
-					ctrl->channel = session->channel_client;
-				}
+	TaskThread_t* thrd = (TaskThread_t*)arg;
 
-				if (thread->f_rpc) {
-					if (RPC_STATUS_RESP == ctrl->rpc_status) {
-						RpcItem_t* rpc_item = rpcFiberCoreResume(thread->f_rpc, ctrl->rpcid, ctrl);
-						ctrl->on_free(ctrl);
-						if (!rpc_item) {
-							continue;
-						}
-						freeRpcItemWhenNormal(rpc_item);
-					}
-					else {
-						rpcFiberCoreResumeMsg(thread->f_rpc, ctrl);
-					}
-				}
-				else if (thread->a_rpc) {
-					if (RPC_STATUS_RESP == ctrl->rpc_status) {
-						RpcItem_t* rpc_item = rpcAsyncCoreCallback(thread->a_rpc, ctrl->rpcid, ctrl);
-						ctrl->on_free(ctrl);
-						if (!rpc_item) {
-							continue;
-						}
-						freeRpcItemWhenNormal(rpc_item);
-					}
-					else {
-						call_dispatch(thread, ctrl);
-					}
-				}
-				else {
-					call_dispatch(thread, ctrl);
-				}
-			}
-			else if (REACTOR_CHANNEL_FREE_CMD == rc->type) {
-				ChannelBase_t* channel = pod_container_of(rc, ChannelBase_t, freecmd);
-				if ((channel->flag & CHANNEL_FLAG_CLIENT) ||
-					(channel->flag & CHANNEL_FLAG_SERVER))
-				{
-					freeRpcItemWhenChannelDetach(thread, channel);
-				}
-				if (thread->f_rpc) {
-					UserMsg_t detach_msg;
-					detach_msg.param.type = USER_MSG_PARAM_CHANNEL_DETACH;
-					detach_msg.channel = channel;
-					rpcFiberCoreResumeMsg(thread->f_rpc, &detach_msg);
-					continue;
-				}
-				do_channel_detach(thread, channel);
-			}
-		}
+	while (0 == StackCoSche_sche(thrd->sche, -1));
 
-		// handle timer event
-		cur_msec = gmtimeMillisecond();
-		if (rpc_base) {
-			for (i = 0; i < conf->once_rpc_timeout_items_maxcnt; ++i) {
-				RpcItem_t* rpc_item = rpcGetTimeoutItem(rpc_base, cur_msec);
-				if (!rpc_item) {
-					break;
-				}
-				if (thread->f_rpc) {
-					rpcFiberCoreCancel(thread->f_rpc, rpc_item);
-				}
-				else {
-					rpcAsyncCoreCancel(thread->a_rpc, rpc_item);
-				}
-				freeRpcItemWhenNormal(rpc_item);
-			}
-		}
-		if (thread->f_rpc) {
-			UserMsg_t timer_msg;
-			timer_msg.param.type = USER_MSG_PARAM_TIMER_EVENT;
-			for (i = 0; i < conf->once_timeout_events_maxcnt; ++i) {
-				RBTimerEvent_t* e = rbtimerTimeoutPopup(&thread->timer, cur_msec);
-				if (!e) {
-					break;
-				}
-				timer_msg.param.timer_event = e;
-				rpcFiberCoreResumeMsg(thread->f_rpc, &timer_msg);
-			}
-		}
-		else {
-			for (i = 0; i < conf->once_timeout_events_maxcnt; ++i) {
-				RBTimerEvent_t* e = rbtimerTimeoutPopup(&thread->timer, cur_msec);
-				if (!e) {
-					break;
-				}
-				e->callback(&thread->timer, e);
-			}
-		}
-	}
-	// thread exit clean
-	if (thread->f_rpc) {
-		rpcFiberCoreDestroy(thread->f_rpc);
-		fiberFree(thread->f_rpc->sche_fiber);
-		free(thread->f_rpc);
-		thread->f_rpc = NULL;
-	}
-	else if (thread->a_rpc) {
-		rpcAsyncCoreDestroy(thread->a_rpc);
-		free(thread->a_rpc);
-		thread->a_rpc = NULL;
-	}
-
-	if (thread->fn_destroy) {
-		thread->fn_destroy(thread);
-	}
 	return 0;
 }
 
@@ -342,22 +113,18 @@ static void __remove_task_thread(TaskThread_t* t) {
 	_xchg32(&s_allTaskThreadsSpinLock, 0);
 }
 
-TaskThread_t* newTaskThread(void) {
-	int dq_ok = 0, timer_ok = 0, dispatch_ok = 0, seedval = 0;
+TaskThread_t* newTaskThread(size_t co_stack_size) {
+	int sche_ok = 0, dispatch_ok = 0, seedval = 0;
 	TaskThread_t* t = (TaskThread_t*)malloc(sizeof(TaskThread_t));
 	if (!t) {
 		return NULL;
 	}
 
-	if (!dataqueueInit(&t->dq)) {
+	t->sche = StackCoSche_new(co_stack_size, t);
+	if (!t->sche) {
 		goto err;
 	}
-	dq_ok = 1;
-
-	if (!rbtimerInit(&t->timer)) {
-		goto err;
-	}
-	timer_ok = 1;
+	sche_ok = 1;
 
 	t->dispatch = newDispatch();
 	if (!t->dispatch) {
@@ -369,13 +136,7 @@ TaskThread_t* newTaskThread(void) {
 		goto err;
 	}
 
-	t->f_rpc = NULL;
-	t->a_rpc = NULL;
 	t->clstbl = NULL;
-	t->init_argc = 0;
-	t->init_argv = NULL;
-	t->fn_init = NULL;
-	t->fn_destroy = NULL;
 	t->errmsg = NULL;
 	seedval = time(NULL);
 	rand48Seed(&t->rand48_ctx, seedval);
@@ -384,11 +145,8 @@ TaskThread_t* newTaskThread(void) {
 	t->on_channel_detach = NULL;
 	return t;
 err:
-	if (dq_ok) {
-		dataqueueDestroy(&t->dq);
-	}
-	if (timer_ok) {
-		rbtimerDestroy(&t->timer);
+	if (sche_ok) {
+		StackCoSche_destroy(t->sche);
 	}
 	if (dispatch_ok) {
 		freeDispatch(t->dispatch);
@@ -405,15 +163,7 @@ void freeTaskThread(TaskThread_t* t) {
 	ListNode_t *lcur, *lnext;
 	if (t) {
 		__remove_task_thread(t);
-		for (lcur = dataqueueDestroy(&t->dq); lcur; lcur = lnext) {
-			ReactorCmd_t* rc = pod_container_of(lcur, ReactorCmd_t, _);
-			lnext = lcur->next;
-			if (REACTOR_USER_CMD == rc->type) {
-				UserMsg_t* ctrl = pod_container_of(rc, UserMsg_t, internal);
-				ctrl->on_free(ctrl);
-			}
-		}
-		rbtimerDestroy(&t->timer);
+		StackCoSche_destroy(t->sche);
 		freeDispatch(t->dispatch);
 		free((void*)t->errmsg);
 		free(t);

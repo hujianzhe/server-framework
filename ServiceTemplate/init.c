@@ -1,7 +1,7 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
 
-int init(TaskThread_t* thrd, int argc, char** argv) {
+void init(struct StackCoSche_t* sche, void* arg) {
 	ConfigConnectOption_t* option = NULL;
 	unsigned int i;
 
@@ -10,22 +10,17 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 		const ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
 		ChannelBase_t* c;
 		if (!strcmp(option->protocol, "http")) {
-			c = openListenerHttp(option->ip, option->port, &thrd->dq);
+			c = openListenerHttp(option->ip, option->port, sche);
 		}
 		else {
 			continue;
 		}
 		if (!c) {
 			logErr(ptrBSG()->log, "listen failure, ip:%s, port:%u ......", option->ip, option->port);
-			return 0;
+			return;
 		}
 		channelbaseReg(acceptReactor(), c);
 	}
 
 	logInfo(ptrBSG()->log, "init ok ......");
-	return 1;
-}
-
-void destroy(TaskThread_t* thrd) {
-
 }

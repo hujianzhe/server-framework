@@ -5,10 +5,11 @@
 #include "util/inc/component/net_channel_rw.h"
 
 struct Session_t;
-struct DataQueue_t;
+struct StackCoSche_t;
+
 typedef struct ChannelUserData_t {
 	struct Session_t* session;
-	struct DataQueue_t* dq;
+	struct StackCoSche_t* sche;
 	int rpc_id_syn_ack;
 	int text_data_print_log;
 } ChannelUserData_t;
@@ -23,7 +24,7 @@ typedef void(*FnChannelOnRecv_t)(ChannelBase_t*, unsigned char*, size_t, const s
 extern "C" {
 #endif
 
-__declspec_dll ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, struct DataQueue_t* dq);
+__declspec_dll ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, struct StackCoSche_t* sche);
 __declspec_dll void defaultChannelOnReg(ChannelBase_t* c, long long timestamp_msec);
 __declspec_dll void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec);
 __declspec_dll void defaultChannelOnDetach(ChannelBase_t* c);

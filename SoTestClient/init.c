@@ -11,86 +11,72 @@ static int start_req_login_test(ChannelBase_t* channel) {
 	return 1;
 }
 
-static void rpc_async_req_login_test(RpcItem_t* rpc_item) {
-	ChannelBase_t* channel = (ChannelBase_t*)rpc_item->udata;
-	if (rpc_item->ret_msg) {
-		if (start_req_login_test(channel)) {
-			return;
-		}
-	}
-	else {
-		IPString_t ip;
-		unsigned short port;
-		sockaddrDecode(&channel->connect_addr.sa, ip, &port);
-		logErr(ptrBSG()->log, "%s channel(%p) connect %s:%hu failure", __FUNCTION__, channel, ip, port);
-	}
-	ptrBSG()->valid = 0;
-}
-
-static void frpc_test_paralle(TaskThread_t* thrd, ChannelBase_t* channel) {
+static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel) {
 	InnerMsg_t msg;
 	char test_data[] = "test paralle ^.^";
-	int i, cnt_rpc = 0;
-	RpcItem_t* rpc_item;
+	int i, cnt_sub_co = 0;
+	long long tm_msec = gmtimeMillisecond();
+	StackCo_t* sub_co_arr[4];
 	for (i = 0; i < 2; ++i) {
-		rpc_item = newChannelRpcItemFiber(channel, 1000, NULL, NULL);
-		if (!rpc_item) {
+		StackCo_t* co;
+		co = StackCoSche_block_point_util(sche, tm_msec + 1000);
+		if (!co) {
 			continue;
 		}
-		makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
+		makeInnerMsgRpcReq(&msg, co->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
 		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-		//rpc_item = rpcFiberCoreYield(thrd->f_rpc);
-		rpc_item->udata = CMD_REQ_ParallelTest1;
-		cnt_rpc++;
+		sub_co_arr[cnt_sub_co++] = co;
 
-		rpc_item = newChannelRpcItemFiber(channel, 1000, NULL, NULL);
-		if (!rpc_item) {
+		co = StackCoSche_block_point_util(sche, tm_msec + 1000);
+		if (!co) {
 			continue;
 		}
-		makeInnerMsgRpcReq(&msg, rpc_item->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
+		makeInnerMsgRpcReq(&msg, co->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
 		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-		//rpc_item = rpcFiberCoreYield(thrd->f_rpc);
-		rpc_item->udata = CMD_REQ_ParallelTest2;
-		cnt_rpc++;
+		sub_co_arr[cnt_sub_co++] = co;
 	}
-	while (cnt_rpc--) {
+	for (i = 0; i < cnt_sub_co; ++i) {
 		UserMsg_t* ret_msg;
-		rpc_item = rpcFiberCoreYield(thrd->f_rpc);
-		if (!rpc_item->ret_msg) {
-			printf("rpc identity(%zu) call failure timeout or cancel\n", rpc_item->udata);
+		StackCo_t* co = StackCoSche_yield(sche);
+		if (!co) {
+			return;
+		}
+		if (co->status != STACK_CO_STATUS_FINISH) {
+			printf("rpc identity(%d) call failure timeout or cancel\n", co->id);
 			continue;
 		}
-		ret_msg = (UserMsg_t*)rpc_item->ret_msg;
-		printf("rpc identity(%zu) return: %s ...\n", rpc_item->udata, ret_msg->data);
+		ret_msg = (UserMsg_t*)co->resume_ret;
+		printf("rpc identity(%d) return: %s ...\n", co->id, ret_msg->data);
 	}
 }
 
-static void test_timer(RBTimer_t* timer, RBTimerEvent_t* e) {
-	logInfo(ptrBSG()->log, "test_timer============================================");
-	e->timestamp += e->interval;
-	rbtimerAddEvent(timer, e);
+static void test_timer(struct StackCoSche_t* sche, void* arg) {
+	StackCo_t* co;
+	while (1) {
+		logInfo(ptrBSG()->log, "test_timer============================================");
+		StackCoSche_sleep_util(sche, gmtimeMillisecond() + 1000);
+		co = StackCoSche_yield(sche);
+		if (!co || co->status != STACK_CO_STATUS_FINISH) {
+			break;
+		}
+		StackCoSche_reuse_co(co);
+	}
 }
 
-int init(TaskThread_t* thrd, int argc, char** argv) {
+void init(struct StackCoSche_t* sche, void* arg) {
 	int i;
-	RBTimerEvent_t* timer_event;
+	StackCo_t* co;
+	TaskThread_t* thrd = currentTaskThread();
 
 	regNumberDispatch(thrd->dispatch, CMD_NOTIFY_TEST, notifyTest);
 	regNumberDispatch(thrd->dispatch, CMD_RET_TEST, retTest);
 	regNumberDispatch(thrd->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
 
 	// add timer
-	timer_event = (RBTimerEvent_t*)calloc(1, sizeof(RBTimerEvent_t));
-	if (timer_event) {
-		timer_event->timestamp = gmtimeMillisecond() / 1000 * 1000 + 1000;
-		timer_event->interval = 1000;
-		timer_event->callback = test_timer;
-		rbtimerAddEvent(&thrd->timer, timer_event);
-	}
+	StackCoSche_timeout_util(sche, gmtimeMillisecond() / 1000 * 1000 + 1000, test_timer, NULL, NULL);
 
 	for (i = 0; i < ptrBSG()->conf->connect_options_cnt; ++i) {
 		const ConfigConnectOption_t* option = ptrBSG()->conf->connect_options + i;
-		RpcItem_t* rpc_item;
 		Sockaddr_t connect_addr;
 		ChannelBase_t* c;
 		int domain;
@@ -100,59 +86,35 @@ int init(TaskThread_t* thrd, int argc, char** argv) {
 		}
 		domain = ipstrFamily(option->ip);
 		if (!sockaddrEncode(&connect_addr.sa, domain, option->ip, option->port)) {
-			return 0;
+			return;
 		}
-		c = openChannelInner(CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, option->socktype, &connect_addr.sa, &thrd->dq);
+		c = openChannelInner(CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, option->socktype, &connect_addr.sa, sche);
 		if (!c) {
 			channelbaseClose(c);
-			return 0;
+			return;
 		}
+		c->on_syn_ack = defaultRpcOnSynAck;
 		c->o->stream.max_connect_timeout_sec = 5;
+
 		logInfo(ptrBSG()->log, "channel(%p) connecting......", c);
-		if (thrd->f_rpc || thrd->a_rpc) {
-			c->on_syn_ack = defaultRpcOnSynAck;
-			if (thrd->f_rpc) {
-				rpc_item = newRpcItemFiberReady(c, 5000, NULL, NULL);
-				if (!rpc_item) {
-					channelbaseClose(c);
-					return 1;
-				}
-				channelUserData(c)->rpc_id_syn_ack = rpc_item->id;
-				channelbaseReg(selectReactor(), c);
-				rpc_item = rpcFiberCoreYield(thrd->f_rpc);
-				if (rpc_item->ret_msg) {
-					frpc_test_paralle(thrd, c);
-					if (!start_req_login_test(c)) {
-						return 0;
-					}
-				}
-				else {
-					logErr(ptrBSG()->log, "channel(%p) connect %s:%u failure", c, option->ip, option->port);
-					return 0;
-				}
-			}
-			else {
-				rpc_item = newRpcItemAsyncReady(c, 5000, NULL, rpc_async_req_login_test);
-				if (!rpc_item) {
-					channelbaseClose(c);
-					return 1;
-				}
-				rpc_item->udata = (size_t)c;
-				channelUserData(c)->rpc_id_syn_ack = rpc_item->id;
-				channelbaseReg(selectReactor(), c);
-			}
+
+		co = StackCoSche_block_point_util(sche, gmtimeMillisecond() + 5000);
+		if (!co) {
+			channelbaseClose(c);
+			return;
 		}
-		else {
-			channelbaseReg(selectReactor(), c);
-			if (!start_req_login_test(c)) {
-				return 0;
-			}
+		channelUserData(c)->rpc_id_syn_ack = co->id;
+		channelbaseReg(selectReactor(), c);
+		co = StackCoSche_yield(sche);
+		if (!co || co->status != STACK_CO_STATUS_FINISH) {
+			logErr(ptrBSG()->log, "channel(%p) connect %s:%u failure", c, option->ip, option->port);
+			return;
+		}
+
+		logInfo(ptrBSG()->log, "channel(%p) connect success......", c);
+		frpc_test_paralle(sche, c);
+		if (!start_req_login_test(c)) {
+			return;
 		}
 	}
-
-	return 1;
-}
-
-void destroy(TaskThread_t* thrd) {
-
 }

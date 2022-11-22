@@ -40,8 +40,6 @@
 	"net_thread_cnt" : 0,
 	"cluster_table_path" : "./cluster_table_config_template.txt",
 	"rpc_fiber_stack_size_kb" : 64,
-	"rpc_fiber" : 1,
-	"rpc_async" : 0,
 	"tcp_nodelay" : 1,
 	"udp_cwndsize" : 40,
 	"enqueue_timeout_msec" : 0,

@@ -35,7 +35,7 @@ BOOL initBootServerGlobal(const char* conf_path) {
 		return FALSE;
 	}
 	// init task thread
-	s_BSG.default_task_thread = newTaskThread();
+	s_BSG.default_task_thread = newTaskThread(s_Config.rpc_fiber_stack_size);
 	if (!s_BSG.default_task_thread) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread create failure\n");
 		return FALSE;
@@ -93,11 +93,11 @@ void printBootServerNodeInfo(void) {
 		listen_opt->ip, listen_opt->port, processId());
 }
 
-BOOL runBootServerGlobal(int argc, char** argv, int(*fn_init)(TaskThread_t*, int, char**), void(*fn_destroy)(TaskThread_t*)) {
+BOOL runBootServerGlobal(int argc, char** argv, void(*fn_init)(struct StackCoSche_t*, void*)) {
 	// listen self cluster node port, if needed
 	ConfigListenOption_t* listen_opt = &s_Config.clsnd.listen_option;
 	if (!strcmp(listen_opt->protocol, "default")) {
-		ChannelBase_t* c = openListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, &s_BSG.default_task_thread->dq);
+		ChannelBase_t* c = openListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, s_BSG.default_task_thread->sche);
 		if (!c) {
 			s_BSG.errmsg = strFormat(NULL, "listen self cluster node err, ip:%s, port:%u\n", listen_opt->ip, listen_opt->port);
 			return FALSE;
@@ -112,10 +112,7 @@ BOOL runBootServerGlobal(int argc, char** argv, int(*fn_init)(TaskThread_t*, int
 	// run task thread
 	s_BSG.argc = argc;
 	s_BSG.argv = argv;
-	s_BSG.default_task_thread->init_argc = argc;
-	s_BSG.default_task_thread->init_argv = argv;
-	s_BSG.default_task_thread->fn_init = fn_init;
-	s_BSG.default_task_thread->fn_destroy = fn_destroy;
+	StackCoSche_function(s_BSG.default_task_thread->sche, fn_init, NULL, NULL);
 	if (!runTaskThread(s_BSG.default_task_thread)) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread boot failure\n");
 		return FALSE;
@@ -133,7 +130,7 @@ void stopBootServerGlobal(void) {
 	}
 	s_BSG.valid = 0;
 	if (s_BSG.default_task_thread) {
-		dataqueueWake(&s_BSG.default_task_thread->dq);
+		StackCoSche_exit(s_BSG.default_task_thread->sche);
 	}
 	wakeupNetThreads();
 }

@@ -15,7 +15,6 @@
 #include "dispatch.h"
 #include "msg_struct.h"
 #include "net_thread.h"
-#include "rpc_helper.h"
 #include "session_struct.h"
 #include "task_thread.h"
 #include <stdlib.h>
@@ -41,7 +40,7 @@ __declspec_dll int checkStopBSG(void);
 
 __declspec_dll BOOL initBootServerGlobal(const char* conf_path);
 __declspec_dll void printBootServerNodeInfo(void);
-__declspec_dll BOOL runBootServerGlobal(int argc, char** argv, int(*fn_init)(TaskThread_t*, int, char**), void(*fn_destroy)(TaskThread_t*));
+__declspec_dll BOOL runBootServerGlobal(int argc, char** argv, void(*fn_init)(struct StackCoSche_t*, void*));
 __declspec_dll void stopBootServerGlobal(void);
 __declspec_dll void freeBootServerGlobal(void);
 

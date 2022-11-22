@@ -28,7 +28,7 @@ void reqTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 }
 
 void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	HttpFrame_t* httpframe = ctrl->param.httpframe;
+	HttpFrame_t* httpframe = (HttpFrame_t*)ctrl->param.value;
 	printf("recv http browser ... %s\n", httpframe->query);
 
 	const char test_data[] = "C server say hello world, yes ~.~";
@@ -52,7 +52,7 @@ void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 }
 
 void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	HttpFrame_t* httpframe = ctrl->param.httpframe;
+	HttpFrame_t* httpframe = (HttpFrame_t*)ctrl->param.value;
 	printf("module recv http browser ... %s\n", httpframe->query);
 
 	const char test_data[] = "C so/dll server say hello world, yes ~.~";
@@ -105,7 +105,7 @@ void reqParallelTest2(TaskThread_t* thrd, UserMsg_t* ctrl) {
 }
 
 void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	HttpFrame_t* httpframe = ctrl->param.httpframe;
+	HttpFrame_t* httpframe = (HttpFrame_t*)ctrl->param.value;
 	ListNode_t* cur, *next;
 	char* reply;
 	int replylen;

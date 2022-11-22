@@ -17,14 +17,10 @@ extern "C" {
 UserMsg_t* newUserMsg(size_t datalen) {
 	UserMsg_t* msg = (UserMsg_t*)malloc(sizeof(UserMsg_t) + datalen);
 	if (msg) {
-		msg->internal.type = REACTOR_USER_CMD;
 		msg->channel = NULL;
 		msg->peer_addr.sa.sa_family = AF_UNSPEC;
 		msg->on_free = free_user_msg;
-		msg->be_from_cluster = 0;
 		msg->param.type = 0;
-		msg->param.httpframe = NULL;
-		msg->param.timer_event = NULL;
 		msg->param.value = NULL;
 		msg->enqueue_time_msec = -1;
 		msg->cmdstr = NULL;

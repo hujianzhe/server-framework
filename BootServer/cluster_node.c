@@ -80,7 +80,7 @@ ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 			free(hs_data);
 			return NULL;
 		}
-		channel = openChannelInner(CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, clsnd->socktype, &saddr.sa, &thrd->dq);
+		channel = openChannelInner(CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, clsnd->socktype, &saddr.sa, thrd->sche);
 		if (!channel) {
 			free(hs_data);
 			return NULL;
@@ -96,25 +96,18 @@ ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 	return channel;
 }
 
-void clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt) {
+int clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt) {
 	ChannelBase_t* c;
 	unsigned int i;
 	if (0 == strcmp(clsnd->ident, ptrBSG()->conf->clsnd.ident)) {
-		return;
-	}
-	for (i = 0; i < iovcnt; ++i) {
-		if (iobufLen(iov + i) > 0) {
-			break;
-		}
-	}
-	if (i == iovcnt) {
-		return;
+		return 0;
 	}
 	c = connectClusterNode(clsnd);
 	if (!c) {
-		return;
+		return 0;
 	}
 	channelbaseSendv(c, iov, iovcnt, NETPACKET_FRAGMENT);
+	return 1;
 }
 
 #ifdef __cplusplus

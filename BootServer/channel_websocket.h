@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-__declspec_dll ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct DataQueue_t* dq);
+__declspec_dll ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct StackCoSche_t* sche);
 
 #ifdef __cplusplus
 }

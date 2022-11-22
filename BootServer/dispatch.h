@@ -3,29 +3,16 @@
 
 #include "util/inc/component/reactor.h"
 
-enum {
-	USER_MSG_PARAM_INIT = 1,
-	USER_MSG_PARAM_HTTP_FRAME,
-	USER_MSG_PARAM_TIMER_EVENT,
-	USER_MSG_PARAM_CHANNEL_DETACH,
-};
-
 struct HttpFrame_t;
 struct RBTimerEvent_t;
 
 typedef struct UserMsg_t {
-	ReactorCmd_t internal;
 	ChannelBase_t* channel;
 	Sockaddr_t peer_addr;
 	void(*on_free)(struct UserMsg_t* self);
-	short be_from_cluster;
 	struct {
 		short type;
-		union {
-			struct HttpFrame_t* httpframe;
-			struct RBTimerEvent_t* timer_event; /* fiber use */
-			const void* value; /* any value */
-		};
+		const void* value; /* any value */
 	} param;
 	long long enqueue_time_msec;
 	const char* cmdstr;

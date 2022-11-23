@@ -160,7 +160,6 @@ BOOL runTaskThread(TaskThread_t* t) {
 }
 
 void freeTaskThread(TaskThread_t* t) {
-	ListNode_t *lcur, *lnext;
 	if (t) {
 		__remove_task_thread(t);
 		StackCoSche_destroy(t->sche);

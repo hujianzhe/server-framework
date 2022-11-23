@@ -98,7 +98,6 @@ ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 
 int clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt) {
 	ChannelBase_t* c;
-	unsigned int i;
 	if (0 == strcmp(clsnd->ident, ptrBSG()->conf->clsnd.ident)) {
 		return 0;
 	}

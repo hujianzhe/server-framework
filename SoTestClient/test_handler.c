@@ -11,7 +11,7 @@ void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 	char test_data[] = "this text is from client ^.^";
 	InnerMsg_t msg;
 	long long tm_msec = gmtimeMillisecond();
-	StackCo_t* sub_co_arr[2], *ret_co;
+	StackCo_t* sub_co_arr[2];
 	//
 	sub_co_arr[0] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000);
 	if (!sub_co_arr[0]) {

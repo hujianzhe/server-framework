@@ -53,6 +53,7 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 
 		if (REDIS_REPLY_ARRAY == reply->type) {
 			if (reply->elements <= 0) {
+				RedisReply_free(reply);
 				continue;
 			}
 			if (0 == strncmp("message", reply->element[0]->str, reply->element[0]->len)) {
@@ -77,16 +78,19 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 		}
 
 		if (dynarrIsEmpty(&ud->rpc_ids)) {
+			RedisReply_free(reply);
 			continue;
 		}
 		rpc_id = ud->rpc_ids.buf[0];
 		dynarrRemoveIdx(&ud->rpc_ids, 0);
 		if (0 == rpc_id) {
+			RedisReply_free(reply);
 			continue;
 		}
 
 		message = newUserMsg(0);
 		if (!message) {
+			RedisReply_free(reply);
 			return -1;
 		}
 		message->on_free = free_user_msg;
@@ -103,6 +107,10 @@ static int redis_cli_on_pre_send(ChannelBase_t* channel, NetPacket_t* packet, lo
 	int rpc_id;
 	int ret_ok;
 	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
+	if (packet->bodylen < sizeof(int)) {
+		channel->valid = 0;
+		return 0;
+	}
 
 	rpc_id = *(int*)(packet->buf + packet->bodylen - sizeof(int));
 	dynarrInsert(&ud->rpc_ids, ud->rpc_ids.len, rpc_id, ret_ok);
@@ -114,14 +122,13 @@ static int redis_cli_on_pre_send(ChannelBase_t* channel, NetPacket_t* packet, lo
 }
 
 static void redis_cli_on_heartbeat(ChannelBase_t* channel, int heartbeat_times) {
-	int ret_ok;
 	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
-
-	dynarrInsert(&ud->rpc_ids, ud->rpc_ids.len, 0, ret_ok);
-	if (!ret_ok) {
-		return;
-	}
-	channelbaseSend(channel, ud->ping_cmd, ud->ping_cmd_len, NETPACKET_NO_ACK_FRAGMENT);
+	int rpc_id = 0;
+	Iobuf_t iovs[2] = {
+		iobufStaticInit(ud->ping_cmd, ud->ping_cmd_len),
+		iobufStaticInit(&rpc_id, sizeof(rpc_id))
+	};
+	channelbaseSendv(channel, iovs, 2, NETPACKET_NO_ACK_FRAGMENT);
 }
 
 static void redis_cli_on_free(ChannelBase_t* channel) {

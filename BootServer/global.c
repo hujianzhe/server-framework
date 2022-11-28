@@ -23,11 +23,10 @@ BOOL initBootServerGlobal(const char* conf_path) {
 	}
 	s_BSG.conf = &s_Config;
 	// init log
-	if (!logInit(&s_Log, "", s_Config.log.pathname)) {
+	if (!logInit(&s_Log, s_Config.log.maxfilesize, "", s_Config.log.pathname)) {
 		s_BSG.errmsg = strFormat(NULL, "logInit(%s) error\n", s_Config.log.pathname);
 		return FALSE;
 	}
-	s_Log.m_maxfilesize = s_Config.log.maxfilesize;
 	s_BSG.log = &s_Log;
 	// init net thread resource
 	if (!newNetThreadResource(s_Config.net_thread_cnt)) {
@@ -84,9 +83,6 @@ BOOL initBootServerGlobal(const char* conf_path) {
 
 void printBootServerNodeInfo(void) {
 	ConfigListenOption_t* listen_opt = &s_Config.clsnd.listen_option;
-	logInfo(&s_Log, "server boot, clsnd_ident:%s, socktype:%s, ip:%s, port:%u, pid:%zu",
-		s_Config.clsnd.ident, if_socktype2string(listen_opt->socktype),
-		listen_opt->ip, listen_opt->port, processId());
 
 	fprintf(stderr, "server boot, clsnd_ident:%s, socktype:%s, ip:%s, port:%u, pid:%zu\n",
 		s_Config.clsnd.ident, if_socktype2string(listen_opt->socktype),

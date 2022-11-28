@@ -112,7 +112,7 @@ static void websocket_on_free(ChannelBase_t* channel) {
 }
 
 static ChannelBaseProc_t s_websocket_server_proc = {
-	defaultChannelOnReg,
+	NULL,
 	NULL,
 	websocket_on_read,
 	websocket_hdrsize,
@@ -142,8 +142,6 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 	ChannelUserDataWebsocket_t* listen_ud = (ChannelUserDataWebsocket_t*)channelUserData(listen_c);
 	ChannelBase_t* conn_channel;
 	ChannelUserDataWebsocket_t* conn_ud;
-	IPString_t ip;
-	unsigned short port;
 
 	conn_channel = openChannelWebsocketServer(newfd, peer_addr, channelUserData(listen_c)->sche);
 	if (!conn_channel) {
@@ -153,13 +151,6 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 	conn_ud = (ChannelUserDataWebsocket_t*)channelUserData(conn_channel);
 	conn_ud->on_recv = listen_ud->on_recv;
 	channelbaseReg(selectReactor(), conn_channel);
-
-	if (sockaddrDecode(peer_addr, ip, &port)) {
-		logInfo(ptrBSG()->log, "accept new socket(%zu), ip:%s, port:%hu", newfd, ip, port);
-	}
-	else {
-		logErr(ptrBSG()->log, "accept parse sockaddr error");
-	}
 }
 
 #ifdef __cplusplus

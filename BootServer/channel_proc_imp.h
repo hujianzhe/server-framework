@@ -25,7 +25,6 @@ extern "C" {
 #endif
 
 __declspec_dll ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, struct StackCoSche_t* sche);
-__declspec_dll void defaultChannelOnReg(ChannelBase_t* c, long long timestamp_msec);
 __declspec_dll void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec);
 __declspec_dll void defaultChannelOnDetach(ChannelBase_t* c);
 

@@ -139,7 +139,7 @@ static void redis_cli_on_free(ChannelBase_t* channel) {
 }
 
 static ChannelBaseProc_t s_redis_cli_proc = {
-	defaultChannelOnReg,
+	NULL,
 	NULL,
 	redis_cli_on_read,
 	NULL,

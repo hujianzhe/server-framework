@@ -121,8 +121,6 @@ static ChannelUserData_t* init_channel_user_data_inner(ChannelUserDataInner_t* u
 
 static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
 	ChannelBase_t* conn_channel;
-	IPString_t ip;
-	unsigned short port;
 
 	conn_channel = openChannelInner(CHANNEL_FLAG_SERVER, newfd, listen_c->socktype, peer_addr, channelUserData(listen_c)->sche);
 	if (!conn_channel) {
@@ -130,13 +128,6 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 		return;
 	}
 	channelbaseReg(selectReactor(), conn_channel);
-
-	if (sockaddrDecode(peer_addr, ip, &port)) {
-		logInfo(ptrBSG()->log, "accept new socket(%zu), ip:%s, port:%hu", newfd, ip, port);
-	}
-	else {
-		logErr(ptrBSG()->log, "accept parse sockaddr error");
-	}
 }
 
 static void innerchannel_on_heartbeat(ChannelBase_t* c, int heartbeat_times) {
@@ -180,7 +171,7 @@ static void innerchannel_on_free(ChannelBase_t* channel) {
 }
 
 static ChannelBaseProc_t s_inner_proc = {
-	defaultChannelOnReg,
+	NULL,
 	innerchannel_on_exec,
 	innerchannel_on_read,
 	innerchannel_hdrsize,

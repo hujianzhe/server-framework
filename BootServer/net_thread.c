@@ -71,7 +71,6 @@ static unsigned int THREAD_CALL reactorThreadEntry(void* arg) {
 	while (ptrBSG()->valid) {
 		res = reactorHandle(reactor, ev, ev_cnt, 1000);
 		if (res < 0) {
-			logErr(ptrBSG()->log, "reactorHandle error:%d", errnoGet());
 			break;
 		}
 	}

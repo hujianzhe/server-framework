@@ -3,9 +3,12 @@
 #include "task_thread.h"
 #include <stdio.h>
 
-static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	DispatchCallback_t callback;
+void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
+	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
+	UserMsg_t* ctrl = (UserMsg_t*)arg;
+	ChannelBase_t* c;
 	Dispatch_t* dispatch = thrd->dispatch;
+	DispatchCallback_t callback;
 
 	if (ctrl->cmdstr) {
 		callback = getStringDispatch(dispatch, ctrl->cmdstr);
@@ -13,30 +16,27 @@ static void call_dispatch(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	else {
 		callback = getNumberDispatch(dispatch, ctrl->cmdid);
 	}
-	if (callback) {
-		if (thrd->filter_callback) {
-			thrd->filter_callback(thrd, callback, ctrl);
-		}
-		else {
-			callback(thrd, ctrl);
+	if (!callback) {
+		callback = dispatch->null_dispatch_callback;
+		if (!callback) {
+			return;
 		}
 	}
-	else if (dispatch->null_dispatch_callback) {
-		dispatch->null_dispatch_callback(thrd, ctrl);
-	}
-}
 
-void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
-	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
-	UserMsg_t* ctrl = (UserMsg_t*)arg;
-	ChannelBase_t* c = ctrl->channel;
+	c = ctrl->channel;
 	if (c) {
 		channelbaseAddRef(c);
-		call_dispatch(thrd, ctrl);
-		channelbaseClose(c);
+	}
+
+	if (thrd->filter_callback) {
+		thrd->filter_callback(thrd, callback, ctrl);
 	}
 	else {
-		call_dispatch(thrd, ctrl);
+		callback(thrd, ctrl);
+	}
+
+	if (c) {
+		channelbaseClose(c);
 	}
 }
 

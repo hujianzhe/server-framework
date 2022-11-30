@@ -3,9 +3,6 @@
 
 #include "util/inc/component/reactor.h"
 
-struct HttpFrame_t;
-struct RBTimerEvent_t;
-
 typedef struct UserMsg_t {
 	ChannelBase_t* channel;
 	Sockaddr_t peer_addr;

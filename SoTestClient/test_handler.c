@@ -11,40 +11,40 @@ void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 	char test_data[] = "this text is from client ^.^";
 	InnerMsg_t msg;
 	long long tm_msec = gmtimeMillisecond();
-	StackCo_t* sub_co_arr[2];
+	StackCoBlock_t* sub_block_arr[2];
 	//
-	sub_co_arr[0] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000);
-	if (!sub_co_arr[0]) {
+	sub_block_arr[0] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000);
+	if (!sub_block_arr[0]) {
 		return;
 	}
-	makeInnerMsgRpcReq(&msg, sub_co_arr[0]->id, CMD_REQ_TEST_CALLBACK, test_data, sizeof(test_data));
+	makeInnerMsgRpcReq(&msg, sub_block_arr[0]->id, CMD_REQ_TEST_CALLBACK, test_data, sizeof(test_data));
 	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	//
-	sub_co_arr[1] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000);
-	if (!sub_co_arr[1]) {
+	sub_block_arr[1] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000);
+	if (!sub_block_arr[1]) {
 		return;
 	}
-	makeInnerMsgRpcReq(&msg, sub_co_arr[1]->id, CMD_REQ_TEST, test_data, sizeof(test_data));
+	makeInnerMsgRpcReq(&msg, sub_block_arr[1]->id, CMD_REQ_TEST, test_data, sizeof(test_data));
 	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 	//
-	for (i = 0; i < sizeof(sub_co_arr) / sizeof(sub_co_arr[0]); ++i) {
+	for (i = 0; i < sizeof(sub_block_arr) / sizeof(sub_block_arr[0]); ++i) {
 		UserMsg_t* ret_msg;
-		StackCo_t* ret_co = StackCoSche_yield(thrd->sche);
-		if (!ret_co) {
+		StackCoBlock_t* ret_block = StackCoSche_yield(thrd->sche);
+		if (!ret_block) {
 			return;
 		}
-		if (ret_co->status != STACK_CO_STATUS_FINISH) {
-			printf("rpc(%d) call failure timeout or cancel\n", ret_co->id);
+		if (ret_block->status != STACK_CO_STATUS_FINISH) {
+			printf("rpc(%d) call failure timeout or cancel\n", ret_block->id);
 			return;
 		}
-		ret_msg = (UserMsg_t*)ret_co->resume_ret;
-		if (ret_co->id == sub_co_arr[0]->id) {
+		ret_msg = (UserMsg_t*)ret_block->resume_ret;
+		if (ret_block->id == sub_block_arr[0]->id) {
 			StackCoSche_function(thrd->sche, frpc_callback, (void*)"abcdefg", NULL);
 		}
-		else if (ret_co->id == sub_co_arr[1]->id) {
+		else if (ret_block->id == sub_block_arr[1]->id) {
 			long long cost_msec = gmtimeMillisecond() - tm_msec;
-			printf("rpc(%d) send msec=%lld time cost(%lld msec)\n", ret_co->id, tm_msec, cost_msec);
-			printf("rpc(%d) say hello world ... %s\n", ret_co->id, ret_msg->data);
+			printf("rpc(%d) send msec=%lld time cost(%lld msec)\n", ret_block->id, tm_msec, cost_msec);
+			printf("rpc(%d) say hello world ... %s\n", ret_block->id, ret_msg->data);
 		}
 		else {
 			puts("Exception ret_co");
@@ -61,17 +61,17 @@ void notifyTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 }
 
 void retLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	StackCo_t* co;
+	StackCoBlock_t* block;
 
 	logInfo(ptrBSG()->log, "recv: %s", (char*)ctrl->data);
 
 	// test code
 	StackCoSche_sleep_util(thrd->sche, gmtimeMillisecond() + 5000);
-	co = StackCoSche_yield(thrd->sche);
-	if (!co) {
+	block = StackCoSche_yield(thrd->sche);
+	if (!block) {
 		return;
 	}
-	if (co->status != STACK_CO_STATUS_FINISH) {
+	if (block->status != STACK_CO_STATUS_FINISH) {
 		return;
 	}
 	frpc_test_code(thrd, ctrl->channel);

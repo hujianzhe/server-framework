@@ -50,7 +50,7 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 		message->enqueue_time_msec = gmtimeMillisecond();
 	}
 	if (RPC_STATUS_RESP == message->rpc_status) {
-		StackCoSche_resume_co(channelUserData(c)->sche, message->rpcid, message, (void(*)(void*))message->on_free);
+		StackCoSche_resume_block(channelUserData(c)->sche, message->rpcid, message, (void(*)(void*))message->on_free);
 	}
 	else {
 		StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);

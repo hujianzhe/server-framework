@@ -14,58 +14,58 @@ static int start_req_login_test(ChannelBase_t* channel) {
 static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel) {
 	InnerMsg_t msg;
 	char test_data[] = "test paralle ^.^";
-	int i, cnt_sub_co = 0;
+	int i, cnt_sub_block = 0;
 	long long tm_msec = gmtimeMillisecond();
-	StackCo_t* sub_co_arr[4];
+	StackCoBlock_t* sub_block_arr[4];
 	for (i = 0; i < 2; ++i) {
-		StackCo_t* co;
-		co = StackCoSche_block_point_util(sche, tm_msec + 1000);
-		if (!co) {
+		StackCoBlock_t* block;
+		block = StackCoSche_block_point_util(sche, tm_msec + 1000);
+		if (!block) {
 			continue;
 		}
-		makeInnerMsgRpcReq(&msg, co->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
+		makeInnerMsgRpcReq(&msg, block->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
 		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-		sub_co_arr[cnt_sub_co++] = co;
+		sub_block_arr[cnt_sub_block++] = block;
 
-		co = StackCoSche_block_point_util(sche, tm_msec + 1000);
-		if (!co) {
+		block = StackCoSche_block_point_util(sche, tm_msec + 1000);
+		if (!block) {
 			continue;
 		}
-		makeInnerMsgRpcReq(&msg, co->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
+		makeInnerMsgRpcReq(&msg, block->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
 		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-		sub_co_arr[cnt_sub_co++] = co;
+		sub_block_arr[cnt_sub_block++] = block;
 	}
-	for (i = 0; i < cnt_sub_co; ++i) {
+	for (i = 0; i < cnt_sub_block; ++i) {
 		UserMsg_t* ret_msg;
-		StackCo_t* co = StackCoSche_yield(sche);
-		if (!co) {
+		StackCoBlock_t* block = StackCoSche_yield(sche);
+		if (!block) {
 			return;
 		}
-		if (co->status != STACK_CO_STATUS_FINISH) {
-			printf("rpc identity(%d) call failure timeout or cancel\n", co->id);
+		if (block->status != STACK_CO_STATUS_FINISH) {
+			printf("rpc identity(%d) call failure timeout or cancel\n", block->id);
 			continue;
 		}
-		ret_msg = (UserMsg_t*)co->resume_ret;
-		printf("rpc identity(%d) return: %s ...\n", co->id, ret_msg->data);
+		ret_msg = (UserMsg_t*)block->resume_ret;
+		printf("rpc identity(%d) return: %s ...\n", block->id, ret_msg->data);
 	}
 }
 
 static void test_timer(struct StackCoSche_t* sche, void* arg) {
-	StackCo_t* co;
+	StackCoBlock_t* block;
 	while (1) {
 		logInfo(ptrBSG()->log, "test_timer============================================");
 		StackCoSche_sleep_util(sche, gmtimeMillisecond() + 1000);
-		co = StackCoSche_yield(sche);
-		if (!co || co->status != STACK_CO_STATUS_FINISH) {
+		block = StackCoSche_yield(sche);
+		if (!block || block->status != STACK_CO_STATUS_FINISH) {
 			break;
 		}
-		StackCoSche_reuse_co(co);
+		StackCoSche_reuse_block(block);
 	}
 }
 
 void init(struct StackCoSche_t* sche, void* arg) {
 	int i;
-	StackCo_t* co;
+	StackCoBlock_t* block;
 	TaskThread_t* thrd = currentTaskThread();
 
 	regNumberDispatch(thrd->dispatch, CMD_NOTIFY_TEST, notifyTest);
@@ -98,15 +98,15 @@ void init(struct StackCoSche_t* sche, void* arg) {
 
 		logInfo(ptrBSG()->log, "channel(%p) connecting......", c);
 
-		co = StackCoSche_block_point_util(sche, gmtimeMillisecond() + 5000);
-		if (!co) {
+		block = StackCoSche_block_point_util(sche, gmtimeMillisecond() + 5000);
+		if (!block) {
 			channelbaseClose(c);
 			return;
 		}
-		channelUserData(c)->rpc_id_syn_ack = co->id;
+		channelUserData(c)->rpc_id_syn_ack = block->id;
 		channelbaseReg(selectReactor(), c);
-		co = StackCoSche_yield(sche);
-		if (!co || co->status != STACK_CO_STATUS_FINISH) {
+		block = StackCoSche_yield(sche);
+		if (!block || block->status != STACK_CO_STATUS_FINISH) {
 			logErr(ptrBSG()->log, "channel(%p) connect %s:%u failure", c, option->ip, option->port);
 			return;
 		}

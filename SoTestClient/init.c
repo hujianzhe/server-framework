@@ -59,7 +59,7 @@ static void test_timer(struct StackCoSche_t* sche, void* arg) {
 		if (!block || block->status != STACK_CO_STATUS_FINISH) {
 			break;
 		}
-		StackCoSche_reuse_block(block);
+		StackCoSche_reuse_block(sche, block);
 	}
 }
 

@@ -39,7 +39,7 @@ static void websocket_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t body
 			message->enqueue_time_msec = gmtimeMillisecond();
 		}
 		if (RPC_STATUS_RESP == message->rpc_status) {
-			StackCoSche_resume_block(channelUserData(c)->sche, message->rpcid, message, (void(*)(void*))message->on_free);
+			StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
 		}
 		else {
 			StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);

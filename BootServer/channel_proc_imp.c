@@ -19,7 +19,7 @@ ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, struct StackCoSche
 void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	ChannelUserData_t* ud = channelUserData(c);
 	if (ud->rpc_id_syn_ack != 0) {
-		StackCoSche_resume_block(ud->sche, ud->rpc_id_syn_ack, NULL, NULL);
+		StackCoSche_resume_block_by_id(ud->sche, ud->rpc_id_syn_ack, STACK_CO_STATUS_FINISH, NULL, NULL);
 		ud->rpc_id_syn_ack = 0;
 	}
 }

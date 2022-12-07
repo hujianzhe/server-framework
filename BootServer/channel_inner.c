@@ -88,7 +88,7 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 			message->enqueue_time_msec = gmtimeMillisecond();
 		}
 		if (RPC_STATUS_RESP == message->rpc_status) {
-			StackCoSche_resume_block(channelUserData(c)->sche, message->rpcid, message, (void(*)(void*))message->on_free);
+			StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
 		}
 		else if (RPC_STATUS_HAND_SHAKE == message->rpc_status) {
 			StackCoSche_function(channelUserData(c)->sche, TaskThread_default_clsnd_handshake, message, (void(*)(void*))message->on_free);

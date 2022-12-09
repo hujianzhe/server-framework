@@ -69,9 +69,6 @@
     <ClInclude Include="util\inc\component\reactor.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\component\rpc_core.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\crt\geometry\aabb.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -312,9 +309,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\reactor.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\component\rpc_core.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\geometry\aabb.c">

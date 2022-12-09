@@ -167,7 +167,6 @@
     <ClInclude Include="util\inc\component\memref.h" />
     <ClInclude Include="util\inc\component\rbtimer.h" />
     <ClInclude Include="util\inc\component\reactor.h" />
-    <ClInclude Include="util\inc\component\rpc_core.h" />
     <ClInclude Include="util\inc\component\stack_co_sche.h" />
     <ClInclude Include="util\inc\component\switch_co_sche.h" />
     <ClInclude Include="util\inc\crt\cXML.h" />
@@ -248,7 +247,6 @@
     <ClCompile Include="util\src\component\memref.c" />
     <ClCompile Include="util\src\component\rbtimer.c" />
     <ClCompile Include="util\src\component\reactor.c" />
-    <ClCompile Include="util\src\component\rpc_core.c" />
     <ClCompile Include="util\src\component\stack_co_sche.c" />
     <ClCompile Include="util\src\component\switch_co_sche.c" />
     <ClCompile Include="util\src\crt\cXML.c" />

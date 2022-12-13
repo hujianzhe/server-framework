@@ -28,9 +28,9 @@ void TaskThread_default_clsnd_handshake(struct StackCoSche_t* sche, void* arg);
 extern "C" {
 #endif
 
-TaskThread_t* newTaskThread(size_t co_stack_size);
-BOOL runTaskThread(TaskThread_t* t);
-void freeTaskThread(TaskThread_t* t);
+__declspec_dll TaskThread_t* newTaskThread(size_t co_stack_size);
+__declspec_dll BOOL runTaskThread(TaskThread_t* t);
+__declspec_dll void freeTaskThread(TaskThread_t* t);
 
 __declspec_dll TaskThread_t* currentTaskThread(void);
 __declspec_dll void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg);

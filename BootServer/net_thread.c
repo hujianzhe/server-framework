@@ -5,18 +5,6 @@ static Reactor_t* s_Reactors;
 static size_t s_ReactorCnt;
 static size_t s_BootReactorThreadCnt;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-Reactor_t* acceptReactor(void) { return s_Reactors + s_ReactorCnt; }
-Reactor_t* targetReactor(size_t key) { return &s_Reactors[key % s_ReactorCnt]; }
-Reactor_t* selectReactor(void) {
-	static Atom32_t num = 0;
-	unsigned int i = _xadd32(&num, 1);
-	return &s_Reactors[i % s_ReactorCnt];
-}
-
 int newNetThreadResource(unsigned int cnt) {
 	int i;
 	if (!networkSetupEnv()) {
@@ -100,6 +88,18 @@ void joinNetThreads(void) {
 	while (s_BootReactorThreadCnt) {
 		threadJoin(s_Reactors[--s_BootReactorThreadCnt].m_runthread, NULL);
 	}
+}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Reactor_t* acceptReactor(void) { return s_Reactors + s_ReactorCnt; }
+Reactor_t* targetReactor(size_t key) { return &s_Reactors[key % s_ReactorCnt]; }
+Reactor_t* selectReactor(void) {
+	static Atom32_t num = 0;
+	unsigned int i = _xadd32(&num, 1);
+	return &s_Reactors[i % s_ReactorCnt];
 }
 
 #ifdef __cplusplus

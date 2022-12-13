@@ -3,43 +3,6 @@
 #include "task_thread.h"
 #include <stdio.h>
 
-void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
-	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
-	UserMsg_t* ctrl = (UserMsg_t*)arg;
-	ChannelBase_t* c;
-	Dispatch_t* dispatch = thrd->dispatch;
-	DispatchCallback_t callback;
-
-	if (ctrl->cmdstr) {
-		callback = getStringDispatch(dispatch, ctrl->cmdstr);
-	}
-	else {
-		callback = getNumberDispatch(dispatch, ctrl->cmdid);
-	}
-	if (!callback) {
-		callback = dispatch->null_dispatch_callback;
-		if (!callback) {
-			return;
-		}
-	}
-
-	c = ctrl->channel;
-	if (c) {
-		channelbaseAddRef(c);
-	}
-
-	if (thrd->filter_callback) {
-		thrd->filter_callback(thrd, callback, ctrl);
-	}
-	else {
-		callback(thrd, ctrl);
-	}
-
-	if (c) {
-		channelbaseClose(c);
-	}
-}
-
 void TaskThread_channel_base_detach(struct StackCoSche_t* sche, void* arg) {
 	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
 	ChannelBase_t* channel = (ChannelBase_t*)arg;
@@ -86,12 +49,6 @@ static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	return 0;
 }
 
-/**************************************************************************************/
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 static DynArr_t(TaskThread_t*) s_allTaskThreads;
 static Atom32_t s_allTaskThreadsSpinLock;
 
@@ -112,6 +69,12 @@ static void __remove_task_thread(TaskThread_t* t) {
 	}
 	_xchg32(&s_allTaskThreadsSpinLock, 0);
 }
+
+/**************************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 TaskThread_t* newTaskThread(size_t co_stack_size) {
 	int sche_ok = 0, dispatch_ok = 0, seedval = 0;
@@ -182,6 +145,40 @@ TaskThread_t* currentTaskThread(void) {
 	}
 	_xchg32(&s_allTaskThreadsSpinLock, 0);
 	return thrd;
+}
+
+void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
+	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
+	UserMsg_t* ctrl = (UserMsg_t*)arg;
+	ChannelBase_t* c;
+	struct Dispatch_t* dispatch = thrd->dispatch;
+	DispatchCallback_t callback;
+
+	if (ctrl->cmdstr) {
+		callback = getStringDispatch(dispatch, ctrl->cmdstr);
+	}
+	else {
+		callback = getNumberDispatch(dispatch, ctrl->cmdid);
+	}
+	if (!callback) {
+		return;
+	}
+
+	c = ctrl->channel;
+	if (c) {
+		channelbaseAddRef(c);
+	}
+
+	if (thrd->filter_callback) {
+		thrd->filter_callback(thrd, callback, ctrl);
+	}
+	else {
+		callback(thrd, ctrl);
+	}
+
+	if (c) {
+		channelbaseClose(c);
+	}
 }
 
 #ifdef __cplusplus

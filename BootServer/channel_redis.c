@@ -125,7 +125,7 @@ static void redis_cli_on_heartbeat(ChannelBase_t* channel, int heartbeat_times) 
 	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
 	int rpc_id = 0;
 	Iobuf_t iovs[2] = {
-		iobufStaticInit(ud->ping_cmd, ud->ping_cmd_len),
+		iobufStaticInit(ud->ping_cmd, (size_t)ud->ping_cmd_len),
 		iobufStaticInit(&rpc_id, sizeof(rpc_id))
 	};
 	channelbaseSendv(channel, iovs, 2, NETPACKET_NO_ACK_FRAGMENT);

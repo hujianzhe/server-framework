@@ -1,8 +1,6 @@
 #include "global.h"
 #include "session_struct.h"
 
-static Atom32_t CHANNEL_SESSION_ID = 0;
-
 #ifdef __cplusplus
 extern "C" {
 #endif

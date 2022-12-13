@@ -6,7 +6,6 @@
 #include "dispatch.h"
 
 struct ChannelBase_t;
-struct Dispatch_t;
 struct ClusterTable_t;
 
 typedef struct TaskThread_t {

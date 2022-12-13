@@ -26,13 +26,12 @@ typedef struct UserMsg_t {
 struct TaskThread_t;
 typedef void(*DispatchCallback_t)(struct TaskThread_t*, UserMsg_t*);
 
-typedef struct Dispatch_t {
-	DispatchCallback_t null_dispatch_callback;
-	Hashtable_t s_NumberDispatchTable;
-	HashtableNode_t* s_NumberDispatchBulk[1024];
-	Hashtable_t s_StringDispatchTable;
-	HashtableNode_t* s_StringDispatchBulk[1024];
-} Dispatch_t;
+struct Dispatch_t;
+
+struct Dispatch_t* newDispatch(void);
+void freeDispatch(struct Dispatch_t* dispatch);
+DispatchCallback_t getStringDispatch(const struct Dispatch_t* dispatch, const char* str);
+DispatchCallback_t getNumberDispatch(const struct Dispatch_t* dispatch, int cmd);
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,12 +39,9 @@ extern "C" {
 
 __declspec_dll UserMsg_t* newUserMsg(size_t datalen);
 
-Dispatch_t* newDispatch(void);
-__declspec_dll int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchCallback_t func);
-__declspec_dll int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchCallback_t func);
-DispatchCallback_t getStringDispatch(const Dispatch_t* dispatch, const char* str);
-DispatchCallback_t getNumberDispatch(const Dispatch_t* dispatch, int cmd);
-void freeDispatch(Dispatch_t* dispatch);
+__declspec_dll DispatchCallback_t regNullDispatch(struct Dispatch_t* dispatch, DispatchCallback_t func);
+__declspec_dll int regStringDispatch(struct Dispatch_t* dispatch, const char* str, DispatchCallback_t func);
+__declspec_dll int regNumberDispatch(struct Dispatch_t* dispatch, int cmd, DispatchCallback_t func);
 
 #ifdef __cplusplus
 }

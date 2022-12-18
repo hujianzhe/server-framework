@@ -163,11 +163,12 @@ static void innerchannel_on_exec(ChannelBase_t* channel, long long timestamp_mse
 }
 
 static void innerchannel_on_free(ChannelBase_t* channel) {
+	ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
 	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag, channel->socktype);
 	if (hook_proc->on_free) {
-		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
 		hook_proc->on_free(&ud->rw);
 	}
+	free(ud);
 }
 
 static ChannelBaseProc_t s_inner_proc = {
@@ -185,13 +186,17 @@ static ChannelBaseProc_t s_inner_proc = {
 
 ChannelBase_t* openChannelInner(int flag, FD_t fd, int socktype, const struct sockaddr* addr, struct StackCoSche_t* sche) {
 	ChannelUserDataInner_t* ud;
-	size_t sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataInner_t);
-	ChannelBase_t* c = channelbaseOpen(sz, flag, fd, socktype, 0, addr);
+	ChannelBase_t* c;
+	ud = (ChannelUserDataInner_t*)malloc(sizeof(ChannelUserDataInner_t));
+	if (!ud) {
+		return NULL;
+	}
+	c = channelbaseOpen(flag, fd, socktype, 0, addr);
 	if (!c) {
+		free(ud);
 		return NULL;
 	}
 	//
-	ud = (ChannelUserDataInner_t*)(c + 1);
 	channelSetUserData(c, init_channel_user_data_inner(ud, c, sche));
 	c->proc = &s_inner_proc;
 	flag = c->flag;

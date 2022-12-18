@@ -109,6 +109,7 @@ static int websocket_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 static void websocket_on_free(ChannelBase_t* channel) {
 	ChannelUserDataWebsocket_t* ud = (ChannelUserDataWebsocket_t*)channelUserData(channel);
 	dynarrFreeMemory(&ud->fragment_recv);
+	free(ud);
 }
 
 static ChannelBaseProc_t s_websocket_server_proc = {
@@ -124,13 +125,18 @@ static ChannelBaseProc_t s_websocket_server_proc = {
 
 static ChannelBase_t* openChannelWebsocketServer(FD_t fd, const struct sockaddr* addr, struct StackCoSche_t* sche) {
 	ChannelUserDataWebsocket_t* ud;
-	size_t sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataWebsocket_t);
-	ChannelBase_t* c = channelbaseOpen(sz, CHANNEL_FLAG_SERVER, fd, SOCK_STREAM, 0, addr);
+	ChannelBase_t* c;
+
+	ud = (ChannelUserDataWebsocket_t*)malloc(sizeof(ChannelUserDataWebsocket_t));
+	if (!ud) {
+		return NULL;
+	}
+	c = channelbaseOpen(CHANNEL_FLAG_SERVER, fd, SOCK_STREAM, 0, addr);
 	if (!c) {
+		free(ud);
 		return NULL;
 	}
 	//
-	ud = (ChannelUserDataWebsocket_t*)(c + 1);
 	channelSetUserData(c, init_channel_user_data_websocket(ud, sche));
 	// c->_.write_fragment_size = 500;
 	c->proc = &s_websocket_server_proc;
@@ -161,7 +167,7 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 	Sockaddr_t local_saddr;
 	FD_t listen_fd;
 	ChannelBase_t* c;
-	ChannelUserDataWebsocket_t* ud;
+	ChannelUserDataWebsocket_t* ud = NULL;
 	size_t sz;
 	int domain = ipstrFamily(ip);
 	if (!sockaddrEncode(&local_saddr.sa, domain, ip, port)) {
@@ -180,18 +186,21 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 	if (!socketTcpListen(listen_fd)) {
 		goto err;
 	}
-	sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataWebsocket_t);
-	c = channelbaseOpen(sz, CHANNEL_FLAG_LISTEN, listen_fd, SOCK_STREAM, 0, &local_saddr.sa);
+	ud = (ChannelUserDataWebsocket_t*)malloc(sizeof(ChannelUserDataWebsocket_t));
+	if (!ud) {
+		goto err;
+	}
+	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, listen_fd, SOCK_STREAM, 0, &local_saddr.sa);
 	if (!c) {
 		goto err;
 	}
 	c->proc = &s_websocket_server_proc;
 	c->on_ack_halfconn = websocket_accept_callback;
-	ud = (ChannelUserDataWebsocket_t*)(c + 1);
 	channelSetUserData(c, init_channel_user_data_websocket(ud, sche));
 	ud->on_recv = fn;
 	return c;
 err:
+	free(ud);
 	socketClose(listen_fd);
 	return NULL;
 }

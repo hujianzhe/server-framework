@@ -136,6 +136,7 @@ static void redis_cli_on_free(ChannelBase_t* channel) {
 	RedisReplyReader_free(ud->reader);
 	RedisCommand_free(ud->ping_cmd);
 	dynarrFreeMemory(&ud->rpc_ids);
+	free(ud);
 }
 
 static ChannelBaseProc_t s_redis_cli_proc = {
@@ -159,20 +160,22 @@ ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnCha
 	ChannelBase_t* c;
 	ChannelUserDataRedisClient_t* ud;
 	Sockaddr_t addr;
-	size_t sz;
 	int domain = ipstrFamily(ip);
 
 	if (!sockaddrEncode(&addr.sa, domain, ip, port)) {
 		return NULL;
 	}
-	sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataRedisClient_t);
-	c = channelbaseOpen(sz, CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, SOCK_STREAM, 0, &addr.sa);
-	if (!c) {
+	ud = (ChannelUserDataRedisClient_t*)malloc(sizeof(ChannelUserDataRedisClient_t));
+	if (!ud) {
 		return NULL;
 	}
-	ud = (ChannelUserDataRedisClient_t*)(c + 1);
 	if (!init_channel_user_data_redis_cli(ud, sche)) {
-		channelbaseClose(c);
+		free(ud);
+		return NULL;
+	}
+	c = channelbaseOpen(CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, SOCK_STREAM, 0, &addr.sa);
+	if (!c) {
+		free(ud);
 		return NULL;
 	}
 	ud->on_subscribe = on_subscribe;

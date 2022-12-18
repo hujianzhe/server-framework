@@ -107,6 +107,11 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const stru
 	channelbaseReg(selectReactor(), conn_channel);
 }
 
+static void http_channel_on_free(ChannelBase_t* c) {
+	ChannelUserDataHttp_t* ud = (ChannelUserDataHttp_t*)channelUserData(c);
+	free(ud);
+}
+
 static ChannelBaseProc_t s_http_proc = {
 	NULL,
 	NULL,
@@ -115,7 +120,7 @@ static ChannelBaseProc_t s_http_proc = {
 	NULL,
 	NULL,
 	defaultChannelOnDetach,
-	NULL
+	http_channel_on_free
 };
 
 #ifdef __cplusplus
@@ -124,13 +129,18 @@ extern "C" {
 
 ChannelBase_t* openChannelHttp(int flag, FD_t fd, const struct sockaddr* addr, struct StackCoSche_t* sche) {
 	ChannelUserDataHttp_t* ud;
-	size_t sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataHttp_t);
-	ChannelBase_t* c = channelbaseOpen(sz, flag, fd, SOCK_STREAM, 0, addr);
+	ChannelBase_t* c;
+
+	ud = (ChannelUserDataHttp_t*)malloc(sizeof(ChannelUserDataHttp_t));
+	if (!ud) {
+		return NULL;
+	}
+	c = channelbaseOpen(flag, fd, SOCK_STREAM, 0, addr);
 	if (!c) {
+		free(ud);
 		return NULL;
 	}
 	//
-	ud = (ChannelUserDataHttp_t*)(c + 1);
 	channelSetUserData(c, init_channel_user_data_http(ud, sche));
 	c->proc = &s_http_proc;
 	flag = c->flag;
@@ -144,8 +154,7 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Stac
 	Sockaddr_t local_saddr;
 	FD_t listen_fd;
 	ChannelBase_t* c;
-	ChannelUserDataHttp_t* ud;
-	size_t sz;
+	ChannelUserDataHttp_t* ud = NULL;
 	int domain = ipstrFamily(ip);
 
 	if (!sockaddrEncode(&local_saddr.sa, domain, ip, port)) {
@@ -165,17 +174,20 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Stac
 		goto err;
 	}
 
-	sz = sizeof(ChannelBase_t) + sizeof(ChannelUserDataHttp_t);
-	c = channelbaseOpen(sz, CHANNEL_FLAG_LISTEN, listen_fd, SOCK_STREAM, 0, &local_saddr.sa);
+	ud = (ChannelUserDataHttp_t*)malloc(sizeof(ChannelUserDataHttp_t));
+	if (!ud) {
+		goto err;
+	}
+	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, listen_fd, SOCK_STREAM, 0, &local_saddr.sa);
 	if (!c) {
 		goto err;
 	}
 	c->proc = &s_http_proc;
 	c->on_ack_halfconn = http_accept_callback;
-	ud = (ChannelUserDataHttp_t*)(c + 1);
 	channelSetUserData(c, init_channel_user_data_http(ud, sche));
 	return c;
 err:
+	free(ud);
 	socketClose(listen_fd);
 	return NULL;
 }

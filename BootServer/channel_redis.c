@@ -173,14 +173,13 @@ ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnCha
 		free(ud);
 		return NULL;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, SOCK_STREAM, 0, &addr.sa);
+	c = channelbaseOpen(CHANNEL_FLAG_CLIENT, &s_redis_cli_proc, INVALID_FD_HANDLE, SOCK_STREAM, &addr.sa);
 	if (!c) {
 		free(ud);
 		return NULL;
 	}
 	ud->on_subscribe = on_subscribe;
 	channelSetUserData(c, &ud->_);
-	c->proc = &s_redis_cli_proc;
 	c->heartbeat_timeout_sec = 10;
 	c->heartbeat_maxtimes = 3;
 	return c;

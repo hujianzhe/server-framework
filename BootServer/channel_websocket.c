@@ -131,7 +131,7 @@ static ChannelBase_t* openChannelWebsocketServer(FD_t fd, const struct sockaddr*
 	if (!ud) {
 		return NULL;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_SERVER, fd, SOCK_STREAM, 0, addr);
+	c = channelbaseOpen(CHANNEL_FLAG_SERVER, &s_websocket_server_proc, fd, SOCK_STREAM, addr);
 	if (!c) {
 		free(ud);
 		return NULL;
@@ -139,7 +139,6 @@ static ChannelBase_t* openChannelWebsocketServer(FD_t fd, const struct sockaddr*
 	//
 	channelSetUserData(c, init_channel_user_data_websocket(ud, sche));
 	// c->_.write_fragment_size = 500;
-	c->proc = &s_websocket_server_proc;
 	c->heartbeat_timeout_sec = 20;
 	return c;
 }
@@ -190,11 +189,10 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, listen_fd, SOCK_STREAM, 0, &local_saddr.sa);
+	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_websocket_server_proc, listen_fd, SOCK_STREAM, &local_saddr.sa);
 	if (!c) {
 		goto err;
 	}
-	c->proc = &s_websocket_server_proc;
 	c->on_ack_halfconn = websocket_accept_callback;
 	channelSetUserData(c, init_channel_user_data_websocket(ud, sche));
 	ud->on_recv = fn;

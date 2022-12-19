@@ -191,14 +191,13 @@ ChannelBase_t* openChannelInner(int flag, FD_t fd, int socktype, const struct so
 	if (!ud) {
 		return NULL;
 	}
-	c = channelbaseOpen(flag, fd, socktype, 0, addr);
+	c = channelbaseOpen(flag, &s_inner_proc, fd, socktype, addr);
 	if (!c) {
 		free(ud);
 		return NULL;
 	}
 	//
 	channelSetUserData(c, init_channel_user_data_inner(ud, c, sche));
-	c->proc = &s_inner_proc;
 	flag = c->flag;
 	if (flag & CHANNEL_FLAG_CLIENT) {
 		c->heartbeat_timeout_sec = 10;

@@ -135,14 +135,13 @@ ChannelBase_t* openChannelHttp(int flag, FD_t fd, const struct sockaddr* addr, s
 	if (!ud) {
 		return NULL;
 	}
-	c = channelbaseOpen(flag, fd, SOCK_STREAM, 0, addr);
+	c = channelbaseOpen(flag, &s_http_proc, fd, SOCK_STREAM, addr);
 	if (!c) {
 		free(ud);
 		return NULL;
 	}
 	//
 	channelSetUserData(c, init_channel_user_data_http(ud, sche));
-	c->proc = &s_http_proc;
 	flag = c->flag;
 	if (flag & CHANNEL_FLAG_SERVER) {
 		c->heartbeat_timeout_sec = 20;
@@ -178,11 +177,10 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Stac
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, listen_fd, SOCK_STREAM, 0, &local_saddr.sa);
+	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_http_proc, listen_fd, SOCK_STREAM, &local_saddr.sa);
 	if (!c) {
 		goto err;
 	}
-	c->proc = &s_http_proc;
 	c->on_ack_halfconn = http_accept_callback;
 	channelSetUserData(c, init_channel_user_data_http(ud, sche));
 	return c;

@@ -167,7 +167,6 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 	FD_t listen_fd;
 	ChannelBase_t* c;
 	ChannelUserDataWebsocket_t* ud = NULL;
-	size_t sz;
 	int domain = ipstrFamily(ip);
 	if (!sockaddrEncode(&local_saddr.sa, domain, ip, port)) {
 		return NULL;

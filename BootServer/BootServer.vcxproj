@@ -183,6 +183,7 @@
     <ClInclude Include="util\inc\crt\geometry\triangle.h" />
     <ClInclude Include="util\inc\crt\json.h" />
     <ClInclude Include="util\inc\crt\math.h" />
+    <ClInclude Include="util\inc\crt\math_matrix3.h" />
     <ClInclude Include="util\inc\crt\math_quat.h" />
     <ClInclude Include="util\inc\crt\math_vec3.h" />
     <ClInclude Include="util\inc\crt\octree.h" />
@@ -262,6 +263,7 @@
     <ClCompile Include="util\src\crt\geometry\triangle.c" />
     <ClCompile Include="util\src\crt\json.c" />
     <ClCompile Include="util\src\crt\math.c" />
+    <ClCompile Include="util\src\crt\math_matrix3.c" />
     <ClCompile Include="util\src\crt\math_quat.c" />
     <ClCompile Include="util\src\crt\math_vec3.c" />
     <ClCompile Include="util\src\crt\octree.c" />

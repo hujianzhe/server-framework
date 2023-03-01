@@ -45,6 +45,7 @@ BOOL initBootServerGlobal(const char* conf_path) {
 		s_BSG.errmsg = strFormat(NULL, "newClusterTable failure\n");
 		return FALSE;
 	}
+	// init default json config
 	if (s_Config.cluster_table_path && s_Config.cluster_table_path[0]) {
 		ClusterNode_t* clsnd;
 		ConfigListenOption_t* listen_opt;

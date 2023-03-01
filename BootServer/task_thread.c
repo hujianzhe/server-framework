@@ -151,33 +151,39 @@ void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
 	UserMsg_t* ctrl = (UserMsg_t*)arg;
 	ChannelBase_t* c;
-	struct Dispatch_t* dispatch = thrd->dispatch;
 	DispatchCallback_t callback;
 
-	if (ctrl->cmdstr) {
-		callback = getStringDispatch(dispatch, ctrl->cmdstr);
+	if (!thrd->filter_callback) {
+		struct Dispatch_t* dispatch = thrd->dispatch;
+		if (ctrl->cmdstr) {
+			callback = getStringDispatch(dispatch, ctrl->cmdstr);
+		}
+		else {
+			callback = getNumberDispatch(dispatch, ctrl->cmdid);
+		}
+		if (!callback) {
+			return;
+		}
+		c = ctrl->channel;
+		if (c) {
+			channelbaseAddRef(c);
+			callback(thrd, ctrl);
+			channelbaseClose(c);
+		}
+		else {
+			callback(thrd, ctrl);
+		}
 	}
 	else {
-		callback = getNumberDispatch(dispatch, ctrl->cmdid);
-	}
-	if (!callback) {
-		return;
-	}
-
-	c = ctrl->channel;
-	if (c) {
-		channelbaseAddRef(c);
-	}
-
-	if (thrd->filter_callback) {
-		thrd->filter_callback(thrd, callback, ctrl);
-	}
-	else {
-		callback(thrd, ctrl);
-	}
-
-	if (c) {
-		channelbaseClose(c);
+		c = ctrl->channel;
+		if (c) {
+			channelbaseAddRef(c);
+			thrd->filter_callback(thrd, ctrl);
+			channelbaseClose(c);
+		}
+		else {
+			thrd->filter_callback(thrd, ctrl);
+		}
 	}
 }
 

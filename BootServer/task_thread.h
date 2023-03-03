@@ -16,7 +16,7 @@ typedef struct TaskThread_t {
 	const char* errmsg;
 	Rand48_t rand48_ctx;
 	RandMT19937_t randmt19937_ctx;
-	void(*filter_callback)(struct TaskThread_t* thrd, UserMsg_t* req_ctrl);
+	void(*filter_dispatch)(struct TaskThread_t* thrd, UserMsg_t* req_ctrl);
 	void(*on_channel_detach)(struct TaskThread_t* thrd, struct ChannelBase_t* channel);
 } TaskThread_t;
 

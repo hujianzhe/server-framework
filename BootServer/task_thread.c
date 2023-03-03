@@ -104,7 +104,7 @@ TaskThread_t* newTaskThread(size_t co_stack_size) {
 	seedval = time(NULL);
 	rand48Seed(&t->rand48_ctx, seedval);
 	mt19937Seed(&t->randmt19937_ctx, seedval);
-	t->filter_callback = NULL;
+	t->filter_dispatch = NULL;
 	t->on_channel_detach = NULL;
 	return t;
 err:
@@ -153,7 +153,7 @@ void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 	ChannelBase_t* c;
 	DispatchCallback_t callback;
 
-	if (!thrd->filter_callback) {
+	if (!thrd->filter_dispatch) {
 		struct Dispatch_t* dispatch = thrd->dispatch;
 		if (ctrl->cmdstr) {
 			callback = getStringDispatch(dispatch, ctrl->cmdstr);
@@ -178,11 +178,11 @@ void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 		c = ctrl->channel;
 		if (c) {
 			channelbaseAddRef(c);
-			thrd->filter_callback(thrd, ctrl);
+			thrd->filter_dispatch(thrd, ctrl);
 			channelbaseClose(c);
 		}
 		else {
-			thrd->filter_callback(thrd, ctrl);
+			thrd->filter_dispatch(thrd, ctrl);
 		}
 	}
 }

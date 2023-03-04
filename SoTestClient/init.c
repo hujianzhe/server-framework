@@ -63,7 +63,11 @@ static void test_timer(struct StackCoSche_t* sche, void* arg) {
 	}
 }
 
-void init(struct StackCoSche_t* sche, void* arg) {
+int init(int argc, char** argv) {
+	return 0;
+}
+
+void run(struct StackCoSche_t* sche, void* arg) {
 	int i;
 	StackCoBlock_t* block;
 	TaskThread_t* thrd = currentTaskThread();

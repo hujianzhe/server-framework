@@ -12,10 +12,12 @@ BootServerGlobal_t* ptrBSG(void) { return s_PtrBSG; }
 const char* getBSGErrmsg(void) { return s_BSG.errmsg ? s_BSG.errmsg : ""; }
 int checkStopBSG(void) { return s_PtrBSG ? !(s_PtrBSG->valid) : 1; }
 
-BOOL initBootServerGlobal(const char* conf_path) {
+BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_init)(int, char**)) {
 	if (s_PtrBSG) {
 		return TRUE;
 	}
+	s_BSG.argc = argc;
+	s_BSG.argv = argv;
 	// load config
 	if (!initConfig(conf_path, &s_Config)) {
 		s_BSG.errmsg = strFormat(NULL, "initConfig(%s) error\n", conf_path);
@@ -45,7 +47,7 @@ BOOL initBootServerGlobal(const char* conf_path) {
 		s_BSG.errmsg = strFormat(NULL, "newClusterTable failure\n");
 		return FALSE;
 	}
-	// init default json config
+	// init default cluster json config, if needed
 	if (s_Config.cluster_table_path && s_Config.cluster_table_path[0]) {
 		ClusterNode_t* clsnd;
 		ConfigListenOption_t* listen_opt;
@@ -76,6 +78,24 @@ BOOL initBootServerGlobal(const char* conf_path) {
 			return FALSE;
 		}
 	}
+	// init user global
+	if (fn_init) {
+		int ret = fn_init(argc, argv);
+		if (ret) {
+			s_BSG.errmsg = strFormat(NULL, "initBootServerGlobal call fn_init err, ret=%d\n", ret);
+			return FALSE;
+		}
+	}
+	// listen self cluster node port, if needed
+	ConfigListenOption_t* listen_opt = &s_Config.clsnd.listen_option;
+	if (!strcmp(listen_opt->protocol, "default")) {
+		ChannelBase_t* c = openListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, s_BSG.default_task_thread->sche);
+		if (!c) {
+			s_BSG.errmsg = strFormat(NULL, "listen self cluster node err, ip:%s, port:%u\n", listen_opt->ip, listen_opt->port);
+			return FALSE;
+		}
+		channelbaseReg(acceptReactor(), c);
+	}
 	// init ok
 	s_BSG.valid = 1;
 	s_PtrBSG = &s_BSG;
@@ -90,28 +110,18 @@ void printBootServerNodeInfo(void) {
 		listen_opt->ip, listen_opt->port, processId());
 }
 
-BOOL runBootServerGlobal(int argc, char** argv, void(*fn_init)(struct StackCoSche_t*, void*)) {
-	// listen self cluster node port, if needed
-	ConfigListenOption_t* listen_opt = &s_Config.clsnd.listen_option;
-	if (!strcmp(listen_opt->protocol, "default")) {
-		ChannelBase_t* c = openListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, s_BSG.default_task_thread->sche);
-		if (!c) {
-			s_BSG.errmsg = strFormat(NULL, "listen self cluster node err, ip:%s, port:%u\n", listen_opt->ip, listen_opt->port);
-			return FALSE;
-		}
-		channelbaseReg(acceptReactor(), c);
+BOOL runBootServerGlobal(void(*fn_run)(struct StackCoSche_t*, void*)) {
+	// run task thread
+	if (fn_run) {
+		StackCoSche_function(s_BSG.default_task_thread->sche, fn_run, NULL, NULL);
+	}
+	if (!runTaskThread(s_BSG.default_task_thread)) {
+		s_BSG.errmsg = strFormat(NULL, "default task thread boot failure\n");
+		return FALSE;
 	}
 	// run net thread
 	if (!runNetThreads()) {
 		s_BSG.errmsg = strFormat(NULL, "net thread run failure\n");
-		return FALSE;
-	}
-	// run task thread
-	s_BSG.argc = argc;
-	s_BSG.argv = argv;
-	StackCoSche_function(s_BSG.default_task_thread->sche, fn_init, NULL, NULL);
-	if (!runTaskThread(s_BSG.default_task_thread)) {
-		s_BSG.errmsg = strFormat(NULL, "default task thread boot failure\n");
 		return FALSE;
 	}
 	// wait thread exit

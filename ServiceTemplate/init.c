@@ -1,7 +1,11 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
 
-void init(struct StackCoSche_t* sche, void* arg) {
+int init(int argc, char** argv) {
+	return 0;
+}
+
+void run(struct StackCoSche_t* sche, void* arg) {
 	ConfigConnectOption_t* option = NULL;
 	unsigned int i;
 

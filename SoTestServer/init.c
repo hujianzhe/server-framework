@@ -50,7 +50,11 @@ static void websocket_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t body
 	}
 }
 
-void init(struct StackCoSche_t* sche, void* arg) {
+int init(int argc, char** argv) {
+	return 0;
+}
+
+void run(struct StackCoSche_t* sche, void* arg) {
 	TaskThread_t* thrd = currentTaskThread();
 	int i;
 	// register dispatch

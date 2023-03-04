@@ -5,7 +5,8 @@
 #pragma comment(lib, "BootServer.lib")
 #endif
 
-extern void init(struct StackCoSche_t* sche, void* arg);
+extern int init(int argc, char** argv);
+extern void run(struct StackCoSche_t* sche, void* arg);
 
 static void sigintHandler(int signo) {
 	stopBootServerGlobal();
@@ -22,14 +23,14 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	// int BootServerGlobal
-	if (!initBootServerGlobal(argv[1])) {
+	if (!initBootServerGlobal(argv[1], argc, argv, init)) {
 		fprintf(stderr, "initBootServerGlobal err:%s\n", getBSGErrmsg());
 		return 1;
 	}
 	// print boot cluster node info
 	printBootServerNodeInfo();
 	// run BootServer and wait BootServer end
-	runBootServerGlobal(argc, argv, init);
+	runBootServerGlobal(run);
 	// print BootServer run error
 	if (getBSGErrmsg()) {
 		fputs(getBSGErrmsg(), stderr);

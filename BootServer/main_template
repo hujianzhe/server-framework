@@ -5,7 +5,7 @@
 #pragma comment(lib, "BootServer.lib")
 #endif
 
-extern int init(int argc, char** argv);
+extern int init(BootServerGlobal_t* g);
 extern void run(struct StackCoSche_t* sche, void* arg);
 
 static void sigintHandler(int signo) {

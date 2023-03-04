@@ -27,17 +27,14 @@ void TaskThread_channel_base_detach(struct StackCoSche_t* sche, void* arg) {
 	channelbaseClose(channel);
 }
 
-void TaskThread_default_clsnd_handshake(struct StackCoSche_t* sche, void* arg) {
-	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
-	UserMsg_t* ctrl = (UserMsg_t*)arg;
-	ChannelBase_t* channel = ctrl->channel;
+void TaskThread_default_clsnd_handshake(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	ClusterNode_t* clsnd = flushClusterNodeFromJsonData(thrd->clstbl, (char*)ctrl->data);
 	if (clsnd) {
-		sessionReplaceChannel(&clsnd->session, channel);
+		sessionReplaceChannel(&clsnd->session, ctrl->channel);
 		clsnd->status = CLSND_STATUS_NORMAL;
 	}
 	else {
-		channelbaseSendv(channel, NULL, 0, NETPACKET_FIN);
+		channelbaseSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
 	}
 }
 
@@ -77,7 +74,7 @@ extern "C" {
 #endif
 
 TaskThread_t* newTaskThread(size_t co_stack_size) {
-	int sche_ok = 0, dispatch_ok = 0, seedval = 0;
+	int sche_ok = 0, seedval;
 	TaskThread_t* t = (TaskThread_t*)malloc(sizeof(TaskThread_t));
 	if (!t) {
 		return NULL;
@@ -88,12 +85,6 @@ TaskThread_t* newTaskThread(size_t co_stack_size) {
 		goto err;
 	}
 	sche_ok = 1;
-
-	t->dispatch = newDispatch();
-	if (!t->dispatch) {
-		goto err;
-	}
-	dispatch_ok = 1;
 
 	if (!__save_task_thread(t)) {
 		goto err;
@@ -111,9 +102,6 @@ err:
 	if (sche_ok) {
 		StackCoSche_destroy(t->sche);
 	}
-	if (dispatch_ok) {
-		freeDispatch(t->dispatch);
-	}
 	free(t);
 	return NULL;
 }
@@ -126,7 +114,6 @@ void freeTaskThread(TaskThread_t* t) {
 	if (t) {
 		__remove_task_thread(t);
 		StackCoSche_destroy(t->sche);
-		freeDispatch(t->dispatch);
 		free((void*)t->errmsg);
 		free(t);
 	}
@@ -150,32 +137,19 @@ TaskThread_t* currentTaskThread(void) {
 void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
 	UserMsg_t* ctrl = (UserMsg_t*)arg;
-	ChannelBase_t* c;
-	DispatchCallback_t callback;
+	ChannelBase_t* c = ctrl->channel;
 
 	if (!thrd->filter_dispatch) {
-		struct Dispatch_t* dispatch = thrd->dispatch;
-		if (ctrl->cmdstr) {
-			callback = getStringDispatch(dispatch, ctrl->cmdstr);
-		}
-		else {
-			callback = getNumberDispatch(dispatch, ctrl->cmdid);
-		}
-		if (!callback) {
-			return;
-		}
-		c = ctrl->channel;
 		if (c) {
 			channelbaseAddRef(c);
-			callback(thrd, ctrl);
+			ctrl->callback(thrd, ctrl);
 			channelbaseClose(c);
 		}
 		else {
-			callback(thrd, ctrl);
+			ctrl->callback(thrd, ctrl);
 		}
 	}
 	else {
-		c = ctrl->channel;
 		if (c) {
 			channelbaseAddRef(c);
 			thrd->filter_dispatch(thrd, ctrl);

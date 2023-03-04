@@ -68,30 +68,52 @@ static void innerchannel_reply_ack(ChannelBase_t* c, unsigned int seq, const str
 }
 
 static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
-	unsigned int cmdid_rpcid_sz = 9;
-	if (bodylen >= cmdid_rpcid_sz) {
-		UserMsg_t* message = newUserMsg(bodylen - cmdid_rpcid_sz);
-		if (!message) {
-			return;
+	unsigned int hsz = 9;
+	if (bodylen >= hsz) {
+		UserMsg_t* message;
+		char rpc_status = *bodyptr;
+
+		if (RPC_STATUS_RESP == rpc_status) {
+			message = newUserMsg(bodylen - hsz);
+			if (!message) {
+				return;
+			}
+			message->retcode = ntohl(*(int*)(bodyptr + 1));
 		}
+		else if (RPC_STATUS_HAND_SHAKE == rpc_status) {
+			message = newUserMsg(bodylen - hsz);
+			if (!message) {
+				return;
+			}
+			message->callback = TaskThread_default_clsnd_handshake;
+		}
+		else {
+			int cmd = ntohl(*(int*)(bodyptr + 1));
+			DispatchCallback_t callback = getNumberDispatch(ptrBSG()->dispatch, cmd);
+			if (!callback) {
+				return;
+			}
+			message = newUserMsg(bodylen - hsz);
+			if (!message) {
+				return;
+			}
+			message->callback = callback;
+		}
+
 		message->channel = c;
 		if (SOCK_STREAM != c->socktype) {
 			memcpy(&message->peer_addr, addr, sockaddrLength(addr));
 		}
-		message->rpc_status = *bodyptr;
-		message->retcode = message->cmdid = ntohl(*(int*)(bodyptr + 1));
 		message->rpcid = ntohl(*(int*)(bodyptr + 5));
 		if (message->datalen) {
-			memcpy(message->data, bodyptr + cmdid_rpcid_sz, message->datalen);
+			memcpy(message->data, bodyptr + hsz, message->datalen);
 		}
 		if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
 			message->enqueue_time_msec = gmtimeMillisecond();
 		}
-		if (RPC_STATUS_RESP == message->rpc_status) {
+
+		if (RPC_STATUS_RESP == rpc_status) {
 			StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
-		}
-		else if (RPC_STATUS_HAND_SHAKE == message->rpc_status) {
-			StackCoSche_function(channelUserData(c)->sche, TaskThread_default_clsnd_handshake, message, (void(*)(void*))message->on_free);
 		}
 		else {
 			StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);

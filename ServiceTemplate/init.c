@@ -1,7 +1,7 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
 
-int init(int argc, char** argv) {
+int init(BootServerGlobal_t* g) {
 	return 0;
 }
 

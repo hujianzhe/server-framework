@@ -63,7 +63,12 @@ static void test_timer(struct StackCoSche_t* sche, void* arg) {
 	}
 }
 
-int init(int argc, char** argv) {
+int init(BootServerGlobal_t* g) {
+	// register dispatch
+	regNumberDispatch(g->dispatch, CMD_NOTIFY_TEST, notifyTest);
+	regNumberDispatch(g->dispatch, CMD_RET_TEST, retTest);
+	regNumberDispatch(g->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
+
 	return 0;
 }
 
@@ -71,10 +76,6 @@ void run(struct StackCoSche_t* sche, void* arg) {
 	int i;
 	StackCoBlock_t* block;
 	TaskThread_t* thrd = currentTaskThread();
-
-	regNumberDispatch(thrd->dispatch, CMD_NOTIFY_TEST, notifyTest);
-	regNumberDispatch(thrd->dispatch, CMD_RET_TEST, retTest);
-	regNumberDispatch(thrd->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
 
 	// add timer
 	StackCoSche_timeout_util(sche, gmtimeMillisecond() / 1000 * 1000 + 1000, test_timer, NULL, NULL);

@@ -96,7 +96,6 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 		message->on_free = free_user_msg;
 		message->channel = channel;
 		message->param.value = reply;
-		message->rpc_status = RPC_STATUS_RESP;
 		message->rpcid = rpc_id;
 		StackCoSche_resume_block_by_id(ud->_.sche, rpc_id, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
 	}

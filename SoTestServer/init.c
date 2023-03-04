@@ -4,78 +4,30 @@
 #include "test_handler.h"
 #include <stdio.h>
 
-static void websocket_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
-	if (bodylen > 0) {
-		UserMsg_t* message;
-		char* cmdstr;
-		int cmdid;
+int init(BootServerGlobal_t* g) {
+	// register dispatch
+	regNumberDispatch(g->dispatch, CMD_REQ_TEST, reqTest);
+	regNumberDispatch(g->dispatch, CMD_REQ_TEST_CALLBACK, reqTestCallback);
+	regNumberDispatch(g->dispatch, CMD_REQ_LOGIN_TEST, reqLoginTest);
+	regNumberDispatch(g->dispatch, CMD_REQ_WEBSOCKET_TEST, reqWebsocketTest);
+	regNumberDispatch(g->dispatch, CMD_REQ_ParallelTest1, reqParallelTest1);
+	regNumberDispatch(g->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);
+	regStringDispatch(g->dispatch, "/reqHttpTest", reqHttpTest);
+	regStringDispatch(g->dispatch, "/reqSoTest", reqSoTest);
+	regStringDispatch(g->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);
 
-		cmdstr = strstr((char*)bodyptr, "cmd");
-		if (!cmdstr) {
-			return;
-		}
-		cmdstr += 3;
-		cmdstr = strchr(cmdstr, ':');
-		if (!cmdstr) {
-			return;
-		}
-		cmdstr++;
-		if (sscanf(cmdstr, "%d", &cmdid) != 1) {
-			return;
-		}
-
-		message = newUserMsg(bodylen);
-		if (!message) {
-			return;
-		}
-		message->channel = c;
-		message->rpc_status = 0;
-		message->cmdid = cmdid;
-		message->rpcid = 0;
-		if (message->datalen) {
-			memcpy(message->data, bodyptr, message->datalen);
-		}
-		if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
-			message->enqueue_time_msec = gmtimeMillisecond();
-		}
-		if (RPC_STATUS_RESP == message->rpc_status) {
-			StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
-		}
-		else {
-			StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);
-		}
-	}
-	else if (c->flag & CHANNEL_FLAG_SERVER) {
-		channelbaseSend(c, NULL, 0, NETPACKET_NO_ACK_FRAGMENT);
-	}
-}
-
-int init(int argc, char** argv) {
 	return 0;
 }
 
 void run(struct StackCoSche_t* sche, void* arg) {
 	TaskThread_t* thrd = currentTaskThread();
 	int i;
-	// register dispatch
-	regNumberDispatch(thrd->dispatch, CMD_REQ_TEST, reqTest);
-	regNumberDispatch(thrd->dispatch, CMD_REQ_TEST_CALLBACK, reqTestCallback);
-	regNumberDispatch(thrd->dispatch, CMD_REQ_LOGIN_TEST, reqLoginTest);
-	regStringDispatch(thrd->dispatch, "/reqHttpTest", reqHttpTest);
-	regStringDispatch(thrd->dispatch, "/reqSoTest", reqSoTest);
-	regStringDispatch(thrd->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);
-	regNumberDispatch(thrd->dispatch, CMD_REQ_WEBSOCKET_TEST, reqWebsocketTest);
-	regNumberDispatch(thrd->dispatch, CMD_REQ_ParallelTest1, reqParallelTest1);
-	regNumberDispatch(thrd->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);
 	// listen extra port
 	for (i = 0; i < ptrBSG()->conf->listen_options_cnt; ++i) {
 		const ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
 		ChannelBase_t* c;
 		if (!strcmp(option->protocol, "http")) {
 			c = openListenerHttp(option->ip, option->port, sche);
-		}
-		else if (!strcmp(option->protocol, "websocket")) {
-			c = openListenerWebsocket(option->ip, option->port, websocket_recv, sche);
 		}
 		else {
 			continue;

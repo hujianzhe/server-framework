@@ -18,12 +18,7 @@ void reqTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	makeInnerMsg(&msg, CMD_NOTIFY_TEST, NULL, 0);
 	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 
-	if (RPC_STATUS_REQ == ctrl->rpc_status) {
-		makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
-	}
-	else {
-		makeInnerMsg(&msg, CMD_RET_TEST, test_data, sizeof(test_data));
-	}
+	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
 	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 }
 
@@ -85,11 +80,9 @@ void reqParallelTest1(TaskThread_t* thrd, UserMsg_t* ctrl) {
 
 	printf("%s hello world !!! %s\n", __FUNCTION__, (char*)ctrl->data);
 
-	if (RPC_STATUS_REQ == ctrl->rpc_status) {
-		InnerMsg_t msg;
-		makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
-		channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-	}
+	InnerMsg_t msg;
+	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
+	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 }
 
 void reqParallelTest2(TaskThread_t* thrd, UserMsg_t* ctrl) {
@@ -97,11 +90,9 @@ void reqParallelTest2(TaskThread_t* thrd, UserMsg_t* ctrl) {
 
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
 
-	if (RPC_STATUS_REQ == ctrl->rpc_status) {
-		InnerMsg_t msg;
-		makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
-		channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-	}
+	InnerMsg_t msg;
+	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
+	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
 }
 
 void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {

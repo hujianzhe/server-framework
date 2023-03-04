@@ -3,25 +3,24 @@
 
 #include "util/inc/component/stack_co_sche.h"
 #include "util/inc/datastruct/random.h"
-#include "dispatch.h"
 
 struct ChannelBase_t;
 struct ClusterTable_t;
+struct UserMsg_t;
 
 typedef struct TaskThread_t {
 	Thread_t tid;
 	struct StackCoSche_t* sche;
-	struct Dispatch_t* dispatch;
 	struct ClusterTable_t* clstbl;
 	const char* errmsg;
 	Rand48_t rand48_ctx;
 	RandMT19937_t randmt19937_ctx;
-	void(*filter_dispatch)(struct TaskThread_t* thrd, UserMsg_t* req_ctrl);
+	void(*filter_dispatch)(struct TaskThread_t* thrd, struct UserMsg_t* req_ctrl);
 	void(*on_channel_detach)(struct TaskThread_t* thrd, struct ChannelBase_t* channel);
 } TaskThread_t;
 
 void TaskThread_channel_base_detach(struct StackCoSche_t* sche, void* arg);
-void TaskThread_default_clsnd_handshake(struct StackCoSche_t* sche, void* arg);
+void TaskThread_default_clsnd_handshake(TaskThread_t* thrd, struct UserMsg_t* ctrl);
 
 #ifdef __cplusplus
 extern "C" {

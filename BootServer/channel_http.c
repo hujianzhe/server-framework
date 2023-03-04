@@ -21,44 +21,46 @@ static void free_user_msg(UserMsg_t* msg) {
 
 static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
 	ChannelUserDataHttp_t* ud;
-	UserMsg_t* message = newUserMsg(bodylen);
+	DispatchCallback_t callback;
+	UserMsg_t* message;
+
+	ud = (ChannelUserDataHttp_t*)channelUserData(c);
+	if (!ud->rpc_id_recv) {
+		callback = getStringDispatch(ptrBSG()->dispatch, httpframe->uri);
+		if (!callback) {
+			free(httpframeReset(httpframe));
+			return;
+		}
+	}
+	message = newUserMsg(bodylen);
 	if (!message) {
 		free(httpframeReset(httpframe));
 		return;
 	}
 	message->channel = c;
-	httpframe->uri[httpframe->pathlen] = 0;
 	message->param.value = httpframe;
-	message->cmdstr = httpframe->uri;
-	message->cmdid = 0;
 	message->on_free = free_user_msg;
-
-	ud = (ChannelUserDataHttp_t*)channelUserData(c);
-	if (ud->rpc_id_recv != 0) {
-		message->rpc_status = RPC_STATUS_RESP;
-		message->rpcid = ud->rpc_id_recv;
-		ud->rpc_id_recv = 0;
-	}
-	else {
-		message->rpc_status = 0;
-		message->rpcid = 0;
-	}
 	if (message->datalen) {
 		memcpy(message->data, bodyptr, message->datalen);
 	}
 	if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
 		message->enqueue_time_msec = gmtimeMillisecond();
 	}
-	if (RPC_STATUS_RESP == message->rpc_status) {
-		StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
+
+	if (!ud->rpc_id_recv && httpframe->method[0]) {
+		message->callback = callback;
+		StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);
 	}
 	else {
-		StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);
+		message->rpcid = ud->rpc_id_recv;
+		ud->rpc_id_recv = 0;
+		StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
 	}
 }
 
 static int httpframe_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int buflen, long long timestamp_msec, const struct sockaddr* addr) {
 	int res;
+	unsigned int content_length;
 	HttpFrame_t* frame = (HttpFrame_t*)malloc(sizeof(HttpFrame_t));
 	if (!frame) {
 		return -1;
@@ -72,28 +74,32 @@ static int httpframe_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 		free(frame);
 		return 0;
 	}
-	if (frame->content_length) {
-		if (frame->content_length > buflen - res) {
+	content_length = frame->content_length;
+	if (content_length) {
+		if (content_length > buflen - res) {
 			free(httpframeReset(frame));
 			return 0;
 		}
 		if (frame->multipart_form_data_boundary &&
 			frame->multipart_form_data_boundary[0])
 		{
-			if (!httpframeDecodeMultipartFormDataList(frame, buf + res, frame->content_length)) {
+			if (!httpframeDecodeMultipartFormDataList(frame, buf + res, content_length)) {
 				free(httpframeReset(frame));
 				return -1;
 			}
+			frame->uri[frame->pathlen] = 0;
 			httpframe_recv(c, frame, NULL, 0, addr);
 		}
 		else {
-			httpframe_recv(c, frame, buf + res, frame->content_length, addr);
+			frame->uri[frame->pathlen] = 0;
+			httpframe_recv(c, frame, buf + res, content_length, addr);
 		}
 	}
 	else {
+		frame->uri[frame->pathlen] = 0;
 		httpframe_recv(c, frame, NULL, 0, addr);
 	}
-	return res + frame->content_length;
+	return res + content_length;
 }
 
 static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {

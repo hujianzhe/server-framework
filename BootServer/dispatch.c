@@ -62,28 +62,6 @@ void freeDispatch(Dispatch_t* dispatch) {
 	}
 }
 
-DispatchCallback_t getStringDispatch(const Dispatch_t* dispatch, const char* str) {
-	HashtableNodeKey_t hkey;
-	HashtableNode_t* node;
-	hkey.ptr = str;
-	node = hashtableSearchKey(&dispatch->s_StringDispatchTable, hkey);
-	if (node) {
-		return pod_container_of(node, DispatchItem_t, m_hashnode)->func;
-	}
-	return dispatch->null_dispatch_callback;
-}
-
-DispatchCallback_t getNumberDispatch(const Dispatch_t* dispatch, int cmd) {
-	HashtableNodeKey_t hkey;
-	HashtableNode_t* node;
-	hkey.i32 = cmd;
-	node = hashtableSearchKey(&dispatch->s_NumberDispatchTable, hkey);
-	if (node) {
-		return pod_container_of(node, DispatchItem_t, m_hashnode)->func;
-	}
-	return dispatch->null_dispatch_callback;
-}
-
 /**************************************************************************************/
 
 #ifdef __cplusplus
@@ -99,9 +77,7 @@ UserMsg_t* newUserMsg(size_t datalen) {
 		msg->param.type = 0;
 		msg->param.value = NULL;
 		msg->enqueue_time_msec = -1;
-		msg->cmdstr = NULL;
-		msg->rpc_status = 0;
-		msg->cmdid = 0;
+		msg->callback = NULL;
 		msg->retcode = 0;
 		msg->rpcid = 0;
 		msg->datalen = datalen;
@@ -132,8 +108,10 @@ int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchCallback_t 
 		item->func = func;
 		exist_node = hashtableInsertNode(&dispatch->s_StringDispatchTable, &item->m_hashnode);
 		if (exist_node != &item->m_hashnode) {
+			DispatchItem_t* exist_item = pod_container_of(exist_node, DispatchItem_t, m_hashnode);
 			hashtableReplaceNode(&dispatch->s_StringDispatchTable, exist_node, &item->m_hashnode);
-			free(pod_container_of(exist_node, DispatchItem_t, m_hashnode));
+			free((void*)(exist_node->key.ptr));
+			free(exist_item);
 		}
 		return 1;
 	}
@@ -153,6 +131,28 @@ int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchCallback_t func) {
 		return 1;
 	}
 	return 0;
+}
+
+DispatchCallback_t getStringDispatch(const Dispatch_t* dispatch, const char* str) {
+	HashtableNodeKey_t hkey;
+	HashtableNode_t* node;
+	hkey.ptr = str;
+	node = hashtableSearchKey(&dispatch->s_StringDispatchTable, hkey);
+	if (node) {
+		return pod_container_of(node, DispatchItem_t, m_hashnode)->func;
+	}
+	return dispatch->null_dispatch_callback;
+}
+
+DispatchCallback_t getNumberDispatch(const Dispatch_t* dispatch, int cmd) {
+	HashtableNodeKey_t hkey;
+	HashtableNode_t* node;
+	hkey.i32 = cmd;
+	node = hashtableSearchKey(&dispatch->s_NumberDispatchTable, hkey);
+	if (node) {
+		return pod_container_of(node, DispatchItem_t, m_hashnode)->func;
+	}
+	return dispatch->null_dispatch_callback;
 }
 
 #ifdef __cplusplus

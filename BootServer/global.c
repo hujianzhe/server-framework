@@ -12,7 +12,7 @@ BootServerGlobal_t* ptrBSG(void) { return s_PtrBSG; }
 const char* getBSGErrmsg(void) { return s_BSG.errmsg ? s_BSG.errmsg : ""; }
 int checkStopBSG(void) { return s_PtrBSG ? !(s_PtrBSG->valid) : 1; }
 
-BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_init)(int, char**)) {
+BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_init)(BootServerGlobal_t*)) {
 	if (s_PtrBSG) {
 		return TRUE;
 	}
@@ -33,6 +33,12 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_
 	// init net thread resource
 	if (!newNetThreadResource(s_Config.net_thread_cnt)) {
 		s_BSG.errmsg = strFormat(NULL, "net thread resource create failure\n");
+		return FALSE;
+	}
+	// init dispatch
+	s_BSG.dispatch = newDispatch();
+	if (!s_BSG.dispatch) {
+		s_BSG.errmsg = strFormat(NULL, "newDispatch error\n");
 		return FALSE;
 	}
 	// init task thread
@@ -80,7 +86,7 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_
 	}
 	// init user global
 	if (fn_init) {
-		int ret = fn_init(argc, argv);
+		int ret = fn_init(&s_BSG);
 		if (ret) {
 			s_BSG.errmsg = strFormat(NULL, "initBootServerGlobal call fn_init err, ret=%d\n", ret);
 			return FALSE;
@@ -161,6 +167,10 @@ void freeBootServerGlobal(void) {
 		s_BSG.conf = NULL;
 	}
 	freeNetThreadResource();
+	if (s_BSG.dispatch) {
+		freeDispatch(s_BSG.dispatch);
+		s_BSG.dispatch = NULL;
+	}
 	if (s_BSG.errmsg) {
 		free((void*)s_BSG.errmsg);
 		s_BSG.errmsg = NULL;

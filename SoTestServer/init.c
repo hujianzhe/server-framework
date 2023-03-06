@@ -19,6 +19,11 @@ int init(BootServerGlobal_t* g) {
 	return 0;
 }
 
+static void reflect_websocket_on_recv(ChannelBase_t* channel, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* saddr) {
+	printf("reflect_websocket_on_recv: %zu bytes\n", bodylen);
+	channelbaseSend(channel, bodyptr, bodylen, NETPACKET_FRAGMENT);
+}
+
 void run(struct StackCoSche_t* sche, void* arg) {
 	TaskThread_t* thrd = currentTaskThread();
 	int i;
@@ -28,6 +33,9 @@ void run(struct StackCoSche_t* sche, void* arg) {
 		ChannelBase_t* c;
 		if (!strcmp(option->protocol, "http")) {
 			c = openListenerHttp(option->ip, option->port, sche);
+		}
+		else if (!strcmp(option->protocol, "websocket")) {
+			c = openListenerWebsocket(option->ip, option->port, reflect_websocket_on_recv, sche);
 		}
 		else {
 			continue;

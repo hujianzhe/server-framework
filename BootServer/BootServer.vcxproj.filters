@@ -33,7 +33,7 @@
     <ClInclude Include="global.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="msg_struct.h">
+    <ClInclude Include="inner_msg_struct.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="net_thread.h">
@@ -278,7 +278,7 @@
     <ClCompile Include="global.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="msg_struct.c">
+    <ClCompile Include="inner_msg_struct.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="net_thread.c">

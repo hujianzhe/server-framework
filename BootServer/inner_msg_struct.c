@@ -1,4 +1,4 @@
-#include "msg_struct.h"
+#include "inner_msg_struct.h"
 #include "util/inc/sysapi/socket.h"
 
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
-#ifndef BOOT_SERVER_MSG_STRUCT_H
-#define	BOOT_SERVER_MSG_STRUCT_H
+#ifndef BOOT_SERVER_INNER_MSG_STRUCT_H
+#define	BOOT_SERVER_INNER_MSG_STRUCT_H
 
 #include "util/inc/platform_define.h"
 
@@ -38,4 +38,4 @@ __declspec_dll InnerMsg_t* makeInnerMsgRpcResp(InnerMsg_t* msg, int rpcid, int r
 }
 #endif
 
-#endif // !MSG_STRUCT_H
+#endif // !INNER_MSG_STRUCT_H

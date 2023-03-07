@@ -154,7 +154,7 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="dispatch.h" />
     <ClInclude Include="global.h" />
-    <ClInclude Include="msg_struct.h" />
+    <ClInclude Include="inner_msg_struct.h" />
     <ClInclude Include="net_thread.h" />
     <ClInclude Include="session_struct.h" />
     <ClInclude Include="task_thread.h" />
@@ -237,7 +237,7 @@
     <ClCompile Include="config.c" />
     <ClCompile Include="dispatch.c" />
     <ClCompile Include="global.c" />
-    <ClCompile Include="msg_struct.c" />
+    <ClCompile Include="inner_msg_struct.c" />
     <ClCompile Include="net_thread.c" />
     <ClCompile Include="session_struct.c" />
     <ClCompile Include="task_thread.c" />

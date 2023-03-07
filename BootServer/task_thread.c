@@ -139,25 +139,21 @@ void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 	UserMsg_t* ctrl = (UserMsg_t*)arg;
 	ChannelBase_t* c = ctrl->channel;
 
-	if (!thrd->filter_dispatch) {
-		if (c) {
-			channelbaseAddRef(c);
-			ctrl->callback(thrd, ctrl);
-			channelbaseClose(c);
+	if (c) {
+		channelbaseAddRef(c);
+		if (thrd->filter_dispatch) {
+			thrd->filter_dispatch(thrd, ctrl);
 		}
 		else {
 			ctrl->callback(thrd, ctrl);
 		}
+		channelbaseClose(c);
+	}
+	else if (thrd->filter_dispatch) {
+		thrd->filter_dispatch(thrd, ctrl);
 	}
 	else {
-		if (c) {
-			channelbaseAddRef(c);
-			thrd->filter_dispatch(thrd, ctrl);
-			channelbaseClose(c);
-		}
-		else {
-			thrd->filter_dispatch(thrd, ctrl);
-		}
+		ctrl->callback(thrd, ctrl);
 	}
 }
 

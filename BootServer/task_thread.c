@@ -136,24 +136,31 @@ TaskThread_t* currentTaskThread(void) {
 
 void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
-	UserMsg_t* ctrl = (UserMsg_t*)arg;
-	ChannelBase_t* c = ctrl->channel;
+	UserMsg_t* msg = (UserMsg_t*)arg;
+	ChannelBase_t* c = msg->channel;
 
-	if (c) {
+	if (!msg->retry && c) {
 		channelbaseAddRef(c);
-		if (thrd->filter_dispatch) {
-			thrd->filter_dispatch(thrd, ctrl);
-		}
-		else {
-			ctrl->callback(thrd, ctrl);
-		}
-		channelbaseClose(c);
 	}
-	else if (thrd->filter_dispatch) {
-		thrd->filter_dispatch(thrd, ctrl);
+	if (thrd->filter_dispatch) {
+		thrd->filter_dispatch(thrd, msg);
 	}
 	else {
-		ctrl->callback(thrd, ctrl);
+		msg->callback(thrd, msg);
+	}
+	if (msg->retry) {
+		StackCoSche_no_arg_free(sche);
+		return;
+	}
+	if (msg->order_dq) {
+		UserMsg_t* next_msg = UserMsgExecQueue_pop(msg->order_dq);
+		msg->order_dq->exec_msg = NULL;
+		if (next_msg) {
+			StackCoSche_function(sche, TaskThread_call_dispatch, next_msg, (void(*)(void*))freeUserMsg);
+		}
+	}
+	if (c) {
+		channelbaseClose(c);
 	}
 }
 

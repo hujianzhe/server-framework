@@ -113,10 +113,10 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 		}
 
 		if (RPC_STATUS_RESP == rpc_status) {
-			StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
+			StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))freeUserMsg);
 		}
 		else {
-			StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);
+			StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))freeUserMsg);
 		}
 	}
 	else if (c->flag & CHANNEL_FLAG_SERVER) {

@@ -7,8 +7,14 @@ struct TaskThread_t;
 struct UserMsg_t;
 typedef void(*DispatchCallback_t)(struct TaskThread_t*, struct UserMsg_t*);
 
+typedef struct UserMsgExecQueue_t {
+	List_t list;
+	struct UserMsg_t* exec_msg;
+} UserMsgExecQueue_t;
+
 typedef struct UserMsg_t {
 	ListNode_t order_listnode;
+	UserMsgExecQueue_t* order_dq;
 	ChannelBase_t* channel;
 	Sockaddr_t peer_addr;
 	void(*on_free)(struct UserMsg_t* self);
@@ -25,21 +31,18 @@ typedef struct UserMsg_t {
 	unsigned char data[1];
 } UserMsg_t;
 
-typedef struct UserMsgExecQueue_t {
-	List_t list;
-	short waiting;
-	short removed;
-} UserMsgExecQueue_t;
+UserMsg_t* UserMsgExecQueue_pop(UserMsgExecQueue_t* dq);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 __declspec_dll UserMsg_t* newUserMsg(size_t datalen);
+__declspec_dll void freeUserMsg(UserMsg_t* msg);
 
-__declspec_dll UserMsgExecQueue_t* UserMsgExecQueue_init(UserMsgExecQueue_t* mq);
-__declspec_dll int UserMsgExecQueue_try_exec(UserMsgExecQueue_t* mq, struct TaskThread_t* thrd, UserMsg_t* msg);
-__declspec_dll void UserMsgExecQueue_clear(UserMsgExecQueue_t* mq);
+__declspec_dll UserMsgExecQueue_t* UserMsgExecQueue_init(UserMsgExecQueue_t* dq);
+__declspec_dll int UserMsgExecQueue_check_exec(UserMsgExecQueue_t* dq, UserMsg_t* msg);
+__declspec_dll void UserMsgExecQueue_clear(UserMsgExecQueue_t* dq);
 
 #ifdef __cplusplus
 }

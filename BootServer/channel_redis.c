@@ -32,7 +32,6 @@ static ChannelUserData_t* init_channel_user_data_redis_cli(ChannelUserDataRedisC
 static void free_user_msg(UserMsg_t* msg) {
 	RedisReply_t* reply = (RedisReply_t*)msg->param.value;
 	RedisReply_free(reply);
-	free(msg);
 }
 
 static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr) {
@@ -97,7 +96,7 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 		message->channel = channel;
 		message->param.value = reply;
 		message->rpcid = rpc_id;
-		StackCoSche_resume_block_by_id(ud->_.sche, rpc_id, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
+		StackCoSche_resume_block_by_id(ud->_.sche, rpc_id, STACK_CO_STATUS_FINISH, message, (void(*)(void*))freeUserMsg);
 	}
 	return len;
 }

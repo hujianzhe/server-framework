@@ -68,6 +68,9 @@ void UserMsgExecQueue_clear(UserMsgExecQueue_t* dq) {
 	for (cur = dq->list.head; cur; cur = next) {
 		UserMsg_t* msg = pod_container_of(cur, UserMsg_t, order_listnode);
 		next = cur->next;
+		if (msg->channel) {
+			channelbaseClose(msg->channel);
+		}
 		msg->on_free(msg);
 	}
 	listInit(&dq->list);

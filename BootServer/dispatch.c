@@ -14,10 +14,6 @@ typedef struct Dispatch_t {
 	HashtableNode_t* s_StringDispatchBulk[1024];
 } Dispatch_t;
 
-static void free_user_msg(UserMsg_t* msg) {
-	free(msg);
-}
-
 Dispatch_t* newDispatch(void) {
 	Dispatch_t* dispatch = (Dispatch_t*)malloc(sizeof(Dispatch_t));
 	if (dispatch) {
@@ -67,24 +63,6 @@ void freeDispatch(Dispatch_t* dispatch) {
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-UserMsg_t* newUserMsg(size_t datalen) {
-	UserMsg_t* msg = (UserMsg_t*)malloc(sizeof(UserMsg_t) + datalen);
-	if (msg) {
-		msg->channel = NULL;
-		msg->peer_addr.sa.sa_family = AF_UNSPEC;
-		msg->on_free = free_user_msg;
-		msg->param.type = 0;
-		msg->param.value = NULL;
-		msg->enqueue_time_msec = -1;
-		msg->callback = NULL;
-		msg->retcode = 0;
-		msg->rpcid = 0;
-		msg->datalen = datalen;
-		msg->data[msg->datalen] = 0;
-	}
-	return msg;
-}
 
 DispatchCallback_t regNullDispatch(Dispatch_t* dispatch, DispatchCallback_t func) {
 	DispatchCallback_t old_func = dispatch->null_dispatch_callback;

@@ -30,6 +30,9 @@
     <ClInclude Include="dispatch.h">
       <Filter>头文件</Filter>
     </ClInclude>
+	<ClInclude Include="dispatch_msg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="global.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -273,6 +276,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="dispatch.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+	<ClCompile Include="dispatch_msg.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="global.c">

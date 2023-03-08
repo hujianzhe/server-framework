@@ -153,6 +153,7 @@
     <ClInclude Include="cluster_node_group.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="dispatch.h" />
+    <ClInclude Include="dispatch_msg.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="inner_msg_struct.h" />
     <ClInclude Include="net_thread.h" />
@@ -236,6 +237,7 @@
     <ClCompile Include="cluster_node_group.c" />
     <ClCompile Include="config.c" />
     <ClCompile Include="dispatch.c" />
+    <ClCompile Include="dispatch_msg.c" />
     <ClCompile Include="global.c" />
     <ClCompile Include="inner_msg_struct.c" />
     <ClCompile Include="net_thread.c" />

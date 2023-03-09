@@ -12,8 +12,6 @@ enum {
 
 	CMD_REQ_ParallelTest1 = 200,
 	CMD_REQ_ParallelTest2 = 201,
-
-	CMD_REQ_WEBSOCKET_TEST = 300,
 };
 
 #endif // !CMD_H

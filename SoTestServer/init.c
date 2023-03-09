@@ -9,12 +9,12 @@ int init(BootServerGlobal_t* g) {
 	regNumberDispatch(g->dispatch, CMD_REQ_TEST, reqTest);
 	regNumberDispatch(g->dispatch, CMD_REQ_TEST_CALLBACK, reqTestCallback);
 	regNumberDispatch(g->dispatch, CMD_REQ_LOGIN_TEST, reqLoginTest);
-	regNumberDispatch(g->dispatch, CMD_REQ_WEBSOCKET_TEST, reqWebsocketTest);
 	regNumberDispatch(g->dispatch, CMD_REQ_ParallelTest1, reqParallelTest1);
 	regNumberDispatch(g->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);
 	regStringDispatch(g->dispatch, "/reqHttpTest", reqHttpTest);
 	regStringDispatch(g->dispatch, "/reqSoTest", reqSoTest);
 	regStringDispatch(g->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);
+	regStringDispatch(g->dispatch, "/reqTestExecQueue", reqTestExecQueue);
 
 	return 0;
 }

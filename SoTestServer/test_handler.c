@@ -69,10 +69,44 @@ void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	free(reply);
 }
 
-void reqWebsocketTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	const char reply[] = "This text is from Server &.&, [reply websocket]";
-	printf("%s recv: %s\n", __FUNCTION__, ctrl->data);
-	channelbaseSend(ctrl->channel, reply, strlen(reply), NETPACKET_FRAGMENT);
+void reqTestExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
+	static UserMsgExecQueue_t* dq = NULL;
+	char* reply;
+	int reply_len;
+	long long now_msec;
+
+	if (!dq) {
+		dq = malloc(sizeof(*dq));
+		if (!dq) {
+			return;
+		}
+		UserMsgExecQueue_init(dq);
+	}
+	if (!UserMsgExecQueue_check_exec(dq, ctrl)) {
+		return;
+	}
+	puts("start test exec queue");
+	now_msec = gmtimeMillisecond();
+	StackCoSche_sleep_util(thrd->sche, now_msec + 5000);
+	StackCoSche_yield(thrd->sche);
+
+	const char test_data[] = "end test exec queue";
+	puts(test_data);
+	reply = strFormat(&reply_len,
+		"HTTP/1.1 %u %s\r\n"
+		"Access-Control-Allow-Origin: *\r\n"
+		"Connection: close\r\n"
+		"Content-Length:%u\r\n"
+		"\r\n"
+		"%s",
+		200, httpframeStatusDesc(200), sizeof(test_data) - 1, test_data
+	);
+	if (!reply) {
+		return;
+	}
+	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
+	channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
+	free(reply);
 }
 
 void reqParallelTest1(TaskThread_t* thrd, UserMsg_t* ctrl) {

@@ -15,6 +15,7 @@ int init(BootServerGlobal_t* g) {
 	regStringDispatch(g->dispatch, "/reqSoTest", reqSoTest);
 	regStringDispatch(g->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);
 	regStringDispatch(g->dispatch, "/reqTestExecQueue", reqTestExecQueue);
+	regStringDispatch(g->dispatch, "/reqClearExecQueue", reqClearExecQueue);
 
 	return 0;
 }

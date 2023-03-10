@@ -69,20 +69,22 @@ void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	free(reply);
 }
 
+static UserMsgExecQueue_t* s_dq = NULL;
+
 void reqTestExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	static UserMsgExecQueue_t* dq = NULL;
 	char* reply;
 	int reply_len;
 	long long now_msec;
+	const char test_data[] = "end test exec queue";
 
-	if (!dq) {
-		dq = malloc(sizeof(*dq));
-		if (!dq) {
+	if (!s_dq) {
+		s_dq = (UserMsgExecQueue_t*)malloc(sizeof(*s_dq));
+		if (!s_dq) {
 			return;
 		}
-		UserMsgExecQueue_init(dq);
+		UserMsgExecQueue_init(s_dq);
 	}
-	if (!UserMsgExecQueue_check_exec(dq, ctrl)) {
+	if (!UserMsgExecQueue_check_exec(s_dq, ctrl)) {
 		return;
 	}
 	puts("start test exec queue");
@@ -90,7 +92,35 @@ void reqTestExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	StackCoSche_sleep_util(thrd->sche, now_msec + 5000);
 	StackCoSche_yield(thrd->sche);
 
-	const char test_data[] = "end test exec queue";
+	puts(test_data);
+	reply = strFormat(&reply_len,
+		"HTTP/1.1 %u %s\r\n"
+		"Access-Control-Allow-Origin: *\r\n"
+		"Connection: close\r\n"
+		"Content-Length:%u\r\n"
+		"\r\n"
+		"%s",
+		200, httpframeStatusDesc(200), sizeof(test_data) - 1, test_data
+	);
+	if (!reply) {
+		return;
+	}
+	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
+	channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
+	free(reply);
+}
+
+void reqClearExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
+	char* reply;
+	int reply_len;
+	const char test_data[] = "clear test exec queue";
+
+	if (s_dq) {
+		UserMsgExecQueue_clear(s_dq);
+		free(s_dq);
+		s_dq = NULL;
+	}
+
 	puts(test_data);
 	reply = strFormat(&reply_len,
 		"HTTP/1.1 %u %s\r\n"

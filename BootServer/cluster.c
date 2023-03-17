@@ -230,37 +230,19 @@ ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name,
 void broadcastClusterGroup(struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt) {
 	ClusterNodeGroup_t* grp = getClusterNodeGroup(t, grp_name);
 	if (grp) {
-		const char* self_ident = ptrBSG()->conf->clsnd.ident;
 		size_t i;
 		for (i = 0; i < grp->clsnds.len; ++i) {
-			ChannelBase_t* channel;
 			ClusterNode_t* clsnd = grp->clsnds.buf[i];
-			if (0 == strcmp(clsnd->ident, self_ident)) {
-				continue;
-			}
-			channel = connectClusterNode(clsnd);
-			if (!channel) {
-				continue;
-			}
-			channelbaseSendv(channel, iov, iovcnt, NETPACKET_FRAGMENT);
+			clsndSendv(clsnd, iov, iovcnt);
 		}
 	}
 }
 
 void broadcastClusterTable(struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt) {
-	const char* self_ident = ptrBSG()->conf->clsnd.ident;
 	ListNode_t* cur;
 	for (cur = t->nodelist.head; cur; cur = cur->next) {
-		ChannelBase_t* channel;
 		ClusterNode_t* clsnd = pod_container_of(cur, ClusterNode_t, m_listnode);
-		if (0 == strcmp(clsnd->ident, self_ident)) {
-			continue;
-		}
-		channel = connectClusterNode(clsnd);
-		if (!channel) {
-			continue;
-		}
-		channelbaseSendv(channel, iov, iovcnt, NETPACKET_FRAGMENT);
+		clsndSendv(clsnd, iov, iovcnt);
 	}
 }
 

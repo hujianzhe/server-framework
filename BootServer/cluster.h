@@ -1,7 +1,8 @@
 #ifndef BOOT_SERVER_CLUSTER_H
 #define	BOOT_SERVER_CLUSTER_H
 
-#include "cluster_node_group.h"
+#include "util/inc/crt/dynarr.h"
+#include "cluster_node.h"
 
 enum {
 	CLUSTER_TARGET_USE_HASH_MOD	= 1,
@@ -14,10 +15,23 @@ enum {
 };
 
 struct ClusterTable_t;
+struct ClusterNodeGroup_t;
+typedef DynArr_t(ClusterNode_t*) DynArrClusterNodePtr_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* cluster node group */
+
+__declspec_dll struct ClusterNodeGroup_t* newClusterNodeGroup(const char* name);
+__declspec_dll int regClusterNodeToGroup(struct ClusterNodeGroup_t* grp, ClusterNode_t* clsnd);
+__declspec_dll int regClusterNodeToGroupByHashKey(struct ClusterNodeGroup_t* grp, unsigned int hashkey, ClusterNode_t* clsnd);
+__declspec_dll int regClusterNodeToGroupByWeight(struct ClusterNodeGroup_t* grp, int weight, ClusterNode_t* clsnd);
+__declspec_dll void delCluserNodeFromGroup(struct ClusterNodeGroup_t* grp, const char* clsnd_ident);
+__declspec_dll void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp);
+
+/* cluster table */
 
 __declspec_dll struct ClusterTable_t* newClusterTable(void);
 __declspec_dll void freeClusterTable(struct ClusterTable_t* t);

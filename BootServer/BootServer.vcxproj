@@ -150,7 +150,6 @@
     <ClInclude Include="cluster.h" />
     <ClInclude Include="cluster_action.h" />
     <ClInclude Include="cluster_node.h" />
-    <ClInclude Include="cluster_node_group.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="dispatch.h" />
     <ClInclude Include="dispatch_msg.h" />
@@ -234,7 +233,6 @@
     <ClCompile Include="cluster.c" />
     <ClCompile Include="cluster_action.c" />
     <ClCompile Include="cluster_node.c" />
-    <ClCompile Include="cluster_node_group.c" />
     <ClCompile Include="config.c" />
     <ClCompile Include="dispatch.c" />
     <ClCompile Include="dispatch_msg.c" />

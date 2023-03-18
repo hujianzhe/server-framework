@@ -17,18 +17,17 @@ ClusterNode_t* newClusterNode(const char* ident, int socktype, const IPString_t 
 		return NULL;
 	}
 	clsnd->m_ident_htnode.key.ptr = clsnd->ident;
-	clsnd->socktype = socktype;
-	if (ip) {
-		strcpy(clsnd->ip, ip);
-	}
-	else {
-		clsnd->ip[0] = 0;
-	}
-	clsnd->port = port;
 	clsnd->connection_num = 0;
 	clsnd->status = CLSND_STATUS_NORMAL;
 	clsnd->factor = 0;
+
 	initSession(&clsnd->session);
+	clsnd->session.socktype = socktype;
+	if (ip) {
+		strcpy(clsnd->session.ip, ip);
+	}
+	clsnd->session.port = port;
+
 	return clsnd;
 }
 
@@ -85,7 +84,7 @@ ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 		}
 
 		if (session->do_connect_handshake) { /* user self-defining connect-handshake action */
-			return session->do_connect_handshake(session, clsnd->ip, clsnd->port);
+			return session->do_connect_handshake(thrd, session);
 		}
 
 		hs_data = strFormat(&hs_datalen, "{\"ident\":\"%s\"}", self_ident);
@@ -93,11 +92,11 @@ ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 			return NULL;
 		}
 
-		if (!sockaddrEncode(&saddr.sa, ipstrFamily(clsnd->ip), clsnd->ip, clsnd->port)) {
+		if (!sockaddrEncode(&saddr.sa, ipstrFamily(session->ip), session->ip, session->port)) {
 			free(hs_data);
 			return NULL;
 		}
-		channel = openChannelInner(CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, clsnd->socktype, &saddr.sa, thrd->sche);
+		channel = openChannelInner(CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, session->socktype, &saddr.sa, thrd->sche);
 		if (!channel) {
 			free(hs_data);
 			return NULL;

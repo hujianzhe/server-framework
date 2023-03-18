@@ -4,6 +4,8 @@
 #include <limits.h>
 #include <string.h>
 
+extern const char* ClusterNodeGroup_name(struct ClusterNodeGroup_t* grp);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -129,7 +131,7 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 		ret_ok = 1;
 		grp = NULL;
 		for (i = 0; i < new_grps.len; ++i) {
-			if (!strcmp(new_grps.buf[i]->name, name)) {
+			if (!strcmp(ClusterNodeGroup_name(new_grps.buf[i]), name)) {
 				grp = new_grps.buf[i];
 				break;
 			}

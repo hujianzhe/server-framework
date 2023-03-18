@@ -9,7 +9,6 @@
 #include "channel_websocket.h"
 #include "channel_redis.h"
 #include "cluster_node.h"
-#include "cluster_node_group.h"
 #include "cluster.h"
 #include "cluster_action.h"
 #include "dispatch.h"

@@ -13,9 +13,6 @@ typedef struct ClusterNode_t {
 	ListNode_t m_listnode;
 	HashtableNode_t m_ident_htnode;
 	const char* ident;
-	int socktype;
-	IPString_t ip;
-	unsigned short port;
 	int connection_num;
 	int status;
 	long long factor;

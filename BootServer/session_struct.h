@@ -14,8 +14,11 @@ typedef struct Session_t {
 	ChannelBase_t* channel_server;
 	char* id;
 	void* userdata;
+	int socktype;
+	IPString_t ip;
+	unsigned short port;
 	/* interface */
-	ChannelBase_t*(*do_connect_handshake)(struct Session_t*, const char* ip, unsigned short port); /* optional */
+	ChannelBase_t*(*do_connect_handshake)(struct TaskThread_t*, struct Session_t*); /* optional */
 	void(*on_disconnect)(struct TaskThread_t*, struct Session_t*); /* optional */
 	void(*destroy)(struct Session_t*); /* optional */
 } Session_t;

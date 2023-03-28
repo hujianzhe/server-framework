@@ -122,7 +122,7 @@ void delCluserNodeFromGroup(struct ClusterNodeGroup_t* grp, const char* clsnd_id
 		}
 	}
 	if (i < grp->clsnds.len) {
-		dynarrRemoveIdx(&grp->clsnds, i);
+		dynarrSwapRemoveIdx(&grp->clsnds, i);
 	}
 	for (rbcur = rbtreeFirstNode(&grp->consistent_hash_ring); rbcur; rbcur = rbnext) {
 		rbnext = rbtreeNextNode(rbcur);

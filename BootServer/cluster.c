@@ -12,14 +12,20 @@ typedef struct ClusterTable_t {
 	HashtableNode_t* ident_bulk[32];
 } ClusterTable_t;
 
+typedef struct PairNumClsnd_t {
+	unsigned int num;
+	ClusterNode_t* clsnd;
+} PairNumClsnd_t;
+
 typedef struct ClusterNodeGroup_t {
 	HashtableNode_t m_htnode;
 	const char* name;
-	RBTree_t weight_num_ring;
-	RBTree_t consistent_hash_ring;
+	DynArr_t(PairNumClsnd_t) weight_clsnds;
+	DynArr_t(PairNumClsnd_t) consistent_hash_clsnds;
 	DynArrClusterNodePtr_t clsnds;
 	unsigned int target_loopcnt;
 	unsigned int total_weight;
+	int consistent_hash_sorted;
 } ClusterNodeGroup_t;
 
 const char* ClusterNodeGroup_name(struct ClusterNodeGroup_t* grp) { return grp->name; }
@@ -32,6 +38,10 @@ static void add_cluster_node(struct ClusterTable_t* t, ClusterNode_t* clsnd) {
 	hashtableInsertNode(&t->ident_table, &clsnd->m_ident_htnode);
 	listPushNodeBack(&t->nodelist, &clsnd->m_listnode);
 	clsnd->session.has_reg = 1;
+}
+
+static int fn_consistent_hash_compare(const void* p1, const void* p2) {
+	return ((const PairNumClsnd_t*)p1)->num > ((const PairNumClsnd_t*)p2)->num;
 }
 
 #ifdef __cplusplus
@@ -51,11 +61,12 @@ struct ClusterNodeGroup_t* newClusterNodeGroup(const char* name) {
 		return NULL;
 	}
 	grp->m_htnode.key.ptr = grp->name;
-	rbtreeInit(&grp->weight_num_ring, rbtreeDefaultKeyCmpU32);
-	rbtreeInit(&grp->consistent_hash_ring, rbtreeDefaultKeyCmpU32);
+	dynarrInitZero(&grp->weight_clsnds);
+	dynarrInitZero(&grp->consistent_hash_clsnds);
 	dynarrInitZero(&grp->clsnds);
 	grp->target_loopcnt = 0;
 	grp->total_weight = 0;
+	grp->consistent_hash_sorted = 0;
 	return grp;
 }
 
@@ -66,94 +77,70 @@ int regClusterNodeToGroup(struct ClusterNodeGroup_t* grp, ClusterNode_t* clsnd) 
 }
 
 int regClusterNodeToGroupByHashKey(struct ClusterNodeGroup_t* grp, unsigned int hashkey, ClusterNode_t* clsnd) {
-	RBTreeNode_t* exist_node;
-	struct {
-		RBTreeNode_t _;
-		ClusterNode_t* clsnd;
-	} *data;
-	*(void**)&data = malloc(sizeof(*data));
-	if (!data) {
-		return 0;
+	int ret_ok;
+	PairNumClsnd_t data = { hashkey, clsnd };
+	dynarrInsert(&grp->consistent_hash_clsnds, grp->consistent_hash_clsnds.len, data, ret_ok);
+	if (ret_ok) {
+		grp->consistent_hash_sorted = 0;
 	}
-	data->_.key.u32 = hashkey;
-	data->clsnd = clsnd;
-	exist_node = rbtreeInsertNode(&grp->consistent_hash_ring, &data->_);
-	if (exist_node != &data->_) {
-		rbtreeReplaceNode(&grp->consistent_hash_ring, exist_node, &data->_);
-		free(exist_node);
-	}
-	return 1;
+	return ret_ok;
 }
 
 int regClusterNodeToGroupByWeight(struct ClusterNodeGroup_t* grp, int weight, ClusterNode_t* clsnd) {
-	RBTreeNode_t* exist_node;
-	struct {
-		RBTreeNode_t _;
-		ClusterNode_t* clsnd;
-	} *data;
-	*(void**)&data = malloc(sizeof(*data));
-	if (!data) {
-		return 0;
+	size_t i, exist = 0;
+	unsigned int total_weight = 0;
+	for (i = 0; i < grp->weight_clsnds.len; ++i) {
+		PairNumClsnd_t* data = grp->weight_clsnds.buf + i;
+		if (data->clsnd == clsnd) {
+			if (data->num == weight) {
+				return 1;
+			}
+			data->num = weight;
+			exist = 1;
+		}
+		total_weight += data->num;
 	}
-	if (weight <= 0) {
-		weight = 1;
+	if (!exist) {
+		int ret_ok;
+		PairNumClsnd_t data = { weight, clsnd };
+		dynarrInsert(&grp->weight_clsnds, grp->weight_clsnds.len, data, ret_ok);
+		if (!ret_ok) {
+			return 0;
+		}
+		total_weight += weight;
 	}
-	grp->total_weight += weight;
-	data->_.key.u32 = grp->total_weight;
-	data->clsnd = clsnd;
-	exist_node = rbtreeInsertNode(&grp->weight_num_ring, &data->_);
-	if (exist_node != &data->_) {
-		rbtreeReplaceNode(&grp->weight_num_ring, exist_node, &data->_);
-		free(exist_node);
-	}
+	grp->total_weight = total_weight;
 	return 1;
 }
 
 void delCluserNodeFromGroup(struct ClusterNodeGroup_t* grp, const char* clsnd_ident) {
-	RBTreeNode_t* rbcur, *rbnext;
-	struct {
-		RBTreeNode_t _;
-		ClusterNode_t* clsnd;
-	} *data;
 	size_t i;
 	for (i = 0; i < grp->clsnds.len; ++i) {
 		if (0 == strcmp(grp->clsnds.buf[i]->ident, clsnd_ident)) {
+			dynarrSwapRemoveIdx(&grp->clsnds, i);
 			break;
 		}
 	}
-	if (i < grp->clsnds.len) {
-		dynarrSwapRemoveIdx(&grp->clsnds, i);
-	}
-	for (rbcur = rbtreeFirstNode(&grp->consistent_hash_ring); rbcur; rbcur = rbnext) {
-		rbnext = rbtreeNextNode(rbcur);
-		*(void**)&data = rbcur;
-		if (0 == strcmp(clsnd_ident, data->clsnd->ident)) {
-			rbtreeRemoveNode(&grp->consistent_hash_ring, rbcur);
-			free(data);
+	for (i = 0; i < grp->weight_clsnds.len; ++i) {
+		PairNumClsnd_t* data = grp->weight_clsnds.buf + i;
+		if (0 == strcmp(data->clsnd->ident, clsnd_ident)) {
+			dynarrSwapRemoveIdx(&grp->weight_clsnds, i);
+			break;
 		}
 	}
-	for (rbcur = rbtreeFirstNode(&grp->weight_num_ring); rbcur; rbcur = rbnext) {
-		rbnext = rbtreeNextNode(rbcur);
-		*(void**)&data = rbcur;
-		if (0 == strcmp(clsnd_ident, data->clsnd->ident)) {
-			rbtreeRemoveNode(&grp->weight_num_ring, rbcur);
-			free(data);
+	for (i = 0; i < grp->consistent_hash_clsnds.len; ) {
+		PairNumClsnd_t* data = grp->consistent_hash_clsnds.buf + i;
+		if (0 == strcmp(data->clsnd->ident, clsnd_ident)) {
+			dynarrSwapRemoveIdx(&grp->consistent_hash_clsnds, i);
+			continue;
 		}
+		++i;
 	}
 }
 
 void freeClusterNodeGroup(struct ClusterNodeGroup_t* grp) {
-	RBTreeNode_t* tcur, *tnext;
-	for (tcur = rbtreeFirstNode(&grp->weight_num_ring); tcur; tcur = tnext) {
-		tnext = rbtreeNextNode(tcur);
-		rbtreeRemoveNode(&grp->weight_num_ring, tcur);
-		free(tcur);
-	}
-	for (tcur = rbtreeFirstNode(&grp->consistent_hash_ring); tcur; tcur = tnext) {
-		tnext = rbtreeNextNode(tcur);
-		rbtreeRemoveNode(&grp->consistent_hash_ring, tcur);
-		free(tcur);
-	}
+	dynarrFreeMemory(&grp->weight_clsnds);
+	dynarrFreeMemory(&grp->consistent_hash_clsnds);
 	dynarrFreeMemory(&grp->clsnds);
 	free((void*)grp->name);
 	free(grp);
@@ -273,22 +260,21 @@ ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name,
 		return NULL;
 	}
 	if (CLUSTER_TARGET_USE_HASH_RING == mode) {
-		RBTreeNodeKey_t rkey;
-		RBTreeNode_t* exist_node;
-		struct {
-			RBTreeNode_t _;
-			ClusterNode_t* clsnd;
-		} *data;
-		rkey.u32 = key;
-		exist_node = rbtreeUpperBoundKey(&grp->consistent_hash_ring, rkey);
-		if (!exist_node) {
-			exist_node = rbtreeFirstNode(&grp->consistent_hash_ring);
-			if (!exist_node) {
-				return NULL;
+		size_t i;
+		if (!grp->consistent_hash_sorted) {
+			grp->consistent_hash_sorted = 1;
+			qsort(grp->consistent_hash_clsnds.buf, grp->consistent_hash_clsnds.len, sizeof(grp->consistent_hash_clsnds.buf[0]), fn_consistent_hash_compare);
+		}
+		for (i = 0; i < grp->consistent_hash_clsnds.len; ++i) {
+			PairNumClsnd_t* data = grp->consistent_hash_clsnds.buf + i;
+			if (data->num > key) {
+				dst_clsnd = data->clsnd;
+				break;
 			}
 		}
-		*(void**)&data = exist_node;
-		dst_clsnd = data->clsnd;
+		if (!dst_clsnd && grp->consistent_hash_clsnds.len > 0) {
+			dst_clsnd = grp->consistent_hash_clsnds.buf[0].clsnd;
+		}
 	}
 	else if (CLUSTER_TARGET_USE_HASH_MOD == mode) {
 		if (grp->clsnds.len <= 0) {
@@ -320,23 +306,21 @@ ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const char* grp_name,
 	else if (CLUSTER_TARGET_USE_WEIGHT_RANDOM == mode) {
 		static int mt_seedval = 1;
 		RandMT19937_t mt_ctx;
-		RBTreeNodeKey_t rkey;
-		RBTreeNode_t* exist_node;
-		struct {
-			RBTreeNode_t _;
-			ClusterNode_t* clsnd;
-		} *data;
+		size_t i;
+		unsigned int weight;
 		if (grp->total_weight <= 0) {
 			return NULL;
 		}
 		mt19937Seed(&mt_ctx, mt_seedval++);
-		rkey.u32 = mt19937Range(&mt_ctx, 0, grp->total_weight);
-		exist_node = rbtreeUpperBoundKey(&grp->weight_num_ring, rkey);
-		if (!exist_node) {
-			return NULL;
+		weight = mt19937Range(&mt_ctx, 0, grp->total_weight);
+		for (i = 0; i < grp->weight_clsnds.len; ++i) {
+			PairNumClsnd_t* data = grp->weight_clsnds.buf + i;
+			if (weight <= data->num) {
+				dst_clsnd = data->clsnd;
+				break;
+			}
+			weight -= data->num;
 		}
-		*(void**)&data = exist_node;
-		dst_clsnd = data->clsnd;
 	}
 	else if (CLUSTER_TARGET_USE_FACTOR_MIN == mode) {
 		size_t i;

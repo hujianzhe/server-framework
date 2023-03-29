@@ -71,9 +71,13 @@ struct ClusterNodeGroup_t* newClusterNodeGroup(const char* name) {
 }
 
 int regClusterNodeToGroup(struct ClusterNodeGroup_t* grp, ClusterNode_t* clsnd) {
-	int ret_ok;
-	dynarrInsert(&grp->clsnds, grp->clsnds.len, clsnd, ret_ok);
-	return ret_ok;
+	size_t ret;
+	dynarrFindValue(&grp->clsnds, clsnd, ret);
+	if (ret != -1) {
+		return 1;
+	}
+	dynarrInsert(&grp->clsnds, grp->clsnds.len, clsnd, ret);
+	return ret;
 }
 
 int regClusterNodeToGroupByHashKey(struct ClusterNodeGroup_t* grp, unsigned int hashkey, ClusterNode_t* clsnd) {

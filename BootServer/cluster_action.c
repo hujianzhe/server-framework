@@ -35,7 +35,6 @@ ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char
 struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, const char* json_data, const char** errmsg) {
 	cJSON* cjson_nodes, *cjson_grps, *cjson_clsnd;
 	cJSON* root;
-	size_t i;
 
 	root = cJSON_FromString(json_data, 1);
 	if (!root) {
@@ -108,7 +107,7 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 		struct ClusterNodeGroup_t* grp;
 		cJSON *cjson_name, *cjson_ident, *cjson_hashkey_array, *cjson_weight_num;
 		const char* name, *ident;
-		int ret_ok, weight_num;
+		int weight_num;
 
 		cjson_name = cJSON_GetField(cjson_clsnd, "name");
 		name = cJSON_GetStringPtr(cjson_name);

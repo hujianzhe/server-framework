@@ -32,25 +32,7 @@ ClusterNode_t* flushClusterNodeFromJsonData(struct ClusterTable_t* t, const char
 	return clsnd;
 }
 
-static ClusterNode_t* find_clsnd_(struct ClusterTable_t* t, List_t* new_clsnds, const char* ident) {
-	ListNode_t* lcur;
-	ClusterNode_t* clsnd = getClusterNodeById(t, ident);
-	if (clsnd) {
-		return clsnd;
-	}
-	for (lcur = new_clsnds->head; lcur; lcur = lcur->next) {
-		clsnd = pod_container_of(lcur, ClusterNode_t, m_listnode);
-		if (0 == strcmp(ident, clsnd->ident)) {
-			return clsnd;
-		}
-	}
-	return NULL;
-}
-
 struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, const char* json_data, const char** errmsg) {
-	DynArr_t(struct ClusterNodeGroup_t*) new_grps = { 0 };
-	List_t new_clsnds;
-	ListNode_t* lcur, * lnext;
 	cJSON* cjson_nodes, *cjson_grps, *cjson_clsnd;
 	cJSON* root;
 	size_t i;
@@ -74,19 +56,26 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 	}
 
 	*errmsg = NULL;
-	listInit(&new_clsnds);
 	for (cjson_clsnd = cjson_nodes->child; cjson_clsnd; cjson_clsnd = cjson_clsnd->next) {
 		ClusterNode_t* clsnd;
-		cJSON *cjson_ident, * cjson_socktype, *ip, *port;
+		cJSON *cjson_ident, * cjson_socktype, *cjson_ip, *port;
 		int socktype;
-		const char* ident;
+		const char* ident, *ip;
 
 		cjson_ident = cJSON_GetField(cjson_clsnd, "ident");
 		if (!cjson_ident) {
 			continue;
 		}
-		ip = cJSON_GetField(cjson_clsnd, "ip");
-		if (!ip) {
+		ident = cJSON_GetStringPtr(cjson_ident);
+		if (!ident || 0 == *ident) {
+			continue;
+		}
+		cjson_ip = cJSON_GetField(cjson_clsnd, "ip");
+		if (!cjson_ip) {
+			continue;
+		}
+		ip = cJSON_GetStringPtr(cjson_ip);
+		if (!ip || 0 == *ip) {
 			continue;
 		}
 		port = cJSON_GetField(cjson_clsnd, "port");
@@ -101,16 +90,18 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 		if (0 == socktype) {
 			continue;
 		}
-		ident = cJSON_GetStringPtr(cjson_ident);
 
-		if (find_clsnd_(t, &new_clsnds, ident)) {
-			continue;
-		}
-		clsnd = newClusterNode(ident, socktype, cJSON_GetStringPtr(ip), cJSON_GetInteger(port));
+		clsnd = getClusterNodeById(t, ident);
 		if (!clsnd) {
-			goto err;
+			clsnd = newClusterNode(ident, socktype, ip, cJSON_GetInteger(port));
+			if (!clsnd) {
+				goto err;
+			}
+			if (!clusterAddNode(t, clsnd)) {
+				freeClusterNode(clsnd);
+				goto err;
+			}
 		}
-		listPushNodeBack(&new_clsnds, &clsnd->m_listnode);
 	}
 	for (cjson_clsnd = cjson_grps->child; cjson_clsnd; cjson_clsnd = cjson_clsnd->next) {
 		ClusterNode_t* clsnd;
@@ -128,28 +119,22 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 		if (!cjson_ident) {
 			continue;
 		}
-		ret_ok = 1;
-		grp = NULL;
-		for (i = 0; i < new_grps.len; ++i) {
-			if (!strcmp(ClusterNodeGroup_name(new_grps.buf[i]), name)) {
-				grp = new_grps.buf[i];
-				break;
-			}
+		ident = cJSON_GetStringPtr(cjson_ident);
+		if (!ident || 0 == *ident) {
+			continue;		
 		}
+
+		clsnd = getClusterNodeById(t, ident);
+		if (!clsnd) {
+			continue;
+		}
+		grp = getClusterNodeGroup(t, name);
 		if (!grp) {
 			grp = newClusterNodeGroup(name);
 			if (!grp) {
 				goto err;
 			}
-			dynarrInsert(&new_grps, new_grps.len, grp, ret_ok);
-			if (!ret_ok) {
-				goto err;
-			}
-		}
-		ident = cJSON_GetStringPtr(cjson_ident);
-		clsnd = find_clsnd_(t, &new_clsnds, ident);
-		if (!clsnd) {
-			continue;
+			replaceClusterNodeGroup(t, grp);
 		}
 		if (!regClusterNodeToGroup(grp, clsnd)) {
 			goto err;
@@ -177,24 +162,10 @@ struct ClusterTable_t* loadClusterTableFromJsonData(struct ClusterTable_t* t, co
 			}
 		}
 	}
-	clearClusterNodeGroup(t);
-	for (i = 0; i < new_grps.len; ++i) {
-		replaceClusterNodeGroup(t, new_grps.buf[i]);
-	}
 	cJSON_Delete(root);
-	dynarrFreeMemory(&new_grps);
 	return t;
 err:
 	cJSON_Delete(root);
-	for (lcur = new_clsnds.head; lcur; lcur = lnext) {
-		ClusterNode_t* clsnd = pod_container_of(lcur, ClusterNode_t, m_listnode);
-		lnext = lcur->next;
-		freeClusterNode(clsnd);
-	}
-	for (i = 0; i < new_grps.len; ++i) {
-		freeClusterNodeGroup(new_grps.buf[i]);
-	}
-	dynarrFreeMemory(&new_grps);
 	return NULL;
 }
 

@@ -10,7 +10,6 @@ enum {
 
 typedef struct ClusterNode_t {
 	Session_t session;
-	ListNode_t m_listnode;
 	HashtableNode_t m_ident_htnode;
 	const char* ident;
 	int connection_num;

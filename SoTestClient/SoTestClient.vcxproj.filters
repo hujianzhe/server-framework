@@ -29,9 +29,6 @@
     <ClCompile Include="main.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="req_login_test.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="test_handler.c">
       <Filter>源文件</Filter>
     </ClCompile>

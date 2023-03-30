@@ -32,9 +32,9 @@ int main(int argc, char** argv) {
 	// run BootServer and wait BootServer end
 	runBootServerGlobal(run);
 	// print BootServer run error
-	if (getBSGErrmsg()) {
+	if (getBSGErrmsg() && getBSGErrmsg()[0]) {
 		fputs(getBSGErrmsg(), stderr);
-		logErr(ptrBSG()->log, getBSGErrmsg());
+		logErr(ptrBSG()->log, "%s", getBSGErrmsg());
 	}
 	// free BootServer
 	freeBootServerGlobal();

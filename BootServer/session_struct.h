@@ -7,7 +7,6 @@
 struct TaskThread_t;
 
 typedef struct Session_t {
-	short has_reg;
 	int reconnect_delay_sec;
 	time_t reconnect_timestamp_sec;
 	ChannelBase_t* channel_client;

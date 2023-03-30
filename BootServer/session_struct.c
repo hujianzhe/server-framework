@@ -6,7 +6,6 @@ extern "C" {
 #endif
 
 Session_t* initSession(Session_t* session) {
-	session->has_reg = 0;
 	session->reconnect_delay_sec = 0;
 	session->reconnect_timestamp_sec = 0;
 	session->channel_client = NULL;

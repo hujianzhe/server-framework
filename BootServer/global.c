@@ -24,7 +24,7 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_
 	}
 	s_BSG.conf = &s_Config;
 	// init log
-	s_BSG.log = logOpen(s_Config.log.maxfilesize, "", s_Config.log.pathname);
+	s_BSG.log = logOpen(s_Config.log.maxfilesize, s_Config.log.pathname);
 	if (!s_BSG.log) {
 		s_BSG.errmsg = strFormat(NULL, "logInit(%s) error\n", s_Config.log.pathname);
 		return FALSE;

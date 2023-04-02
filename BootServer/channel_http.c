@@ -3,11 +3,9 @@
 
 typedef struct ChannelUserDataHttp_t {
 	ChannelUserData_t _;
-	int rpc_id_recv;
 } ChannelUserDataHttp_t;
 
 static ChannelUserData_t* init_channel_user_data_http(ChannelUserDataHttp_t* ud, struct StackCoSche_t* sche) {
-	ud->rpc_id_recv = 0;
 	return initChannelUserData(&ud->_, sche);
 }
 
@@ -24,7 +22,7 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 	UserMsg_t* message;
 
 	ud = (ChannelUserDataHttp_t*)channelUserData(c);
-	if (!ud->rpc_id_recv) {
+	if (!ud->_.rpc_id_syn_ack) {
 		callback = getStringDispatch(ptrBSG()->dispatch, httpframe->uri);
 		if (!callback) {
 			free(httpframeReset(httpframe));
@@ -46,13 +44,13 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 		message->enqueue_time_msec = gmtimeMillisecond();
 	}
 
-	if (!ud->rpc_id_recv && httpframe->method[0]) {
+	if (!ud->_.rpc_id_syn_ack && httpframe->method[0]) {
 		message->callback = callback;
 		StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))freeUserMsg);
 	}
 	else {
-		message->rpcid = ud->rpc_id_recv;
-		ud->rpc_id_recv = 0;
+		message->rpcid = ud->_.rpc_id_syn_ack;
+		ud->_.rpc_id_syn_ack = 0;
 		StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))freeUserMsg);
 	}
 }

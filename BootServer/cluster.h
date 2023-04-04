@@ -45,7 +45,7 @@ __declspec_dll ClusterNode_t* targetClusterNode(struct ClusterTable_t* t, const 
 __declspec_dll ClusterNode_t* clusterAddNode(struct ClusterTable_t* t, ClusterNode_t* clsnd);
 __declspec_dll void clearClusterNodeGroup(struct ClusterTable_t* t);
 __declspec_dll void replaceClusterNodeGroup(struct ClusterTable_t* t, struct ClusterNodeGroup_t* grp);
-__declspec_dll void inactiveClusterNode(struct ClusterTable_t* t, ClusterNode_t* clsnd);
+__declspec_dll void clusterUnlinkNodeAllGroup(struct ClusterTable_t* t, ClusterNode_t* clsnd);
 
 __declspec_dll void broadcastClusterGroup(struct ClusterTable_t* t, const char* grp_name, const Iobuf_t iov[], unsigned int iovcnt);
 __declspec_dll void broadcastClusterTable(struct ClusterTable_t* t, const Iobuf_t iov[], unsigned int iovcnt);

@@ -74,9 +74,9 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_
 			return FALSE;
 		}
 		listen_opt = &s_Config.clsnd.listen_option;
-		if (clsnd->session.socktype != listen_opt->socktype ||
-			clsnd->session.port != listen_opt->port ||
-			strcmp(clsnd->session.ip, listen_opt->ip))
+		if (clsnd->socktype != listen_opt->socktype ||
+			clsnd->port != listen_opt->port ||
+			strcmp(clsnd->ip, listen_opt->ip))
 		{
 			s_BSG.errmsg = strFormat(NULL, "self cluster node isn't find, ident:%s, socktype:%s, ip:%s, port:%u\n",
 				s_Config.clsnd.ident, if_socktype2string(listen_opt->socktype), listen_opt->ip, listen_opt->port);

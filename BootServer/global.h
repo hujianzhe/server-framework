@@ -15,7 +15,6 @@
 #include "dispatch_msg.h"
 #include "inner_msg_struct.h"
 #include "net_thread.h"
-#include "session_struct.h"
 #include "task_thread.h"
 #include <stdlib.h>
 #include <string.h>

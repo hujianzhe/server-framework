@@ -72,19 +72,13 @@ ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 		Sockaddr_t saddr;
 		TaskThread_t* thrd;
 
-		if (session->reconnect_timestamp_sec > 0 &&
-			time(NULL) < session->reconnect_timestamp_sec)
-		{
-			return NULL;
-		}
-
 		thrd = currentTaskThread();
 		if (!thrd) {
 			return NULL;
 		}
 
 		if (session->do_connect_handshake) { /* user self-defining connect-handshake action */
-			return session->do_connect_handshake(thrd, session);
+			return session->do_connect_handshake(session);
 		}
 
 		hs_data = strFormat(&hs_datalen, "{\"ident\":\"%s\"}", self_ident);

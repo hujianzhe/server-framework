@@ -9,7 +9,6 @@ extern "C" {
 #endif
 
 ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, struct StackCoSche_t* sche) {
-	ud->session = NULL;
 	ud->sche = sche;
 	ud->rpc_id_syn_ack = 0;
 	ud->text_data_print_log = 0;

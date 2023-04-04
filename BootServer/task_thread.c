@@ -6,7 +6,7 @@
 void TaskThread_channel_base_detach(struct StackCoSche_t* sche, void* arg) {
 	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
 	ChannelBase_t* channel = (ChannelBase_t*)arg;
-	Session_t* session = channelSession(channel);
+	Session_t* session = channel->session;
 
 	if (thrd->on_channel_detach) {
 		thrd->on_channel_detach(thrd, channel);
@@ -20,7 +20,7 @@ void TaskThread_channel_base_detach(struct StackCoSche_t* sche, void* arg) {
 		}
 		if (!sessionChannel(session)) {
 			if (session->on_disconnect) {
-				session->on_disconnect(thrd, session);
+				session->on_disconnect(session);
 			}
 		}
 	}

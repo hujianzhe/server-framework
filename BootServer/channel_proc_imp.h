@@ -4,11 +4,9 @@
 #include "util/inc/component/reactor.h"
 #include "util/inc/component/net_channel_rw.h"
 
-struct Session_t;
 struct StackCoSche_t;
 
 typedef struct ChannelUserData_t {
-	struct Session_t* session;
 	struct StackCoSche_t* sche;
 	int rpc_id_syn_ack;
 	int text_data_print_log;
@@ -18,7 +16,6 @@ typedef void(*FnChannelOnRecv_t)(ChannelBase_t*, unsigned char*, size_t, const s
 
 #define	channelUserData(channel)	((ChannelUserData_t*)((channel)->userdata))
 #define	channelSetUserData(channel, ud)	((channel)->userdata = (ud))
-#define	channelSession(channel)		(channelUserData(channel)->session)
 
 #ifdef __cplusplus
 extern "C" {

@@ -54,7 +54,6 @@ void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 }
 
 void notifyTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	Session_t* session = channelSession(ctrl->channel);
 	printf("recv server test notify, recv msec = %lld\n", gmtimeMillisecond());
 	// test code
 	frpc_test_code(thrd, ctrl->channel);

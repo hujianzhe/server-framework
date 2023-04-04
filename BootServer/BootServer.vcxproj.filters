@@ -42,9 +42,6 @@
     <ClInclude Include="net_thread.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="session_struct.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="task_thread.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -285,9 +282,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="net_thread.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="session_struct.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="task_thread.c">

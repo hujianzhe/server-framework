@@ -1,7 +1,7 @@
 #ifndef BOOT_SERVER_CLUSTER_NODE_H
 #define	BOOT_SERVER_CLUSTER_NODE_H
 
-#include "session_struct.h"
+#include "util/inc/component/reactor.h"
 
 enum {
 	CLSND_STATUS_NORMAL = 0,

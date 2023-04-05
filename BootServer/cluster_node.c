@@ -26,7 +26,7 @@ ClusterNode_t* newClusterNode(const char* ident, int socktype, const IPString_t 
 	clsnd->status = CLSND_STATUS_NORMAL;
 	clsnd->factor = 0;
 
-	initSession(&clsnd->session);
+	sessionInit(&clsnd->session);
 	return clsnd;
 }
 

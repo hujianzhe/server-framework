@@ -15,12 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cluster.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cluster_action.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="cluster_node.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -257,12 +251,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cluster.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster_action.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="cluster_node.c">
       <Filter>源文件</Filter>
     </ClCompile>

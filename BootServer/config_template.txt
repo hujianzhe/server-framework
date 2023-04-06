@@ -38,7 +38,6 @@
 		"maxfilesize_mb" : 10
 	},
 	"net_thread_cnt" : 0,
-	"cluster_table_path" : "./cluster_table_config_template.txt",
 	"rpc_fiber_stack_size_kb" : 64,
 	"tcp_nodelay" : 1,
 	"udp_cwndsize" : 40,

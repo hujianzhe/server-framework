@@ -25,28 +25,8 @@ ClusterNode_t* ClusterNode_constructor(ClusterNode_t* clsnd, const char* ident, 
 	return clsnd;
 }
 
-ClusterNode_t* newClusterNode(const char* ident, int socktype, const IPString_t ip, unsigned short port) {
-	ClusterNode_t* clsnd = (ClusterNode_t*)malloc(sizeof(ClusterNode_t));
-	if (!clsnd) {
-		return NULL;
-	}
-	if (!ClusterNode_constructor(clsnd, ident, socktype, ip, port)) {
-		free(clsnd);
-		return NULL;
-	}
-	return clsnd;
-}
-
 void ClusterNode_destructor(ClusterNode_t* clsnd) {
 	free((void*)clsnd->ident);
-}
-
-void freeClusterNode(ClusterNode_t* clsnd) {
-	if (!clsnd) {
-		return;
-	}
-	ClusterNode_destructor(clsnd);
-	free(clsnd);
 }
 
 int clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt) {

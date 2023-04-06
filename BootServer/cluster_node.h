@@ -27,9 +27,7 @@ extern "C" {
 #endif
 
 __declspec_dll ClusterNode_t* ClusterNode_constructor(ClusterNode_t* clsnd, const char* ident, int socktype, const IPString_t ip, unsigned short port);
-__declspec_dll ClusterNode_t* newClusterNode(const char* ident, int socktype, const IPString_t ip, unsigned short port);
 __declspec_dll void ClusterNode_destructor(ClusterNode_t* clsnd);
-__declspec_dll void freeClusterNode(ClusterNode_t* clsnd);
 __declspec_dll int clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt);
 
 #ifdef __cplusplus

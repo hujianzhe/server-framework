@@ -6,14 +6,9 @@
 extern "C" {
 #endif
 
-ClusterNode_t* newClusterNode(const char* ident, int socktype, const IPString_t ip, unsigned short port) {
-	ClusterNode_t* clsnd = (ClusterNode_t*)malloc(sizeof(ClusterNode_t));
-	if (!clsnd) {
-		return NULL;
-	}
+ClusterNode_t* ClusterNode_constructor(ClusterNode_t* clsnd, const char* ident, int socktype, const IPString_t ip, unsigned short port) {
 	clsnd->ident = strdup(ident);
 	if (!clsnd->ident) {
-		free(clsnd);
 		return NULL;
 	}
 	clsnd->m_ident_htnode.key.ptr = clsnd->ident;
@@ -30,11 +25,27 @@ ClusterNode_t* newClusterNode(const char* ident, int socktype, const IPString_t 
 	return clsnd;
 }
 
+ClusterNode_t* newClusterNode(const char* ident, int socktype, const IPString_t ip, unsigned short port) {
+	ClusterNode_t* clsnd = (ClusterNode_t*)malloc(sizeof(ClusterNode_t));
+	if (!clsnd) {
+		return NULL;
+	}
+	if (!ClusterNode_constructor(clsnd, ident, socktype, ip, port)) {
+		free(clsnd);
+		return NULL;
+	}
+	return clsnd;
+}
+
+void ClusterNode_destructor(ClusterNode_t* clsnd) {
+	free((void*)clsnd->ident);
+}
+
 void freeClusterNode(ClusterNode_t* clsnd) {
 	if (!clsnd) {
 		return;
 	}
-	free((void*)clsnd->ident);
+	ClusterNode_destructor(clsnd);
 	free(clsnd);
 }
 
@@ -64,43 +75,9 @@ ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 	}
 	session = &clsnd->session;
 	channel = sessionChannel(session);
-	if (!channel) {
-		InnerMsg_t msg;
-		char* hs_data;
-		int hs_datalen;
-		Sockaddr_t saddr;
-		TaskThread_t* thrd;
-
-		thrd = currentTaskThread();
-		if (!thrd) {
-			return NULL;
-		}
-
-		if (session->do_connect_handshake) { /* user self-defining connect-handshake action */
-			return session->do_connect_handshake(session, clsnd->socktype, clsnd->ip, clsnd->port);
-		}
-
-		hs_data = strFormat(&hs_datalen, "{\"ident\":\"%s\"}", self_ident);
-		if (!hs_data) {
-			return NULL;
-		}
-
-		if (!sockaddrEncode(&saddr.sa, ipstrFamily(clsnd->ip), clsnd->ip, clsnd->port)) {
-			free(hs_data);
-			return NULL;
-		}
-		channel = openChannelInner(CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, clsnd->socktype, &saddr.sa, thrd->sche);
-		if (!channel) {
-			free(hs_data);
-			return NULL;
-		}
-		clsnd->connection_num++;
-		sessionReplaceChannel(session, channel);
-		channelbaseReg(selectReactor(), channel);
-		/* default handshake */
-		makeInnerMsg(&msg, 0, hs_data, hs_datalen)->rpc_status = RPC_STATUS_HAND_SHAKE;
-		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
-		free(hs_data);
+	if (!channel && session->do_connect_handshake) {
+		/* user self-defining connect-handshake action */
+		channel = session->do_connect_handshake(session, clsnd->socktype, clsnd->ip, clsnd->port);
 	}
 	return channel;
 }

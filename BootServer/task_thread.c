@@ -27,17 +27,6 @@ void TaskThread_channel_base_detach(struct StackCoSche_t* sche, void* arg) {
 	channelbaseClose(channel);
 }
 
-void TaskThread_default_clsnd_handshake(TaskThread_t* thrd, UserMsg_t* ctrl) {
-	ClusterNode_t* clsnd = flushClusterNodeFromJsonData(thrd->clstbl, (char*)ctrl->data);
-	if (clsnd) {
-		sessionReplaceChannel(&clsnd->session, ctrl->channel);
-		clsnd->status = CLSND_STATUS_NORMAL;
-	}
-	else {
-		channelbaseSendv(ctrl->channel, NULL, 0, NETPACKET_FIN);
-	}
-}
-
 static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	TaskThread_t* thrd = (TaskThread_t*)arg;
 
@@ -90,7 +79,6 @@ TaskThread_t* newTaskThread(size_t co_stack_size) {
 		goto err;
 	}
 
-	t->clstbl = NULL;
 	t->errmsg = NULL;
 	seedval = time(NULL);
 	rand48Seed(&t->rand48_ctx, seedval);

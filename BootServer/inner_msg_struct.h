@@ -21,7 +21,6 @@ enum {
 enum {
 	RPC_STATUS_REQ = 'R',
 	RPC_STATUS_RESP = 'T',
-	RPC_STATUS_HAND_SHAKE = 'S',
 };
 
 #ifdef __cplusplus

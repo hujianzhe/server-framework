@@ -80,13 +80,6 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 			}
 			message->retcode = ntohl(*(int*)(bodyptr + 1));
 		}
-		else if (RPC_STATUS_HAND_SHAKE == rpc_status) {
-			message = newUserMsg(bodylen - hsz);
-			if (!message) {
-				return;
-			}
-			message->callback = TaskThread_default_clsnd_handshake;
-		}
 		else {
 			int cmd = ntohl(*(int*)(bodyptr + 1));
 			DispatchCallback_t callback = getNumberDispatch(ptrBSG()->dispatch, cmd);

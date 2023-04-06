@@ -46,43 +46,6 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_
 		s_BSG.errmsg = strFormat(NULL, "default task thread create failure\n");
 		return FALSE;
 	}
-	// init cluster data
-	s_BSG.default_task_thread->clstbl = newClusterTable();
-	if (!s_BSG.default_task_thread->clstbl) {
-		s_BSG.errmsg = strFormat(NULL, "newClusterTable failure\n");
-		return FALSE;
-	}
-	// init default cluster json config, if needed
-	if (s_Config.cluster_table_path && s_Config.cluster_table_path[0]) {
-		ClusterNode_t* clsnd;
-		ConfigListenOption_t* listen_opt;
-		const char* load_cluster_table_errmsg;
-		char* cluster_table_filedata = fileReadAllData(s_Config.cluster_table_path, NULL);
-		if (!cluster_table_filedata) {
-			s_BSG.errmsg = strFormat(NULL, "fileReadAllData(%s) failure\n", s_Config.cluster_table_path);
-			return FALSE;
-		}
-		if (!loadClusterTableFromJsonData(s_BSG.default_task_thread->clstbl, cluster_table_filedata, &load_cluster_table_errmsg)) {
-			s_BSG.errmsg = strFormat(NULL, "loadClusterTableFromJsonData failure: %s\n", load_cluster_table_errmsg);
-			free(cluster_table_filedata);
-			return FALSE;
-		}
-		free(cluster_table_filedata);
-		clsnd = getClusterNodeById(s_BSG.default_task_thread->clstbl, s_Config.clsnd.ident);
-		if (!clsnd || strcmp(clsnd->ident, s_Config.clsnd.ident)) {
-			s_BSG.errmsg = strFormat(NULL, "self cluster node(ident:%s) isn't in cluster table\n", s_Config.clsnd.ident);
-			return FALSE;
-		}
-		listen_opt = &s_Config.clsnd.listen_option;
-		if (clsnd->socktype != listen_opt->socktype ||
-			clsnd->port != listen_opt->port ||
-			strcmp(clsnd->ip, listen_opt->ip))
-		{
-			s_BSG.errmsg = strFormat(NULL, "self cluster node isn't find, ident:%s, socktype:%s, ip:%s, port:%u\n",
-				s_Config.clsnd.ident, if_socktype2string(listen_opt->socktype), listen_opt->ip, listen_opt->port);
-			return FALSE;
-		}
-	}
 	// init user global
 	if (fn_init) {
 		int ret = fn_init(&s_BSG);
@@ -153,7 +116,6 @@ void freeBootServerGlobal(void) {
 	}
 	s_PtrBSG = NULL;
 	if (s_BSG.default_task_thread) {
-		freeClusterTable(s_BSG.default_task_thread->clstbl);
 		freeTaskThread(s_BSG.default_task_thread);
 		s_BSG.default_task_thread = NULL;
 	}

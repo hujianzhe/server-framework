@@ -12,6 +12,8 @@ const char* getBSGErrmsg(void) { return s_BSG.errmsg ? s_BSG.errmsg : ""; }
 int checkStopBSG(void) { return s_PtrBSG ? !(s_PtrBSG->valid) : 1; }
 
 BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_init)(BootServerGlobal_t*)) {
+	ConfigListenOption_t* listen_opt;
+
 	if (s_PtrBSG) {
 		return TRUE;
 	}
@@ -55,7 +57,7 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_
 		}
 	}
 	// listen self cluster node port, if needed
-	ConfigListenOption_t* listen_opt = &s_Config.clsnd.listen_option;
+	listen_opt = &s_Config.clsnd.listen_option;
 	if (!strcmp(listen_opt->protocol, "default")) {
 		ChannelBase_t* c = openListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, s_BSG.default_task_thread->sche);
 		if (!c) {

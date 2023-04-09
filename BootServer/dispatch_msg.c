@@ -38,9 +38,6 @@ void freeUserMsg(UserMsg_t* msg) {
 	if (!msg) {
 		return;
 	}
-	if (msg->order_dq) {
-		msg->order_dq->exec_msg = NULL;
-	}
 	if (msg->on_free) {
 		msg->on_free(msg);
 	}
@@ -54,16 +51,17 @@ UserMsgExecQueue_t* UserMsgExecQueue_init(UserMsgExecQueue_t* dq) {
 }
 
 int UserMsgExecQueue_check_exec(UserMsgExecQueue_t* dq, UserMsg_t* msg) {
-	if (msg->hang_up) {
-		msg->hang_up = 0;
-	}
-	else if (dq->exec_msg) {
+	if (dq->exec_msg && dq->exec_msg != msg) {
+		if (msg->hang_up) {
+			return 0;
+		}
 		msg->hang_up = 1;
 		listPushNodeBack(&dq->list, &msg->order_listnode);
 		return 0;
 	}
 	dq->exec_msg = msg;
 	msg->order_dq = dq;
+	msg->hang_up = 0;
 	return 1;
 }
 

@@ -1,8 +1,9 @@
 #include "global.h"
 #include "dispatch_msg.h"
 
-UserMsg_t* UserMsgExecQueue_pop(UserMsgExecQueue_t* dq) {
+UserMsg_t* UserMsgExecQueue_next(UserMsgExecQueue_t* dq) {
 	ListNode_t* node = listPopNodeFront(&dq->list);
+	dq->exec_msg = NULL;
 	if (!node) {
 		return NULL;
 	}
@@ -20,7 +21,7 @@ UserMsg_t* newUserMsg(size_t datalen) {
 		msg->channel = NULL;
 		msg->peer_addr.sa.sa_family = AF_UNSPEC;
 		msg->on_free = NULL;
-		msg->retry = 0;
+		msg->hang_up = 0;
 		msg->param.type = 0;
 		msg->param.value = NULL;
 		msg->enqueue_time_msec = -1;
@@ -53,11 +54,11 @@ UserMsgExecQueue_t* UserMsgExecQueue_init(UserMsgExecQueue_t* dq) {
 }
 
 int UserMsgExecQueue_check_exec(UserMsgExecQueue_t* dq, UserMsg_t* msg) {
-	if (msg->retry) {
-		msg->retry = 0;
+	if (msg->hang_up) {
+		msg->hang_up = 0;
 	}
 	else if (dq->exec_msg) {
-		msg->retry = 1;
+		msg->hang_up = 1;
 		listPushNodeBack(&dq->list, &msg->order_listnode);
 		return 0;
 	}

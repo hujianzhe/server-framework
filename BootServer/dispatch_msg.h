@@ -18,7 +18,7 @@ typedef struct UserMsg_t {
 	ChannelBase_t* channel;
 	Sockaddr_t peer_addr;
 	void(*on_free)(struct UserMsg_t* self);
-	short retry;
+	short hang_up;
 	struct {
 		short type;
 		const void* value; /* any value */
@@ -31,7 +31,7 @@ typedef struct UserMsg_t {
 	unsigned char data[1];
 } UserMsg_t;
 
-UserMsg_t* UserMsgExecQueue_pop(UserMsgExecQueue_t* dq);
+UserMsg_t* UserMsgExecQueue_next(UserMsgExecQueue_t* dq);
 
 #ifdef __cplusplus
 extern "C" {

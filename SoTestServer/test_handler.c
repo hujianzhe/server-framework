@@ -69,7 +69,7 @@ void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	free(reply);
 }
 
-static UserMsgExecQueue_t* s_dq = NULL;
+static SerialExecQueue_t* s_dq = NULL;
 
 void reqTestExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	char* reply;
@@ -78,13 +78,13 @@ void reqTestExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	const char test_data[] = "end test exec queue";
 
 	if (!s_dq) {
-		s_dq = (UserMsgExecQueue_t*)malloc(sizeof(*s_dq));
+		s_dq = (SerialExecQueue_t*)malloc(sizeof(*s_dq));
 		if (!s_dq) {
 			return;
 		}
-		UserMsgExecQueue_init(s_dq);
+		SerialExecQueue_init(s_dq);
 	}
-	if (!UserMsgExecQueue_check_exec(s_dq, ctrl)) {
+	if (!SerialExecQueue_check_exec(s_dq, &ctrl->serial)) {
 		return;
 	}
 	puts("start test exec queue");
@@ -116,7 +116,7 @@ void reqClearExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	const char test_data[] = "clear test exec queue";
 
 	if (s_dq) {
-		UserMsgExecQueue_clear(s_dq);
+		SerialExecQueue_clear(s_dq, freeUserMsgSerial);
 		free(s_dq);
 		s_dq = NULL;
 	}

@@ -127,7 +127,7 @@ void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 	UserMsg_t* msg = (UserMsg_t*)arg;
 	ChannelBase_t* c = msg->channel;
 
-	if (!msg->hang_up && c) {
+	if (!msg->serial.hang_up && c) {
 		channelbaseAddRef(c);
 	}
 	if (thrd->filter_dispatch) {
@@ -136,13 +136,14 @@ void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 	else {
 		msg->callback(thrd, msg);
 	}
-	if (msg->hang_up) {
+	if (msg->serial.hang_up) {
 		StackCoSche_no_arg_free(sche);
 		return;
 	}
-	if (msg->order_dq) {
-		UserMsg_t* next_msg = UserMsgExecQueue_next(msg->order_dq);
-		if (next_msg) {
+	if (msg->serial.dq) {
+		SerialExecObj_t* next_serial = SerialExecQueue_next(msg->serial.dq);
+		if (next_serial) {
+			UserMsg_t* next_msg = pod_container_of(next_serial, UserMsg_t, serial);
 			StackCoSche_function(sche, TaskThread_call_dispatch, next_msg, (void(*)(void*))freeUserMsg);
 		}
 	}

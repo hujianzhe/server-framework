@@ -1,15 +1,6 @@
 #include "global.h"
 #include "dispatch_msg.h"
 
-SerialExecObj_t* SerialExecQueue_next(SerialExecQueue_t* dq) {
-	ListNode_t* node = listPopNodeFront(&dq->list);
-	dq->exec_obj = NULL;
-	if (!node) {
-		return NULL;
-	}
-	return pod_container_of(node, SerialExecObj_t, listnode);
-}
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,44 +40,6 @@ void freeUserMsgSerial(SerialExecObj_t* serial) {
 		channelbaseClose(msg->channel);
 	}
 	freeUserMsg(msg);
-}
-
-SerialExecQueue_t* SerialExecQueue_init(SerialExecQueue_t* dq) {
-	listInit(&dq->list);
-	dq->exec_obj = NULL;
-	return dq;
-}
-
-int SerialExecQueue_check_exec(SerialExecQueue_t* dq, SerialExecObj_t* obj) {
-	if (dq->exec_obj && dq->exec_obj != obj) {
-		if (obj->hang_up) {
-			return 0;
-		}
-		obj->hang_up = 1;
-		listPushNodeBack(&dq->list, &obj->listnode);
-		return 0;
-	}
-	dq->exec_obj = obj;
-	obj->dq = dq;
-	obj->hang_up = 0;
-	return 1;
-}
-
-void SerialExecQueue_clear(SerialExecQueue_t* dq, void(*fn_free)(SerialExecObj_t*)) {
-	if (dq->exec_obj) {
-		dq->exec_obj->dq = NULL;
-		dq->exec_obj = NULL;
-	}
-	if (fn_free) {
-		ListNode_t *cur, *next;
-		for (cur = dq->list.head; cur; cur = next) {
-			SerialExecObj_t* obj = pod_container_of(cur, SerialExecObj_t, listnode);
-			next = cur->next;
-
-			fn_free(obj);
-		}
-	}
-	listInit(&dq->list);
 }
 
 #ifdef __cplusplus

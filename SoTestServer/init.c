@@ -4,22 +4,6 @@
 #include "test_handler.h"
 #include <stdio.h>
 
-int init(BootServerGlobal_t* g) {
-	// register dispatch
-	regNumberDispatch(g->dispatch, CMD_REQ_TEST, reqTest);
-	regNumberDispatch(g->dispatch, CMD_REQ_TEST_CALLBACK, reqTestCallback);
-	regNumberDispatch(g->dispatch, CMD_REQ_LOGIN_TEST, reqLoginTest);
-	regNumberDispatch(g->dispatch, CMD_REQ_ParallelTest1, reqParallelTest1);
-	regNumberDispatch(g->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);
-	regStringDispatch(g->dispatch, "/reqHttpTest", reqHttpTest);
-	regStringDispatch(g->dispatch, "/reqSoTest", reqSoTest);
-	regStringDispatch(g->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);
-	regStringDispatch(g->dispatch, "/reqTestExecQueue", reqTestExecQueue);
-	regStringDispatch(g->dispatch, "/reqClearExecQueue", reqClearExecQueue);
-
-	return 0;
-}
-
 static void reflect_websocket_on_recv(ChannelBase_t* channel, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* saddr) {
 	printf("reflect_websocket_on_recv: %zu bytes\n", bodylen);
 	channelbaseSend(channel, bodyptr, bodylen, NETPACKET_FRAGMENT);
@@ -47,4 +31,21 @@ void run(struct StackCoSche_t* sche, void* arg) {
 		}
 		channelbaseReg(acceptReactor(), c);
 	}
+}
+
+int init(BootServerGlobal_t* g) {
+	// register dispatch
+	regNumberDispatch(g->dispatch, CMD_REQ_TEST, reqTest);
+	regNumberDispatch(g->dispatch, CMD_REQ_TEST_CALLBACK, reqTestCallback);
+	regNumberDispatch(g->dispatch, CMD_REQ_LOGIN_TEST, reqLoginTest);
+	regNumberDispatch(g->dispatch, CMD_REQ_ParallelTest1, reqParallelTest1);
+	regNumberDispatch(g->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);
+	regStringDispatch(g->dispatch, "/reqHttpTest", reqHttpTest);
+	regStringDispatch(g->dispatch, "/reqSoTest", reqSoTest);
+	regStringDispatch(g->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);
+	regStringDispatch(g->dispatch, "/reqTestExecQueue", reqTestExecQueue);
+	regStringDispatch(g->dispatch, "/reqClearExecQueue", reqClearExecQueue);
+
+	StackCoSche_function(g->default_task_thread->sche, run, NULL, NULL);
+	return 0;
 }

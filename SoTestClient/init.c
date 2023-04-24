@@ -63,15 +63,6 @@ static void test_timer(struct StackCoSche_t* sche, void* arg) {
 	}
 }
 
-int init(BootServerGlobal_t* g) {
-	// register dispatch
-	regNumberDispatch(g->dispatch, CMD_NOTIFY_TEST, notifyTest);
-	regNumberDispatch(g->dispatch, CMD_RET_TEST, retTest);
-	regNumberDispatch(g->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
-
-	return 0;
-}
-
 void run(struct StackCoSche_t* sche, void* arg) {
 	int i;
 	StackCoBlock_t* block;
@@ -122,4 +113,15 @@ void run(struct StackCoSche_t* sche, void* arg) {
 			return;
 		}
 	}
+}
+
+int init(BootServerGlobal_t* g) {
+	// register dispatch
+	regNumberDispatch(g->dispatch, CMD_NOTIFY_TEST, notifyTest);
+	regNumberDispatch(g->dispatch, CMD_RET_TEST, retTest);
+	regNumberDispatch(g->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
+
+	StackCoSche_function(g->default_task_thread->sche, run, NULL, NULL);
+
+	return 0;
 }

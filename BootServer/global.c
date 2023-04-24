@@ -80,11 +80,8 @@ void printBootServerNodeInfo(void) {
 		listen_opt->ip, listen_opt->port, processId());
 }
 
-BOOL runBootServerGlobal(void(*fn_run)(struct StackCoSche_t*, void*)) {
+BOOL runBootServerGlobal(void) {
 	// run task thread
-	if (fn_run) {
-		StackCoSche_function(s_BSG.default_task_thread->sche, fn_run, NULL, NULL);
-	}
 	if (!runTaskThread(s_BSG.default_task_thread)) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread boot failure\n");
 		return FALSE;

@@ -6,7 +6,6 @@
 #endif
 
 extern int init(BootServerGlobal_t* g);
-extern void run(struct StackCoSche_t* sche, void* arg);
 
 static void sigintHandler(int signo) {
 	stopBootServerGlobal();
@@ -30,7 +29,7 @@ int main(int argc, char** argv) {
 	// print boot cluster node info
 	printBootServerNodeInfo();
 	// run BootServer and wait BootServer end
-	runBootServerGlobal(run);
+	runBootServerGlobal();
 	// print BootServer run error
 	if (getBSGErrmsg() && getBSGErrmsg()[0]) {
 		fputs(getBSGErrmsg(), stderr);

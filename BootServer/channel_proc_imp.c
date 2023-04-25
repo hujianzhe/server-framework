@@ -25,6 +25,10 @@ void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 
 void defaultChannelOnDetach(ChannelBase_t* c) {
 	ChannelUserData_t* ud = channelUserData(c);
+	if (ud->rpc_id_syn_ack != 0) {
+		StackCoSche_resume_block_by_id(ud->sche, ud->rpc_id_syn_ack, STACK_CO_STATUS_ERROR, NULL, NULL);
+		ud->rpc_id_syn_ack = 0;
+	}
 	StackCoSche_function(ud->sche, TaskThread_channel_base_detach, c, NULL);
 }
 

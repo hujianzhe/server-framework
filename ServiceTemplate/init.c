@@ -1,10 +1,6 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
 
-int init(BootServerGlobal_t* g) {
-	return 0;
-}
-
 void run(struct StackCoSche_t* sche, void* arg) {
 	ConfigConnectOption_t* option = NULL;
 	unsigned int i;
@@ -27,4 +23,9 @@ void run(struct StackCoSche_t* sche, void* arg) {
 	}
 
 	logInfo(ptrBSG()->log, "init ok ......");
+}
+
+int init(BootServerGlobal_t* g) {
+	StackCoSche_function(g->default_task_thread->sche, run, NULL, NULL);
+	return 0;
 }

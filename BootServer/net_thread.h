@@ -13,9 +13,9 @@ void joinNetThreads(void);
 extern "C" {
 #endif
 
-__declspec_dll Reactor_t* acceptReactor(void);
-__declspec_dll Reactor_t* targetReactor(size_t key);
-__declspec_dll Reactor_t* selectReactor(void);
+__declspec_dll struct Reactor_t* acceptReactor(void);
+__declspec_dll struct Reactor_t* targetReactor(size_t key);
+__declspec_dll struct Reactor_t* selectReactor(void);
 
 #ifdef __cplusplus
 }

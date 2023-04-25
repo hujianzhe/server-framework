@@ -220,7 +220,6 @@
     <ClInclude Include="util\inc\sysapi\statistics.h" />
     <ClInclude Include="util\inc\sysapi\terminal.h" />
     <ClInclude Include="util\inc\sysapi\time.h" />
-    <ClInclude Include="util\inc\sysapi\vkeycode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="channel_proc_imp.c" />

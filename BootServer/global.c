@@ -50,8 +50,10 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_
 	}
 	// init user global
 	if (fn_init) {
+		s_PtrBSG = &s_BSG;
 		int ret = fn_init(&s_BSG);
 		if (ret) {
+			s_PtrBSG = NULL;
 			s_BSG.errmsg = strFormat(NULL, "initBootServerGlobal call fn_init err, ret=%d\n", ret);
 			return FALSE;
 		}

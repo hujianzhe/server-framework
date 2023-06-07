@@ -59,7 +59,7 @@ static unsigned int THREAD_CALL reactorThreadEntry(void* arg) {
 	reactor = (struct Reactor_t*)arg;
 
 	while (ptrBSG()->valid) {
-		res = reactorHandle(reactor, ev, ev_cnt, 1000);
+		res = reactorHandle(reactor, ev, ev_cnt, -1);
 		if (res < 0) {
 			break;
 		}

@@ -64,7 +64,7 @@ static void innerchannel_reply_ack(ChannelBase_t* c, unsigned int seq, const str
 	if (o->m_connected) {
 		addr = NULL;
 	}
-	sendto(o->fd, (char*)packet->buf, packet->hdrlen + packet->bodylen, 0, addr, sockaddrLength(addr));
+	sendto(o->niofd.fd, (char*)packet->buf, packet->hdrlen + packet->bodylen, 0, addr, sockaddrLength(addr));
 }
 
 static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {

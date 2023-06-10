@@ -187,8 +187,8 @@ void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		path = (char*)malloc(sizeof(basepath) - 1 + e - s);
 		if (!path)
 			break;
-		memcpy(path, basepath, sizeof(basepath) - 1);
-		memcpy(path + sizeof(basepath) - 1, s, e - s);
+		memmove(path, basepath, sizeof(basepath) - 1);
+		memmove(path + sizeof(basepath) - 1, s, e - s);
 		path[sizeof(basepath) - 1 + e - s] = 0;
 
 		fd = fdOpen(path, FILE_CREAT_BIT | FILE_WRITE_BIT | FILE_APPEND_BIT);

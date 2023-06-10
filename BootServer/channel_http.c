@@ -38,7 +38,7 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 	message->param.value = httpframe;
 	message->on_free = free_user_msg;
 	if (message->datalen) {
-		memcpy(message->data, bodyptr, message->datalen);
+		memmove(message->data, bodyptr, message->datalen);
 	}
 	if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
 		message->enqueue_time_msec = gmtimeMillisecond();

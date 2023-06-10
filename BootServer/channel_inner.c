@@ -95,11 +95,11 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 
 		message->channel = c;
 		if (SOCK_STREAM != c->socktype) {
-			memcpy(&message->peer_addr, addr, sockaddrLength(addr));
+			memmove(&message->peer_addr, addr, sockaddrLength(addr));
 		}
 		message->rpcid = ntohl(*(int*)(bodyptr + 5));
 		if (message->datalen) {
-			memcpy(message->data, bodyptr + hsz, message->datalen);
+			memmove(message->data, bodyptr + hsz, message->datalen);
 		}
 		if (ptrBSG()->conf->enqueue_timeout_msec > 0) {
 			message->enqueue_time_msec = gmtimeMillisecond();

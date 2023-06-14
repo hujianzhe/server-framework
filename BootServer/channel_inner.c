@@ -239,17 +239,13 @@ ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short po
 	if (INVALID_FD_HANDLE == listen_fd) {
 		return NULL;
 	}
-	if (!socketEnableReuseAddr(listen_fd, TRUE)) {
-		goto err;
-	}
-	if (!socketEnableReusePort(listen_fd, TRUE)) {
-		goto err;
-	}
-	if (bind(listen_fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
-		goto err;
-	}
 	if (SOCK_STREAM == socktype) {
-		if (!socketTcpListen(listen_fd)) {
+		if (!socketTcpListen(listen_fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
+			goto err;
+		}
+	}
+	else {
+		if (!socketBindAndReuse(listen_fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
 			goto err;
 		}
 	}

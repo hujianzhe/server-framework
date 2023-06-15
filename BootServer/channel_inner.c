@@ -50,7 +50,7 @@ static void innerchannel_encode(ChannelBase_t* c, NetPacket_t* packet) {
 	lengthfieldframeEncode(packet->buf, INNER_BASEHDRSIZE, packet->bodylen + INNER_EXTHDRSIZE);
 }
 
-static void innerchannel_reply_ack(ChannelBase_t* c, unsigned int seq, const struct sockaddr* addr) {
+static void innerchannel_reply_ack(ChannelBase_t* c, unsigned int seq, const struct sockaddr* addr, socklen_t addrlen) {
 	ReactorObject_t* o = c->o;
 	unsigned char buf[sizeof(NetPacket_t) + INNER_HDRSIZE];
 	NetPacket_t* packet = (NetPacket_t*)buf;
@@ -64,10 +64,10 @@ static void innerchannel_reply_ack(ChannelBase_t* c, unsigned int seq, const str
 	if (o->m_connected) {
 		addr = NULL;
 	}
-	sendto(o->niofd.fd, (char*)packet->buf, packet->hdrlen + packet->bodylen, 0, addr, sockaddrLength(addr));
+	sendto(o->niofd.fd, (char*)packet->buf, packet->hdrlen + packet->bodylen, 0, addr, addrlen);
 }
 
-static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
+static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr, socklen_t addrlen) {
 	unsigned int hsz = 9;
 	if (bodylen >= hsz) {
 		UserMsg_t* message;
@@ -115,7 +115,7 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 	else if (c->flag & CHANNEL_FLAG_SERVER) {
 		InnerMsg_t packet;
 		makeInnerMsgEmpty(&packet);
-		channelbaseSendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
+		channelbaseSendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT, addr, addrlen);
 	}
 }
 
@@ -134,7 +134,7 @@ static ChannelUserData_t* init_channel_user_data_inner(ChannelUserDataInner_t* u
 
 /**************************************************************************/
 
-static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
+static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
 	ChannelBase_t* conn_channel;
 
 	conn_channel = openChannelInner(CHANNEL_FLAG_SERVER, newfd, listen_c->socktype, peer_addr, channelUserData(listen_c)->sche);
@@ -148,14 +148,14 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 static void innerchannel_on_heartbeat(ChannelBase_t* c, int heartbeat_times) {
 	InnerMsg_t msg;
 	makeInnerMsgEmpty(&msg);
-	channelbaseSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT);
+	channelbaseSendv(c, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_NO_ACK_FRAGMENT, NULL, 0);
 }
 
-static int innerchannel_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr) {
+static int innerchannel_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
 	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag, channel->socktype);
 	if (hook_proc->on_read) {
 		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
-		return hook_proc->on_read(&ud->rw, buf, len, timestamp_msec, from_addr);
+		return hook_proc->on_read(&ud->rw, buf, len, timestamp_msec, from_addr, addrlen);
 	}
 	return len;
 }

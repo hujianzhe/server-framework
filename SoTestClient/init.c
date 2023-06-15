@@ -7,7 +7,7 @@
 static int start_req_login_test(ChannelBase_t* channel) {
 	InnerMsg_t msg;
 	makeInnerMsg(&msg, CMD_REQ_LOGIN_TEST, NULL, 0);
-	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	return 1;
 }
 
@@ -24,7 +24,7 @@ static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel
 			continue;
 		}
 		makeInnerMsgRpcReq(&msg, block->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
-		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 		sub_block_arr[cnt_sub_block++] = block;
 
 		block = StackCoSche_block_point_util(sche, tm_msec + 1000);
@@ -32,7 +32,7 @@ static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel
 			continue;
 		}
 		makeInnerMsgRpcReq(&msg, block->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
-		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 		sub_block_arr[cnt_sub_block++] = block;
 	}
 	for (i = 0; i < cnt_sub_block; ++i) {
@@ -69,7 +69,7 @@ void run(struct StackCoSche_t* sche, void* arg) {
 	TaskThread_t* thrd = currentTaskThread();
 
 	// add timer
-	StackCoSche_timeout_util(sche, gmtimeMillisecond() / 1000 * 1000 + 1000, test_timer, NULL, NULL);
+	//StackCoSche_timeout_util(sche, gmtimeMillisecond() / 1000 * 1000 + 1000, test_timer, NULL, NULL);
 
 	for (i = 0; i < ptrBSG()->conf->connect_options_cnt; ++i) {
 		const ConfigConnectOption_t* option = ptrBSG()->conf->connect_options + i;

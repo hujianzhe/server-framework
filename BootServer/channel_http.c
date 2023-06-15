@@ -55,7 +55,7 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 	}
 }
 
-static int httpframe_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int buflen, long long timestamp_msec, const struct sockaddr* addr) {
+static int httpframe_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int buflen, long long timestamp_msec, const struct sockaddr* addr, socklen_t addrlen) {
 	int res;
 	unsigned int content_length;
 	HttpFrame_t* frame = (HttpFrame_t*)malloc(sizeof(HttpFrame_t));
@@ -99,7 +99,7 @@ static int httpframe_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 	return res + content_length;
 }
 
-static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
+static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
 	ChannelBase_t* conn_channel;
 
 	conn_channel = openChannelHttp(CHANNEL_FLAG_SERVER, newfd, peer_addr, channelUserData(listen_c)->sche);

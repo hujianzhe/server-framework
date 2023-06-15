@@ -38,7 +38,7 @@ int clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt) {
 	if (!c) {
 		return 0;
 	}
-	channelbaseSendv(c, iov, iovcnt, NETPACKET_FRAGMENT);
+	channelbaseSendv(c, iov, iovcnt, NETPACKET_FRAGMENT, NULL, 0);
 	return 1;
 }
 

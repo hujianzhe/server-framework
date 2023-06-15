@@ -34,7 +34,7 @@ static void free_user_msg(UserMsg_t* msg) {
 	RedisReply_free(reply);
 }
 
-static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr) {
+static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
 	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
 	RedisReplyReader_feed(ud->reader, (const char*)buf, len);
 	while (1) {
@@ -126,7 +126,7 @@ static void redis_cli_on_heartbeat(ChannelBase_t* channel, int heartbeat_times) 
 		iobufStaticInit(ud->ping_cmd, (size_t)ud->ping_cmd_len),
 		iobufStaticInit(&rpc_id, sizeof(rpc_id))
 	};
-	channelbaseSendv(channel, iovs, 2, NETPACKET_NO_ACK_FRAGMENT);
+	channelbaseSendv(channel, iovs, 2, NETPACKET_NO_ACK_FRAGMENT, NULL, 0);
 }
 
 static void redis_cli_on_free(ChannelBase_t* channel) {
@@ -199,7 +199,7 @@ void channelRedisClientAsyncSendCommand(ChannelBase_t* channel, int rpc_id, cons
 	iobufLen(iovs + 0) = cmdlen;
 	iobufPtr(iovs + 1) = (char*)&rpc_id;
 	iobufLen(iovs + 1) = sizeof(rpc_id);
-	channelbaseSendv(channel, iovs, 2, NETPACKET_FRAGMENT);
+	channelbaseSendv(channel, iovs, 2, NETPACKET_FRAGMENT, NULL, 0);
 	RedisCommand_free(cmd);
 }
 

@@ -18,14 +18,14 @@ void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 		return;
 	}
 	makeInnerMsgRpcReq(&msg, sub_block_arr[0]->id, CMD_REQ_TEST_CALLBACK, test_data, sizeof(test_data));
-	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	//
 	sub_block_arr[1] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000);
 	if (!sub_block_arr[1]) {
 		return;
 	}
 	makeInnerMsgRpcReq(&msg, sub_block_arr[1]->id, CMD_REQ_TEST, test_data, sizeof(test_data));
-	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	//
 	for (i = 0; i < sizeof(sub_block_arr) / sizeof(sub_block_arr[0]); ++i) {
 		UserMsg_t* ret_msg;

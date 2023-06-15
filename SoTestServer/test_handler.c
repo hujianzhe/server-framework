@@ -6,7 +6,7 @@ void reqTestCallback(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	char test_data[] = "your callback is from server ^.^";
 	InnerMsg_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
-	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
 void reqTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
@@ -16,10 +16,10 @@ void reqTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
 
 	makeInnerMsg(&msg, CMD_NOTIFY_TEST, NULL, 0);
-	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 
 	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
-	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
 void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
@@ -40,8 +40,8 @@ void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (!reply) {
 		return;
 	}
-	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
-	channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
+	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
+	channelbaseSendFin(ctrl->channel);
 	free(reply);
 	return;
 }
@@ -64,8 +64,8 @@ void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (!reply) {
 		return;
 	}
-	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
-	channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
+	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
+	channelbaseSendFin(ctrl->channel);
 	free(reply);
 }
 
@@ -105,8 +105,8 @@ void reqTestExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (!reply) {
 		return;
 	}
-	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
-	channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
+	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
+	channelbaseSendFin(ctrl->channel);
 	free(reply);
 }
 
@@ -134,8 +134,8 @@ void reqClearExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (!reply) {
 		return;
 	}
-	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT);
-	channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
+	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
+	channelbaseSendFin(ctrl->channel);
 	free(reply);
 }
 
@@ -146,7 +146,7 @@ void reqParallelTest1(TaskThread_t* thrd, UserMsg_t* ctrl) {
 
 	InnerMsg_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
-	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
 void reqParallelTest2(TaskThread_t* thrd, UserMsg_t* ctrl) {
@@ -156,7 +156,7 @@ void reqParallelTest2(TaskThread_t* thrd, UserMsg_t* ctrl) {
 
 	InnerMsg_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
-	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT);
+	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
 void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
@@ -221,7 +221,7 @@ void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	if (!reply) {
 		return;
 	}
-	channelbaseSend(ctrl->channel, reply, replylen, NETPACKET_FRAGMENT);
-	channelbaseSend(ctrl->channel, NULL, 0, NETPACKET_FIN);
+	channelbaseSend(ctrl->channel, reply, replylen, NETPACKET_FRAGMENT, NULL, 0);
+	channelbaseSendFin(ctrl->channel);
 	free(reply);
 }

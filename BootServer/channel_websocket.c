@@ -3,7 +3,7 @@
 
 typedef struct ChannelUserDataWebsocket_t {
 	ChannelUserData_t _;
-	void(*on_recv)(ChannelBase_t* channel, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr);
+	void(*on_recv)(ChannelBase_t* channel, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr, socklen_t addrlen);
 	DynArr_t(unsigned char) fragment_recv;
 	short ws_handshake_state;
 	short ws_prev_is_fin;
@@ -38,7 +38,7 @@ static int websocket_on_pre_send(ChannelBase_t* c, NetPacket_t* packet, long lon
 	return 1;
 }
 
-static int websocket_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int buflen, long long timestamp_msec, const struct sockaddr* addr) {
+static int websocket_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int buflen, long long timestamp_msec, const struct sockaddr* addr, socklen_t addrlen) {
 	ChannelUserDataWebsocket_t* ud = (ChannelUserDataWebsocket_t*)channelUserData(c);
 	if (ud->ws_handshake_state >= 1) {
 		unsigned char* data;
@@ -55,7 +55,7 @@ static int websocket_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 			return -1;
 		}
 		if (is_fin && dynarrIsEmpty(&ud->fragment_recv)) {
-			ud->on_recv(c, data, datalen, addr);
+			ud->on_recv(c, data, datalen, addr, addrlen);
 		}
 		else {
 			int ok;
@@ -66,7 +66,7 @@ static int websocket_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 			if (!is_fin) {
 				return res;
 			}
-			ud->on_recv(c, ud->fragment_recv.buf, ud->fragment_recv.len, addr);
+			ud->on_recv(c, ud->fragment_recv.buf, ud->fragment_recv.len, addr, addrlen);
 			dynarrClearData(&ud->fragment_recv);
 		}
 		return res;
@@ -91,7 +91,7 @@ static int websocket_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 			if (!txt) {
 				return -1;
 			}
-			channelbaseSend(c, txt, strlen(txt), NETPACKET_NO_ACK_FRAGMENT);
+			channelbaseSend(c, txt, strlen(txt), NETPACKET_NO_ACK_FRAGMENT, NULL, 0);
 			utilExportFree(txt);
 		}
 		else {
@@ -99,7 +99,7 @@ static int websocket_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 			if (!websocketframeEncodeHandshakeResponse(sec_accept, sec_accept_len, txt)) {
 				return -1;
 			}
-			channelbaseSend(c, txt, strlen(txt), NETPACKET_NO_ACK_FRAGMENT);
+			channelbaseSend(c, txt, strlen(txt), NETPACKET_NO_ACK_FRAGMENT, NULL, 0);
 		}
 		ud->ws_handshake_state = 1;
 		return res;
@@ -143,7 +143,7 @@ static ChannelBase_t* openChannelWebsocketServer(FD_t fd, const struct sockaddr*
 	return c;
 }
 
-static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, long long ts_msec) {
+static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
 	ChannelUserDataWebsocket_t* listen_ud = (ChannelUserDataWebsocket_t*)channelUserData(listen_c);
 	ChannelBase_t* conn_channel;
 	ChannelUserDataWebsocket_t* conn_ud;

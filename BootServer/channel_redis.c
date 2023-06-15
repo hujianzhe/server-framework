@@ -171,7 +171,7 @@ ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnCha
 		free(ud);
 		return NULL;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_CLIENT, &s_redis_cli_proc, INVALID_FD_HANDLE, SOCK_STREAM, &addr.sa);
+	c = channelbaseOpen(CHANNEL_FLAG_CLIENT, &s_redis_cli_proc, INVALID_FD_HANDLE, domain, SOCK_STREAM, &addr.sa);
 	if (!c) {
 		free(ud);
 		return NULL;

@@ -63,6 +63,43 @@ static void test_timer(struct StackCoSche_t* sche, void* arg) {
 	}
 }
 
+static int simply_dgram_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
+	IPString_t ip;
+	unsigned short port;
+	if (!sockaddrDecode(from_addr, ip, &port)) {
+		return len;
+	}
+	printf("reflect_udp_on_recv from %s:%hu, %u bytes, %s\n", ip, port, len, (char*)buf);
+	return len;
+}
+
+static ChannelBaseProc_t s_simply_udp_proc = {
+	NULL,
+	NULL,
+	simply_dgram_on_read,
+	NULL,
+	NULL,
+	NULL,
+	defaultChannelOnDetach,
+	NULL
+};
+
+void test_simply_udp_client(unsigned short port) {
+	char data[] = "udp hahahahhah.....";
+	ChannelBase_t* c;
+	Sockaddr_t saddr;
+
+	if (!sockaddrEncode(&saddr.sa, AF_INET, "127.0.0.1", 45678)) {
+		return;
+	}
+	c = channelbaseOpen(0, &s_simply_udp_proc, INVALID_FD_HANDLE, AF_INET, SOCK_DGRAM, NULL);
+	if (!c) {
+		return;
+	}
+	channelbaseReg(selectReactor(), c);
+	channelbaseSend(c, data, sizeof(data), 0, &saddr.sa, sockaddrLength(&saddr.sa));
+}
+
 void run(struct StackCoSche_t* sche, void* arg) {
 	int i;
 	StackCoBlock_t* block;
@@ -113,6 +150,8 @@ void run(struct StackCoSche_t* sche, void* arg) {
 			return;
 		}
 	}
+	// send normal udp
+	test_simply_udp_client(45678);
 }
 
 int init(BootServerGlobal_t* g) {

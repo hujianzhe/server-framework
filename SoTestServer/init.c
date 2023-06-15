@@ -9,6 +9,52 @@ static void reflect_websocket_on_recv(ChannelBase_t* channel, unsigned char* bod
 	channelbaseSend(channel, bodyptr, bodylen, NETPACKET_FRAGMENT, saddr, addrlen);
 }
 
+static int simply_dgram_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
+	IPString_t ip;
+	unsigned short port;
+	if (!sockaddrDecode(from_addr, ip, &port)) {
+		return len;
+	}
+	printf("reflect_udp_on_recv from %s:%hu, %u bytes, %s\n", ip, port, len, (char*)buf);
+	channelbaseSend(channel, buf, len, 0, from_addr, addrlen);
+	return len;
+}
+
+static ChannelBaseProc_t s_simply_udp_proc = {
+	NULL,
+	NULL,
+	simply_dgram_on_read,
+	NULL,
+	NULL,
+	NULL,
+	defaultChannelOnDetach,
+	NULL
+};
+
+void test_simply_udp_server(unsigned short port) {
+	FD_t fd;
+	ChannelBase_t* c;
+	Sockaddr_t saddr;
+
+	if (!sockaddrEncode(&saddr.sa, AF_INET, NULL, 45678)) {
+		return;
+	}
+	fd = socket(saddr.sa.sa_family, SOCK_DGRAM, 0);
+	if (INVALID_FD_HANDLE == fd) {
+		return;
+	}
+	if (!socketBindAndReuse(fd, &saddr.sa, sockaddrLength(&saddr.sa))) {
+		socketClose(fd);
+		return;
+	}
+	c = channelbaseOpen(0, &s_simply_udp_proc, fd, AF_INET, SOCK_DGRAM, NULL);
+	if (!c) {
+		socketClose(fd);
+		return;
+	}
+	channelbaseReg(selectReactor(), c);
+}
+
 void run(struct StackCoSche_t* sche, void* arg) {
 	TaskThread_t* thrd = currentTaskThread();
 	int i;
@@ -31,6 +77,8 @@ void run(struct StackCoSche_t* sche, void* arg) {
 		}
 		channelbaseReg(acceptReactor(), c);
 	}
+	// listen normal udp
+	test_simply_udp_server(45678);
 }
 
 int init(BootServerGlobal_t* g) {

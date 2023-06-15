@@ -138,7 +138,7 @@ ChannelBase_t* openChannelHttp(int flag, FD_t fd, const struct sockaddr* addr, s
 	if (!ud) {
 		return NULL;
 	}
-	c = channelbaseOpen(flag, &s_http_proc, fd, SOCK_STREAM, addr);
+	c = channelbaseOpen(flag, &s_http_proc, fd, addr->sa_family, SOCK_STREAM, addr);
 	if (!c) {
 		free(ud);
 		return NULL;
@@ -173,7 +173,7 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Stac
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_http_proc, listen_fd, SOCK_STREAM, &local_saddr.sa);
+	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_http_proc, listen_fd, domain, SOCK_STREAM, &local_saddr.sa);
 	if (!c) {
 		goto err;
 	}

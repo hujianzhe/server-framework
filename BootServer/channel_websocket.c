@@ -131,7 +131,7 @@ static ChannelBase_t* openChannelWebsocketServer(FD_t fd, const struct sockaddr*
 	if (!ud) {
 		return NULL;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_SERVER, &s_websocket_server_proc, fd, SOCK_STREAM, addr);
+	c = channelbaseOpen(CHANNEL_FLAG_SERVER, &s_websocket_server_proc, fd, addr->sa_family, SOCK_STREAM, addr);
 	if (!c) {
 		free(ud);
 		return NULL;
@@ -182,7 +182,7 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_websocket_server_proc, listen_fd, SOCK_STREAM, &local_saddr.sa);
+	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_websocket_server_proc, listen_fd, domain, SOCK_STREAM, &local_saddr.sa);
 	if (!c) {
 		goto err;
 	}

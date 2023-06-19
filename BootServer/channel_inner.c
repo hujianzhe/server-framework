@@ -206,11 +206,12 @@ ChannelBase_t* openChannelInner(int flag, FD_t fd, int socktype, const struct so
 	if (!ud) {
 		return NULL;
 	}
-	c = channelbaseOpen(flag, &s_inner_proc, fd, addr->sa_family, socktype, addr, sockaddrLength(addr->sa_family));
+	c = channelbaseOpen(flag, &s_inner_proc, fd, addr->sa_family, socktype, 0);
 	if (!c) {
 		free(ud);
 		return NULL;
 	}
+	channelbaseSetOperatorSockaddr(c, addr, sockaddrLength(addr->sa_family));
 	//
 	channelSetUserData(c, init_channel_user_data_inner(ud, c, sche));
 	flag = c->flag;

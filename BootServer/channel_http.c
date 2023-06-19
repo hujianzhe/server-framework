@@ -138,11 +138,12 @@ ChannelBase_t* openChannelHttp(int flag, FD_t fd, const struct sockaddr* addr, s
 	if (!ud) {
 		return NULL;
 	}
-	c = channelbaseOpen(flag, &s_http_proc, fd, addr->sa_family, SOCK_STREAM, addr, sockaddrLength(addr->sa_family));
+	c = channelbaseOpen(flag, &s_http_proc, fd, addr->sa_family, SOCK_STREAM, 0);
 	if (!c) {
 		free(ud);
 		return NULL;
 	}
+	channelbaseSetOperatorSockaddr(c, addr, sockaddrLength(addr->sa_family));
 	//
 	channelSetUserData(c, init_channel_user_data_http(ud, sche));
 	flag = c->flag;
@@ -175,10 +176,11 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Stac
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_http_proc, listen_fd, domain, SOCK_STREAM, &local_saddr.sa, local_saddrlen);
+	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_http_proc, listen_fd, domain, SOCK_STREAM, 0);
 	if (!c) {
 		goto err;
 	}
+	channelbaseSetOperatorSockaddr(c, &local_saddr.sa, local_saddrlen);
 	c->on_ack_halfconn = http_accept_callback;
 	channelSetUserData(c, init_channel_user_data_http(ud, sche));
 	return c;

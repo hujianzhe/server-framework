@@ -48,7 +48,7 @@ void test_simply_udp_server(unsigned short port) {
 		socketClose(fd);
 		return;
 	}
-	c = channelbaseOpen(0, &s_simply_udp_proc, fd, domain, SOCK_DGRAM, NULL, 0);
+	c = channelbaseOpen(0, &s_simply_udp_proc, fd, domain, SOCK_DGRAM, 0);
 	if (!c) {
 		socketClose(fd);
 		return;

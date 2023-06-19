@@ -95,7 +95,7 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 
 		message->channel = c;
 		if (SOCK_STREAM != c->socktype) {
-			memmove(&message->peer_addr, addr, sockaddrLength(addr));
+			memmove(&message->peer_addr, addr, sockaddrLength(addr->sa_family));
 		}
 		message->rpcid = ntohl(*(int*)(bodyptr + 5));
 		if (message->datalen) {
@@ -240,12 +240,12 @@ ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short po
 		return NULL;
 	}
 	if (SOCK_STREAM == socktype) {
-		if (!socketTcpListen(listen_fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
+		if (!socketTcpListen(listen_fd, &local_saddr.sa, sockaddrLength(domain))) {
 			goto err;
 		}
 	}
 	else {
-		if (!socketBindAndReuse(listen_fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
+		if (!socketBindAndReuse(listen_fd, &local_saddr.sa, sockaddrLength(domain))) {
 			goto err;
 		}
 	}

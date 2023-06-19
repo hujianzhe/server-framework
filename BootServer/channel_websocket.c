@@ -175,7 +175,7 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 	if (INVALID_FD_HANDLE == listen_fd) {
 		return NULL;
 	}
-	if (!socketTcpListen(listen_fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
+	if (!socketTcpListen(listen_fd, &local_saddr.sa, sockaddrLength(domain))) {
 		goto err;
 	}
 	ud = (ChannelUserDataWebsocket_t*)malloc(sizeof(ChannelUserDataWebsocket_t));

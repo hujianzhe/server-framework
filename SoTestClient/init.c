@@ -88,16 +88,17 @@ void test_simply_udp_client(unsigned short port) {
 	char data[] = "udp hahahahhah.....";
 	ChannelBase_t* c;
 	Sockaddr_t saddr;
+	int domain = AF_INET;
 
-	if (!sockaddrEncode(&saddr.sa, AF_INET, "127.0.0.1", 45678)) {
+	if (!sockaddrEncode(&saddr.sa, domain, "127.0.0.1", 45678)) {
 		return;
 	}
-	c = channelbaseOpen(0, &s_simply_udp_proc, INVALID_FD_HANDLE, AF_INET, SOCK_DGRAM, NULL);
+	c = channelbaseOpen(0, &s_simply_udp_proc, INVALID_FD_HANDLE, domain, SOCK_DGRAM, NULL);
 	if (!c) {
 		return;
 	}
 	channelbaseReg(selectReactor(), c);
-	channelbaseSend(c, data, sizeof(data), 0, &saddr.sa, sockaddrLength(&saddr.sa));
+	channelbaseSend(c, data, sizeof(data), 0, &saddr.sa, sockaddrLength(domain));
 }
 
 void run(struct StackCoSche_t* sche, void* arg) {

@@ -166,7 +166,7 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Stac
 	if (INVALID_FD_HANDLE == listen_fd) {
 		return NULL;
 	}
-	if (!socketTcpListen(listen_fd, &local_saddr.sa, sockaddrLength(&local_saddr.sa))) {
+	if (!socketTcpListen(listen_fd, &local_saddr.sa, sockaddrLength(domain))) {
 		goto err;
 	}
 	ud = (ChannelUserDataHttp_t*)malloc(sizeof(ChannelUserDataHttp_t));

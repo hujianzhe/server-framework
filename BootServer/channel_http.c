@@ -138,7 +138,7 @@ ChannelBase_t* openChannelHttp(int flag, FD_t fd, const struct sockaddr* addr, s
 	if (!ud) {
 		return NULL;
 	}
-	c = channelbaseOpen(flag, &s_http_proc, fd, addr->sa_family, SOCK_STREAM, addr);
+	c = channelbaseOpen(flag, &s_http_proc, fd, addr->sa_family, SOCK_STREAM, addr, sockaddrLength(addr->sa_family));
 	if (!c) {
 		free(ud);
 		return NULL;
@@ -154,6 +154,7 @@ ChannelBase_t* openChannelHttp(int flag, FD_t fd, const struct sockaddr* addr, s
 
 ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct StackCoSche_t* sche) {
 	Sockaddr_t local_saddr;
+	socklen_t local_saddrlen;
 	FD_t listen_fd;
 	ChannelBase_t* c;
 	ChannelUserDataHttp_t* ud = NULL;
@@ -166,14 +167,15 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Stac
 	if (INVALID_FD_HANDLE == listen_fd) {
 		return NULL;
 	}
-	if (!socketTcpListen(listen_fd, &local_saddr.sa, sockaddrLength(domain))) {
+	local_saddrlen = sockaddrLength(domain);
+	if (!socketTcpListen(listen_fd, &local_saddr.sa, local_saddrlen)) {
 		goto err;
 	}
 	ud = (ChannelUserDataHttp_t*)malloc(sizeof(ChannelUserDataHttp_t));
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_http_proc, listen_fd, domain, SOCK_STREAM, &local_saddr.sa);
+	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_http_proc, listen_fd, domain, SOCK_STREAM, &local_saddr.sa, local_saddrlen);
 	if (!c) {
 		goto err;
 	}

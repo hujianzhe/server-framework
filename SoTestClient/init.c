@@ -93,7 +93,7 @@ void test_simply_udp_client(unsigned short port) {
 	if (!sockaddrEncode(&saddr.sa, domain, "127.0.0.1", 45678)) {
 		return;
 	}
-	c = channelbaseOpen(0, &s_simply_udp_proc, INVALID_FD_HANDLE, domain, SOCK_DGRAM, NULL);
+	c = channelbaseOpen(0, &s_simply_udp_proc, INVALID_FD_HANDLE, domain, SOCK_DGRAM, NULL, 0);
 	if (!c) {
 		return;
 	}

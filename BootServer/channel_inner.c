@@ -206,7 +206,7 @@ ChannelBase_t* openChannelInner(int flag, FD_t fd, int socktype, const struct so
 	if (!ud) {
 		return NULL;
 	}
-	c = channelbaseOpen(flag, &s_inner_proc, fd, addr->sa_family, socktype, addr);
+	c = channelbaseOpen(flag, &s_inner_proc, fd, addr->sa_family, socktype, addr, sockaddrLength(addr->sa_family));
 	if (!c) {
 		free(ud);
 		return NULL;

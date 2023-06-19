@@ -131,7 +131,7 @@ static ChannelBase_t* openChannelWebsocketServer(FD_t fd, const struct sockaddr*
 	if (!ud) {
 		return NULL;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_SERVER, &s_websocket_server_proc, fd, addr->sa_family, SOCK_STREAM, addr);
+	c = channelbaseOpen(CHANNEL_FLAG_SERVER, &s_websocket_server_proc, fd, addr->sa_family, SOCK_STREAM, addr, sockaddrLength(addr->sa_family));
 	if (!c) {
 		free(ud);
 		return NULL;
@@ -164,6 +164,7 @@ extern "C" {
 
 ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct StackCoSche_t* sche) {
 	Sockaddr_t local_saddr;
+	socklen_t local_saddrlen;
 	FD_t listen_fd;
 	ChannelBase_t* c;
 	ChannelUserDataWebsocket_t* ud = NULL;
@@ -175,14 +176,15 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 	if (INVALID_FD_HANDLE == listen_fd) {
 		return NULL;
 	}
-	if (!socketTcpListen(listen_fd, &local_saddr.sa, sockaddrLength(domain))) {
+	local_saddrlen = sockaddrLength(domain);
+	if (!socketTcpListen(listen_fd, &local_saddr.sa, local_saddrlen)) {
 		goto err;
 	}
 	ud = (ChannelUserDataWebsocket_t*)malloc(sizeof(ChannelUserDataWebsocket_t));
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_websocket_server_proc, listen_fd, domain, SOCK_STREAM, &local_saddr.sa);
+	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_websocket_server_proc, listen_fd, domain, SOCK_STREAM, &local_saddr.sa, local_saddrlen);
 	if (!c) {
 		goto err;
 	}

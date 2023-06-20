@@ -93,7 +93,7 @@ void test_simply_udp_client(unsigned short port) {
 	if (!sockaddrEncode(&saddr.sa, domain, "127.0.0.1", 45678)) {
 		return;
 	}
-	c = channelbaseOpen(0, &s_simply_udp_proc, INVALID_FD_HANDLE, domain, SOCK_DGRAM, 0);
+	c = channelbaseOpen(0, &s_simply_udp_proc, domain, SOCK_DGRAM, 0);
 	if (!c) {
 		return;
 	}
@@ -111,20 +111,13 @@ void run(struct StackCoSche_t* sche, void* arg) {
 
 	for (i = 0; i < ptrBSG()->conf->connect_options_cnt; ++i) {
 		const ConfigConnectOption_t* option = ptrBSG()->conf->connect_options + i;
-		Sockaddr_t connect_addr;
 		ChannelBase_t* c;
-		int domain;
 
 		if (strcmp(option->protocol, "default")) {
 			continue;
 		}
-		domain = ipstrFamily(option->ip);
-		if (!sockaddrEncode(&connect_addr.sa, domain, option->ip, option->port)) {
-			return;
-		}
-		c = openChannelInner(CHANNEL_FLAG_CLIENT, INVALID_FD_HANDLE, option->socktype, &connect_addr.sa, sche);
+		c = openChannelInnerClient(option->socktype, option->ip, option->port, sche);
 		if (!c) {
-			channelbaseClose(c);
 			return;
 		}
 		c->on_syn_ack = defaultRpcOnSynAck;

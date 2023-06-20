@@ -134,17 +134,6 @@ static ChannelUserData_t* init_channel_user_data_inner(ChannelUserDataInner_t* u
 
 /**************************************************************************/
 
-static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
-	ChannelBase_t* conn_channel;
-
-	conn_channel = openChannelInner(CHANNEL_FLAG_SERVER, newfd, listen_c->socktype, peer_addr, channelUserData(listen_c)->sche);
-	if (!conn_channel) {
-		socketClose(newfd);
-		return;
-	}
-	channelbaseReg(selectReactor(), conn_channel);
-}
-
 static void innerchannel_on_heartbeat(ChannelBase_t* c, int heartbeat_times) {
 	InnerMsg_t msg;
 	makeInnerMsgEmpty(&msg);
@@ -197,67 +186,99 @@ static ChannelBaseProc_t s_inner_proc = {
 	innerchannel_on_free
 };
 
-/**************************************************************************/
-
-ChannelBase_t* openChannelInner(int flag, FD_t fd, int socktype, const struct sockaddr* addr, struct StackCoSche_t* sche) {
-	ChannelUserDataInner_t* ud;
-	ChannelBase_t* c;
-	ud = (ChannelUserDataInner_t*)malloc(sizeof(ChannelUserDataInner_t));
-	if (!ud) {
-		return NULL;
-	}
-	c = channelbaseOpen(flag, &s_inner_proc, fd, addr->sa_family, socktype, 0);
-	if (!c) {
-		free(ud);
-		return NULL;
-	}
-	channelbaseSetOperatorSockaddr(c, addr, sockaddrLength(addr->sa_family));
-	//
-	channelSetUserData(c, init_channel_user_data_inner(ud, c, sche));
-	flag = c->flag;
-	if (flag & CHANNEL_FLAG_CLIENT) {
+static void innerchannel_set_opt(ChannelBase_t* c) {
+	if (c->flag & CHANNEL_FLAG_CLIENT) {
 		c->heartbeat_timeout_sec = 10;
 		c->heartbeat_maxtimes = 3;
 	}
-	else if (flag & CHANNEL_FLAG_SERVER) {
+	else if (c->flag & CHANNEL_FLAG_SERVER) {
 		c->heartbeat_timeout_sec = 20;
 	}
 	if (SOCK_DGRAM == c->socktype) {
 		c->dgram_ctx.cwndsize = ptrBSG()->conf->udp_cwndsize;
 	}
-	return c;
 }
 
-ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short port, struct StackCoSche_t* sche) {
-	Sockaddr_t local_saddr;
-	FD_t listen_fd;
-	ChannelBase_t* c;
-	int domain = ipstrFamily(ip);
-	if (!sockaddrEncode(&local_saddr.sa, domain, ip, port)) {
-		return NULL;
+static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
+	ChannelBase_t* c = NULL;
+	ChannelUserDataInner_t* ud = NULL;
+	int domain = peer_addr->sa_family;
+	ud = (ChannelUserDataInner_t*)malloc(sizeof(ChannelUserDataInner_t));
+	if (!ud) {
+		goto err;
 	}
-	listen_fd = socket(domain, socktype, 0);
-	if (INVALID_FD_HANDLE == listen_fd) {
-		return NULL;
-	}
-	if (SOCK_STREAM == socktype) {
-		if (!socketTcpListen(listen_fd, &local_saddr.sa, sockaddrLength(domain))) {
-			goto err;
-		}
-	}
-	else {
-		if (!socketBindAndReuse(listen_fd, &local_saddr.sa, sockaddrLength(domain))) {
-			goto err;
-		}
-	}
-	c = openChannelInner(CHANNEL_FLAG_LISTEN, listen_fd, socktype, &local_saddr.sa, sche);
+	c = channelbaseOpenWithFD(CHANNEL_FLAG_SERVER, &s_inner_proc, newfd, domain, 0);
 	if (!c) {
 		goto err;
 	}
+	channelSetUserData(c, init_channel_user_data_inner(ud, c, channelUserData(listen_c)->sche));
+	innerchannel_set_opt(c);
+	channelbaseReg(selectReactor(), c);
+	return;
+err:
+	free(ud);
+	channelbaseClose(c);
+	socketClose(newfd);
+}
+
+/**************************************************************************/
+
+ChannelBase_t* openChannelInnerClient(int socktype, const char* ip, unsigned short port, struct StackCoSche_t* sche) {
+	Sockaddr_t connect_saddr;
+	ChannelBase_t* c = NULL;
+	ChannelUserDataInner_t* ud = NULL;
+	int domain = ipstrFamily(ip);
+
+	if (!sockaddrEncode(&connect_saddr.sa, domain, ip, port)) {
+		goto err;
+	}
+	ud = (ChannelUserDataInner_t*)malloc(sizeof(ChannelUserDataInner_t));
+	if (!ud) {
+		goto err;
+	}
+	c = channelbaseOpen(CHANNEL_FLAG_CLIENT, &s_inner_proc, domain, socktype, 0);
+	if (!c) {
+		goto err;
+	}
+	if (!channelbaseSetOperatorSockaddr(c, &connect_saddr.sa, sockaddrLength(domain))) {
+		goto err;
+	}
+	channelSetUserData(c, init_channel_user_data_inner(ud, c, sche));
+	innerchannel_set_opt(c);
+	return c;
+err:
+	free(ud);
+	channelbaseClose(c);
+	return NULL;
+}
+
+ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short port, struct StackCoSche_t* sche) {
+	Sockaddr_t listen_saddr;
+	ChannelBase_t* c = NULL;
+	ChannelUserDataInner_t* ud = NULL;
+	int domain = ipstrFamily(ip);
+
+	if (!sockaddrEncode(&listen_saddr.sa, domain, ip, port)) {
+		goto err;
+	}
+	ud = (ChannelUserDataInner_t*)malloc(sizeof(ChannelUserDataInner_t));
+	if (!ud) {
+		goto err;
+	}
+	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_inner_proc, domain, socktype, 0);
+	if (!c) {
+		goto err;
+	}
+	if (!channelbaseSetOperatorSockaddr(c, &listen_saddr.sa, sockaddrLength(domain))) {
+		goto err;
+	}
+	channelSetUserData(c, init_channel_user_data_inner(ud, c, sche));
+	innerchannel_set_opt(c);
 	c->on_ack_halfconn = innerchannel_accept_callback;
 	return c;
 err:
-	socketClose(listen_fd);
+	free(ud);
+	channelbaseClose(c);
 	return NULL;
 }
 

@@ -155,33 +155,35 @@ extern "C" {
 #endif
 
 ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnChannelRedisOnSubscribe_t on_subscribe, struct StackCoSche_t* sche) {
-	ChannelBase_t* c;
-	ChannelUserDataRedisClient_t* ud;
-	Sockaddr_t addr;
+	ChannelBase_t* c = NULL;
+	ChannelUserDataRedisClient_t* ud = NULL;
+	Sockaddr_t connect_addr;
 	int domain = ipstrFamily(ip);
 
-	if (!sockaddrEncode(&addr.sa, domain, ip, port)) {
-		return NULL;
+	if (!sockaddrEncode(&connect_addr.sa, domain, ip, port)) {
+		goto err;
 	}
 	ud = (ChannelUserDataRedisClient_t*)malloc(sizeof(ChannelUserDataRedisClient_t));
 	if (!ud) {
 		return NULL;
 	}
 	if (!init_channel_user_data_redis_cli(ud, sche)) {
-		free(ud);
-		return NULL;
+		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_CLIENT, &s_redis_cli_proc, INVALID_FD_HANDLE, domain, SOCK_STREAM, 0);
+	c = channelbaseOpen(CHANNEL_FLAG_CLIENT, &s_redis_cli_proc, domain, SOCK_STREAM, 0);
 	if (!c) {
-		free(ud);
-		return NULL;
+		goto err;
 	}
-	channelbaseSetOperatorSockaddr(c, &addr.sa, sockaddrLength(domain));
+	channelbaseSetOperatorSockaddr(c, &connect_addr.sa, sockaddrLength(domain));
 	ud->on_subscribe = on_subscribe;
 	channelSetUserData(c, &ud->_);
 	c->heartbeat_timeout_sec = 10;
 	c->heartbeat_maxtimes = 3;
 	return c;
+err:
+	free(ud);
+	channelbaseClose(c);
+	return NULL;
 }
 
 void channelRedisClientAsyncSendCommand(ChannelBase_t* channel, int rpc_id, const char* format, ...) {

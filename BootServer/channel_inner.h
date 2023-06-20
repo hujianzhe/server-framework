@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-__declspec_dll ChannelBase_t* openChannelInner(int flag, FD_t fd, int socktype, const struct sockaddr* addr, struct StackCoSche_t* sche);
+__declspec_dll ChannelBase_t* openChannelInnerClient(int socktype, const char* ip, unsigned short port, struct StackCoSche_t* sche);
 __declspec_dll ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short port, struct StackCoSche_t* sche);
 
 #ifdef __cplusplus

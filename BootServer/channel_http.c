@@ -99,17 +99,6 @@ static int httpframe_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 	return res + content_length;
 }
 
-static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
-	ChannelBase_t* conn_channel;
-
-	conn_channel = openChannelHttp(CHANNEL_FLAG_SERVER, newfd, peer_addr, channelUserData(listen_c)->sche);
-	if (!conn_channel) {
-		socketClose(newfd);
-		return;
-	}
-	channelbaseReg(selectReactor(), conn_channel);
-}
-
 static void http_channel_on_free(ChannelBase_t* c) {
 	ChannelUserDataHttp_t* ud = (ChannelUserDataHttp_t*)channelUserData(c);
 	free(ud);
@@ -126,67 +115,87 @@ static ChannelBaseProc_t s_http_proc = {
 	http_channel_on_free
 };
 
+static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
+	ChannelBase_t* c = NULL;
+	ChannelUserDataHttp_t* ud = NULL;
+
+	ud = (ChannelUserDataHttp_t*)malloc(sizeof(ChannelUserDataHttp_t));
+	if (!ud) {
+		goto err;
+	}
+	c = channelbaseOpenWithFD(CHANNEL_FLAG_SERVER, &s_http_proc, newfd, peer_addr->sa_family, 0);
+	if (!c) {
+		goto err;
+	}
+	channelSetUserData(c, init_channel_user_data_http(ud, channelUserData(listen_c)->sche));
+	c->heartbeat_timeout_sec = 20;
+	channelbaseReg(selectReactor(), c);
+	return;
+err:
+	free(ud);
+	channelbaseClose(c);
+	socketClose(newfd);
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-ChannelBase_t* openChannelHttp(int flag, FD_t fd, const struct sockaddr* addr, struct StackCoSche_t* sche) {
-	ChannelUserDataHttp_t* ud;
-	ChannelBase_t* c;
+ChannelBase_t* openChannelHttpClient(const char* ip, unsigned short port, struct StackCoSche_t* sche) {
+	Sockaddr_t connect_saddr;
+	ChannelUserDataHttp_t* ud = NULL;
+	ChannelBase_t* c = NULL;
+	int domain = ipstrFamily(ip);
 
+	if (!sockaddrEncode(&connect_saddr.sa, domain, ip, port)) {
+		return NULL;
+	}
 	ud = (ChannelUserDataHttp_t*)malloc(sizeof(ChannelUserDataHttp_t));
 	if (!ud) {
-		return NULL;
+		goto err;
 	}
-	c = channelbaseOpen(flag, &s_http_proc, fd, addr->sa_family, SOCK_STREAM, 0);
+	c = channelbaseOpen(CHANNEL_FLAG_CLIENT, &s_http_proc, domain, SOCK_STREAM, 0);
 	if (!c) {
-		free(ud);
-		return NULL;
+		goto err;
 	}
-	channelbaseSetOperatorSockaddr(c, addr, sockaddrLength(addr->sa_family));
-	//
+	if (!channelbaseSetOperatorSockaddr(c, &connect_saddr.sa, sockaddrLength(domain))) {
+		goto err;
+	}
 	channelSetUserData(c, init_channel_user_data_http(ud, sche));
-	flag = c->flag;
-	if (flag & CHANNEL_FLAG_SERVER) {
-		c->heartbeat_timeout_sec = 20;
-	}
+	c->heartbeat_timeout_sec = 10;
 	return c;
+err:
+	free(ud);
+	channelbaseClose(c);
+	return NULL;
 }
 
 ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct StackCoSche_t* sche) {
-	Sockaddr_t local_saddr;
-	socklen_t local_saddrlen;
-	FD_t listen_fd;
-	ChannelBase_t* c;
+	Sockaddr_t listen_saddr;
+	ChannelBase_t* c = NULL;
 	ChannelUserDataHttp_t* ud = NULL;
 	int domain = ipstrFamily(ip);
 
-	if (!sockaddrEncode(&local_saddr.sa, domain, ip, port)) {
+	if (!sockaddrEncode(&listen_saddr.sa, domain, ip, port)) {
 		return NULL;
-	}
-	listen_fd = socket(domain, SOCK_STREAM, 0);
-	if (INVALID_FD_HANDLE == listen_fd) {
-		return NULL;
-	}
-	local_saddrlen = sockaddrLength(domain);
-	if (!socketTcpListen(listen_fd, &local_saddr.sa, local_saddrlen)) {
-		goto err;
 	}
 	ud = (ChannelUserDataHttp_t*)malloc(sizeof(ChannelUserDataHttp_t));
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_http_proc, listen_fd, domain, SOCK_STREAM, 0);
+	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_http_proc, domain, SOCK_STREAM, 0);
 	if (!c) {
 		goto err;
 	}
-	channelbaseSetOperatorSockaddr(c, &local_saddr.sa, local_saddrlen);
+	if (!channelbaseSetOperatorSockaddr(c, &listen_saddr.sa, sockaddrLength(domain))) {
+		goto err;
+	}
 	c->on_ack_halfconn = http_accept_callback;
 	channelSetUserData(c, init_channel_user_data_http(ud, sche));
 	return c;
 err:
 	free(ud);
-	socketClose(listen_fd);
+	channelbaseClose(c);
 	return NULL;
 }
 

@@ -123,40 +123,28 @@ static ChannelBaseProc_t s_websocket_server_proc = {
 	websocket_on_free
 };
 
-static ChannelBase_t* openChannelWebsocketServer(FD_t fd, const struct sockaddr* addr, struct StackCoSche_t* sche) {
-	ChannelUserDataWebsocket_t* ud;
-	ChannelBase_t* c;
+static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
+	ChannelUserDataWebsocket_t* listen_ud = (ChannelUserDataWebsocket_t*)channelUserData(listen_c);
+	ChannelBase_t* c = NULL;
+	ChannelUserDataWebsocket_t* ud = NULL;
 
 	ud = (ChannelUserDataWebsocket_t*)malloc(sizeof(ChannelUserDataWebsocket_t));
 	if (!ud) {
-		return NULL;
+		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_SERVER, &s_websocket_server_proc, fd, addr->sa_family, SOCK_STREAM, 0);
+	c = channelbaseOpenWithFD(CHANNEL_FLAG_SERVER, &s_websocket_server_proc, newfd, peer_addr->sa_family, 0);
 	if (!c) {
-		free(ud);
-		return NULL;
+		goto err;
 	}
-	channelbaseSetOperatorSockaddr(c, addr, sockaddrLength(addr->sa_family));
-	//
-	channelSetUserData(c, init_channel_user_data_websocket(ud, sche));
-	// c->_.write_fragment_size = 500;
+	channelSetUserData(c, init_channel_user_data_websocket(ud, channelUserData(listen_c)->sche));
+	ud->on_recv = listen_ud->on_recv;
 	c->heartbeat_timeout_sec = 20;
-	return c;
-}
-
-static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
-	ChannelUserDataWebsocket_t* listen_ud = (ChannelUserDataWebsocket_t*)channelUserData(listen_c);
-	ChannelBase_t* conn_channel;
-	ChannelUserDataWebsocket_t* conn_ud;
-
-	conn_channel = openChannelWebsocketServer(newfd, peer_addr, channelUserData(listen_c)->sche);
-	if (!conn_channel) {
-		socketClose(newfd);
-		return;
-	}
-	conn_ud = (ChannelUserDataWebsocket_t*)channelUserData(conn_channel);
-	conn_ud->on_recv = listen_ud->on_recv;
-	channelbaseReg(selectReactor(), conn_channel);
+	channelbaseReg(selectReactor(), c);
+	return;
+err:
+	free(ud);
+	channelbaseClose(c);
+	socketClose(newfd);
 }
 
 #ifdef __cplusplus
@@ -164,39 +152,32 @@ extern "C" {
 #endif
 
 ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct StackCoSche_t* sche) {
-	Sockaddr_t local_saddr;
-	socklen_t local_saddrlen;
-	FD_t listen_fd;
-	ChannelBase_t* c;
+	Sockaddr_t listen_saddr;
+	ChannelBase_t* c = NULL;
 	ChannelUserDataWebsocket_t* ud = NULL;
 	int domain = ipstrFamily(ip);
-	if (!sockaddrEncode(&local_saddr.sa, domain, ip, port)) {
+
+	if (!sockaddrEncode(&listen_saddr.sa, domain, ip, port)) {
 		return NULL;
-	}
-	listen_fd = socket(domain, SOCK_STREAM, 0);
-	if (INVALID_FD_HANDLE == listen_fd) {
-		return NULL;
-	}
-	local_saddrlen = sockaddrLength(domain);
-	if (!socketTcpListen(listen_fd, &local_saddr.sa, local_saddrlen)) {
-		goto err;
 	}
 	ud = (ChannelUserDataWebsocket_t*)malloc(sizeof(ChannelUserDataWebsocket_t));
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_websocket_server_proc, listen_fd, domain, SOCK_STREAM, 0);
+	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_websocket_server_proc, domain, SOCK_STREAM, 0);
 	if (!c) {
 		goto err;
 	}
-	channelbaseSetOperatorSockaddr(c, &local_saddr.sa, local_saddrlen);
-	c->on_ack_halfconn = websocket_accept_callback;
+	if (!channelbaseSetOperatorSockaddr(c, &listen_saddr.sa, sockaddrLength(domain))) {
+		goto err;
+	}
 	channelSetUserData(c, init_channel_user_data_websocket(ud, sche));
 	ud->on_recv = fn;
+	c->on_ack_halfconn = websocket_accept_callback;
 	return c;
 err:
 	free(ud);
-	socketClose(listen_fd);
+	channelbaseClose(c);
 	return NULL;
 }
 

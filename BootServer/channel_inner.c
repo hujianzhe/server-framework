@@ -202,13 +202,14 @@ static void innerchannel_set_opt(ChannelBase_t* c) {
 static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
 	ChannelBase_t* c = NULL;
 	ChannelUserDataInner_t* ud = NULL;
-	int domain = peer_addr->sa_family;
-	ud = (ChannelUserDataInner_t*)malloc(sizeof(ChannelUserDataInner_t));
-	if (!ud) {
+
+	c = channelbaseOpenWithFD(CHANNEL_FLAG_SERVER, &s_inner_proc, newfd, peer_addr->sa_family, 0);
+	if (!c) {
+		socketClose(newfd);
 		goto err;
 	}
-	c = channelbaseOpenWithFD(CHANNEL_FLAG_SERVER, &s_inner_proc, newfd, domain, 0);
-	if (!c) {
+	ud = (ChannelUserDataInner_t*)malloc(sizeof(ChannelUserDataInner_t));
+	if (!ud) {
 		goto err;
 	}
 	channelSetUserData(c, init_channel_user_data_inner(ud, c, channelUserData(listen_c)->sche));
@@ -218,7 +219,6 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 err:
 	free(ud);
 	channelbaseClose(c);
-	socketClose(newfd);
 }
 
 /**************************************************************************/

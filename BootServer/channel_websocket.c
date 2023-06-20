@@ -128,15 +128,16 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 	ChannelBase_t* c = NULL;
 	ChannelUserDataWebsocket_t* ud = NULL;
 
+	c = channelbaseOpenWithFD(CHANNEL_FLAG_SERVER, &s_websocket_server_proc, newfd, peer_addr->sa_family, 0);
+	if (!c) {
+		socketClose(newfd);
+		goto err;
+	}
 	ud = (ChannelUserDataWebsocket_t*)malloc(sizeof(ChannelUserDataWebsocket_t));
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpenWithFD(CHANNEL_FLAG_SERVER, &s_websocket_server_proc, newfd, peer_addr->sa_family, 0);
-	if (!c) {
-		goto err;
-	}
-	channelSetUserData(c, init_channel_user_data_websocket(ud, channelUserData(listen_c)->sche));
+	channelSetUserData(c, init_channel_user_data_websocket(ud, listen_ud->_.sche));
 	ud->on_recv = listen_ud->on_recv;
 	c->heartbeat_timeout_sec = 20;
 	channelbaseReg(selectReactor(), c);
@@ -144,7 +145,6 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 err:
 	free(ud);
 	channelbaseClose(c);
-	socketClose(newfd);
 }
 
 #ifdef __cplusplus

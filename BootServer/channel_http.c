@@ -119,12 +119,13 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const stru
 	ChannelBase_t* c = NULL;
 	ChannelUserDataHttp_t* ud = NULL;
 
-	ud = (ChannelUserDataHttp_t*)malloc(sizeof(ChannelUserDataHttp_t));
-	if (!ud) {
-		goto err;
-	}
 	c = channelbaseOpenWithFD(CHANNEL_FLAG_SERVER, &s_http_proc, newfd, peer_addr->sa_family, 0);
 	if (!c) {
+		socketClose(newfd);
+		goto err;
+	}
+	ud = (ChannelUserDataHttp_t*)malloc(sizeof(ChannelUserDataHttp_t));
+	if (!ud) {
 		goto err;
 	}
 	channelSetUserData(c, init_channel_user_data_http(ud, channelUserData(listen_c)->sche));
@@ -134,7 +135,6 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const stru
 err:
 	free(ud);
 	channelbaseClose(c);
-	socketClose(newfd);
 }
 
 #ifdef __cplusplus

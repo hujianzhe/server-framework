@@ -212,6 +212,7 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 	if (!ud) {
 		goto err;
 	}
+	channelbaseSetOperatorSockaddr(c, peer_addr, addrlen);
 	channelSetUserData(c, init_channel_user_data_inner(ud, c, channelUserData(listen_c)->sche));
 	innerchannel_set_opt(c);
 	channelbaseReg(selectReactor(), c);

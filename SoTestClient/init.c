@@ -140,13 +140,11 @@ void run(struct StackCoSche_t* sche, void* arg) {
 		}
 
 		logInfo(ptrBSG()->log, "channel(%p) connect success......", c);
-		def_c = c;
-		/*
+		//def_c = c;
 		frpc_test_paralle(sche, c);
 		if (!start_req_login_test(c)) {
 			return;
 		}
-		*/
 	}
 	if (def_c) {
 		puts("start req echo, but not display");

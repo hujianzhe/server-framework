@@ -149,7 +149,7 @@ void run(struct StackCoSche_t* sche, void* arg) {
 		*/
 	}
 	if (def_c) {
-		puts("start req echo");
+		puts("start req echo, but not display");
 		frpc_req_echo(thrd, def_c, 1 << 20);
 	}
 	// send normal udp

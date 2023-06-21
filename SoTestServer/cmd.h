@@ -12,6 +12,9 @@ enum {
 
 	CMD_REQ_ParallelTest1 = 200,
 	CMD_REQ_ParallelTest2 = 201,
+
+	CMD_REQ_ECHO = 300,
+	CMD_RET_ECHO = 301,
 };
 
 #endif // !CMD_H

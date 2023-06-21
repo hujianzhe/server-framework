@@ -2,6 +2,12 @@
 #include "cmd.h"
 #include "test_handler.h"
 
+void reqEcho(TaskThread_t* thrd, UserMsg_t* ctrl) {
+	InnerMsg_t msg;
+	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, ctrl->data, ctrl->datalen);
+	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+}
+
 void reqTestCallback(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	char test_data[] = "your callback is from server ^.^";
 	InnerMsg_t msg;

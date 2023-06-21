@@ -109,6 +109,7 @@ void run(struct StackCoSche_t* sche, void* arg) {
 	// add timer
 	//StackCoSche_timeout_util(sche, gmtimeMillisecond() / 1000 * 1000 + 1000, test_timer, NULL, NULL);
 
+	ChannelBase_t* def_c = NULL;
 	for (i = 0; i < ptrBSG()->conf->connect_options_cnt; ++i) {
 		const ConfigConnectOption_t* option = ptrBSG()->conf->connect_options + i;
 		ChannelBase_t* c;
@@ -139,10 +140,17 @@ void run(struct StackCoSche_t* sche, void* arg) {
 		}
 
 		logInfo(ptrBSG()->log, "channel(%p) connect success......", c);
+		def_c = c;
+		/*
 		frpc_test_paralle(sche, c);
 		if (!start_req_login_test(c)) {
 			return;
 		}
+		*/
+	}
+	if (def_c) {
+		puts("start req echo");
+		frpc_req_echo(thrd, def_c, 1 << 20);
 	}
 	// send normal udp
 	test_simply_udp_client(45678);

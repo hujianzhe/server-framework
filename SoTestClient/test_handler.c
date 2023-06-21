@@ -2,6 +2,54 @@
 #include "cmd.h"
 #include "test_handler.h"
 
+void frpc_req_echo(TaskThread_t* thrd, ChannelBase_t* channel, size_t datalen) {
+	size_t cnt = 0;
+	long long start_tm;
+	char* data = (char*)malloc(datalen);
+	if (!data) {
+		return;
+	}
+	start_tm = gmtimeMillisecond();
+	while (1) {
+		InnerMsg_t msg;
+		UserMsg_t* ret_ctrl;
+		long long tm_msec = gmtimeMillisecond();
+		StackCoBlock_t* co_block = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000);
+		if (!co_block) {
+			break;
+		}
+		makeInnerMsgRpcReq(&msg, co_block->id, CMD_REQ_ECHO, data, datalen);
+		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+		co_block = StackCoSche_yield(thrd->sche);
+		if (!co_block) {
+			long long tlen = gmtimeMillisecond() - start_tm;
+			size_t cnt_per_sec = (double)cnt / tlen * 1000.0;
+			printf("rpc call failure timeout or cancel, cnt = %zu, cost %lld msec, cnt_per_sec = %zu\n",
+					cnt, tlen, cnt_per_sec);
+			break;
+		}
+		if (co_block->status != STACK_CO_STATUS_FINISH) {
+			long long tlen = gmtimeMillisecond() - start_tm;
+			size_t cnt_per_sec = (double)cnt / tlen * 1000.0;
+			printf("rpc call failure timeout or cancel, cnt = %zu, cost %lld msec, cnt_per_sec = %zu\n",
+					cnt, tlen, cnt_per_sec);
+			break;
+		}
+		ret_ctrl = (UserMsg_t*)co_block->resume_ret;
+		if (ret_ctrl->datalen != datalen) {
+			puts("echo datalen not match");
+			break;
+		}
+		if (memcmp(data, ret_ctrl->data, ret_ctrl->datalen)) {
+			puts("echo data error");
+			break;
+		}
+		StackCoSche_reuse_block(thrd->sche, co_block);
+		++cnt;
+	}
+	free(data);
+}
+
 static void frpc_callback(struct StackCoSche_t* sche, void* arg) {
 	printf("rpc callback ... %s\n", (const char*)arg);
 }

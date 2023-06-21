@@ -89,6 +89,7 @@ int init(BootServerGlobal_t* g) {
 	regNumberDispatch(g->dispatch, CMD_REQ_LOGIN_TEST, reqLoginTest);
 	regNumberDispatch(g->dispatch, CMD_REQ_ParallelTest1, reqParallelTest1);
 	regNumberDispatch(g->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);
+	regNumberDispatch(g->dispatch, CMD_REQ_ECHO, reqEcho);
 	regStringDispatch(g->dispatch, "/reqHttpTest", reqHttpTest);
 	regStringDispatch(g->dispatch, "/reqSoTest", reqSoTest);
 	regStringDispatch(g->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);

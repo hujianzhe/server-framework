@@ -14,7 +14,7 @@ void frpc_req_echo(TaskThread_t* thrd, ChannelBase_t* channel, size_t datalen) {
 		InnerMsg_t msg;
 		UserMsg_t* ret_ctrl;
 		long long tm_msec = gmtimeMillisecond();
-		StackCoBlock_t* co_block = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000);
+		StackCoBlock_t* co_block = StackCoSche_block_point_util(thrd->sche, tm_msec + 5000);
 		if (!co_block) {
 			break;
 		}

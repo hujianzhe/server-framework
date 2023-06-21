@@ -6,6 +6,7 @@ void reqEcho(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	InnerMsg_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, ctrl->data, ctrl->datalen);
 	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+	puts("echo");
 }
 
 void reqTestCallback(TaskThread_t* thrd, UserMsg_t* ctrl) {

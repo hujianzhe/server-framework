@@ -122,7 +122,7 @@ void run(struct StackCoSche_t* sche, void* arg) {
 			return;
 		}
 		c->on_syn_ack = defaultRpcOnSynAck;
-		c->o->stream_connect_timeout_sec = 5;
+		c->stream_connect_timeout_sec = 5;
 
 		logInfo(ptrBSG()->log, "channel(%p) connecting......", c);
 

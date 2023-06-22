@@ -143,8 +143,7 @@ static void innerchannel_on_heartbeat(ChannelBase_t* c, int heartbeat_times) {
 static int innerchannel_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
 	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag, channel->socktype);
 	if (hook_proc->on_read) {
-		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
-		return hook_proc->on_read(&ud->rw, buf, len, timestamp_msec, from_addr, addrlen);
+		return hook_proc->on_read(channel, buf, len, timestamp_msec, from_addr, addrlen);
 	}
 	return len;
 }
@@ -152,8 +151,7 @@ static int innerchannel_on_read(ChannelBase_t* channel, unsigned char* buf, unsi
 static int innerchannel_on_pre_send(ChannelBase_t* channel, NetPacket_t* packet, long long timestamp_msec) {
 	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag, channel->socktype);
 	if (hook_proc->on_pre_send) {
-		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
-		return hook_proc->on_pre_send(&ud->rw, packet, timestamp_msec);
+		return hook_proc->on_pre_send(channel, packet, timestamp_msec);
 	}
 	return 1;
 }
@@ -161,8 +159,7 @@ static int innerchannel_on_pre_send(ChannelBase_t* channel, NetPacket_t* packet,
 static void innerchannel_on_exec(ChannelBase_t* channel, long long timestamp_msec) {
 	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag, channel->socktype);
 	if (hook_proc->on_exec) {
-		ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
-		hook_proc->on_exec(&ud->rw, timestamp_msec);
+		hook_proc->on_exec(channel, timestamp_msec);
 	}
 }
 
@@ -170,7 +167,7 @@ static void innerchannel_on_free(ChannelBase_t* channel) {
 	ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
 	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag, channel->socktype);
 	if (hook_proc->on_free) {
-		hook_proc->on_free(&ud->rw);
+		hook_proc->on_free(channel);
 	}
 	free(ud);
 }

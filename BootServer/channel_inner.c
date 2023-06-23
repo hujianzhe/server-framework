@@ -127,8 +127,7 @@ static ChannelRWDataProc_t s_inner_data_proc = {
 };
 
 static ChannelUserData_t* init_channel_user_data_inner(ChannelUserDataInner_t* ud, ChannelBase_t* channel, struct StackCoSche_t* sche) {
-	channelrwInitData(&ud->rw, channel->flag, channel->socktype, &s_inner_data_proc);
-	channelbaseUseRWData(channel, &ud->rw);
+	channelbaseUseRWData(channel, &ud->rw, &s_inner_data_proc);
 	return initChannelUserData(&ud->_, sche);
 }
 

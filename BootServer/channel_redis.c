@@ -170,7 +170,7 @@ ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnCha
 	if (!init_channel_user_data_redis_cli(ud, sche)) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_CLIENT, &s_redis_cli_proc, domain, SOCK_STREAM, 0);
+	c = channelbaseOpen(CHANNEL_SIDE_CLIENT, &s_redis_cli_proc, domain, SOCK_STREAM, 0);
 	if (!c) {
 		goto err;
 	}

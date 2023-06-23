@@ -112,7 +112,7 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 			StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))freeUserMsg);
 		}
 	}
-	else if (c->flag & CHANNEL_FLAG_SERVER) {
+	else if (CHANNEL_SIDE_SERVER == c->side) {
 		InnerMsg_t packet;
 		makeInnerMsgEmpty(&packet);
 		channelbaseSendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT, addr, addrlen);
@@ -140,7 +140,7 @@ static void innerchannel_on_heartbeat(ChannelBase_t* c, int heartbeat_times) {
 }
 
 static int innerchannel_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
-	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag, channel->socktype);
+	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->side, channel->socktype);
 	if (hook_proc->on_read) {
 		return hook_proc->on_read(channel, buf, len, timestamp_msec, from_addr, addrlen);
 	}
@@ -148,7 +148,7 @@ static int innerchannel_on_read(ChannelBase_t* channel, unsigned char* buf, unsi
 }
 
 static int innerchannel_on_pre_send(ChannelBase_t* channel, NetPacket_t* packet, long long timestamp_msec) {
-	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag, channel->socktype);
+	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->side, channel->socktype);
 	if (hook_proc->on_pre_send) {
 		return hook_proc->on_pre_send(channel, packet, timestamp_msec);
 	}
@@ -156,7 +156,7 @@ static int innerchannel_on_pre_send(ChannelBase_t* channel, NetPacket_t* packet,
 }
 
 static void innerchannel_on_exec(ChannelBase_t* channel, long long timestamp_msec) {
-	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag, channel->socktype);
+	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->side, channel->socktype);
 	if (hook_proc->on_exec) {
 		hook_proc->on_exec(channel, timestamp_msec);
 	}
@@ -164,7 +164,7 @@ static void innerchannel_on_exec(ChannelBase_t* channel, long long timestamp_mse
 
 static void innerchannel_on_free(ChannelBase_t* channel) {
 	ChannelUserDataInner_t* ud = (ChannelUserDataInner_t*)channelUserData(channel);
-	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->flag, channel->socktype);
+	const ChannelRWHookProc_t* hook_proc = channelrwGetHookProc(channel->side, channel->socktype);
 	if (hook_proc->on_free) {
 		hook_proc->on_free(channel);
 	}
@@ -183,11 +183,11 @@ static ChannelBaseProc_t s_inner_proc = {
 };
 
 static void innerchannel_set_opt(ChannelBase_t* c) {
-	if (c->flag & CHANNEL_FLAG_CLIENT) {
+	if (CHANNEL_SIDE_CLIENT == c->side) {
 		c->heartbeat_timeout_sec = 10;
 		c->heartbeat_maxtimes = 3;
 	}
-	else if (c->flag & CHANNEL_FLAG_SERVER) {
+	else if (CHANNEL_SIDE_SERVER == c->side) {
 		c->heartbeat_timeout_sec = 20;
 	}
 	if (SOCK_DGRAM == c->socktype) {
@@ -199,7 +199,7 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 	ChannelBase_t* c = NULL;
 	ChannelUserDataInner_t* ud = NULL;
 
-	c = channelbaseOpenWithFD(CHANNEL_FLAG_SERVER, &s_inner_proc, newfd, peer_addr->sa_family, 0);
+	c = channelbaseOpenWithFD(CHANNEL_SIDE_SERVER, &s_inner_proc, newfd, peer_addr->sa_family, 0);
 	if (!c) {
 		socketClose(newfd);
 		goto err;
@@ -232,7 +232,7 @@ ChannelBase_t* openChannelInnerClient(int socktype, const char* ip, unsigned sho
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_CLIENT, &s_inner_proc, domain, socktype, 0);
+	c = channelbaseOpen(CHANNEL_SIDE_CLIENT, &s_inner_proc, domain, socktype, 0);
 	if (!c) {
 		goto err;
 	}
@@ -261,7 +261,7 @@ ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short po
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_inner_proc, domain, socktype, 0);
+	c = channelbaseOpen(CHANNEL_SIDE_LISTEN, &s_inner_proc, domain, socktype, 0);
 	if (!c) {
 		goto err;
 	}

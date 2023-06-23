@@ -119,7 +119,7 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const stru
 	ChannelBase_t* c = NULL;
 	ChannelUserDataHttp_t* ud = NULL;
 
-	c = channelbaseOpenWithFD(CHANNEL_FLAG_SERVER, &s_http_proc, newfd, peer_addr->sa_family, 0);
+	c = channelbaseOpenWithFD(CHANNEL_SIDE_SERVER, &s_http_proc, newfd, peer_addr->sa_family, 0);
 	if (!c) {
 		socketClose(newfd);
 		goto err;
@@ -154,7 +154,7 @@ ChannelBase_t* openChannelHttpClient(const char* ip, unsigned short port, struct
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_CLIENT, &s_http_proc, domain, SOCK_STREAM, 0);
+	c = channelbaseOpen(CHANNEL_SIDE_CLIENT, &s_http_proc, domain, SOCK_STREAM, 0);
 	if (!c) {
 		goto err;
 	}
@@ -183,7 +183,7 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Stac
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_FLAG_LISTEN, &s_http_proc, domain, SOCK_STREAM, 0);
+	c = channelbaseOpen(CHANNEL_SIDE_LISTEN, &s_http_proc, domain, SOCK_STREAM, 0);
 	if (!c) {
 		goto err;
 	}

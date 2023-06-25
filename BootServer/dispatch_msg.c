@@ -11,6 +11,7 @@ UserMsg_t* newUserMsg(size_t datalen) {
 		memset(&msg->serial, 0, sizeof(msg->serial));
 		msg->channel = NULL;
 		msg->peer_addr.sa.sa_family = AF_UNSPEC;
+		msg->peer_addrlen = 0;
 		msg->on_free = NULL;
 		msg->param.type = 0;
 		msg->param.value = NULL;

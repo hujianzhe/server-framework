@@ -95,7 +95,8 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 
 		message->channel = c;
 		if (SOCK_STREAM != c->socktype) {
-			memmove(&message->peer_addr, addr, sockaddrLength(addr->sa_family));
+			memmove(&message->peer_addr, addr, addrlen);
+			message->peer_addrlen = addrlen;
 		}
 		message->rpcid = ntohl(*(int*)(bodyptr + 5));
 		if (message->datalen) {

@@ -11,6 +11,7 @@ typedef struct UserMsg_t {
 	SerialExecObj_t serial;
 	ChannelBase_t* channel;
 	Sockaddr_t peer_addr;
+	socklen_t peer_addrlen;
 	void(*on_free)(struct UserMsg_t* self);
 	struct {
 		short type;

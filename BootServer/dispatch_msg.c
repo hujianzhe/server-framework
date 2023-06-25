@@ -9,14 +9,15 @@ UserMsg_t* newUserMsg(size_t datalen) {
 	UserMsg_t* msg = (UserMsg_t*)malloc(sizeof(UserMsg_t) + datalen);
 	if (msg) {
 		memset(&msg->serial, 0, sizeof(msg->serial));
-		msg->channel = NULL;
-		msg->peer_addr.sa.sa_family = AF_UNSPEC;
-		msg->peer_addrlen = 0;
 		msg->on_free = NULL;
 		msg->param.type = 0;
 		msg->param.value = NULL;
 		msg->enqueue_time_msec = -1;
 		msg->callback = NULL;
+
+		msg->channel = NULL;
+		msg->peer_addr.sa.sa_family = AF_UNSPEC;
+		msg->peer_addrlen = 0;
 		msg->retcode = 0;
 		msg->rpcid = 0;
 		msg->datalen = datalen;

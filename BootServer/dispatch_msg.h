@@ -9,9 +9,6 @@ typedef void(*DispatchCallback_t)(struct TaskThread_t*, struct UserMsg_t*);
 
 typedef struct UserMsg_t {
 	SerialExecObj_t serial;
-	ChannelBase_t* channel;
-	Sockaddr_t peer_addr;
-	socklen_t peer_addrlen;
 	void(*on_free)(struct UserMsg_t* self);
 	struct {
 		short type;
@@ -19,6 +16,10 @@ typedef struct UserMsg_t {
 	} param;
 	long long enqueue_time_msec;
 	DispatchCallback_t callback;
+
+	ChannelBase_t* channel;
+	Sockaddr_t peer_addr;
+	socklen_t peer_addrlen;
 	int retcode;
 	int rpcid;
 	size_t datalen;

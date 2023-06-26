@@ -75,7 +75,6 @@ static int simply_dgram_on_read(ChannelBase_t* channel, unsigned char* buf, unsi
 
 static ChannelBaseProc_t s_simply_udp_proc = {
 	NULL,
-	NULL,
 	simply_dgram_on_read,
 	NULL,
 	NULL,

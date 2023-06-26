@@ -106,7 +106,6 @@ static void http_channel_on_free(ChannelBase_t* c) {
 
 static ChannelBaseProc_t s_http_proc = {
 	NULL,
-	NULL,
 	httpframe_on_read,
 	NULL,
 	NULL,

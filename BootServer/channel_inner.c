@@ -173,7 +173,6 @@ static void innerchannel_on_free(ChannelBase_t* channel) {
 }
 
 static ChannelBaseProc_t s_inner_proc = {
-	NULL,
 	innerchannel_on_exec,
 	innerchannel_on_read,
 	innerchannel_hdrsize,

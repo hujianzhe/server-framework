@@ -114,7 +114,6 @@ static void websocket_on_free(ChannelBase_t* channel) {
 
 static ChannelBaseProc_t s_websocket_server_proc = {
 	NULL,
-	NULL,
 	websocket_on_read,
 	websocket_hdrsize,
 	websocket_on_pre_send,

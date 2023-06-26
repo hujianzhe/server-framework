@@ -27,6 +27,29 @@ void TaskThread_channel_base_detach(struct StackCoSche_t* sche, void* arg) {
 	channelbaseClose(channel);
 }
 
+static void call_dispatch_again(struct StackCoSche_t* sche, void* arg) {
+	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
+	UserMsg_t* msg = (UserMsg_t*)arg;
+	ChannelBase_t* c = msg->channel;
+
+	if (thrd->filter_dispatch) {
+		thrd->filter_dispatch(thrd, msg);
+	}
+	else {
+		msg->callback(thrd, msg);
+	}
+	if (c) {
+		channelbaseClose(c);
+	}
+	if (msg->serial.dq) {
+		SerialExecObj_t* next_serial_obj = SerialExecQueue_pop_next(msg->serial.dq);
+		if (next_serial_obj) {
+			UserMsg_t* next_msg = pod_container_of(next_serial_obj, UserMsg_t, serial);
+			StackCoSche_function(sche, call_dispatch_again, next_msg, (void(*)(void*))freeUserMsg);
+		}
+	}
+}
+
 static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
 	TaskThread_t* thrd = (TaskThread_t*)arg;
 
@@ -127,7 +150,7 @@ void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 	UserMsg_t* msg = (UserMsg_t*)arg;
 	ChannelBase_t* c = msg->channel;
 
-	if (!msg->serial.hang_up && c) {
+	if (c) {
 		channelbaseAddRef(c);
 	}
 	if (thrd->filter_dispatch) {
@@ -140,15 +163,15 @@ void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 		StackCoSche_no_arg_free(sche);
 		return;
 	}
-	if (msg->serial.dq) {
-		SerialExecObj_t* next_serial = SerialExecQueue_next(msg->serial.dq);
-		if (next_serial) {
-			UserMsg_t* next_msg = pod_container_of(next_serial, UserMsg_t, serial);
-			StackCoSche_function(sche, TaskThread_call_dispatch, next_msg, (void(*)(void*))freeUserMsg);
-		}
-	}
 	if (c) {
 		channelbaseClose(c);
+	}
+	if (msg->serial.dq) {
+		SerialExecObj_t* next_serial_obj = SerialExecQueue_pop_next(msg->serial.dq);
+		if (next_serial_obj) {
+			UserMsg_t* next_msg = pod_container_of(next_serial_obj, UserMsg_t, serial);
+			StackCoSche_function(sche, call_dispatch_again, next_msg, (void(*)(void*))freeUserMsg);
+		}
 	}
 }
 

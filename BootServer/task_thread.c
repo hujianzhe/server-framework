@@ -40,6 +40,7 @@ static void call_dispatch_again(struct StackCoSche_t* sche, void* arg) {
 	}
 	if (c) {
 		channelbaseClose(c);
+		msg->channel = NULL;
 	}
 	if (msg->serial.dq) {
 		SerialExecObj_t* next_serial_obj = SerialExecQueue_pop_next(msg->serial.dq);
@@ -165,6 +166,7 @@ void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 	}
 	if (c) {
 		channelbaseClose(c);
+		msg->channel = NULL;
 	}
 	if (msg->serial.dq) {
 		SerialExecObj_t* next_serial_obj = SerialExecQueue_pop_next(msg->serial.dq);

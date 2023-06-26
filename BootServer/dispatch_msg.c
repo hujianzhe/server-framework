@@ -30,6 +30,9 @@ void freeUserMsg(UserMsg_t* msg) {
 	if (!msg) {
 		return;
 	}
+	if (msg->channel && msg->serial.hang_up) {
+		channelbaseClose(msg->channel);
+	}
 	if (msg->on_free) {
 		msg->on_free(msg);
 	}
@@ -38,9 +41,6 @@ void freeUserMsg(UserMsg_t* msg) {
 
 void freeUserMsgSerial(SerialExecObj_t* serial) {
 	UserMsg_t* msg = pod_container_of(serial, UserMsg_t, serial);
-	if (msg->channel) {
-		channelbaseClose(msg->channel);
-	}
 	freeUserMsg(msg);
 }
 

@@ -14,6 +14,7 @@ static ChannelUserData_t* init_channel_user_data_http(ChannelUserDataHttp_t* ud,
 static void free_user_msg(UserMsg_t* msg) {
 	HttpFrame_t* frame = (HttpFrame_t*)msg->param.value;
 	free(httpframeReset(frame));
+	freeUserMsg(msg);
 }
 
 static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
@@ -46,12 +47,12 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 
 	if (!ud->_.rpc_id_syn_ack && httpframe->method[0]) {
 		message->callback = callback;
-		StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))freeUserMsg);
+		StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);
 	}
 	else {
 		message->rpcid = ud->_.rpc_id_syn_ack;
 		ud->_.rpc_id_syn_ack = 0;
-		StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))freeUserMsg);
+		StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
 	}
 }
 

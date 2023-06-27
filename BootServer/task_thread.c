@@ -46,7 +46,7 @@ static void call_dispatch_again(struct StackCoSche_t* sche, void* arg) {
 		SerialExecObj_t* next_serial_obj = SerialExecQueue_pop_next(msg->serial.dq);
 		if (next_serial_obj) {
 			UserMsg_t* next_msg = pod_container_of(next_serial_obj, UserMsg_t, serial);
-			StackCoSche_function(sche, call_dispatch_again, next_msg, (void(*)(void*))freeUserMsg);
+			StackCoSche_function(sche, call_dispatch_again, next_msg, (void(*)(void*))next_msg->on_free);
 		}
 	}
 }
@@ -172,7 +172,7 @@ void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 		SerialExecObj_t* next_serial_obj = SerialExecQueue_pop_next(msg->serial.dq);
 		if (next_serial_obj) {
 			UserMsg_t* next_msg = pod_container_of(next_serial_obj, UserMsg_t, serial);
-			StackCoSche_function(sche, call_dispatch_again, next_msg, (void(*)(void*))freeUserMsg);
+			StackCoSche_function(sche, call_dispatch_again, next_msg, (void(*)(void*))next_msg->on_free);
 		}
 	}
 }

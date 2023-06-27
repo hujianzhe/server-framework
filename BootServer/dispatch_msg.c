@@ -9,7 +9,7 @@ UserMsg_t* newUserMsg(size_t datalen) {
 	UserMsg_t* msg = (UserMsg_t*)malloc(sizeof(UserMsg_t) + datalen);
 	if (msg) {
 		memset(&msg->serial, 0, sizeof(msg->serial));
-		msg->on_free = NULL;
+		msg->on_free = freeUserMsg;
 		msg->param.type = 0;
 		msg->param.value = NULL;
 		msg->enqueue_time_msec = -1;
@@ -33,15 +33,14 @@ void freeUserMsg(UserMsg_t* msg) {
 	if (msg->channel && msg->serial.hang_up) {
 		channelbaseClose(msg->channel);
 	}
-	if (msg->on_free) {
-		msg->on_free(msg);
-	}
 	free(msg);
 }
 
 void freeUserMsgSerial(SerialExecObj_t* serial) {
 	UserMsg_t* msg = pod_container_of(serial, UserMsg_t, serial);
-	freeUserMsg(msg);
+	if (msg->on_free) {
+		msg->on_free(msg);
+	}
 }
 
 #ifdef __cplusplus

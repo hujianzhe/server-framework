@@ -29,10 +29,11 @@ static ChannelUserData_t* init_channel_user_data_redis_cli(ChannelUserDataRedisC
 
 /********************************************************************/
 
-static void free_user_msg(UserMsg_t* msg) {
-	RedisReply_t* reply = (RedisReply_t*)msg->param.value;
+static void free_user_msg(DispatchBaseMsg_t* msg) {
+	DispatchNetMsg_t* net_msg = pod_container_of(msg, DispatchNetMsg_t, base);
+	RedisReply_t* reply = (RedisReply_t*)net_msg->param.value;
 	RedisReply_free(reply);
-	freeUserMsg(msg);
+	freeDispatchNetMsg(msg);
 }
 
 static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
@@ -41,7 +42,7 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 	while (1) {
 		int ret, rpc_id;
 		RedisReply_t* reply;
-		UserMsg_t* message;
+		DispatchNetMsg_t* message;
 
 		ret = RedisReplyReader_pop_reply(ud->reader, &reply);
 		if (ret != REDIS_OK) {
@@ -65,12 +66,10 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 				if (!ud->on_subscribe) {
 					continue;
 				}
-				message = newUserMsg(0);
+				message = newDispatchNetMsg(channel, 0, free_user_msg);
 				if (!message) {
 					return -1;
 				}
-				message->on_free = free_user_msg;
-				message->channel = channel;
 				message->param.value = reply;
 				ud->on_subscribe(channel, message, reply);
 				continue;
@@ -88,16 +87,14 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 			continue;
 		}
 
-		message = newUserMsg(0);
+		message = newDispatchNetMsg(channel, 0, free_user_msg);
 		if (!message) {
 			RedisReply_free(reply);
 			return -1;
 		}
-		message->on_free = free_user_msg;
-		message->channel = channel;
 		message->param.value = reply;
-		message->rpcid = rpc_id;
-		StackCoSche_resume_block_by_id(ud->_.sche, rpc_id, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
+		message->base.rpcid = rpc_id;
+		StackCoSche_resume_block_by_id(ud->_.sche, rpc_id, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->base.on_free);
 	}
 	return len;
 }

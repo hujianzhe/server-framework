@@ -70,11 +70,11 @@ static void innerchannel_reply_ack(ChannelBase_t* c, unsigned int seq, const str
 static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr, socklen_t addrlen) {
 	unsigned int hsz = 9;
 	if (bodylen >= hsz) {
-		UserMsg_t* message;
+		DispatchNetMsg_t* message;
 		char rpc_status = *bodyptr;
 
 		if (RPC_STATUS_RESP == rpc_status) {
-			message = newUserMsg(bodylen - hsz);
+			message = newDispatchNetMsg(c, bodylen - hsz, freeDispatchNetMsg);
 			if (!message) {
 				return;
 			}
@@ -86,19 +86,18 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 			if (!callback) {
 				return;
 			}
-			message = newUserMsg(bodylen - hsz);
+			message = newDispatchNetMsg(c, bodylen - hsz, freeDispatchNetMsg);
 			if (!message) {
 				return;
 			}
 			message->callback = callback;
 		}
 
-		message->channel = c;
 		if (SOCK_STREAM != c->socktype) {
 			memmove(&message->peer_addr, addr, addrlen);
 			message->peer_addrlen = addrlen;
 		}
-		message->rpcid = ntohl(*(int*)(bodyptr + 5));
+		message->base.rpcid = ntohl(*(int*)(bodyptr + 5));
 		if (message->datalen) {
 			memmove(message->data, bodyptr + hsz, message->datalen);
 		}
@@ -107,10 +106,10 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 		}
 
 		if (RPC_STATUS_RESP == rpc_status) {
-			StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
+			StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->base.rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->base.on_free);
 		}
 		else {
-			StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);
+			StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->base.on_free);
 		}
 	}
 	else if (CHANNEL_SIDE_SERVER == c->side) {

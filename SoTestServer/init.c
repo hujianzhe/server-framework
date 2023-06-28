@@ -55,6 +55,13 @@ void test_simply_udp_server(unsigned short port) {
 	channelbaseReg(selectReactor(), c);
 }
 
+static void filter_dispatch(TaskThread_t* thrd, DispatchBaseMsg_t* req_ctrl) {
+	if (req_ctrl->dispatch_net_msg_type) {
+		DispatchNetMsg_t* net_msg = pod_container_of(req_ctrl, DispatchNetMsg_t, base);
+		net_msg->callback(thrd, net_msg);
+	}
+}
+
 void run(struct StackCoSche_t* sche, void* arg) {
 	TaskThread_t* thrd = currentTaskThread();
 	int i;
@@ -95,6 +102,7 @@ int init(BootServerGlobal_t* g) {
 	regStringDispatch(g->dispatch, "/reqTestExecQueue", reqTestExecQueue);
 	regStringDispatch(g->dispatch, "/reqClearExecQueue", reqClearExecQueue);
 
+	g->default_task_thread->filter_dispatch = filter_dispatch;
 	StackCoSche_function(g->default_task_thread->sche, run, NULL, NULL);
 	return 0;
 }

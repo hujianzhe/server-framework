@@ -2,21 +2,21 @@
 #include "cmd.h"
 #include "test_handler.h"
 
-void reqEcho(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void reqEcho(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	InnerMsg_t msg;
-	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, ctrl->data, ctrl->datalen);
+	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, ctrl->data, ctrl->datalen);
 	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	puts("echo");
 }
 
-void reqTestCallback(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void reqTestCallback(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	char test_data[] = "your callback is from server ^.^";
 	InnerMsg_t msg;
-	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
+	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, test_data, sizeof(test_data));
 	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
-void reqTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void reqTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	char test_data[] = "this text is from server ^.^";
 	InnerMsg_t msg;
 
@@ -25,11 +25,11 @@ void reqTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	makeInnerMsg(&msg, CMD_NOTIFY_TEST, NULL, 0);
 	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 
-	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
+	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, test_data, sizeof(test_data));
 	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
-void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void reqHttpTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	HttpFrame_t* httpframe = (HttpFrame_t*)ctrl->param.value;
 	printf("recv http browser ... %s\n", httpframe->query);
 
@@ -53,7 +53,7 @@ void reqHttpTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	return;
 }
 
-void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void reqSoTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	HttpFrame_t* httpframe = (HttpFrame_t*)ctrl->param.value;
 	printf("module recv http browser ... %s\n", httpframe->query);
 
@@ -78,7 +78,7 @@ void reqSoTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 
 static SerialExecQueue_t* s_dq = NULL;
 
-void reqTestExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	char* reply;
 	int reply_len;
 	long long now_msec;
@@ -91,7 +91,7 @@ void reqTestExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		}
 		SerialExecQueue_init(s_dq);
 	}
-	if (!SerialExecQueue_check_exec(s_dq, &ctrl->serial)) {
+	if (!SerialExecQueue_check_exec(s_dq, &ctrl->base.serial)) {
 		return;
 	}
 	puts("start test exec queue");
@@ -117,13 +117,13 @@ void reqTestExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	free(reply);
 }
 
-void reqClearExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void reqClearExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	char* reply;
 	int reply_len;
 	const char test_data[] = "clear test exec queue";
 
 	if (s_dq) {
-		SerialExecQueue_clear(s_dq, freeUserMsgSerial);
+		SerialExecQueue_clear(s_dq, freeDispatchMsgSerial);
 		free(s_dq);
 		s_dq = NULL;
 	}
@@ -146,27 +146,27 @@ void reqClearExecQueue(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	free(reply);
 }
 
-void reqParallelTest1(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void reqParallelTest1(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	const char reply[] = "reqParallelTest1";
 
 	printf("%s hello world !!! %s\n", __FUNCTION__, (char*)ctrl->data);
 
 	InnerMsg_t msg;
-	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
+	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, reply, sizeof(reply));
 	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
-void reqParallelTest2(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void reqParallelTest2(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	const char reply[] = "reqParallelTest2";
 
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
 
 	InnerMsg_t msg;
-	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
+	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, reply, sizeof(reply));
 	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
-void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void reqHttpUploadFile(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	HttpFrame_t* httpframe = (HttpFrame_t*)ctrl->param.value;
 	ListNode_t* cur, *next;
 	char* reply;
@@ -192,8 +192,9 @@ void reqHttpUploadFile(TaskThread_t* thrd, UserMsg_t* ctrl) {
 		if (!e)
 			continue;
 		path = (char*)malloc(sizeof(basepath) - 1 + e - s);
-		if (!path)
+		if (!path) {
 			break;
+		}
 		memmove(path, basepath, sizeof(basepath) - 1);
 		memmove(path + sizeof(basepath) - 1, s, e - s);
 		path[sizeof(basepath) - 1 + e - s] = 0;

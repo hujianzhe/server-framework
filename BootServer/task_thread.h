@@ -5,7 +5,7 @@
 #include "util/inc/datastruct/random.h"
 
 struct ChannelBase_t;
-struct UserMsg_t;
+struct DispatchBaseMsg_t;
 
 typedef struct TaskThread_t {
 	Thread_t tid;
@@ -13,7 +13,7 @@ typedef struct TaskThread_t {
 	const char* errmsg;
 	Rand48_t rand48_ctx;
 	RandMT19937_t randmt19937_ctx;
-	void(*filter_dispatch)(struct TaskThread_t* thrd, struct UserMsg_t* req_ctrl);
+	void(*filter_dispatch)(struct TaskThread_t* thrd, struct DispatchBaseMsg_t* req_ctrl);
 	void(*on_channel_detach)(struct TaskThread_t* thrd, struct ChannelBase_t* channel);
 } TaskThread_t;
 

@@ -11,16 +11,17 @@ static ChannelUserData_t* init_channel_user_data_http(ChannelUserDataHttp_t* ud,
 
 /**************************************************************************/
 
-static void free_user_msg(UserMsg_t* msg) {
-	HttpFrame_t* frame = (HttpFrame_t*)msg->param.value;
+static void free_user_msg(DispatchBaseMsg_t* msg) {
+	DispatchNetMsg_t* net_msg = pod_container_of(msg, DispatchNetMsg_t, base);
+	HttpFrame_t* frame = (HttpFrame_t*)net_msg->param.value;
 	free(httpframeReset(frame));
-	freeUserMsg(msg);
+	freeDispatchNetMsg(msg);
 }
 
 static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
 	ChannelUserDataHttp_t* ud;
 	DispatchCallback_t callback;
-	UserMsg_t* message;
+	DispatchNetMsg_t* message;
 
 	ud = (ChannelUserDataHttp_t*)channelUserData(c);
 	if (!ud->_.rpc_id_syn_ack) {
@@ -30,14 +31,12 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 			return;
 		}
 	}
-	message = newUserMsg(bodylen);
+	message = newDispatchNetMsg(c, bodylen, free_user_msg);
 	if (!message) {
 		free(httpframeReset(httpframe));
 		return;
 	}
-	message->channel = c;
 	message->param.value = httpframe;
-	message->on_free = free_user_msg;
 	if (message->datalen) {
 		memmove(message->data, bodyptr, message->datalen);
 	}
@@ -47,12 +46,12 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 
 	if (!ud->_.rpc_id_syn_ack && httpframe->method[0]) {
 		message->callback = callback;
-		StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->on_free);
+		StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->base.on_free);
 	}
 	else {
-		message->rpcid = ud->_.rpc_id_syn_ack;
+		message->base.rpcid = ud->_.rpc_id_syn_ack;
 		ud->_.rpc_id_syn_ack = 0;
-		StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->on_free);
+		StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->base.rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->base.on_free);
 	}
 }
 

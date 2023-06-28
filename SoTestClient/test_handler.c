@@ -12,7 +12,7 @@ void frpc_req_echo(TaskThread_t* thrd, ChannelBase_t* channel, size_t datalen) {
 	start_tm = gmtimeMillisecond();
 	while (1) {
 		InnerMsg_t msg;
-		UserMsg_t* ret_ctrl;
+		DispatchNetMsg_t* ret_ctrl;
 		long long tm_msec = gmtimeMillisecond();
 		StackCoBlock_t* co_block = StackCoSche_block_point_util(thrd->sche, tm_msec + 5000);
 		if (!co_block) {
@@ -35,7 +35,7 @@ void frpc_req_echo(TaskThread_t* thrd, ChannelBase_t* channel, size_t datalen) {
 					cnt, tlen, cnt_per_sec);
 			break;
 		}
-		ret_ctrl = (UserMsg_t*)co_block->resume_ret;
+		ret_ctrl = (DispatchNetMsg_t*)co_block->resume_ret;
 		if (ret_ctrl->datalen != datalen) {
 			puts("echo datalen not match");
 			break;
@@ -76,7 +76,7 @@ void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	//
 	for (i = 0; i < sizeof(sub_block_arr) / sizeof(sub_block_arr[0]); ++i) {
-		UserMsg_t* ret_msg;
+		DispatchNetMsg_t* ret_msg;
 		StackCoBlock_t* ret_block = StackCoSche_yield(thrd->sche);
 		if (!ret_block) {
 			return;
@@ -85,7 +85,7 @@ void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 			printf("rpc(%d) call failure timeout or cancel\n", ret_block->id);
 			return;
 		}
-		ret_msg = (UserMsg_t*)ret_block->resume_ret;
+		ret_msg = (DispatchNetMsg_t*)ret_block->resume_ret;
 		if (ret_block->id == sub_block_arr[0]->id) {
 			StackCoSche_function(thrd->sche, frpc_callback, (void*)"abcdefg", NULL);
 		}
@@ -101,13 +101,13 @@ void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 	}
 }
 
-void notifyTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void notifyTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	printf("recv server test notify, recv msec = %lld\n", gmtimeMillisecond());
 	// test code
 	frpc_test_code(thrd, ctrl->channel);
 }
 
-void retLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void retLoginTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	StackCoBlock_t* block;
 
 	logInfo(ptrBSG()->log, "recv: %s", (char*)ctrl->data);
@@ -124,6 +124,6 @@ void retLoginTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
 	frpc_test_code(thrd, ctrl->channel);
 }
 
-void retTest(TaskThread_t* thrd, UserMsg_t* ctrl) {
+void retTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	printf("say hello world ... %s, recv msec = %lld\n", ctrl->data, gmtimeMillisecond());
 }

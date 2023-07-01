@@ -212,6 +212,7 @@
     <ClInclude Include="util\inc\sysapi\error.h" />
     <ClInclude Include="util\inc\sysapi\file.h" />
     <ClInclude Include="util\inc\sysapi\io.h" />
+    <ClInclude Include="util\inc\sysapi\io_overlapped.h" />
     <ClInclude Include="util\inc\sysapi\ipc.h" />
     <ClInclude Include="util\inc\sysapi\misc.h" />
     <ClInclude Include="util\inc\sysapi\mmap.h" />
@@ -285,6 +286,7 @@
     <ClCompile Include="util\src\sysapi\error.c" />
     <ClCompile Include="util\src\sysapi\file.c" />
     <ClCompile Include="util\src\sysapi\io.c" />
+    <ClCompile Include="util\src\sysapi\io_overlapped.c" />
     <ClCompile Include="util\src\sysapi\ipc.c" />
     <ClCompile Include="util\src\sysapi\misc.c" />
     <ClCompile Include="util\src\sysapi\mmap.c" />

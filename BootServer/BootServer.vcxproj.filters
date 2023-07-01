@@ -24,7 +24,7 @@
     <ClInclude Include="dispatch.h">
       <Filter>头文件</Filter>
     </ClInclude>
-	<ClInclude Include="dispatch_msg.h">
+    <ClInclude Include="dispatch_msg.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="global.h">
@@ -141,7 +141,7 @@
     <ClInclude Include="util\inc\datastruct\rbtree.h">
       <Filter>头文件</Filter>
     </ClInclude>
-	<ClInclude Include="util\inc\datastruct\serial_exec.h">
+    <ClInclude Include="util\inc\datastruct\serial_exec.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\datastruct\sha1.h">
@@ -210,7 +210,7 @@
     <ClInclude Include="util\inc\crt\math_quat.h">
       <Filter>头文件</Filter>
     </ClInclude>
-	<ClInclude Include="util\inc\crt\math_matrix3.h">
+    <ClInclude Include="util\inc\crt\math_matrix3.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\crt\geometry\obb.h">
@@ -249,6 +249,9 @@
     <ClInclude Include="util\inc\component\switch_co_sche.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\sysapi\io_overlapped.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cluster_node.c">
@@ -260,7 +263,7 @@
     <ClCompile Include="dispatch.c">
       <Filter>源文件</Filter>
     </ClCompile>
-	<ClCompile Include="dispatch_msg.c">
+    <ClCompile Include="dispatch_msg.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="global.c">
@@ -374,7 +377,7 @@
     <ClCompile Include="util\src\datastruct\rbtree.c">
       <Filter>源文件</Filter>
     </ClCompile>
-	<ClCompile Include="util\src\datastruct\serial_exec.c">
+    <ClCompile Include="util\src\datastruct\serial_exec.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\datastruct\sha1.c">
@@ -425,7 +428,7 @@
     <ClCompile Include="util\src\crt\math_quat.c">
       <Filter>源文件</Filter>
     </ClCompile>
-	<ClCompile Include="util\src\crt\math_matrix3.c">
+    <ClCompile Include="util\src\crt\math_matrix3.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\geometry\obb.c">
@@ -462,6 +465,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\switch_co_sche.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\sysapi\io_overlapped.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

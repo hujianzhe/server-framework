@@ -252,6 +252,9 @@
     <ClInclude Include="util\inc\sysapi\io_overlapped.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util\inc\sysapi\aio.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cluster_node.c">
@@ -468,6 +471,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\sysapi\io_overlapped.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\sysapi\aio.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

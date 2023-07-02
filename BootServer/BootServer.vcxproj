@@ -207,6 +207,7 @@
     <ClInclude Include="util\inc\datastruct\tree.h" />
     <ClInclude Include="util\inc\datastruct\url.h" />
     <ClInclude Include="util\inc\platform_define.h" />
+    <ClInclude Include="util\inc\sysapi\aio.h" />
     <ClInclude Include="util\inc\sysapi\assert.h" />
     <ClInclude Include="util\inc\sysapi\atomic.h" />
     <ClInclude Include="util\inc\sysapi\error.h" />
@@ -283,6 +284,7 @@
     <ClCompile Include="util\src\datastruct\transport_ctx.c" />
     <ClCompile Include="util\src\datastruct\tree.c" />
     <ClCompile Include="util\src\datastruct\url.c" />
+    <ClCompile Include="util\src\sysapi\aio.c" />
     <ClCompile Include="util\src\sysapi\error.c" />
     <ClCompile Include="util\src\sysapi\file.c" />
     <ClCompile Include="util\src\sysapi\nio.c" />

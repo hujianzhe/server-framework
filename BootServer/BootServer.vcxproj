@@ -211,7 +211,7 @@
     <ClInclude Include="util\inc\sysapi\atomic.h" />
     <ClInclude Include="util\inc\sysapi\error.h" />
     <ClInclude Include="util\inc\sysapi\file.h" />
-    <ClInclude Include="util\inc\sysapi\io.h" />
+    <ClInclude Include="util\inc\sysapi\nio.h" />
     <ClInclude Include="util\inc\sysapi\io_overlapped.h" />
     <ClInclude Include="util\inc\sysapi\ipc.h" />
     <ClInclude Include="util\inc\sysapi\misc.h" />
@@ -285,7 +285,7 @@
     <ClCompile Include="util\src\datastruct\url.c" />
     <ClCompile Include="util\src\sysapi\error.c" />
     <ClCompile Include="util\src\sysapi\file.c" />
-    <ClCompile Include="util\src\sysapi\io.c" />
+    <ClCompile Include="util\src\sysapi\nio.c" />
     <ClCompile Include="util\src\sysapi\io_overlapped.c" />
     <ClCompile Include="util\src\sysapi\ipc.c" />
     <ClCompile Include="util\src\sysapi\misc.c" />

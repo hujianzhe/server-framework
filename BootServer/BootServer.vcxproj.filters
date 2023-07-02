@@ -168,7 +168,7 @@
     <ClInclude Include="util\inc\sysapi\file.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\sysapi\io.h">
+    <ClInclude Include="util\inc\sysapi\nio.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\sysapi\ipc.h">
@@ -398,7 +398,7 @@
     <ClCompile Include="util\src\sysapi\file.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\sysapi\io.c">
+    <ClCompile Include="util\src\sysapi\nio.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\sysapi\ipc.c">

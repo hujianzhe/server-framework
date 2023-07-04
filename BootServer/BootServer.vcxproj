@@ -297,6 +297,7 @@
     <ClCompile Include="util\src\sysapi\statistics.c" />
     <ClCompile Include="util\src\sysapi\terminal.c" />
     <ClCompile Include="util\src\sysapi\time.c" />
+    <ClCompile Include="util\src\sysapi\win32_misc.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

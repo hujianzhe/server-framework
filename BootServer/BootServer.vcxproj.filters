@@ -476,5 +476,8 @@
     <ClCompile Include="util\src\sysapi\aio.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="util\src\sysapi\win32_misc.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

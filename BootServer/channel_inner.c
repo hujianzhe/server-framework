@@ -220,11 +220,13 @@ err:
 
 ChannelBase_t* openChannelInnerClient(int socktype, const char* ip, unsigned short port, struct StackCoSche_t* sche) {
 	Sockaddr_t connect_saddr;
+	socklen_t connect_saddrlen;
 	ChannelBase_t* c = NULL;
 	ChannelUserDataInner_t* ud = NULL;
 	int domain = ipstrFamily(ip);
 
-	if (!sockaddrEncode(&connect_saddr.sa, domain, ip, port)) {
+	connect_saddrlen = sockaddrEncode(&connect_saddr.sa, domain, ip, port);
+	if (connect_saddrlen <= 0) {
 		goto err;
 	}
 	ud = (ChannelUserDataInner_t*)malloc(sizeof(ChannelUserDataInner_t));
@@ -235,7 +237,7 @@ ChannelBase_t* openChannelInnerClient(int socktype, const char* ip, unsigned sho
 	if (!c) {
 		goto err;
 	}
-	if (!channelbaseSetOperatorSockaddr(c, &connect_saddr.sa, sockaddrLength(domain))) {
+	if (!channelbaseSetOperatorSockaddr(c, &connect_saddr.sa, connect_saddrlen)) {
 		goto err;
 	}
 	channelSetUserData(c, init_channel_user_data_inner(ud, c, sche));
@@ -249,11 +251,13 @@ err:
 
 ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short port, struct StackCoSche_t* sche) {
 	Sockaddr_t listen_saddr;
+	socklen_t listen_saddrlen;
 	ChannelBase_t* c = NULL;
 	ChannelUserDataInner_t* ud = NULL;
 	int domain = ipstrFamily(ip);
 
-	if (!sockaddrEncode(&listen_saddr.sa, domain, ip, port)) {
+	listen_saddrlen = sockaddrEncode(&listen_saddr.sa, domain, ip, port);
+	if (listen_saddrlen <= 0) {
 		goto err;
 	}
 	ud = (ChannelUserDataInner_t*)malloc(sizeof(ChannelUserDataInner_t));
@@ -264,7 +268,7 @@ ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short po
 	if (!c) {
 		goto err;
 	}
-	if (!channelbaseSetOperatorSockaddr(c, &listen_saddr.sa, sockaddrLength(domain))) {
+	if (!channelbaseSetOperatorSockaddr(c, &listen_saddr.sa, listen_saddrlen)) {
 		goto err;
 	}
 	channelSetUserData(c, init_channel_user_data_inner(ud, c, sche));

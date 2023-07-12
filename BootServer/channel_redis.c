@@ -155,9 +155,11 @@ ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnCha
 	ChannelBase_t* c = NULL;
 	ChannelUserDataRedisClient_t* ud = NULL;
 	Sockaddr_t connect_addr;
+	socklen_t connect_addrlen;
 	int domain = ipstrFamily(ip);
 
-	if (!sockaddrEncode(&connect_addr.sa, domain, ip, port)) {
+	connect_addrlen = sockaddrEncode(&connect_addr.sa, domain, ip, port);
+	if (connect_addrlen <= 0) {
 		goto err;
 	}
 	ud = (ChannelUserDataRedisClient_t*)malloc(sizeof(ChannelUserDataRedisClient_t));
@@ -171,7 +173,7 @@ ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnCha
 	if (!c) {
 		goto err;
 	}
-	channelbaseSetOperatorSockaddr(c, &connect_addr.sa, sockaddrLength(domain));
+	channelbaseSetOperatorSockaddr(c, &connect_addr.sa, connect_addrlen);
 	ud->on_subscribe = on_subscribe;
 	channelSetUserData(c, &ud->_);
 	c->heartbeat_timeout_sec = 10;

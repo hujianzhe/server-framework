@@ -142,11 +142,13 @@ extern "C" {
 
 ChannelBase_t* openChannelHttpClient(const char* ip, unsigned short port, struct StackCoSche_t* sche) {
 	Sockaddr_t connect_saddr;
+	socklen_t connect_saddrlen;
 	ChannelUserDataHttp_t* ud = NULL;
 	ChannelBase_t* c = NULL;
 	int domain = ipstrFamily(ip);
 
-	if (!sockaddrEncode(&connect_saddr.sa, domain, ip, port)) {
+	connect_saddrlen = sockaddrEncode(&connect_saddr.sa, domain, ip, port);
+	if (connect_saddrlen <= 0) {
 		return NULL;
 	}
 	ud = (ChannelUserDataHttp_t*)malloc(sizeof(ChannelUserDataHttp_t));
@@ -157,7 +159,7 @@ ChannelBase_t* openChannelHttpClient(const char* ip, unsigned short port, struct
 	if (!c) {
 		goto err;
 	}
-	if (!channelbaseSetOperatorSockaddr(c, &connect_saddr.sa, sockaddrLength(domain))) {
+	if (!channelbaseSetOperatorSockaddr(c, &connect_saddr.sa, connect_saddrlen)) {
 		goto err;
 	}
 	channelSetUserData(c, init_channel_user_data_http(ud, sche));
@@ -171,11 +173,13 @@ err:
 
 ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct StackCoSche_t* sche) {
 	Sockaddr_t listen_saddr;
+	socklen_t listen_saddrlen;
 	ChannelBase_t* c = NULL;
 	ChannelUserDataHttp_t* ud = NULL;
 	int domain = ipstrFamily(ip);
 
-	if (!sockaddrEncode(&listen_saddr.sa, domain, ip, port)) {
+	listen_saddrlen = sockaddrEncode(&listen_saddr.sa, domain, ip, port);
+	if (listen_saddrlen <= 0) {
 		return NULL;
 	}
 	ud = (ChannelUserDataHttp_t*)malloc(sizeof(ChannelUserDataHttp_t));
@@ -186,7 +190,7 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Stac
 	if (!c) {
 		goto err;
 	}
-	if (!channelbaseSetOperatorSockaddr(c, &listen_saddr.sa, sockaddrLength(domain))) {
+	if (!channelbaseSetOperatorSockaddr(c, &listen_saddr.sa, listen_saddrlen)) {
 		goto err;
 	}
 	c->on_ack_halfconn = http_accept_callback;

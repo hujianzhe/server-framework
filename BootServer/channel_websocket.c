@@ -152,11 +152,13 @@ extern "C" {
 
 ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct StackCoSche_t* sche) {
 	Sockaddr_t listen_saddr;
+	socklen_t listen_saddrlen;
 	ChannelBase_t* c = NULL;
 	ChannelUserDataWebsocket_t* ud = NULL;
 	int domain = ipstrFamily(ip);
 
-	if (!sockaddrEncode(&listen_saddr.sa, domain, ip, port)) {
+	listen_saddrlen = sockaddrEncode(&listen_saddr.sa, domain, ip, port);
+	if (listen_saddrlen <= 0) {
 		return NULL;
 	}
 	ud = (ChannelUserDataWebsocket_t*)malloc(sizeof(ChannelUserDataWebsocket_t));
@@ -167,7 +169,7 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 	if (!c) {
 		goto err;
 	}
-	if (!channelbaseSetOperatorSockaddr(c, &listen_saddr.sa, sockaddrLength(domain))) {
+	if (!channelbaseSetOperatorSockaddr(c, &listen_saddr.sa, listen_saddrlen)) {
 		goto err;
 	}
 	channelSetUserData(c, init_channel_user_data_websocket(ud, sche));

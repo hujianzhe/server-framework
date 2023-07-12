@@ -34,20 +34,19 @@ void test_simply_udp_server(unsigned short port) {
 	FD_t fd;
 	ChannelBase_t* c;
 	Sockaddr_t saddr;
-	int domain = AF_INET;
-
-	if (!sockaddrEncode(&saddr.sa, domain, NULL, 45678)) {
+	socklen_t saddrlen = sockaddrEncode(&saddr.sa, AF_INET, NULL, 45678);
+	if (saddrlen <= 0) {
 		return;
 	}
-	fd = socket(domain, SOCK_DGRAM, 0);
+	fd = socket(saddr.sa.sa_family, SOCK_DGRAM, 0);
 	if (INVALID_FD_HANDLE == fd) {
 		return;
 	}
-	if (!socketBindAndReuse(fd, &saddr.sa, sockaddrLength(domain))) {
+	if (!socketBindAndReuse(fd, &saddr.sa, saddrlen)) {
 		socketClose(fd);
 		return;
 	}
-	c = channelbaseOpenWithFD(0, &s_simply_udp_proc, fd, domain, 0);
+	c = channelbaseOpenWithFD(0, &s_simply_udp_proc, fd, saddr.sa.sa_family, 0);
 	if (!c) {
 		socketClose(fd);
 		return;

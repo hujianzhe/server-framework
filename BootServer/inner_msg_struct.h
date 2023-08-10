@@ -1,7 +1,7 @@
 #ifndef BOOT_SERVER_INNER_MSG_STRUCT_H
 #define	BOOT_SERVER_INNER_MSG_STRUCT_H
 
-#include "util/inc/platform_define.h"
+#include "util/inc/sysapi/io_overlapped.h"
 
 typedef struct InnerMsg_t {
 	char rpc_status;

@@ -67,6 +67,7 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_
 			return FALSE;
 		}
 		channelbaseReg(acceptReactor(), c);
+		channelbaseCloseRef(c);
 	}
 	// init ok
 	s_BSG.valid = 1;

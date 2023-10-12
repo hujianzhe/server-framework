@@ -20,6 +20,7 @@ void run(struct StackCoSche_t* sche, void* arg) {
 			return;
 		}
 		channelbaseReg(acceptReactor(), c);
+		channelbaseCloseRef(c);
 	}
 
 	logInfo(ptrBSG()->log, "init ok ......");

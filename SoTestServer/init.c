@@ -52,6 +52,7 @@ void test_simply_udp_server(unsigned short port) {
 		return;
 	}
 	channelbaseReg(selectReactor(), c);
+	channelbaseCloseRef(c);
 }
 
 static void filter_dispatch(TaskThread_t* thrd, DispatchBaseMsg_t* req_ctrl) {
@@ -82,6 +83,7 @@ void run(struct StackCoSche_t* sche, void* arg) {
 			return;
 		}
 		channelbaseReg(acceptReactor(), c);
+		channelbaseCloseRef(c);
 	}
 	// listen normal udp
 	test_simply_udp_server(45678);

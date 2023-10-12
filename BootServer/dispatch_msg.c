@@ -34,7 +34,7 @@ void freeDispatchNetMsg(DispatchBaseMsg_t* msg) {
 	}
 	net_msg = pod_container_of(msg, DispatchNetMsg_t, base);
 	if (net_msg->channel && msg->serial.hang_up) {
-		channelbaseClose(net_msg->channel);
+		channelbaseCloseRef(net_msg->channel);
 	}
 	free(net_msg);
 }

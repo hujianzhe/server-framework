@@ -24,7 +24,7 @@ void TaskThread_channel_base_detach(struct StackCoSche_t* sche, void* arg) {
 			}
 		}
 	}
-	channelbaseClose(channel);
+	channelbaseCloseRef(channel);
 }
 
 static void call_dispatch_again(struct StackCoSche_t* sche, void* arg) {
@@ -36,7 +36,7 @@ static void call_dispatch_again(struct StackCoSche_t* sche, void* arg) {
 	if (msg->dispatch_net_msg_type) {
 		DispatchNetMsg_t* net_msg = pod_container_of(msg, DispatchNetMsg_t, base);
 		thrd->filter_dispatch(thrd, msg);
-		channelbaseClose(net_msg->channel);
+		channelbaseCloseRef(net_msg->channel);
 		net_msg->channel = NULL;
 	}
 	else {
@@ -161,7 +161,7 @@ void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
 			StackCoSche_no_arg_free(sche);
 			return;
 		}
-		channelbaseClose(net_msg->channel);
+		channelbaseCloseRef(net_msg->channel);
 		net_msg->channel = NULL;
 	}
 	else {

@@ -130,10 +130,11 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const stru
 	channelSetUserData(c, init_channel_user_data_http(ud, channelUserData(listen_c)->sche));
 	c->heartbeat_timeout_sec = 20;
 	channelbaseReg(selectReactor(), c);
+	channelbaseCloseRef(c);
 	return;
 err:
 	free(ud);
-	channelbaseClose(c);
+	channelbaseCloseRef(c);
 }
 
 #ifdef __cplusplus
@@ -167,7 +168,7 @@ ChannelBase_t* openChannelHttpClient(const char* ip, unsigned short port, struct
 	return c;
 err:
 	free(ud);
-	channelbaseClose(c);
+	channelbaseCloseRef(c);
 	return NULL;
 }
 
@@ -198,7 +199,7 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Stac
 	return c;
 err:
 	free(ud);
-	channelbaseClose(c);
+	channelbaseCloseRef(c);
 	return NULL;
 }
 

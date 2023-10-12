@@ -133,7 +133,7 @@ void run(struct StackCoSche_t* sche, void* arg) {
 
 		block = StackCoSche_block_point_util(sche, gmtimeMillisecond() + 5000);
 		if (!block) {
-			channelbaseClose(c);
+			channelbaseCloseRef(c);
 			return;
 		}
 		channelUserData(c)->rpc_id_syn_ack = block->id;
@@ -141,6 +141,7 @@ void run(struct StackCoSche_t* sche, void* arg) {
 		block = StackCoSche_yield(sche);
 		if (!block || block->status != STACK_CO_STATUS_FINISH) {
 			logErr(ptrBSG()->log, "channel(%p) connect %s:%u failure", c, option->ip, option->port);
+			channelbaseCloseRef(c);
 			return;
 		}
 
@@ -148,8 +149,10 @@ void run(struct StackCoSche_t* sche, void* arg) {
 		//def_c = c;
 		frpc_test_paralle(sche, c);
 		if (!start_req_login_test(c)) {
+			channelbaseCloseRef(c);
 			return;
 		}
+		channelbaseCloseRef(c);
 	}
 	if (def_c) {
 		puts("start req echo, but not display");

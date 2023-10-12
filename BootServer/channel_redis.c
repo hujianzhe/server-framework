@@ -181,7 +181,7 @@ ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnCha
 	return c;
 err:
 	free(ud);
-	channelbaseClose(c);
+	channelbaseCloseRef(c);
 	return NULL;
 }
 

@@ -210,10 +210,11 @@ static void innerchannel_accept_callback(ChannelBase_t* listen_c, FD_t newfd, co
 	channelSetUserData(c, init_channel_user_data_inner(ud, c, channelUserData(listen_c)->sche));
 	innerchannel_set_opt(c);
 	channelbaseReg(selectReactor(), c);
+	channelbaseCloseRef(c);
 	return;
 err:
 	free(ud);
-	channelbaseClose(c);
+	channelbaseCloseRef(c);
 }
 
 /**************************************************************************/
@@ -245,7 +246,7 @@ ChannelBase_t* openChannelInnerClient(int socktype, const char* ip, unsigned sho
 	return c;
 err:
 	free(ud);
-	channelbaseClose(c);
+	channelbaseCloseRef(c);
 	return NULL;
 }
 
@@ -277,7 +278,7 @@ ChannelBase_t* openListenerInner(int socktype, const char* ip, unsigned short po
 	return c;
 err:
 	free(ud);
-	channelbaseClose(c);
+	channelbaseCloseRef(c);
 	return NULL;
 }
 

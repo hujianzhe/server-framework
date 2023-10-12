@@ -140,10 +140,11 @@ static void websocket_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const
 	ud->on_recv = listen_ud->on_recv;
 	c->heartbeat_timeout_sec = 20;
 	channelbaseReg(selectReactor(), c);
+	channelbaseCloseRef(c);
 	return;
 err:
 	free(ud);
-	channelbaseClose(c);
+	channelbaseCloseRef(c);
 }
 
 #ifdef __cplusplus
@@ -178,7 +179,7 @@ ChannelBase_t* openListenerWebsocket(const char* ip, unsigned short port, FnChan
 	return c;
 err:
 	free(ud);
-	channelbaseClose(c);
+	channelbaseCloseRef(c);
 	return NULL;
 }
 

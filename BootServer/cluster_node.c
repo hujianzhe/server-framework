@@ -54,7 +54,7 @@ ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 		return NULL;
 	}
 	session = &clsnd->session;
-	channel = sessionChannel(session);
+	channel = session->channel;
 	if (!channel && session->do_connect_handshake) {
 		/* user self-defining connect-handshake action */
 		channel = session->do_connect_handshake(session, clsnd->socktype, clsnd->ip, clsnd->port);

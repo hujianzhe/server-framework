@@ -12,16 +12,10 @@ void TaskThread_channel_base_detach(struct StackCoSche_t* sche, void* arg) {
 		thrd->on_channel_detach(thrd, channel);
 	}
 	if (session) {
-		if (session->channel_client == channel) {
-			session->channel_client = NULL;
-		}
-		if (session->channel_server == channel) {
-			session->channel_server = NULL;
-		}
-		if (!sessionChannel(session)) {
-			if (session->on_disconnect) {
-				session->on_disconnect(session);
-			}
+		channel->session = NULL;
+		session->channel = NULL;
+		if (session->on_disconnect) {
+			session->on_disconnect(session);
 		}
 	}
 	channelbaseCloseRef(channel);

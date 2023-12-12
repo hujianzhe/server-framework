@@ -12,34 +12,35 @@ static int start_req_login_test(ChannelBase_t* channel) {
 }
 
 static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel) {
+	int i;
 	InnerMsg_t msg;
 	char test_data[] = "test paralle ^.^";
-	int i, cnt_sub_block = 0;
 	long long tm_msec = gmtimeMillisecond();
-	StackCoBlock_t* sub_block_arr[4];
+	StackCoBlockGroup_t group = { 0 };
+
 	for (i = 0; i < 2; ++i) {
 		StackCoBlock_t* block;
-		block = StackCoSche_block_point_util(sche, tm_msec + 1000, NULL);
+		block = StackCoSche_block_point_util(sche, tm_msec + 1000, &group);
 		if (!block) {
 			continue;
 		}
 		makeInnerMsgRpcReq(&msg, block->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
 		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
-		sub_block_arr[cnt_sub_block++] = block;
 
-		block = StackCoSche_block_point_util(sche, tm_msec + 1000, NULL);
+		block = StackCoSche_block_point_util(sche, tm_msec + 1000, &group);
 		if (!block) {
 			continue;
 		}
 		makeInnerMsgRpcReq(&msg, block->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
 		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
-		sub_block_arr[cnt_sub_block++] = block;
 	}
-	for (i = 0; i < cnt_sub_block; ++i) {
+	while (1) {
 		DispatchNetMsg_t* ret_msg;
-		StackCoBlock_t* block = StackCoSche_yield(sche);
+		StackCoBlock_t* block;
+
+		block = StackCoSche_yield_group(sche, &group);
 		if (!block) {
-			return;
+			break;
 		}
 		if (block->status != STACK_CO_STATUS_FINISH) {
 			printf("rpc identity(%d) call failure timeout or cancel\n", block->id);
@@ -48,6 +49,7 @@ static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel
 		ret_msg = (DispatchNetMsg_t*)block->resume_ret;
 		printf("rpc identity(%d) return: %s ...\n", block->id, ret_msg->data);
 	}
+	StackCoSche_reuse_block_group(sche, &group);
 }
 
 static void test_timer(struct StackCoSche_t* sche, void* arg) {

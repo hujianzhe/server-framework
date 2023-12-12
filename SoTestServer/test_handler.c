@@ -96,7 +96,7 @@ void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	}
 	puts("start test exec queue");
 	now_msec = gmtimeMillisecond();
-	StackCoSche_sleep_util(thrd->sche, now_msec + 5000);
+	StackCoSche_sleep_util(thrd->sche, now_msec + 5000, NULL);
 	StackCoSche_yield(thrd->sche);
 
 	puts(test_data);

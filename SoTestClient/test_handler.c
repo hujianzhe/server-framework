@@ -14,7 +14,7 @@ void frpc_req_echo(TaskThread_t* thrd, ChannelBase_t* channel, size_t datalen) {
 		InnerMsg_t msg;
 		DispatchNetMsg_t* ret_ctrl;
 		long long tm_msec = gmtimeMillisecond();
-		StackCoBlock_t* co_block = StackCoSche_block_point_util(thrd->sche, tm_msec + 5000);
+		StackCoBlock_t* co_block = StackCoSche_block_point_util(thrd->sche, tm_msec + 5000, NULL);
 		if (!co_block) {
 			break;
 		}
@@ -61,14 +61,14 @@ void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 	long long tm_msec = gmtimeMillisecond();
 	StackCoBlock_t* sub_block_arr[2];
 	//
-	sub_block_arr[0] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000);
+	sub_block_arr[0] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000, NULL);
 	if (!sub_block_arr[0]) {
 		return;
 	}
 	makeInnerMsgRpcReq(&msg, sub_block_arr[0]->id, CMD_REQ_TEST_CALLBACK, test_data, sizeof(test_data));
 	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	//
-	sub_block_arr[1] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000);
+	sub_block_arr[1] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000, NULL);
 	if (!sub_block_arr[1]) {
 		return;
 	}
@@ -113,7 +113,7 @@ void retLoginTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	logInfo(ptrBSG()->log, "recv: %s", (char*)ctrl->data);
 
 	// test code
-	StackCoSche_sleep_util(thrd->sche, gmtimeMillisecond() + 5000);
+	StackCoSche_sleep_util(thrd->sche, gmtimeMillisecond() + 5000, NULL);
 	block = StackCoSche_yield(thrd->sche);
 	if (!block) {
 		return;

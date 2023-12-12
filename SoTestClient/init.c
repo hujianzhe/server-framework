@@ -19,7 +19,7 @@ static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel
 	StackCoBlock_t* sub_block_arr[4];
 	for (i = 0; i < 2; ++i) {
 		StackCoBlock_t* block;
-		block = StackCoSche_block_point_util(sche, tm_msec + 1000);
+		block = StackCoSche_block_point_util(sche, tm_msec + 1000, NULL);
 		if (!block) {
 			continue;
 		}
@@ -27,7 +27,7 @@ static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel
 		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 		sub_block_arr[cnt_sub_block++] = block;
 
-		block = StackCoSche_block_point_util(sche, tm_msec + 1000);
+		block = StackCoSche_block_point_util(sche, tm_msec + 1000, NULL);
 		if (!block) {
 			continue;
 		}
@@ -54,7 +54,7 @@ static void test_timer(struct StackCoSche_t* sche, void* arg) {
 	StackCoBlock_t* block;
 	while (1) {
 		logInfo(ptrBSG()->log, "test_timer============================================");
-		StackCoSche_sleep_util(sche, gmtimeMillisecond() + 1000);
+		StackCoSche_sleep_util(sche, gmtimeMillisecond() + 1000, NULL);
 		block = StackCoSche_yield(sche);
 		if (!block || block->status != STACK_CO_STATUS_FINISH) {
 			break;
@@ -131,7 +131,7 @@ void run(struct StackCoSche_t* sche, void* arg) {
 
 		logInfo(ptrBSG()->log, "channel(%p) connecting......", c);
 
-		block = StackCoSche_block_point_util(sche, gmtimeMillisecond() + 5000);
+		block = StackCoSche_block_point_util(sche, gmtimeMillisecond() + 5000, NULL);
 		if (!block) {
 			channelbaseCloseRef(c);
 			return;

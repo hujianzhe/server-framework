@@ -101,7 +101,6 @@ int init(BootServerGlobal_t* g) {
 	regStringDispatch(g->dispatch, "/reqSoTest", reqSoTest);
 	regStringDispatch(g->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);
 	regStringDispatch(g->dispatch, "/reqTestExecQueue", reqTestExecQueue);
-	regStringDispatch(g->dispatch, "/reqClearExecQueue", reqClearExecQueue);
 
 	g->default_task_thread->filter_dispatch = filter_dispatch;
 	StackCoSche_function(g->default_task_thread->sche, run, NULL, NULL);

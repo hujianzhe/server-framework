@@ -4,7 +4,6 @@
 #include "util/inc/component/reactor.h"
 
 typedef struct DispatchBaseMsg_t {
-	SerialExecObj_t serial;
 	int rpcid;
 	int dispatch_net_msg_type;
 	void(*on_free)(struct DispatchBaseMsg_t* self);
@@ -36,7 +35,6 @@ extern "C" {
 
 __declspec_dll DispatchNetMsg_t* newDispatchNetMsg(ChannelBase_t* channel, size_t datalen, void(*on_free)(DispatchBaseMsg_t*));
 __declspec_dll void freeDispatchNetMsg(DispatchBaseMsg_t* msg);
-__declspec_dll void freeDispatchMsgSerial(SerialExecObj_t* serial);
 
 #ifdef __cplusplus
 }

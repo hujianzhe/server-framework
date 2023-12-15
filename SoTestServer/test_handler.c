@@ -76,24 +76,15 @@ void reqSoTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	free(reply);
 }
 
-static SerialExecQueue_t* s_dq = NULL;
-
 void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	char* reply;
 	int reply_len;
 	long long now_msec;
 	const char test_data[] = "end test exec queue";
+	struct StackCoLock_t* lock;
 
-	if (!s_dq) {
-		s_dq = (SerialExecQueue_t*)malloc(sizeof(*s_dq));
-		if (!s_dq) {
-			return;
-		}
-		SerialExecQueue_init(s_dq);
-	}
-	if (!SerialExecQueue_check_exec(s_dq, &ctrl->base.serial)) {
-		return;
-	}
+	lock = StackCoSche_lock(thrd->sche, "test_lock");
+
 	puts("start test exec queue");
 	now_msec = gmtimeMillisecond();
 	StackCoSche_sleep_util(thrd->sche, now_msec + 5000, NULL);
@@ -110,40 +101,14 @@ void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 		200, httpframeStatusDesc(200), sizeof(test_data) - 1, test_data
 	);
 	if (!reply) {
+		StackCoSche_unlock(thrd->sche, lock);
 		return;
 	}
 	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
 	channelbaseSendFin(ctrl->channel);
 	free(reply);
-}
 
-void reqClearExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
-	char* reply;
-	int reply_len;
-	const char test_data[] = "clear test exec queue";
-
-	if (s_dq) {
-		SerialExecQueue_clear(s_dq, freeDispatchMsgSerial);
-		free(s_dq);
-		s_dq = NULL;
-	}
-
-	puts(test_data);
-	reply = strFormat(&reply_len,
-		"HTTP/1.1 %u %s\r\n"
-		"Access-Control-Allow-Origin: *\r\n"
-		"Connection: close\r\n"
-		"Content-Length:%u\r\n"
-		"\r\n"
-		"%s",
-		200, httpframeStatusDesc(200), sizeof(test_data) - 1, test_data
-	);
-	if (!reply) {
-		return;
-	}
-	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
-	channelbaseSendFin(ctrl->channel);
-	free(reply);
+	StackCoSche_unlock(thrd->sche, lock);
 }
 
 void reqParallelTest1(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {

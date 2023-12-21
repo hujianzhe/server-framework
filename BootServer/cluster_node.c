@@ -42,10 +42,6 @@ int clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt) {
 	return 1;
 }
 
-#ifdef __cplusplus
-}
-#endif
-
 ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 	ChannelBase_t* channel;
 	Session_t* session;
@@ -61,3 +57,7 @@ ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
 	}
 	return channel;
 }
+
+#ifdef __cplusplus
+}
+#endif

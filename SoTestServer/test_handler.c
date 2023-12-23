@@ -82,8 +82,13 @@ void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	long long now_msec;
 	const char test_data[] = "end test exec queue";
 	struct StackCoLock_t* lock;
+	void* lock_owner = malloc(sizeof(int));
 
-	lock = StackCoSche_lock(thrd->sche, "test_lock");
+	if (!lock_owner) {
+		puts("assert: lock owner alloc is null !!!");
+		return;
+	}
+	lock = StackCoSche_lock(thrd->sche, lock_owner, "test_lock");
 
 	puts("start test exec queue");
 	now_msec = gmtimeMillisecond();
@@ -102,6 +107,7 @@ void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	);
 	if (!reply) {
 		StackCoSche_unlock(thrd->sche, lock);
+		free(lock_owner);
 		return;
 	}
 	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
@@ -109,6 +115,7 @@ void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	free(reply);
 
 	StackCoSche_unlock(thrd->sche, lock);
+	free(lock_owner);
 }
 
 void reqParallelTest1(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {

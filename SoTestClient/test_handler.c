@@ -35,7 +35,7 @@ void frpc_req_echo(TaskThread_t* thrd, ChannelBase_t* channel, size_t datalen) {
 					cnt, tlen, cnt_per_sec);
 			break;
 		}
-		ret_ctrl = (DispatchNetMsg_t*)co_block->resume_ret;
+		ret_ctrl = (DispatchNetMsg_t*)co_block->resume_param.value;
 		if (ret_ctrl->datalen != datalen) {
 			puts("echo datalen not match");
 			break;
@@ -50,8 +50,8 @@ void frpc_req_echo(TaskThread_t* thrd, ChannelBase_t* channel, size_t datalen) {
 	free(data);
 }
 
-static void frpc_callback(struct StackCoSche_t* sche, void* arg) {
-	printf("rpc callback ... %s\n", (const char*)arg);
+static void frpc_callback(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
+	printf("rpc callback ... %s\n", (const char*)param->value);
 }
 
 void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
@@ -85,9 +85,11 @@ void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 			printf("rpc(%d) call failure timeout or cancel\n", ret_block->id);
 			return;
 		}
-		ret_msg = (DispatchNetMsg_t*)ret_block->resume_ret;
+		ret_msg = (DispatchNetMsg_t*)ret_block->resume_param.value;
 		if (ret_block->id == sub_block_arr[0]->id) {
-			StackCoSche_function(thrd->sche, frpc_callback, (void*)"abcdefg", NULL);
+			StackCoAsyncParam_t async_param = { 0 };
+			async_param.value = (void*)"abcdefg";
+			StackCoSche_function(thrd->sche, frpc_callback, &async_param);
 		}
 		else if (ret_block->id == sub_block_arr[1]->id) {
 			long long cost_msec = gmtimeMillisecond() - tm_msec;

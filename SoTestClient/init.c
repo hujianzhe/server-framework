@@ -46,13 +46,13 @@ static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel
 			printf("rpc identity(%d) call failure timeout or cancel\n", block->id);
 			continue;
 		}
-		ret_msg = (DispatchNetMsg_t*)block->resume_ret;
+		ret_msg = (DispatchNetMsg_t*)block->resume_param.value;
 		printf("rpc identity(%d) return: %s ...\n", block->id, ret_msg->data);
 	}
 	StackCoSche_reuse_block_group(sche, &group);
 }
 
-static void test_timer(struct StackCoSche_t* sche, void* arg) {
+static void test_timer(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	StackCoBlock_t* block;
 	while (1) {
 		logInfo(ptrBSG()->log, "test_timer============================================");
@@ -108,7 +108,7 @@ static void filter_dispatch(TaskThread_t* thrd, DispatchBaseMsg_t* req_ctrl) {
 	}
 }
 
-void run(struct StackCoSche_t* sche, void* arg) {
+void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	int i;
 	StackCoBlock_t* block;
 	TaskThread_t* thrd = currentTaskThread();
@@ -171,6 +171,6 @@ int init(BootServerGlobal_t* g) {
 	regNumberDispatch(g->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
 
 	g->default_task_thread->filter_dispatch = filter_dispatch;
-	StackCoSche_function(g->default_task_thread->sche, run, NULL, NULL);
+	StackCoSche_function(g->default_task_thread->sche, run, NULL);
 	return 0;
 }

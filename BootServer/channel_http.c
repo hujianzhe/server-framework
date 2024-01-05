@@ -22,6 +22,7 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 	ChannelUserDataHttp_t* ud;
 	DispatchCallback_t callback;
 	DispatchNetMsg_t* message;
+	StackCoAsyncParam_t async_param;
 
 	ud = (ChannelUserDataHttp_t*)channelUserData(c);
 	if (!ud->_.rpc_id_syn_ack) {
@@ -44,14 +45,17 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 		message->enqueue_time_msec = gmtimeMillisecond();
 	}
 
+	memset(&async_param, 0, sizeof(async_param));
+	async_param.value = message;
+	async_param.fn_value_free = (void(*)(void*))message->base.on_free;
 	if (!ud->_.rpc_id_syn_ack && httpframe->method[0]) {
 		message->callback = callback;
-		StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->base.on_free);
+		StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, &async_param);
 	}
 	else {
 		message->base.rpcid = ud->_.rpc_id_syn_ack;
 		ud->_.rpc_id_syn_ack = 0;
-		StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->base.rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->base.on_free);
+		StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->base.rpcid, STACK_CO_STATUS_FINISH, &async_param);
 	}
 }
 

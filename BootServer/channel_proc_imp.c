@@ -18,18 +18,20 @@ ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, struct StackCoSche
 void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	ChannelUserData_t* ud = channelUserData(c);
 	if (ud->rpc_id_syn_ack != 0) {
-		StackCoSche_resume_block_by_id(ud->sche, ud->rpc_id_syn_ack, STACK_CO_STATUS_FINISH, NULL, NULL);
+		StackCoSche_resume_block_by_id(ud->sche, ud->rpc_id_syn_ack, STACK_CO_STATUS_FINISH, NULL);
 		ud->rpc_id_syn_ack = 0;
 	}
 }
 
 void defaultChannelOnDetach(ChannelBase_t* c) {
+	StackCoAsyncParam_t async_param = { 0 };
 	ChannelUserData_t* ud = channelUserData(c);
 	if (ud->rpc_id_syn_ack != 0) {
-		StackCoSche_resume_block_by_id(ud->sche, ud->rpc_id_syn_ack, STACK_CO_STATUS_ERROR, NULL, NULL);
+		StackCoSche_resume_block_by_id(ud->sche, ud->rpc_id_syn_ack, STACK_CO_STATUS_ERROR, NULL);
 		ud->rpc_id_syn_ack = 0;
 	}
-	StackCoSche_function(ud->sche, TaskThread_channel_base_detach, c, NULL);
+	async_param.value = c;
+	StackCoSche_function(ud->sche, TaskThread_channel_base_detach, &async_param);
 }
 
 #ifdef __cplusplus

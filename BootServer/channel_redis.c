@@ -43,6 +43,7 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 		int ret, rpc_id;
 		RedisReply_t* reply;
 		DispatchNetMsg_t* message;
+		StackCoAsyncParam_t async_param;
 
 		ret = RedisReplyReader_pop_reply(ud->reader, &reply);
 		if (ret != REDIS_OK) {
@@ -94,7 +95,11 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 		}
 		message->param.value = reply;
 		message->base.rpcid = rpc_id;
-		StackCoSche_resume_block_by_id(ud->_.sche, rpc_id, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->base.on_free);
+
+		memset(&async_param, 0, sizeof(async_param));
+		async_param.value = message;
+		async_param.fn_value_free = (void(*)(void*))message->base.on_free;
+		StackCoSche_resume_block_by_id(ud->_.sche, rpc_id, STACK_CO_STATUS_FINISH, &async_param);
 	}
 	return len;
 }

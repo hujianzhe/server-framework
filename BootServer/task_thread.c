@@ -3,9 +3,9 @@
 #include "task_thread.h"
 #include <stdio.h>
 
-void TaskThread_channel_base_detach(struct StackCoSche_t* sche, void* arg) {
+void TaskThread_channel_base_detach(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
-	ChannelBase_t* channel = (ChannelBase_t*)arg;
+	ChannelBase_t* channel = (ChannelBase_t*)param->value;
 	Session_t* session = channel->session;
 
 	if (thrd->on_channel_detach) {
@@ -116,9 +116,9 @@ TaskThread_t* currentTaskThread(void) {
 	return thrd;
 }
 
-void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg) {
+void TaskThread_call_dispatch(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
-	DispatchBaseMsg_t* msg = (DispatchBaseMsg_t*)arg;
+	DispatchBaseMsg_t* msg = (DispatchBaseMsg_t*)param->value;
 #ifndef NDEBUG
 	assert(thrd->filter_dispatch);
 #endif

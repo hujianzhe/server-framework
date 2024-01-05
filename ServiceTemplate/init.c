@@ -1,7 +1,7 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
 
-void run(struct StackCoSche_t* sche, void* arg) {
+void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	ConfigConnectOption_t* option = NULL;
 	unsigned int i;
 
@@ -27,6 +27,6 @@ void run(struct StackCoSche_t* sche, void* arg) {
 }
 
 int init(BootServerGlobal_t* g) {
-	StackCoSche_function(g->default_task_thread->sche, run, NULL, NULL);
+	StackCoSche_function(g->default_task_thread->sche, run, NULL);
 	return 0;
 }

@@ -17,7 +17,7 @@ typedef struct TaskThread_t {
 	void(*on_channel_detach)(struct TaskThread_t* thrd, struct ChannelBase_t* channel);
 } TaskThread_t;
 
-void TaskThread_channel_base_detach(struct StackCoSche_t* sche, void* arg);
+void TaskThread_channel_base_detach(struct StackCoSche_t* sche, StackCoAsyncParam_t* param);
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,7 +28,7 @@ __declspec_dll BOOL runTaskThread(TaskThread_t* t);
 __declspec_dll void freeTaskThread(TaskThread_t* t);
 
 __declspec_dll TaskThread_t* currentTaskThread(void);
-__declspec_dll void TaskThread_call_dispatch(struct StackCoSche_t* sche, void* arg);
+__declspec_dll void TaskThread_call_dispatch(struct StackCoSche_t* sche, StackCoAsyncParam_t* param);
 
 #ifdef __cplusplus
 }

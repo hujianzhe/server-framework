@@ -71,6 +71,7 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 	unsigned int hsz = 9;
 	if (bodylen >= hsz) {
 		DispatchNetMsg_t* message;
+		StackCoAsyncParam_t async_param;
 		char rpc_status = *bodyptr;
 
 		if (RPC_STATUS_RESP == rpc_status) {
@@ -105,11 +106,14 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 			message->enqueue_time_msec = gmtimeMillisecond();
 		}
 
+		memset(&async_param, 0, sizeof(async_param));
+		async_param.value = message;
+		async_param.fn_value_free = (void(*)(void*))message->base.on_free;
 		if (RPC_STATUS_RESP == rpc_status) {
-			StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->base.rpcid, STACK_CO_STATUS_FINISH, message, (void(*)(void*))message->base.on_free);
+			StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->base.rpcid, STACK_CO_STATUS_FINISH, &async_param);
 		}
 		else {
-			StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, message, (void(*)(void*))message->base.on_free);
+			StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, &async_param);
 		}
 	}
 	else if (CHANNEL_SIDE_SERVER == c->side) {

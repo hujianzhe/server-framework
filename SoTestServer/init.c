@@ -62,7 +62,7 @@ static void filter_dispatch(TaskThread_t* thrd, DispatchBaseMsg_t* req_ctrl) {
 	}
 }
 
-void run(struct StackCoSche_t* sche, void* arg) {
+void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	TaskThread_t* thrd = currentTaskThread();
 	int i;
 	// listen extra port
@@ -103,6 +103,6 @@ int init(BootServerGlobal_t* g) {
 	regStringDispatch(g->dispatch, "/reqTestExecQueue", reqTestExecQueue);
 
 	g->default_task_thread->filter_dispatch = filter_dispatch;
-	StackCoSche_function(g->default_task_thread->sche, run, NULL, NULL);
+	StackCoSche_function(g->default_task_thread->sche, run, NULL);
 	return 0;
 }

@@ -34,7 +34,7 @@ static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel
 		makeInnerMsgRpcReq(&msg, block->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
 		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	}
-	while (1) {
+	while (!StackCoSche_group_is_empty(&group)) {
 		DispatchNetMsg_t* ret_msg;
 		StackCoBlock_t* block;
 

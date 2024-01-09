@@ -21,10 +21,10 @@ void frpc_req_echo(TaskThread_t* thrd, ChannelBase_t* channel, size_t datalen) {
 		makeInnerMsgRpcReq(&msg, co_block->id, CMD_REQ_ECHO, data, datalen);
 		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 		co_block = StackCoSche_yield(thrd->sche);
-		if (!co_block) {
+		if (StackCoSche_has_exit(thrd->sche)) {
 			long long tlen = gmtimeMillisecond() - start_tm;
 			size_t cnt_per_sec = (double)cnt / tlen * 1000.0;
-			printf("rpc call failure timeout or cancel, cnt = %zu, cost %lld msec, cnt_per_sec = %zu\n",
+			printf("thread coroutine sche has exit, cnt = %zu, cost %lld msec, cnt_per_sec = %zu\n",
 					cnt, tlen, cnt_per_sec);
 			break;
 		}
@@ -78,7 +78,8 @@ void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 	for (i = 0; i < sizeof(sub_block_arr) / sizeof(sub_block_arr[0]); ++i) {
 		DispatchNetMsg_t* ret_msg;
 		StackCoBlock_t* ret_block = StackCoSche_yield(thrd->sche);
-		if (!ret_block) {
+		if (StackCoSche_has_exit(thrd->sche)) {
+			puts("thread coroutine sche has exit");
 			return;
 		}
 		if (ret_block->status != STACK_CO_STATUS_FINISH) {
@@ -117,7 +118,8 @@ void retLoginTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	// test code
 	StackCoSche_sleep_util(thrd->sche, gmtimeMillisecond() + 5000, NULL);
 	block = StackCoSche_yield(thrd->sche);
-	if (!block) {
+	if (StackCoSche_has_exit(thrd->sche)) {
+		puts("thread coroutine sche has exit");
 		return;
 	}
 	if (block->status != STACK_CO_STATUS_FINISH) {

@@ -94,6 +94,11 @@ void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	now_msec = gmtimeMillisecond();
 	StackCoSche_sleep_util(thrd->sche, now_msec + 5000, NULL);
 	StackCoSche_yield(thrd->sche);
+	if (StackCoSche_has_exit(thrd->sche)) {
+		StackCoSche_unlock(thrd->sche, lock);
+		free(lock_owner);
+		return;
+	}
 
 	puts(test_data);
 	reply = strFormat(&reply_len,

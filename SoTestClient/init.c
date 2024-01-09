@@ -39,7 +39,8 @@ static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel
 		StackCoBlock_t* block;
 
 		block = StackCoSche_yield_group(sche, &group);
-		if (!block) {
+		if (StackCoSche_has_exit(sche) || !block) {
+			puts("thread coroutine sche has exit");
 			break;
 		}
 		if (block->status != STACK_CO_STATUS_FINISH) {
@@ -58,7 +59,11 @@ static void test_timer(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		logInfo(ptrBSG()->log, "test_timer============================================");
 		StackCoSche_sleep_util(sche, gmtimeMillisecond() + 1000, NULL);
 		block = StackCoSche_yield(sche);
-		if (!block || block->status != STACK_CO_STATUS_FINISH) {
+		if (StackCoSche_has_exit(sche)) {
+			puts("thread coroutine sche has exit");
+			break;
+		}
+		if (block->status != STACK_CO_STATUS_FINISH) {
 			break;
 		}
 		StackCoSche_reuse_block(sche, block);
@@ -141,7 +146,12 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		channelUserData(c)->rpc_id_syn_ack = block->id;
 		channelbaseReg(selectReactor(), c);
 		block = StackCoSche_yield(sche);
-		if (!block || block->status != STACK_CO_STATUS_FINISH) {
+		if (StackCoSche_has_exit(sche)) {
+			logErr(ptrBSG()->log, "task coroutine sche has exit...");
+			channelbaseCloseRef(c);
+			return;
+		}
+		if (block->status != STACK_CO_STATUS_FINISH) {
 			logErr(ptrBSG()->log, "channel(%p) connect %s:%u failure", c, option->ip, option->port);
 			channelbaseCloseRef(c);
 			return;

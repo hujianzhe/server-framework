@@ -39,7 +39,7 @@ static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel
 		StackCoBlock_t* block;
 
 		block = StackCoSche_yield_group(sche, &group);
-		if (StackCoSche_has_exit(sche) || !block) {
+		if (StackCoSche_has_exit(sche)) {
 			puts("thread coroutine sche has exit");
 			break;
 		}

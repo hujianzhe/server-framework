@@ -120,7 +120,7 @@ void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	free(reply);
 
 	StackCoSche_unlock(thrd->sche, lock);
-	free(lock_owner);
+	StackCoSche_free_lock_owner(lock_owner);
 }
 
 void reqParallelTest1(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {

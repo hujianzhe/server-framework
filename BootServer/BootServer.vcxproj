@@ -170,8 +170,7 @@
     <ClInclude Include="util\inc\crt\dynarr.h" />
     <ClInclude Include="util\inc\crt\export_free.h" />
     <ClInclude Include="util\inc\crt\geometry\aabb.h" />
-    <ClInclude Include="util\inc\crt\geometry\collision_detection.h" />
-    <ClInclude Include="util\inc\crt\geometry\collision_intersect.h" />
+    <ClInclude Include="util\inc\crt\geometry\collision.h" />
     <ClInclude Include="util\inc\crt\geometry\geometry_def.h" />
     <ClInclude Include="util\inc\crt\geometry\line_segment.h" />
     <ClInclude Include="util\inc\crt\geometry\obb.h" />
@@ -250,7 +249,8 @@
     <ClCompile Include="util\src\crt\dynarr.c" />
     <ClCompile Include="util\src\crt\export_free.c" />
     <ClCompile Include="util\src\crt\geometry\aabb.c" />
-    <ClCompile Include="util\src\crt\geometry\collision_detection.c" />
+    <ClCompile Include="util\src\crt\geometry\collision_sweep.c" />
+    <ClCompile Include="util\src\crt\geometry\collision_contain.c" />
     <ClCompile Include="util\src\crt\geometry\collision_intersect.c" />
     <ClCompile Include="util\src\crt\geometry\line_segment.c" />
     <ClCompile Include="util\src\crt\geometry\obb.c" />

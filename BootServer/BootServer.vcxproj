@@ -178,6 +178,7 @@
     <ClInclude Include="util\inc\crt\geometry\sphere.h" />
     <ClInclude Include="util\inc\crt\geometry\polygon.h" />
     <ClInclude Include="util\inc\crt\geometry\mesh.h" />
+    <ClInclude Include="util\inc\crt\geometry\vertex.h" />
     <ClInclude Include="util\inc\crt\json.h" />
     <ClInclude Include="util\inc\crt\math.h" />
     <ClInclude Include="util\inc\crt\math_matrix3.h" />
@@ -259,6 +260,7 @@
     <ClCompile Include="util\src\crt\geometry\sphere.c" />
     <ClCompile Include="util\src\crt\geometry\polygon.c" />
     <ClCompile Include="util\src\crt\geometry\mesh.c" />
+    <ClCompile Include="util\src\crt\geometry\vertex.c" />
     <ClCompile Include="util\src\crt\json.c" />
     <ClCompile Include="util\src\crt\math.c" />
     <ClCompile Include="util\src\crt\math_matrix3.c" />

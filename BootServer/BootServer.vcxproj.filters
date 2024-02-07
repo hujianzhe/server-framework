@@ -66,9 +66,6 @@
     <ClInclude Include="util\inc\crt\geometry\aabb.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\collision_detection.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="util\inc\crt\geometry\line_segment.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -76,9 +73,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\crt\geometry\sphere.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\triangle.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\crt\cXML.h">
@@ -216,9 +210,6 @@
     <ClInclude Include="util\inc\crt\geometry\obb.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\collision_intersect.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="channel_redis.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -253,6 +244,18 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\sysapi\aio.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\geometry\collision.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\geometry\polygon.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\geometry\mesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\crt\geometry\vertex.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -308,9 +311,6 @@
     <ClCompile Include="util\src\crt\geometry\aabb.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\collision_detection.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="util\src\crt\geometry\line_segment.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -318,9 +318,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\geometry\sphere.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\triangle.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\cXML.c">
@@ -477,6 +474,21 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\sysapi\win32_misc.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\geometry\collision_sweep.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\geometry\collision_contain.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\geometry\polygon.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\geometry\mesh.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\crt\geometry\vertex.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

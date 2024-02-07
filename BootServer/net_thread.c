@@ -46,7 +46,7 @@ void freeNetThreadResource(void) {
 	networkCleanEnv();
 }
 
-static unsigned int THREAD_CALL reactorThreadEntry(void* arg) {
+static unsigned int reactorThreadEntry(void* arg) {
 	struct Reactor_t* reactor;
 	NioEv_t* ev;
 	int res = 0;

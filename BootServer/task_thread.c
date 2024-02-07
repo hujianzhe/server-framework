@@ -21,7 +21,7 @@ void TaskThread_channel_base_detach(struct StackCoSche_t* sche, StackCoAsyncPara
 	channelbaseCloseRef(channel);
 }
 
-static unsigned int THREAD_CALL taskThreadEntry(void* arg) {
+static unsigned int taskThreadEntry(void* arg) {
 	TaskThread_t* thrd = (TaskThread_t*)arg;
 
 	while (0 == StackCoSche_sche(thrd->sche, -1));

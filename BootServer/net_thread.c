@@ -85,7 +85,7 @@ BOOL runNetThreads(void) {
 
 void wakeupNetThreads(void) {
 	int i;
-	for (i = 0; i < s_BootReactorThreadCnt; ++i) {
+	for (i = 0; i < s_ReactorCnt + 1; ++i) {
 		reactorWake(s_Reactors[i]);
 	}
 }

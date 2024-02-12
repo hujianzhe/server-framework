@@ -7,18 +7,9 @@
 
 extern int init(BootServerGlobal_t* g);
 
-static void sigintHandler(int signo) {
-	stopBootServerGlobal();
-}
-
 int main(int argc, char** argv) {
 	if (argc < 2) {
 		fputs("need a config file to boot ...", stderr);
-		return 1;
-	}
-	// reg SIGINT signal
-	if (signalRegHandler(SIGINT, sigintHandler) == SIG_ERR) {
-		fputs("signalRegHandler(SIGINT) failure", stderr);
 		return 1;
 	}
 	// int BootServerGlobal

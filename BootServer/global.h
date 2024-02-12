@@ -26,6 +26,8 @@ typedef struct BootServerGlobal_t {
 	TaskThread_t* default_task_thread;
 	const char* errmsg;
 	struct Dispatch_t* dispatch;
+	Thread_t sig_tid;
+	void(*sig_proc)(int);
 } BootServerGlobal_t;
 
 #ifdef __cplusplus
@@ -38,6 +40,7 @@ __declspec_dll int checkStopBSG(void);
 
 __declspec_dll BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_init)(BootServerGlobal_t*));
 __declspec_dll void printBootServerNodeInfo(void);
+__declspec_dll BOOL runBootServerSignalHandler(void(*sig_proc)(int));
 __declspec_dll BOOL runBootServerGlobal(void);
 __declspec_dll void stopBootServerGlobal(void);
 __declspec_dll void freeBootServerGlobal(void);

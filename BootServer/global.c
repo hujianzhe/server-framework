@@ -83,6 +83,33 @@ void printBootServerNodeInfo(void) {
 		listen_opt->ip, listen_opt->port, processId());
 }
 
+static unsigned int signal_thread_entry(void* arg) {
+	while (s_BSG.valid) {
+		int sig = signalWait();
+		if (sig < 0) {
+			continue;
+		}
+		s_BSG.sig_proc(sig);
+	}
+	return 0;
+}
+
+BOOL runBootServerSignalHandler(void(*sig_proc)(int)) {
+	if (!sig_proc) {
+		s_BSG.errmsg = strFormat(NULL, "signal handle proc is null\n");
+		return FALSE;
+	}
+	if (s_BSG.sig_proc) {
+		return TRUE;
+	}
+	if (!threadCreate(&s_BSG.sig_tid, signal_thread_entry, NULL)) {
+		s_BSG.errmsg = strFormat(NULL, "signal handle thread boot failure\n");
+		return FALSE;
+	}
+	s_BSG.sig_proc = sig_proc;
+	return TRUE;
+}
+
 BOOL runBootServerGlobal(void) {
 	// run task thread
 	if (!runTaskThread(s_BSG.default_task_thread)) {
@@ -91,13 +118,16 @@ BOOL runBootServerGlobal(void) {
 	}
 	// run net thread
 	if (!runNetThreads()) {
-		s_BSG.errmsg = strFormat(NULL, "net thread run failure\n");
+		s_BSG.errmsg = strFormat(NULL, "net thread boot failure\n");
 		return FALSE;
 	}
 	// wait thread exit
 	threadJoin(s_BSG.default_task_thread->tid, NULL);
 	s_BSG.valid = 0;
 	joinNetThreads();
+	if (s_BSG.sig_proc) {
+		threadJoin(s_BSG.sig_tid, NULL);
+	}
 	return TRUE;
 }
 

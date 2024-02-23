@@ -252,6 +252,7 @@
     <ClCompile Include="util\src\crt\export_free.c" />
     <ClCompile Include="util\src\crt\geometry\aabb.c" />
     <ClCompile Include="util\src\crt\geometry\collision_sweep.c" />
+    <ClCompile Include="util\src\crt\geometry\collision_body.c" />
     <ClCompile Include="util\src\crt\geometry\collision_contain.c" />
     <ClCompile Include="util\src\crt\geometry\collision_intersect.c" />
     <ClCompile Include="util\src\crt\geometry\line_segment.c" />

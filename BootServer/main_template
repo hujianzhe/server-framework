@@ -13,6 +13,11 @@ extern int init(BootServerGlobal_t* g);
 static void sig_proc(int signo) {
 	if (s_exit_signo == signo) {
 		stopBootServerGlobal();
+		return;
+	}
+	if (SIGINT == signo) {
+		signalIdleHandler(signo);
+		return;
 	}
 }
 

@@ -3,12 +3,15 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #pragma comment(lib, "BootServer.lib")
+static int s_exit_signo = SIGINT;
+#else
+static int s_exit_signo = SIGTERM;
 #endif
 
 extern int init(BootServerGlobal_t* g);
 
 static void sig_proc(int signo) {
-	if (SIGINT == signo) {
+	if (s_exit_signo == signo) {
 		stopBootServerGlobal();
 	}
 }
@@ -28,7 +31,7 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "main thread signalThreadMaskNotify err:%d\n", errnoGet());
 		goto err;
 	}
-	signalReg(SIGINT);
+	signalReg(s_exit_signo);
 	if (!runBootServerSignalHandler(sig_proc)) {
 		goto err;
 	}

@@ -33,5 +33,3 @@ core.*
 *.dSYM
 .DS_Store
 /BootServer/util
-/redis_cli_protocol
-/db_api

@@ -119,7 +119,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	TaskThread_t* thrd = currentTaskThread();
 
 	// add timer
-	//StackCoSche_timeout_util(sche, gmtimeMillisecond() / 1000 * 1000 + 1000, test_timer, NULL, NULL);
+	// StackCoSche_timeout_util(sche, gmtimeMillisecond() / 1000 * 1000 + 1000, test_timer, NULL);
 
 	ChannelBase_t* def_c = NULL;
 	for (i = 0; i < ptrBSG()->conf->connect_options_cnt; ++i) {

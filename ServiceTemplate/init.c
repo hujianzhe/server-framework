@@ -1,6 +1,10 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
 
+static void net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
+	net_msg->callback(thrd, net_msg);
+}
+
 void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	ConfigConnectOption_t* option = NULL;
 	unsigned int i;
@@ -27,6 +31,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 }
 
 int init(BootServerGlobal_t* g) {
+	g->default_task_thread->net_dispatch = net_dispatch;
 	StackCoSche_function(g->default_task_thread->sche, run, NULL);
 	return 0;
 }

@@ -5,7 +5,6 @@
 
 typedef struct DispatchBaseMsg_t {
 	int rpcid;
-	int dispatch_net_msg_type;
 	void(*on_free)(struct DispatchBaseMsg_t* self);
 } DispatchBaseMsg_t;
 

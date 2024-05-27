@@ -8,7 +8,6 @@ extern "C" {
 DispatchNetMsg_t* newDispatchNetMsg(ChannelBase_t* channel, size_t datalen, void(*on_free)(DispatchBaseMsg_t*)) {
 	DispatchNetMsg_t* msg = (DispatchNetMsg_t*)malloc(sizeof(DispatchNetMsg_t) + datalen);
 	if (msg) {
-		msg->base.dispatch_net_msg_type = 1;
 		msg->base.rpcid = 0;
 		msg->base.on_free = on_free;
 

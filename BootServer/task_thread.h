@@ -5,7 +5,7 @@
 #include "util/inc/datastruct/random.h"
 
 struct ChannelBase_t;
-struct DispatchBaseMsg_t;
+struct DispatchNetMsg_t;
 
 typedef struct TaskThread_t {
 	Thread_t tid;
@@ -13,7 +13,7 @@ typedef struct TaskThread_t {
 	const char* errmsg;
 	Rand48_t rand48_ctx;
 	RandMT19937_t randmt19937_ctx;
-	void(*filter_dispatch)(struct TaskThread_t* thrd, struct DispatchBaseMsg_t* req_ctrl);
+	void(*net_dispatch)(struct TaskThread_t* thrd, struct DispatchNetMsg_t* req_ctrl);
 	void(*on_channel_detach)(struct TaskThread_t* thrd, struct ChannelBase_t* channel);
 } TaskThread_t;
 
@@ -28,7 +28,7 @@ __declspec_dll BOOL runTaskThread(TaskThread_t* t);
 __declspec_dll void freeTaskThread(TaskThread_t* t);
 
 __declspec_dll TaskThread_t* currentTaskThread(void);
-__declspec_dll void TaskThread_call_dispatch(struct StackCoSche_t* sche, StackCoAsyncParam_t* param);
+__declspec_dll void TaskThread_net_dispatch(struct StackCoSche_t* sche, StackCoAsyncParam_t* param);
 
 #ifdef __cplusplus
 }

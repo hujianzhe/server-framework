@@ -77,7 +77,7 @@ TaskThread_t* newTaskThread(size_t co_stack_size) {
 	seedval = time(NULL);
 	rand48Seed(&t->rand48_ctx, seedval);
 	mt19937Seed(&t->randmt19937_ctx, seedval);
-	t->filter_dispatch = NULL;
+	t->net_dispatch = NULL;
 	t->on_channel_detach = NULL;
 	return t;
 err:
@@ -116,22 +116,16 @@ TaskThread_t* currentTaskThread(void) {
 	return thrd;
 }
 
-void TaskThread_call_dispatch(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
+void TaskThread_net_dispatch(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
-	DispatchBaseMsg_t* msg = (DispatchBaseMsg_t*)param->value;
+	DispatchNetMsg_t* net_msg = (DispatchNetMsg_t*)param->value;
 #ifndef NDEBUG
-	assert(thrd->filter_dispatch);
+	assert(thrd->net_dispatch);
 #endif
-	if (msg->dispatch_net_msg_type) {
-		DispatchNetMsg_t* net_msg = pod_container_of(msg, DispatchNetMsg_t, base);
-		channelbaseAddRef(net_msg->channel);
-		thrd->filter_dispatch(thrd, msg);
-		channelbaseCloseRef(net_msg->channel);
-		net_msg->channel = NULL;
-	}
-	else {
-		thrd->filter_dispatch(thrd, msg);
-	}
+	channelbaseAddRef(net_msg->channel);
+	thrd->net_dispatch(thrd, net_msg);
+	channelbaseCloseRef(net_msg->channel);
+	net_msg->channel = NULL;
 }
 
 #ifdef __cplusplus

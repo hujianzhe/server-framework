@@ -50,7 +50,7 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 	async_param.fn_value_free = (void(*)(void*))message->base.on_free;
 	if (!ud->_.rpc_id_syn_ack && httpframe->method[0]) {
 		message->callback = callback;
-		StackCoSche_function(channelUserData(c)->sche, TaskThread_call_dispatch, &async_param);
+		StackCoSche_function(channelUserData(c)->sche, TaskThread_net_dispatch, &async_param);
 	}
 	else {
 		message->base.rpcid = ud->_.rpc_id_syn_ack;

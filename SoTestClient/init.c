@@ -106,11 +106,8 @@ void test_simply_udp_client(unsigned short port) {
 	channelbaseSend(c, data, sizeof(data), 0, &saddr.sa, saddrlen);
 }
 
-static void filter_dispatch(TaskThread_t* thrd, DispatchBaseMsg_t* req_ctrl) {
-	if (req_ctrl->dispatch_net_msg_type) {
-		DispatchNetMsg_t* net_msg = pod_container_of(req_ctrl, DispatchNetMsg_t, base);
-		net_msg->callback(thrd, net_msg);
-	}
+static void net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
+	net_msg->callback(thrd, net_msg);
 }
 
 void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
@@ -180,7 +177,7 @@ int init(BootServerGlobal_t* g) {
 	regNumberDispatch(g->dispatch, CMD_RET_TEST, retTest);
 	regNumberDispatch(g->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
 
-	g->default_task_thread->filter_dispatch = filter_dispatch;
+	g->default_task_thread->net_dispatch = net_dispatch;
 	StackCoSche_function(g->default_task_thread->sche, run, NULL);
 	return 0;
 }

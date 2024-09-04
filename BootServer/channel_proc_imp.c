@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 static void channel_base_detach_wrapper(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
-	TaskThread_channel_base_detach((TaskThread_t*)StackCoSche_userdata(sche), (ChannelBase_t*)param->value);
+	TaskThread_channel_detach((TaskThread_t*)StackCoSche_userdata(sche), (ChannelBase_t*)param->value);
 }
 
 #ifdef __cplusplus

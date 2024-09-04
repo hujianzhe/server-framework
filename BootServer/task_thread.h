@@ -27,7 +27,7 @@ __declspec_dll void freeTaskThread(TaskThread_t* t);
 
 __declspec_dll TaskThread_t* currentTaskThread(void);
 __declspec_dll void TaskThread_net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg);
-__declspec_dll void TaskThread_channel_base_detach(TaskThread_t* thrd, ChannelBase_t* channel);
+__declspec_dll void TaskThread_channel_detach(TaskThread_t* thrd, ChannelBase_t* channel);
 
 #ifdef __cplusplus
 }

@@ -33,7 +33,7 @@ static ConfigListenOption_t* parse_listen_option(cJSON* cjson, ConfigListenOptio
 	else {
 		option_ptr->socktype = if_string2socktype(cJSON_GetStringPtr(socktype));
 		if (0 == option_ptr->socktype) {
-			NULL;
+			return NULL;
 		}
 	}
 	if (readcache_max_size && cJSON_GetInteger(readcache_max_size) > 0) {

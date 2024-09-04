@@ -14,7 +14,6 @@ typedef struct TaskThread_t {
 	Rand48_t rand48_ctx;
 	RandMT19937_t randmt19937_ctx;
 	void(*net_dispatch)(struct TaskThread_t* thrd, struct DispatchNetMsg_t* req_ctrl);
-	void(*on_channel_detach)(struct TaskThread_t* thrd, struct ChannelBase_t* channel);
 } TaskThread_t;
 
 #ifdef __cplusplus
@@ -26,8 +25,8 @@ __declspec_dll BOOL runTaskThread(TaskThread_t* t);
 __declspec_dll void freeTaskThread(TaskThread_t* t);
 
 __declspec_dll TaskThread_t* currentTaskThread(void);
-__declspec_dll void TaskThread_net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg);
-__declspec_dll void TaskThread_channel_detach(TaskThread_t* thrd, ChannelBase_t* channel);
+__declspec_dll void TaskThread_exec_net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg);
+__declspec_dll void TaskThread_exec_channel_detach(ChannelBase_t* channel);
 
 #ifdef __cplusplus
 }

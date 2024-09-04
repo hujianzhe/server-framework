@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 static void channel_base_detach_wrapper(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
-	TaskThread_channel_detach((TaskThread_t*)StackCoSche_userdata(sche), (ChannelBase_t*)param->value);
+	TaskThread_exec_channel_detach((ChannelBase_t*)param->value);
 }
 
 #ifdef __cplusplus
@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 void fnNetDispatchStackCoSche(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
-	TaskThread_net_dispatch((TaskThread_t*)StackCoSche_userdata(sche), (DispatchNetMsg_t*)param->value);
+	TaskThread_exec_net_dispatch((TaskThread_t*)StackCoSche_userdata(sche), (DispatchNetMsg_t*)param->value);
 }
 
 ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, struct StackCoSche_t* sche) {

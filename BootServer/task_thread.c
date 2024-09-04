@@ -60,7 +60,6 @@ TaskThread_t* newTaskThread(size_t co_stack_size) {
 	rand48Seed(&t->rand48_ctx, seedval);
 	mt19937Seed(&t->randmt19937_ctx, seedval);
 	t->net_dispatch = NULL;
-	t->on_channel_detach = NULL;
 	return t;
 err:
 	if (sche_ok) {
@@ -98,11 +97,8 @@ TaskThread_t* currentTaskThread(void) {
 	return thrd;
 }
 
-void TaskThread_channel_base_detach(TaskThread_t* thrd, ChannelBase_t* channel) {
+void TaskThread_exec_channel_detach(ChannelBase_t* channel) {
 	Session_t* session = channel->session;
-	if (thrd->on_channel_detach) {
-		thrd->on_channel_detach(thrd, channel);
-	}
 	if (session) {
 		channel->session = NULL;
 		session->channel = NULL;
@@ -113,7 +109,7 @@ void TaskThread_channel_base_detach(TaskThread_t* thrd, ChannelBase_t* channel) 
 	channelbaseCloseRef(channel);
 }
 
-void TaskThread_net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
+void TaskThread_exec_net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
 #ifndef NDEBUG
 	assert(thrd->net_dispatch);
 #endif

@@ -8,7 +8,7 @@ static int s_exit_signo = SIGINT;
 static int s_exit_signo = SIGTERM;
 #endif
 
-extern int init(BootServerGlobal_t* g);
+extern int init(void);
 
 static void sig_proc(int signo) {
 	if (s_exit_signo == signo) {
@@ -22,16 +22,23 @@ static void sig_proc(int signo) {
 }
 
 int main(int argc, char** argv) {
+	int ret;
 	if (argc < 2) {
 		fputs("need a config file to boot ...", stderr);
 		return 1;
 	}
-	// int BootServerGlobal
-	if (!initBootServerGlobal(argv[1], argc, argv, init)) {
+	/* init BootServer object */
+	if (!initBootServerGlobal(argv[1], argc, argv)) {
 		fprintf(stderr, "initBootServerGlobal err:%s\n", getBSGErrmsg());
 		return 1;
 	}
-	// reg signal
+	/* run your App init function */
+	ret = init();
+	if (ret) {
+		fprintf(stderr, "App call init err, ret=%d\n", ret);
+		goto err;
+	}
+	/* reg signal */
 	if (!signalThreadMaskNotify()) {
 		fprintf(stderr, "main thread signalThreadMaskNotify err:%d\n", errnoGet());
 		goto err;
@@ -40,9 +47,9 @@ int main(int argc, char** argv) {
 	if (!runBootServerSignalHandler(sig_proc)) {
 		goto err;
 	}
-	// print boot cluster node info
+	/* print boot cluster node info */
 	printBootServerNodeInfo();
-	// run BootServer and wait BootServer end
+	/* run BootServer and wait BootServer end */
 	if (!runBootServerGlobal()) {
 		goto err;
 	}
@@ -51,7 +58,7 @@ err:
 	fputs(getBSGErrmsg(), stderr);
 	logErr(ptrBSG()->log, "%s", getBSGErrmsg());
 ret:
-	// free BootServer
+	/* free BootServer object */
 	freeBootServerGlobal();
 	return 0;
 }

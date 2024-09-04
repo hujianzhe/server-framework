@@ -30,8 +30,8 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	logInfo(ptrBSG()->log, "init ok ......");
 }
 
-int init(BootServerGlobal_t* g) {
-	g->default_task_thread->net_dispatch = net_dispatch;
-	StackCoSche_function(g->default_task_thread->sche, run, NULL);
+int init(void) {
+	ptrBSG()->default_task_thread->net_dispatch = net_dispatch;
+	StackCoSche_function(ptrBSG()->default_task_thread->sche, run, NULL);
 	return 0;
 }

@@ -86,20 +86,20 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	test_simply_udp_server(45678);
 }
 
-int init(BootServerGlobal_t* g) {
+int init(void) {
 	// register dispatch
-	regNumberDispatch(g->dispatch, CMD_REQ_TEST, reqTest);
-	regNumberDispatch(g->dispatch, CMD_REQ_TEST_CALLBACK, reqTestCallback);
-	regNumberDispatch(g->dispatch, CMD_REQ_LOGIN_TEST, reqLoginTest);
-	regNumberDispatch(g->dispatch, CMD_REQ_ParallelTest1, reqParallelTest1);
-	regNumberDispatch(g->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);
-	regNumberDispatch(g->dispatch, CMD_REQ_ECHO, reqEcho);
-	regStringDispatch(g->dispatch, "/reqHttpTest", reqHttpTest);
-	regStringDispatch(g->dispatch, "/reqSoTest", reqSoTest);
-	regStringDispatch(g->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);
-	regStringDispatch(g->dispatch, "/reqTestExecQueue", reqTestExecQueue);
+	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_TEST, reqTest);
+	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_TEST_CALLBACK, reqTestCallback);
+	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_LOGIN_TEST, reqLoginTest);
+	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_ParallelTest1, reqParallelTest1);
+	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_ParallelTest2, reqParallelTest2);
+	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_ECHO, reqEcho);
+	regStringDispatch(ptrBSG()->dispatch, "/reqHttpTest", reqHttpTest);
+	regStringDispatch(ptrBSG()->dispatch, "/reqSoTest", reqSoTest);
+	regStringDispatch(ptrBSG()->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);
+	regStringDispatch(ptrBSG()->dispatch, "/reqTestExecQueue", reqTestExecQueue);
 
-	g->default_task_thread->net_dispatch = net_dispatch;
-	StackCoSche_function(g->default_task_thread->sche, run, NULL);
+	ptrBSG()->default_task_thread->net_dispatch = net_dispatch;
+	StackCoSche_function(ptrBSG()->default_task_thread->sche, run, NULL);
 	return 0;
 }

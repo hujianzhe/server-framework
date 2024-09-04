@@ -171,13 +171,13 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	test_simply_udp_client(45678);
 }
 
-int init(BootServerGlobal_t* g) {
+int init(void) {
 	// register dispatch
-	regNumberDispatch(g->dispatch, CMD_NOTIFY_TEST, notifyTest);
-	regNumberDispatch(g->dispatch, CMD_RET_TEST, retTest);
-	regNumberDispatch(g->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
+	regNumberDispatch(ptrBSG()->dispatch, CMD_NOTIFY_TEST, notifyTest);
+	regNumberDispatch(ptrBSG()->dispatch, CMD_RET_TEST, retTest);
+	regNumberDispatch(ptrBSG()->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
 
-	g->default_task_thread->net_dispatch = net_dispatch;
-	StackCoSche_function(g->default_task_thread->sche, run, NULL);
+	ptrBSG()->default_task_thread->net_dispatch = net_dispatch;
+	StackCoSche_function(ptrBSG()->default_task_thread->sche, run, NULL);
 	return 0;
 }

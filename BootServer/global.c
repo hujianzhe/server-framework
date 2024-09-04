@@ -11,7 +11,7 @@ BootServerGlobal_t* ptrBSG(void) { return s_PtrBSG; }
 const char* getBSGErrmsg(void) { return s_BSG.errmsg ? s_BSG.errmsg : ""; }
 int checkStopBSG(void) { return s_PtrBSG ? !(s_PtrBSG->valid) : 1; }
 
-BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_init)(BootServerGlobal_t*)) {
+BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv) {
 	ConfigListenOption_t* listen_opt;
 
 	if (s_PtrBSG) {
@@ -47,16 +47,6 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_
 	if (!s_BSG.default_task_thread) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread create failure\n");
 		return FALSE;
-	}
-	// init user global
-	if (fn_init) {
-		s_PtrBSG = &s_BSG;
-		int ret = fn_init(&s_BSG);
-		if (ret) {
-			s_PtrBSG = NULL;
-			s_BSG.errmsg = strFormat(NULL, "initBootServerGlobal call fn_init err, ret=%d\n", ret);
-			return FALSE;
-		}
 	}
 	// listen self cluster node port, if needed
 	listen_opt = &s_Config.clsnd.listen_option;

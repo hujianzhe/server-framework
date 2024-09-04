@@ -38,7 +38,7 @@ __declspec_dll BootServerGlobal_t* ptrBSG(void);
 __declspec_dll const char* getBSGErrmsg(void);
 __declspec_dll int checkStopBSG(void);
 
-__declspec_dll BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv, int(*fn_init)(BootServerGlobal_t*));
+__declspec_dll BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv);
 __declspec_dll void printBootServerNodeInfo(void);
 __declspec_dll BOOL runBootServerSignalHandler(void(*sig_proc)(int));
 __declspec_dll BOOL runBootServerGlobal(void);

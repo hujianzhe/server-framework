@@ -3,24 +3,6 @@
 #include "task_thread.h"
 #include <stdio.h>
 
-void TaskThread_channel_base_detach(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
-	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
-	ChannelBase_t* channel = (ChannelBase_t*)param->value;
-	Session_t* session = channel->session;
-
-	if (thrd->on_channel_detach) {
-		thrd->on_channel_detach(thrd, channel);
-	}
-	if (session) {
-		channel->session = NULL;
-		session->channel = NULL;
-		if (session->on_disconnect) {
-			session->on_disconnect(session);
-		}
-	}
-	channelbaseCloseRef(channel);
-}
-
 static unsigned int taskThreadEntry(void* arg) {
 	TaskThread_t* thrd = (TaskThread_t*)arg;
 
@@ -116,9 +98,22 @@ TaskThread_t* currentTaskThread(void) {
 	return thrd;
 }
 
-void TaskThread_net_dispatch(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
-	TaskThread_t* thrd = (TaskThread_t*)StackCoSche_userdata(sche);
-	DispatchNetMsg_t* net_msg = (DispatchNetMsg_t*)param->value;
+void TaskThread_channel_base_detach(TaskThread_t* thrd, ChannelBase_t* channel) {
+	Session_t* session = channel->session;
+	if (thrd->on_channel_detach) {
+		thrd->on_channel_detach(thrd, channel);
+	}
+	if (session) {
+		channel->session = NULL;
+		session->channel = NULL;
+		if (session->on_disconnect) {
+			session->on_disconnect(session);
+		}
+	}
+	channelbaseCloseRef(channel);
+}
+
+void TaskThread_net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
 #ifndef NDEBUG
 	assert(thrd->net_dispatch);
 #endif

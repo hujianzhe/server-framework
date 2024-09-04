@@ -21,6 +21,8 @@ typedef void(*FnChannelOnRecv_t)(ChannelBase_t*, unsigned char*, size_t, const s
 extern "C" {
 #endif
 
+__declspec_dll void fnNetDispatchStackCoSche(struct StackCoSche_t* sche, StackCoAsyncParam_t* param);
+
 __declspec_dll ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, struct StackCoSche_t* sche);
 __declspec_dll void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec);
 __declspec_dll void defaultChannelOnDetach(ChannelBase_t* c);

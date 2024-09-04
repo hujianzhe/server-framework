@@ -113,7 +113,7 @@ static void innerchannel_recv(ChannelBase_t* c, unsigned char* bodyptr, size_t b
 			StackCoSche_resume_block_by_id(channelUserData(c)->sche, message->base.rpcid, STACK_CO_STATUS_FINISH, &async_param);
 		}
 		else {
-			StackCoSche_function(channelUserData(c)->sche, TaskThread_net_dispatch, &async_param);
+			StackCoSche_function(channelUserData(c)->sche, fnNetDispatchStackCoSche, &async_param);
 		}
 	}
 	else if (CHANNEL_SIDE_SERVER == c->side) {

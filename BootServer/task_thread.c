@@ -97,7 +97,17 @@ TaskThread_t* currentTaskThread(void) {
 	return thrd;
 }
 
-void TaskThread_exec_channel_detach(ChannelBase_t* channel) {
+void execNetDispatchOnTaskThread(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
+#ifndef NDEBUG
+	assert(thrd->net_dispatch);
+#endif
+	channelbaseAddRef(net_msg->channel);
+	thrd->net_dispatch(thrd, net_msg);
+	channelbaseCloseRef(net_msg->channel);
+	net_msg->channel = NULL;
+}
+
+void execChannelDetachOnTaskThread(ChannelBase_t* channel) {
 	Session_t* session = channel->session;
 	if (session) {
 		channel->session = NULL;
@@ -107,16 +117,6 @@ void TaskThread_exec_channel_detach(ChannelBase_t* channel) {
 		}
 	}
 	channelbaseCloseRef(channel);
-}
-
-void TaskThread_exec_net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
-#ifndef NDEBUG
-	assert(thrd->net_dispatch);
-#endif
-	channelbaseAddRef(net_msg->channel);
-	thrd->net_dispatch(thrd, net_msg);
-	channelbaseCloseRef(net_msg->channel);
-	net_msg->channel = NULL;
 }
 
 #ifdef __cplusplus

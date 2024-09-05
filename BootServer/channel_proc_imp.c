@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 static void channel_detach_wrapper(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
-	execChannelDetachOnTaskThread((ChannelBase_t*)param->value);
+	execChannelDetachOnTaskThread((NetChannel_t*)param->value);
 }
 
 #ifdef __cplusplus
@@ -23,7 +23,7 @@ ChannelUserData_t* initChannelUserData(ChannelUserData_t* ud, struct StackCoSche
 	return ud;
 }
 
-void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
+void defaultRpcOnSynAck(NetChannel_t* c, long long ts_msec) {
 	ChannelUserData_t* ud = channelUserData(c);
 	if (ud->rpc_id_syn_ack != 0) {
 		StackCoSche_resume_block_by_id(ud->sche, ud->rpc_id_syn_ack, STACK_CO_STATUS_FINISH, NULL);
@@ -31,7 +31,7 @@ void defaultRpcOnSynAck(ChannelBase_t* c, long long ts_msec) {
 	}
 }
 
-void defaultChannelOnDetach(ChannelBase_t* c) {
+void defaultChannelOnDetach(NetChannel_t* c) {
 	StackCoAsyncParam_t async_param = { 0 };
 	ChannelUserData_t* ud = channelUserData(c);
 	if (ud->rpc_id_syn_ack != 0) {

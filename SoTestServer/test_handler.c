@@ -5,7 +5,7 @@
 void reqEcho(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	InnerMsg_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, ctrl->data, ctrl->datalen);
-	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	puts("echo");
 }
 
@@ -13,7 +13,7 @@ void reqTestCallback(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	char test_data[] = "your callback is from server ^.^";
 	InnerMsg_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, test_data, sizeof(test_data));
-	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
 void reqTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
@@ -23,10 +23,10 @@ void reqTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
 
 	makeInnerMsg(&msg, CMD_NOTIFY_TEST, NULL, 0);
-	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 
 	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, test_data, sizeof(test_data));
-	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
 void reqHttpTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
@@ -47,8 +47,8 @@ void reqHttpTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	if (!reply) {
 		return;
 	}
-	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
-	channelbaseSendFin(ctrl->channel);
+	NetChannel_send(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_send_fin(ctrl->channel);
 	free(reply);
 	return;
 }
@@ -71,8 +71,8 @@ void reqSoTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	if (!reply) {
 		return;
 	}
-	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
-	channelbaseSendFin(ctrl->channel);
+	NetChannel_send(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_send_fin(ctrl->channel);
 	free(reply);
 }
 
@@ -115,8 +115,8 @@ void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 		StackCoSche_free_lock_owner(lock_owner);
 		return;
 	}
-	channelbaseSend(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
-	channelbaseSendFin(ctrl->channel);
+	NetChannel_send(ctrl->channel, reply, reply_len, NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_send_fin(ctrl->channel);
 	free(reply);
 
 	StackCoSche_unlock(thrd->sche, lock);
@@ -130,7 +130,7 @@ void reqParallelTest1(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 
 	InnerMsg_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, reply, sizeof(reply));
-	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
 void reqParallelTest2(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
@@ -140,7 +140,7 @@ void reqParallelTest2(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 
 	InnerMsg_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, reply, sizeof(reply));
-	channelbaseSendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
 void reqHttpUploadFile(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
@@ -206,7 +206,7 @@ void reqHttpUploadFile(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	if (!reply) {
 		return;
 	}
-	channelbaseSend(ctrl->channel, reply, replylen, NETPACKET_FRAGMENT, NULL, 0);
-	channelbaseSendFin(ctrl->channel);
+	NetChannel_send(ctrl->channel, reply, replylen, NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_send_fin(ctrl->channel);
 	free(reply);
 }

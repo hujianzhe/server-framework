@@ -2,7 +2,7 @@
 #include "cmd.h"
 #include "test_handler.h"
 
-void frpc_req_echo(TaskThread_t* thrd, ChannelBase_t* channel, size_t datalen) {
+void frpc_req_echo(TaskThread_t* thrd, NetChannel_t* channel, size_t datalen) {
 	size_t cnt = 0;
 	long long start_tm;
 	char* data = (char*)malloc(datalen);
@@ -19,7 +19,7 @@ void frpc_req_echo(TaskThread_t* thrd, ChannelBase_t* channel, size_t datalen) {
 			break;
 		}
 		makeInnerMsgRpcReq(&msg, co_block->id, CMD_REQ_ECHO, data, datalen);
-		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+		NetChannel_sendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 		co_block = StackCoSche_yield(thrd->sche);
 		if (StackCoSche_has_exit(thrd->sche)) {
 			long long tlen = gmtimeMillisecond() - start_tm;
@@ -54,7 +54,7 @@ static void frpc_callback(struct StackCoSche_t* sche, StackCoAsyncParam_t* param
 	printf("rpc callback ... %s\n", (const char*)param->value);
 }
 
-void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
+void frpc_test_code(TaskThread_t* thrd, NetChannel_t* channel) {
 	int i;
 	char test_data[] = "this text is from client ^.^";
 	InnerMsg_t msg;
@@ -66,14 +66,14 @@ void frpc_test_code(TaskThread_t* thrd, ChannelBase_t* channel) {
 		return;
 	}
 	makeInnerMsgRpcReq(&msg, sub_block_arr[0]->id, CMD_REQ_TEST_CALLBACK, test_data, sizeof(test_data));
-	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_sendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	//
 	sub_block_arr[1] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000, NULL);
 	if (!sub_block_arr[1]) {
 		return;
 	}
 	makeInnerMsgRpcReq(&msg, sub_block_arr[1]->id, CMD_REQ_TEST, test_data, sizeof(test_data));
-	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_sendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	//
 	for (i = 0; i < sizeof(sub_block_arr) / sizeof(sub_block_arr[0]); ++i) {
 		DispatchNetMsg_t* ret_msg;

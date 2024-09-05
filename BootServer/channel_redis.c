@@ -36,7 +36,7 @@ static void free_user_msg(DispatchBaseMsg_t* msg) {
 	freeDispatchNetMsg(msg);
 }
 
-static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
+static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
 	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
 	RedisReplyReader_feed(ud->reader, (const char*)buf, len);
 	while (1) {
@@ -104,7 +104,7 @@ static int redis_cli_on_read(ChannelBase_t* channel, unsigned char* buf, unsigne
 	return len;
 }
 
-static int redis_cli_on_pre_send(ChannelBase_t* channel, NetPacket_t* packet, long long timestamp_msec) {
+static int redis_cli_on_pre_send(NetChannel_t* channel, NetPacket_t* packet, long long timestamp_msec) {
 	int rpc_id;
 	int ret_ok;
 	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
@@ -122,17 +122,17 @@ static int redis_cli_on_pre_send(ChannelBase_t* channel, NetPacket_t* packet, lo
 	return 1;
 }
 
-static void redis_cli_on_heartbeat(ChannelBase_t* channel, int heartbeat_times) {
+static void redis_cli_on_heartbeat(NetChannel_t* channel, int heartbeat_times) {
 	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
 	int rpc_id = 0;
 	Iobuf_t iovs[2] = {
 		iobufStaticInit(ud->ping_cmd, (size_t)ud->ping_cmd_len),
 		iobufStaticInit(&rpc_id, sizeof(rpc_id))
 	};
-	channelbaseSendv(channel, iovs, 2, NETPACKET_NO_ACK_FRAGMENT, NULL, 0);
+	NetChannel_sendv(channel, iovs, 2, NETPACKET_NO_ACK_FRAGMENT, NULL, 0);
 }
 
-static void redis_cli_on_free(ChannelBase_t* channel) {
+static void redis_cli_on_free(NetChannel_t* channel) {
 	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
 	RedisReplyReader_free(ud->reader);
 	RedisCommand_free(ud->ping_cmd);
@@ -140,7 +140,7 @@ static void redis_cli_on_free(ChannelBase_t* channel) {
 	free(ud);
 }
 
-static ChannelBaseProc_t s_redis_cli_proc = {
+static NetChannelProc_t s_redis_cli_proc = {
 	NULL,
 	redis_cli_on_read,
 	NULL,
@@ -156,8 +156,8 @@ static ChannelBaseProc_t s_redis_cli_proc = {
 extern "C" {
 #endif
 
-ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnChannelRedisOnSubscribe_t on_subscribe, struct StackCoSche_t* sche) {
-	ChannelBase_t* c = NULL;
+NetChannel_t* openChannelRedisClient(const char* ip, unsigned short port, FnChannelRedisOnSubscribe_t on_subscribe, struct StackCoSche_t* sche) {
+	NetChannel_t* c = NULL;
 	ChannelUserDataRedisClient_t* ud = NULL;
 	Sockaddr_t connect_addr;
 	socklen_t connect_addrlen;
@@ -174,11 +174,11 @@ ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnCha
 	if (!init_channel_user_data_redis_cli(ud, sche)) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_SIDE_CLIENT, &s_redis_cli_proc, domain, SOCK_STREAM, 0);
+	c = NetChannel_open(NET_CHANNEL_SIDE_CLIENT, &s_redis_cli_proc, domain, SOCK_STREAM, 0);
 	if (!c) {
 		goto err;
 	}
-	channelbaseSetOperatorSockaddr(c, &connect_addr.sa, connect_addrlen);
+	NetChannel_set_operator_sockaddr(c, &connect_addr.sa, connect_addrlen);
 	ud->on_subscribe = on_subscribe;
 	channelSetUserData(c, &ud->_);
 	c->heartbeat_timeout_sec = 10;
@@ -186,11 +186,11 @@ ChannelBase_t* openChannelRedisClient(const char* ip, unsigned short port, FnCha
 	return c;
 err:
 	free(ud);
-	channelbaseCloseRef(c);
+	NetChannel_close_ref(c);
 	return NULL;
 }
 
-void channelRedisClientAsyncSendCommand(ChannelBase_t* channel, int rpc_id, const char* format, ...) {
+void channelRedisClientAsyncSendCommand(NetChannel_t* channel, int rpc_id, const char* format, ...) {
 	char* cmd;
 	int cmdlen;
 	va_list ap;
@@ -206,7 +206,7 @@ void channelRedisClientAsyncSendCommand(ChannelBase_t* channel, int rpc_id, cons
 	iobufLen(iovs + 0) = cmdlen;
 	iobufPtr(iovs + 1) = (char*)&rpc_id;
 	iobufLen(iovs + 1) = sizeof(rpc_id);
-	channelbaseSendv(channel, iovs, 2, NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_sendv(channel, iovs, 2, NETPACKET_FRAGMENT, NULL, 0);
 	RedisCommand_free(cmd);
 }
 

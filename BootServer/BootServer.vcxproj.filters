@@ -60,19 +60,7 @@
     <ClInclude Include="util\inc\component\rbtimer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\component\reactor.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\aabb.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\line_segment.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\plane.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\sphere.h">
+    <ClInclude Include="util\inc\component\net_reactor.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\crt\cXML.h">
@@ -88,12 +76,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\crt\math.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\math_vec3.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\octree.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\datastruct\arrheap.h">
@@ -198,18 +180,6 @@
     <ClInclude Include="util\inc\platform_define.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\geometry_def.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\math_quat.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\math_matrix3.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\obb.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="channel_redis.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -228,7 +198,7 @@
     <ClInclude Include="util\inc\crt\protocol\websocketframe.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\component\net_channel_rw.h">
+    <ClInclude Include="util\inc\component\net_channel_ex.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\crt\string.h">
@@ -246,16 +216,7 @@
     <ClInclude Include="util\inc\sysapi\aio.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\collision.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\polygon.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\mesh.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util\inc\crt\geometry\vertex.h">
+    <ClInclude Include="util\inc\sysapi\module.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -305,19 +266,7 @@
     <ClCompile Include="util\src\component\rbtimer.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\component\reactor.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\aabb.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\line_segment.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\plane.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\sphere.c">
+    <ClCompile Include="util\src\component\net_reactor.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\cXML.c">
@@ -333,12 +282,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\math.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\math_vec3.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\octree.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\datastruct\base64.c">
@@ -425,18 +368,6 @@
     <ClCompile Include="util\src\sysapi\time.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\crt\math_quat.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\math_matrix3.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\obb.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\collision_intersect.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="channel_redis.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -455,7 +386,7 @@
     <ClCompile Include="util\src\crt\protocol\websocketframe.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\component\net_channel_rw.c">
+    <ClCompile Include="util\src\component\net_channel_ex.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\string.c">
@@ -476,19 +407,7 @@
     <ClCompile Include="util\src\sysapi\win32_misc.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\collision_sweep.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\collision_contain.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\polygon.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\mesh.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util\src\crt\geometry\vertex.c">
+    <ClCompile Include="util\src\sysapi\module.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

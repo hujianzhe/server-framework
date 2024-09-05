@@ -4,23 +4,23 @@
 #include "test_handler.h"
 #include <stdio.h>
 
-static void reflect_websocket_on_recv(ChannelBase_t* channel, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* saddr, socklen_t addrlen) {
+static void reflect_websocket_on_recv(NetChannel_t* channel, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* saddr, socklen_t addrlen) {
 	printf("reflect_websocket_on_recv: %zu bytes\n", bodylen);
-	channelbaseSend(channel, bodyptr, bodylen, NETPACKET_FRAGMENT, saddr, addrlen);
+	NetChannel_send(channel, bodyptr, bodylen, NETPACKET_FRAGMENT, saddr, addrlen);
 }
 
-static int simply_dgram_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
+static int simply_dgram_on_read(NetChannel_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
 	IPString_t ip;
 	unsigned short port;
 	if (!sockaddrDecode(from_addr, ip, &port)) {
 		return len;
 	}
 	printf("reflect_udp_on_recv from %s:%hu, %u bytes, %s\n", ip, port, len, (char*)buf);
-	channelbaseSend(channel, buf, len, 0, from_addr, addrlen);
+	NetChannel_send(channel, buf, len, 0, from_addr, addrlen);
 	return len;
 }
 
-static ChannelBaseProc_t s_simply_udp_proc = {
+static NetChannelProc_t s_simply_udp_proc = {
 	NULL,
 	simply_dgram_on_read,
 	NULL,
@@ -32,7 +32,7 @@ static ChannelBaseProc_t s_simply_udp_proc = {
 
 void test_simply_udp_server(unsigned short port) {
 	FD_t fd;
-	ChannelBase_t* c;
+	NetChannel_t* c;
 	Sockaddr_t saddr;
 	socklen_t saddrlen = sockaddrEncode(&saddr.sa, AF_INET, NULL, 45678);
 	if (saddrlen <= 0) {
@@ -46,13 +46,13 @@ void test_simply_udp_server(unsigned short port) {
 		socketClose(fd);
 		return;
 	}
-	c = channelbaseOpenWithFD(0, &s_simply_udp_proc, fd, saddr.sa.sa_family, 0);
+	c = NetChannel_open_with_fd(0, &s_simply_udp_proc, fd, saddr.sa.sa_family, 0);
 	if (!c) {
 		socketClose(fd);
 		return;
 	}
-	channelbaseReg(selectReactor(), c);
-	channelbaseCloseRef(c);
+	NetChannel_reg(selectNetReactor(), c);
+	NetChannel_close_ref(c);
 }
 
 static void net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
@@ -65,7 +65,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	// listen extra port
 	for (i = 0; i < ptrBSG()->conf->listen_options_cnt; ++i) {
 		const ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
-		ChannelBase_t* c;
+		NetChannel_t* c;
 		if (!strcmp(option->protocol, "http")) {
 			c = openListenerHttp(option->ip, option->port, sche);
 		}
@@ -79,8 +79,8 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 			logErr(ptrBSG()->log, "listen failure, ip:%s, port:%u ......", option->ip, option->port);
 			return;
 		}
-		channelbaseReg(acceptReactor(), c);
-		channelbaseCloseRef(c);
+		NetChannel_reg(acceptNetReactor(), c);
+		NetChannel_close_ref(c);
 	}
 	// listen normal udp
 	test_simply_udp_server(45678);

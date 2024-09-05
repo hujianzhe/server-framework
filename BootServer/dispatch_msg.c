@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-DispatchNetMsg_t* newDispatchNetMsg(ChannelBase_t* channel, size_t datalen, void(*on_free)(DispatchBaseMsg_t*)) {
+DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen, void(*on_free)(DispatchBaseMsg_t*)) {
 	DispatchNetMsg_t* msg = (DispatchNetMsg_t*)malloc(sizeof(DispatchNetMsg_t) + datalen);
 	if (msg) {
 		msg->base.rpcid = 0;

@@ -4,14 +4,14 @@
 #include "test_handler.h"
 #include <stdio.h>
 
-static int start_req_login_test(ChannelBase_t* channel) {
+static int start_req_login_test(NetChannel_t* channel) {
 	InnerMsg_t msg;
 	makeInnerMsg(&msg, CMD_REQ_LOGIN_TEST, NULL, 0);
-	channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_sendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	return 1;
 }
 
-static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel) {
+static void frpc_test_paralle(struct StackCoSche_t* sche, NetChannel_t* channel) {
 	int i;
 	InnerMsg_t msg;
 	char test_data[] = "test paralle ^.^";
@@ -25,14 +25,14 @@ static void frpc_test_paralle(struct StackCoSche_t* sche, ChannelBase_t* channel
 			continue;
 		}
 		makeInnerMsgRpcReq(&msg, block->id, CMD_REQ_ParallelTest1, test_data, sizeof(test_data));
-		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+		NetChannel_sendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 
 		block = StackCoSche_block_point_util(sche, tm_msec + 1000, &group);
 		if (!block) {
 			continue;
 		}
 		makeInnerMsgRpcReq(&msg, block->id, CMD_REQ_ParallelTest2, test_data, sizeof(test_data));
-		channelbaseSendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
+		NetChannel_sendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	}
 	while (!StackCoSche_group_is_empty(&group)) {
 		DispatchNetMsg_t* ret_msg;
@@ -70,7 +70,7 @@ static void test_timer(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	}
 }
 
-static int simply_dgram_on_read(ChannelBase_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
+static int simply_dgram_on_read(NetChannel_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
 	IPString_t ip;
 	unsigned short port;
 	if (!sockaddrDecode(from_addr, ip, &port)) {
@@ -80,7 +80,7 @@ static int simply_dgram_on_read(ChannelBase_t* channel, unsigned char* buf, unsi
 	return len;
 }
 
-static ChannelBaseProc_t s_simply_udp_proc = {
+static NetChannelProc_t s_simply_udp_proc = {
 	NULL,
 	simply_dgram_on_read,
 	NULL,
@@ -92,18 +92,18 @@ static ChannelBaseProc_t s_simply_udp_proc = {
 
 void test_simply_udp_client(unsigned short port) {
 	char data[] = "udp hahahahhah.....";
-	ChannelBase_t* c;
+	NetChannel_t* c;
 	Sockaddr_t saddr;
 	socklen_t saddrlen = sockaddrEncode(&saddr.sa, AF_INET, "127.0.0.1", 45678);
 	if (saddrlen <= 0) {
 		return;
 	}
-	c = channelbaseOpen(0, &s_simply_udp_proc, saddr.sa.sa_family, SOCK_DGRAM, 0);
+	c = NetChannel_open(0, &s_simply_udp_proc, saddr.sa.sa_family, SOCK_DGRAM, 0);
 	if (!c) {
 		return;
 	}
-	channelbaseReg(selectReactor(), c);
-	channelbaseSend(c, data, sizeof(data), 0, &saddr.sa, saddrlen);
+	NetChannel_reg(selectNetReactor(), c);
+	NetChannel_send(c, data, sizeof(data), 0, &saddr.sa, saddrlen);
 }
 
 static void net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
@@ -118,10 +118,10 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	// add timer
 	// StackCoSche_timeout_util(sche, gmtimeMillisecond() / 1000 * 1000 + 1000, test_timer, NULL);
 
-	ChannelBase_t* def_c = NULL;
+	NetChannel_t* def_c = NULL;
 	for (i = 0; i < ptrBSG()->conf->connect_options_cnt; ++i) {
 		const ConfigConnectOption_t* option = ptrBSG()->conf->connect_options + i;
-		ChannelBase_t* c;
+		NetChannel_t* c;
 
 		if (strcmp(option->protocol, "default")) {
 			continue;
@@ -137,20 +137,20 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 
 		block = StackCoSche_block_point_util(sche, gmtimeMillisecond() + 5000, NULL);
 		if (!block) {
-			channelbaseCloseRef(c);
+			NetChannel_close_ref(c);
 			return;
 		}
 		channelUserData(c)->rpc_id_syn_ack = block->id;
-		channelbaseReg(selectReactor(), c);
+		NetChannel_reg(selectNetReactor(), c);
 		block = StackCoSche_yield(sche);
 		if (StackCoSche_has_exit(sche)) {
 			logErr(ptrBSG()->log, "task coroutine sche has exit...");
-			channelbaseCloseRef(c);
+			NetChannel_close_ref(c);
 			return;
 		}
 		if (block->status != STACK_CO_STATUS_FINISH) {
 			logErr(ptrBSG()->log, "channel(%p) connect %s:%u failure", c, option->ip, option->port);
-			channelbaseCloseRef(c);
+			NetChannel_close_ref(c);
 			return;
 		}
 
@@ -158,10 +158,10 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		//def_c = c;
 		frpc_test_paralle(sche, c);
 		if (!start_req_login_test(c)) {
-			channelbaseCloseRef(c);
+			NetChannel_close_ref(c);
 			return;
 		}
-		channelbaseCloseRef(c);
+		NetChannel_close_ref(c);
 	}
 	if (def_c) {
 		puts("start req echo, but not display");

@@ -101,14 +101,14 @@ void execNetDispatchOnTaskThread(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) 
 #ifndef NDEBUG
 	assert(thrd->net_dispatch);
 #endif
-	channelbaseAddRef(net_msg->channel);
+	NetChannel_add_ref(net_msg->channel);
 	thrd->net_dispatch(thrd, net_msg);
-	channelbaseCloseRef(net_msg->channel);
+	NetChannel_close_ref(net_msg->channel);
 	net_msg->channel = NULL;
 }
 
-void execChannelDetachOnTaskThread(ChannelBase_t* channel) {
-	Session_t* session = channel->session;
+void execChannelDetachOnTaskThread(NetChannel_t* channel) {
+	NetSession_t* session = channel->session;
 	if (session) {
 		channel->session = NULL;
 		session->channel = NULL;
@@ -116,7 +116,7 @@ void execChannelDetachOnTaskThread(ChannelBase_t* channel) {
 			session->on_disconnect(session);
 		}
 	}
-	channelbaseCloseRef(channel);
+	NetChannel_close_ref(channel);
 }
 
 #ifdef __cplusplus

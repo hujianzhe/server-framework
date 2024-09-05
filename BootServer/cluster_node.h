@@ -1,7 +1,7 @@
 #ifndef BOOT_SERVER_CLUSTER_NODE_H
 #define	BOOT_SERVER_CLUSTER_NODE_H
 
-#include "util/inc/component/reactor.h"
+#include "util/inc/component/net_reactor.h"
 
 enum {
 	CLSND_STATUS_NORMAL = 0,
@@ -9,7 +9,7 @@ enum {
 };
 
 typedef struct ClusterNode_t {
-	Session_t session;
+	NetSession_t session;
 	HashtableNode_t m_ident_htnode;
 	const char* ident;
 	int socktype;
@@ -27,7 +27,7 @@ extern "C" {
 
 __declspec_dll ClusterNode_t* ClusterNode_constructor(ClusterNode_t* clsnd, const char* ident, int socktype, const IPString_t ip, unsigned short port);
 __declspec_dll void ClusterNode_destructor(ClusterNode_t* clsnd);
-__declspec_dll ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd);
+__declspec_dll NetChannel_t* connectClusterNode(ClusterNode_t* clsnd);
 __declspec_dll int clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt);
 
 #ifdef __cplusplus

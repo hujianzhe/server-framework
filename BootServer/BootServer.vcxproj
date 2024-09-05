@@ -100,7 +100,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;BOOTSERVER_EXPORTS;DECLSPEC_DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;DECLSPEC_DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -132,7 +132,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;BOOTSERVER_EXPORTS;DECLSPEC_DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;DECLSPEC_DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -157,13 +157,13 @@
     <ClInclude Include="task_thread.h" />
     <ClInclude Include="util\inc\all.h" />
     <ClInclude Include="util\inc\compiler_define.h" />
-    <ClInclude Include="util\inc\component\net_channel_rw.h" />
+    <ClInclude Include="util\inc\component\net_channel_ex.h" />
     <ClInclude Include="util\inc\component\dataqueue.h" />
     <ClInclude Include="util\inc\component\log.h" />
     <ClInclude Include="util\inc\component\memheap_mt.h" />
     <ClInclude Include="util\inc\component\memref.h" />
     <ClInclude Include="util\inc\component\rbtimer.h" />
-    <ClInclude Include="util\inc\component\reactor.h" />
+    <ClInclude Include="util\inc\component\net_reactor.h" />
     <ClInclude Include="util\inc\component\stack_co_sche.h" />
     <ClInclude Include="util\inc\component\switch_co_sche.h" />
     <ClInclude Include="util\inc\crt\cXML.h" />
@@ -199,6 +199,7 @@
     <ClInclude Include="util\inc\sysapi\atomic.h" />
     <ClInclude Include="util\inc\sysapi\error.h" />
     <ClInclude Include="util\inc\sysapi\file.h" />
+    <ClInclude Include="util\inc\sysapi\module.h" />
     <ClInclude Include="util\inc\sysapi\nio.h" />
     <ClInclude Include="util\inc\sysapi\io_overlapped.h" />
     <ClInclude Include="util\inc\sysapi\ipc.h" />
@@ -224,13 +225,13 @@
     <ClCompile Include="inner_msg_struct.c" />
     <ClCompile Include="net_thread.c" />
     <ClCompile Include="task_thread.c" />
-    <ClCompile Include="util\src\component\net_channel_rw.c" />
+    <ClCompile Include="util\src\component\net_channel_ex.c" />
     <ClCompile Include="util\src\component\dataqueue.c" />
     <ClCompile Include="util\src\component\log.c" />
     <ClCompile Include="util\src\component\memheap_mt.c" />
     <ClCompile Include="util\src\component\memref.c" />
     <ClCompile Include="util\src\component\rbtimer.c" />
-    <ClCompile Include="util\src\component\reactor.c" />
+    <ClCompile Include="util\src\component\net_reactor.c" />
     <ClCompile Include="util\src\component\stack_co_sche.c" />
     <ClCompile Include="util\src\component\switch_co_sche.c" />
     <ClCompile Include="util\src\crt\cXML.c" />
@@ -262,6 +263,7 @@
     <ClCompile Include="util\src\sysapi\aio.c" />
     <ClCompile Include="util\src\sysapi\error.c" />
     <ClCompile Include="util\src\sysapi\file.c" />
+    <ClCompile Include="util\src\sysapi\module.c" />
     <ClCompile Include="util\src\sysapi\nio.c" />
     <ClCompile Include="util\src\sysapi\io_overlapped.c" />
     <ClCompile Include="util\src\sysapi\ipc.c" />

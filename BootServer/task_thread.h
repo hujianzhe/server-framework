@@ -4,7 +4,7 @@
 #include "util/inc/component/stack_co_sche.h"
 #include "util/inc/datastruct/random.h"
 
-struct ChannelBase_t;
+struct NetChannel_t;
 struct DispatchNetMsg_t;
 
 typedef struct TaskThread_t {
@@ -26,7 +26,7 @@ __declspec_dll void freeTaskThread(TaskThread_t* t);
 
 __declspec_dll TaskThread_t* currentTaskThread(void);
 __declspec_dll void execNetDispatchOnTaskThread(TaskThread_t* thrd, DispatchNetMsg_t* net_msg);
-__declspec_dll void execChannelDetachOnTaskThread(ChannelBase_t* channel);
+__declspec_dll void execChannelDetachOnTaskThread(NetChannel_t* channel);
 
 #ifdef __cplusplus
 }

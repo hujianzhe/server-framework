@@ -18,7 +18,7 @@ static void free_user_msg(DispatchBaseMsg_t* msg) {
 	freeDispatchNetMsg(msg);
 }
 
-static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
+static void httpframe_recv(NetChannel_t* c, HttpFrame_t* httpframe, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
 	ChannelUserDataHttp_t* ud;
 	DispatchCallback_t callback;
 	DispatchNetMsg_t* message;
@@ -59,7 +59,7 @@ static void httpframe_recv(ChannelBase_t* c, HttpFrame_t* httpframe, unsigned ch
 	}
 }
 
-static int httpframe_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int buflen, long long timestamp_msec, const struct sockaddr* addr, socklen_t addrlen) {
+static int httpframe_on_read(NetChannel_t* c, unsigned char* buf, unsigned int buflen, long long timestamp_msec, const struct sockaddr* addr, socklen_t addrlen) {
 	int res;
 	unsigned int content_length;
 	HttpFrame_t* frame = (HttpFrame_t*)malloc(sizeof(HttpFrame_t));
@@ -103,12 +103,12 @@ static int httpframe_on_read(ChannelBase_t* c, unsigned char* buf, unsigned int 
 	return res + content_length;
 }
 
-static void http_channel_on_free(ChannelBase_t* c) {
+static void http_channel_on_free(NetChannel_t* c) {
 	ChannelUserDataHttp_t* ud = (ChannelUserDataHttp_t*)channelUserData(c);
 	free(ud);
 }
 
-static ChannelBaseProc_t s_http_proc = {
+static NetChannelProc_t s_http_proc = {
 	NULL,
 	httpframe_on_read,
 	NULL,
@@ -118,11 +118,11 @@ static ChannelBaseProc_t s_http_proc = {
 	http_channel_on_free
 };
 
-static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
-	ChannelBase_t* c = NULL;
+static void http_accept_callback(NetChannel_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
+	NetChannel_t* c = NULL;
 	ChannelUserDataHttp_t* ud = NULL;
 
-	c = channelbaseOpenWithFD(CHANNEL_SIDE_SERVER, &s_http_proc, newfd, peer_addr->sa_family, 0);
+	c = NetChannel_open_with_fd(NET_CHANNEL_SIDE_SERVER, &s_http_proc, newfd, peer_addr->sa_family, 0);
 	if (!c) {
 		socketClose(newfd);
 		goto err;
@@ -133,23 +133,23 @@ static void http_accept_callback(ChannelBase_t* listen_c, FD_t newfd, const stru
 	}
 	channelSetUserData(c, init_channel_user_data_http(ud, channelUserData(listen_c)->sche));
 	c->heartbeat_timeout_sec = 20;
-	channelbaseReg(selectReactor(), c);
-	channelbaseCloseRef(c);
+	NetChannel_reg(selectNetReactor(), c);
+	NetChannel_close_ref(c);
 	return;
 err:
 	free(ud);
-	channelbaseCloseRef(c);
+	NetChannel_close_ref(c);
 }
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-ChannelBase_t* openChannelHttpClient(const char* ip, unsigned short port, struct StackCoSche_t* sche) {
+NetChannel_t* openChannelHttpClient(const char* ip, unsigned short port, struct StackCoSche_t* sche) {
 	Sockaddr_t connect_saddr;
 	socklen_t connect_saddrlen;
 	ChannelUserDataHttp_t* ud = NULL;
-	ChannelBase_t* c = NULL;
+	NetChannel_t* c = NULL;
 	int domain = ipstrFamily(ip);
 
 	connect_saddrlen = sockaddrEncode(&connect_saddr.sa, domain, ip, port);
@@ -160,11 +160,11 @@ ChannelBase_t* openChannelHttpClient(const char* ip, unsigned short port, struct
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_SIDE_CLIENT, &s_http_proc, domain, SOCK_STREAM, 0);
+	c = NetChannel_open(NET_CHANNEL_SIDE_CLIENT, &s_http_proc, domain, SOCK_STREAM, 0);
 	if (!c) {
 		goto err;
 	}
-	if (!channelbaseSetOperatorSockaddr(c, &connect_saddr.sa, connect_saddrlen)) {
+	if (!NetChannel_set_operator_sockaddr(c, &connect_saddr.sa, connect_saddrlen)) {
 		goto err;
 	}
 	channelSetUserData(c, init_channel_user_data_http(ud, sche));
@@ -172,14 +172,14 @@ ChannelBase_t* openChannelHttpClient(const char* ip, unsigned short port, struct
 	return c;
 err:
 	free(ud);
-	channelbaseCloseRef(c);
+	NetChannel_close_ref(c);
 	return NULL;
 }
 
-ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct StackCoSche_t* sche) {
+NetChannel_t* openListenerHttp(const char* ip, unsigned short port, struct StackCoSche_t* sche) {
 	Sockaddr_t listen_saddr;
 	socklen_t listen_saddrlen;
-	ChannelBase_t* c = NULL;
+	NetChannel_t* c = NULL;
 	ChannelUserDataHttp_t* ud = NULL;
 	int domain = ipstrFamily(ip);
 
@@ -191,11 +191,11 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Stac
 	if (!ud) {
 		goto err;
 	}
-	c = channelbaseOpen(CHANNEL_SIDE_LISTEN, &s_http_proc, domain, SOCK_STREAM, 0);
+	c = NetChannel_open(NET_CHANNEL_SIDE_LISTEN, &s_http_proc, domain, SOCK_STREAM, 0);
 	if (!c) {
 		goto err;
 	}
-	if (!channelbaseSetOperatorSockaddr(c, &listen_saddr.sa, listen_saddrlen)) {
+	if (!NetChannel_set_operator_sockaddr(c, &listen_saddr.sa, listen_saddrlen)) {
 		goto err;
 	}
 	c->on_ack_halfconn = http_accept_callback;
@@ -203,7 +203,7 @@ ChannelBase_t* openListenerHttp(const char* ip, unsigned short port, struct Stac
 	return c;
 err:
 	free(ud);
-	channelbaseCloseRef(c);
+	NetChannel_close_ref(c);
 	return NULL;
 }
 

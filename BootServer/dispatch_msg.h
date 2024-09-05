@@ -1,7 +1,7 @@
 #ifndef BOOT_SERVER_DISPATCH_MSG_H
 #define BOOT_SERVER_DISPATCH_MSG_H
 
-#include "util/inc/component/reactor.h"
+#include "util/inc/component/net_reactor.h"
 
 typedef struct DispatchBaseMsg_t {
 	int rpcid;
@@ -20,7 +20,7 @@ typedef struct DispatchNetMsg_t {
 	} param;
 	long long enqueue_time_msec;
 	DispatchCallback_t callback;
-	ChannelBase_t* channel;
+	NetChannel_t* channel;
 	Sockaddr_t peer_addr;
 	socklen_t peer_addrlen;
 	int retcode;
@@ -32,7 +32,7 @@ typedef struct DispatchNetMsg_t {
 extern "C" {
 #endif
 
-__declspec_dll DispatchNetMsg_t* newDispatchNetMsg(ChannelBase_t* channel, size_t datalen, void(*on_free)(DispatchBaseMsg_t*));
+__declspec_dll DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen, void(*on_free)(DispatchBaseMsg_t*));
 __declspec_dll void freeDispatchNetMsg(DispatchBaseMsg_t* msg);
 
 #ifdef __cplusplus

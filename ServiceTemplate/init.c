@@ -12,7 +12,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	// listen extra port
 	for (i = 0; i < ptrBSG()->conf->listen_options_cnt; ++i) {
 		const ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
-		ChannelBase_t* c;
+		NetChannel_t* c;
 		if (!strcmp(option->protocol, "http")) {
 			c = openListenerHttp(option->ip, option->port, sche);
 		}
@@ -23,8 +23,8 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 			logErr(ptrBSG()->log, "listen failure, ip:%s, port:%u ......", option->ip, option->port);
 			return;
 		}
-		channelbaseReg(acceptReactor(), c);
-		channelbaseCloseRef(c);
+		NetChannel_reg(acceptNetReactor(), c);
+		NetChannel_close_ref(c);
 	}
 
 	logInfo(ptrBSG()->log, "init ok ......");

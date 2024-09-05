@@ -21,7 +21,7 @@ ClusterNode_t* ClusterNode_constructor(ClusterNode_t* clsnd, const char* ident, 
 	clsnd->status = CLSND_STATUS_NORMAL;
 	clsnd->factor = 0;
 
-	sessionInit(&clsnd->session);
+	NetSession_init(&clsnd->session);
 	return clsnd;
 }
 
@@ -30,7 +30,7 @@ void ClusterNode_destructor(ClusterNode_t* clsnd) {
 }
 
 int clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt) {
-	ChannelBase_t* c;
+	NetChannel_t* c;
 	if (0 == strcmp(clsnd->ident, ptrBSG()->conf->clsnd.ident)) {
 		return 0;
 	}
@@ -38,13 +38,13 @@ int clsndSendv(ClusterNode_t* clsnd, const Iobuf_t iov[], unsigned int iovcnt) {
 	if (!c) {
 		return 0;
 	}
-	channelbaseSendv(c, iov, iovcnt, NETPACKET_FRAGMENT, NULL, 0);
+	NetChannel_sendv(c, iov, iovcnt, NETPACKET_FRAGMENT, NULL, 0);
 	return 1;
 }
 
-ChannelBase_t* connectClusterNode(ClusterNode_t* clsnd) {
-	ChannelBase_t* channel;
-	Session_t* session;
+NetChannel_t* connectClusterNode(ClusterNode_t* clsnd) {
+	NetChannel_t* channel;
+	NetSession_t* session;
 	const char* self_ident = ptrBSG()->conf->clsnd.ident;
 	if (0 == strcmp(clsnd->ident, self_ident)) {
 		return NULL;

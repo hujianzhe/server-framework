@@ -1,53 +1,53 @@
 #include "global.h"
 #include "net_thread.h"
 
-static struct Reactor_t** s_Reactors;
-static size_t s_ReactorCnt;
-static Thread_t* s_reactorThreads;
-static size_t s_BootReactorThreadCnt;
+static struct NetReactor_t** s_NetReactors;
+static size_t s_NetReactorCnt;
+static Thread_t* s_NetThreads;
+static size_t s_BootNetThreadCnt;
 
 int newNetThreadResource(unsigned int cnt) {
 	int i;
 	if (!networkSetupEnv()) {
 		return 0;
 	}
-	s_Reactors = (struct Reactor_t**)malloc(sizeof(*s_Reactors) * (cnt + 1));
-	if (!s_Reactors) {
+	s_NetReactors = (struct NetReactor_t**)malloc(sizeof(*s_NetReactors) * (cnt + 1));
+	if (!s_NetReactors) {
 		return 0;
 	}
 	for (i = 0; i < cnt + 1; ++i) {
-		s_Reactors[i] = reactorCreate();
-		if (!s_Reactors[i]) {
+		s_NetReactors[i] = NetReactor_create();
+		if (!s_NetReactors[i]) {
 			break;
 		}
 	}
 	if (i != cnt + 1) {
 		while (i) {
-			reactorDestroy(s_Reactors[--i]);
+			NetReactor_destroy(s_NetReactors[--i]);
 		}
-		free(s_Reactors);
-		s_Reactors = NULL;
+		free(s_NetReactors);
+		s_NetReactors = NULL;
 		return 0;
 	}
-	s_ReactorCnt = cnt;
+	s_NetReactorCnt = cnt;
 	return 1;
 }
 
 void freeNetThreadResource(void) {
-	if (s_Reactors) {
+	if (s_NetReactors) {
 		int i;
-		for (i = 0; i < s_ReactorCnt + 1; ++i) {
-			reactorDestroy(s_Reactors[i]);
+		for (i = 0; i < s_NetReactorCnt + 1; ++i) {
+			NetReactor_destroy(s_NetReactors[i]);
 		}
-		free(s_Reactors);
-		s_Reactors = NULL;
-		s_ReactorCnt = 0;
+		free(s_NetReactors);
+		s_NetReactors = NULL;
+		s_NetReactorCnt = 0;
 	}
 	networkCleanEnv();
 }
 
-static unsigned int reactorThreadEntry(void* arg) {
-	struct Reactor_t* reactor;
+static unsigned int net_thread_entry(void* arg) {
+	struct NetReactor_t* reactor;
 	NioEv_t* ev;
 	int res = 0;
 	const size_t ev_cnt = 4096;
@@ -56,10 +56,10 @@ static unsigned int reactorThreadEntry(void* arg) {
 	if (!ev) {
 		return 0;
 	}
-	reactor = (struct Reactor_t*)arg;
+	reactor = (struct NetReactor_t*)arg;
 
 	while (ptrBSG()->valid) {
-		res = reactorHandle(reactor, ev, ev_cnt, -1);
+		res = NetReactor_handle(reactor, ev, ev_cnt, -1);
 		if (res < 0) {
 			break;
 		}
@@ -70,47 +70,47 @@ static unsigned int reactorThreadEntry(void* arg) {
 
 BOOL runNetThreads(void) {
 	int i;
-	s_reactorThreads = (Thread_t*)malloc(sizeof(*s_reactorThreads) * (s_ReactorCnt + 1));
-	if (!s_reactorThreads) {
+	s_NetThreads = (Thread_t*)malloc(sizeof(*s_NetThreads) * (s_NetReactorCnt + 1));
+	if (!s_NetThreads) {
 		return FALSE;
 	}
-	for (i = 0; i < s_ReactorCnt + 1; ++i) {
-		if (!threadCreate(s_reactorThreads + i, reactorThreadEntry, s_Reactors[i])) {
+	for (i = 0; i < s_NetReactorCnt + 1; ++i) {
+		if (!threadCreate(s_NetThreads + i, net_thread_entry, s_NetReactors[i])) {
 			break;
 		}
 	}
-	s_BootReactorThreadCnt = i;
-	return i == s_ReactorCnt + 1;
+	s_BootNetThreadCnt = i;
+	return i == s_NetReactorCnt + 1;
 }
 
 void wakeupNetThreads(void) {
 	int i;
-	for (i = 0; i < s_ReactorCnt + 1; ++i) {
-		reactorWake(s_Reactors[i]);
+	for (i = 0; i < s_NetReactorCnt + 1; ++i) {
+		NetReactor_wake(s_NetReactors[i]);
 	}
 }
 
 void joinNetThreads(void) {
-	if (!s_reactorThreads) {
+	if (!s_NetThreads) {
 		return;
 	}
-	while (s_BootReactorThreadCnt) {
-		threadJoin(s_reactorThreads[--s_BootReactorThreadCnt], NULL);
+	while (s_BootNetThreadCnt) {
+		threadJoin(s_NetThreads[--s_BootNetThreadCnt], NULL);
 	}
-	free(s_reactorThreads);
-	s_reactorThreads = NULL;
+	free(s_NetThreads);
+	s_NetThreads = NULL;
 }
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct Reactor_t* acceptReactor(void) { return s_Reactors[s_ReactorCnt]; }
-struct Reactor_t* targetReactor(size_t key) { return s_Reactors[key % s_ReactorCnt]; }
-struct Reactor_t* selectReactor(void) {
+struct NetReactor_t* acceptNetReactor(void) { return s_NetReactors[s_NetReactorCnt]; }
+struct NetReactor_t* targetNetReactor(size_t key) { return s_NetReactors[key % s_NetReactorCnt]; }
+struct NetReactor_t* selectNetReactor(void) {
 	static Atom32_t num = 0;
 	unsigned int i = _xadd32(&num, 1);
-	return s_Reactors[i % s_ReactorCnt];
+	return s_NetReactors[i % s_NetReactorCnt];
 }
 
 #ifdef __cplusplus

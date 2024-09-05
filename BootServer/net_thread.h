@@ -1,7 +1,7 @@
 #ifndef BOOT_SERVER_NET_THREAD_H
 #define	BOOT_SERVER_NET_THREAD_H
 
-#include "util/inc/component/reactor.h"
+#include "util/inc/component/net_reactor.h"
 
 int newNetThreadResource(unsigned int cnt);
 void freeNetThreadResource(void);
@@ -13,9 +13,9 @@ void joinNetThreads(void);
 extern "C" {
 #endif
 
-__declspec_dll struct Reactor_t* acceptReactor(void);
-__declspec_dll struct Reactor_t* targetReactor(size_t key);
-__declspec_dll struct Reactor_t* selectReactor(void);
+__declspec_dll struct NetReactor_t* acceptNetReactor(void);
+__declspec_dll struct NetReactor_t* targetNetReactor(size_t key);
+__declspec_dll struct NetReactor_t* selectNetReactor(void);
 
 #ifdef __cplusplus
 }

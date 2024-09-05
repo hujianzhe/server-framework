@@ -51,13 +51,13 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv) {
 	// listen self cluster node port, if needed
 	listen_opt = &s_Config.clsnd.listen_option;
 	if (!strcmp(listen_opt->protocol, "default")) {
-		ChannelBase_t* c = openListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, s_BSG.default_task_thread->sche);
+		NetChannel_t* c = openListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, s_BSG.default_task_thread->sche);
 		if (!c) {
 			s_BSG.errmsg = strFormat(NULL, "listen self cluster node err, ip:%s, port:%u\n", listen_opt->ip, listen_opt->port);
 			return FALSE;
 		}
-		channelbaseReg(acceptReactor(), c);
-		channelbaseCloseRef(c);
+		NetChannel_reg(acceptNetReactor(), c);
+		NetChannel_close_ref(c);
 	}
 	// init ok
 	s_BSG.valid = 1;

@@ -83,31 +83,40 @@ static unsigned int signal_thread_entry(void* arg) {
 }
 
 BOOL runBootServerGlobal(void) {
+	BOOL retbool = FALSE;
+	int sig_ok = 0;
+	int task_ok = 0;
 	/* run signal thread */
 	if (s_BSG.sig_proc) {
 		if (!threadCreate(&s_BSG.sig_tid, signal_thread_entry, NULL)) {
 			s_BSG.errmsg = strFormat(NULL, "signal handle thread boot failure\n");
-			return FALSE;
+			goto end;
 		}
+		sig_ok = 1;
 	}
 	/* run task thread */
 	if (!runTaskThread(s_BSG.default_task_thread)) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread boot failure\n");
-		return FALSE;
+		goto end;
 	}
+	task_ok = 1;
 	/* run net thread */
 	if (!runNetThreads()) {
 		s_BSG.errmsg = strFormat(NULL, "net thread boot failure\n");
-		return FALSE;
+		goto end;
 	}
 	/* wait thread exit */
-	threadJoin(s_BSG.default_task_thread->tid, NULL);
+	retbool = TRUE;
+end:
+	if (task_ok) {
+		threadJoin(s_BSG.default_task_thread->tid, NULL);
+	}
 	s_BSG.valid = 0;
 	joinNetThreads();
-	if (s_BSG.sig_proc) {
+	if (sig_ok) {
 		threadJoin(s_BSG.sig_tid, NULL);
 	}
-	return TRUE;
+	return retbool;
 }
 
 void stopBootServerGlobal(void) {

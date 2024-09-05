@@ -49,11 +49,17 @@ static ConfigConnectOption_t* parse_connect_option(cJSON* cjson, ConfigConnectOp
 	return parse_listen_option(cjson, option_ptr);
 }
 
-Config_t* initConfig(const char* path, Config_t* conf) {
+BootServerConfig_t* parseBootServerConfig(const char* path) {
+	BootServerConfig_t* conf;
 	cJSON* cjson;
 	cJSON *ident;
 	cJSON* root = cJSON_FromFile(path);
 	if (!root) {
+		return NULL;
+	}
+	conf = (BootServerConfig_t*)calloc(1, sizeof(BootServerConfig_t));
+	if (!conf) {
+		cJSON_Delete(root);
 		return NULL;
 	}
 	conf->cjson_root = root;
@@ -211,37 +217,29 @@ Config_t* initConfig(const char* path, Config_t* conf) {
 
 	return conf;
 err:
-	resetConfig(conf);
+	freeBootServerConfig(conf);
 	return NULL;
 }
 
-void resetConfig(Config_t* conf) {
+void freeBootServerConfig(BootServerConfig_t* conf) {
 	unsigned int i;
+	if (!conf) {
+		return;
+	}
 	for (i = 0; i < conf->listen_options_cnt; ++i) {
 		free((char*)conf->listen_options[i].protocol);
 	}
 	free((void*)conf->listen_options);
-	conf->listen_options = NULL;
-	conf->listen_options_cnt = 0;
-
 	for (i = 0; i < conf->connect_options_cnt; ++i) {
 		free((char*)conf->connect_options[i].protocol);
 	}
 	free((void*)conf->connect_options);
-	conf->connect_options = NULL;
-	conf->connect_options_cnt = 0;
-
 	free((char*)conf->clsnd.listen_option.protocol);
-	conf->clsnd.listen_option.protocol = NULL;
 	free((char*)conf->clsnd.ident);
-	conf->clsnd.ident = NULL;
 	free((char*)conf->log.pathname);
-	conf->log.pathname = NULL;
 	free((char*)conf->cluster_table_path);
-	conf->cluster_table_path = NULL;
-	conf->outer_ip[0] = 0;
 	cJSON_Delete(conf->cjson_root);
-	conf->cjson_root = NULL;
+	free(conf);
 }
 
 #ifdef __cplusplus

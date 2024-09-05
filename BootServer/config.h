@@ -12,7 +12,7 @@ typedef struct {
 } ConfigListenOption_t, ConfigConnectOption_t;
 
 struct cJSON;
-typedef struct Config_t {
+typedef struct BootServerConfig_t {
 	const ConfigListenOption_t* listen_options;
 	unsigned int listen_options_cnt;
 	const ConfigConnectOption_t* connect_options;
@@ -36,14 +36,14 @@ typedef struct Config_t {
 	int udp_cwndsize;
 	int enqueue_timeout_msec;
 	struct cJSON* cjson_root;
-} Config_t;
+} BootServerConfig_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-Config_t* initConfig(const char* path, Config_t* conf);
-void resetConfig(Config_t* conf);
+__declspec_dll BootServerConfig_t* parseBootServerConfig(const char* path);
+__declspec_dll void freeBootServerConfig(BootServerConfig_t* conf);
 
 #ifdef __cplusplus
 }

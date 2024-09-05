@@ -21,7 +21,7 @@ typedef struct BootServerGlobal_t {
 	char** argv;
 	volatile int valid;
 	struct Log_t* log;
-	const Config_t* conf;
+	const BootServerConfig_t* conf;
 	TaskThread_t* default_task_thread;
 	const char* errmsg;
 	struct Dispatch_t* dispatch;
@@ -37,7 +37,7 @@ extern "C" {
 __declspec_dll BootServerGlobal_t* ptrBSG(void);
 __declspec_dll const char* getBSGErrmsg(void);
 
-__declspec_dll BOOL initBootServerGlobal(const char* conf_path);
+__declspec_dll BOOL initBootServerGlobal(const BootServerConfig_t* conf);
 __declspec_dll void printBootServerNodeInfo(void);
 __declspec_dll BOOL runBootServerGlobal(void);
 __declspec_dll void stopBootServerGlobal(void);

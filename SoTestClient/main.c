@@ -23,12 +23,19 @@ static void sig_proc(int signo) {
 
 int main(int argc, char** argv) {
 	int ret;
+	BootServerConfig_t* bs_conf;
 	if (argc < 2) {
 		fputs("need a config file to boot ...", stderr);
 		return 1;
 	}
+	/* parse config file */
+	bs_conf = parseBootServerConfig(argv[1]);
+	if (!bs_conf) {
+		fputs("parseBootServerConfig error", stderr);
+		return 1;
+	}
 	/* init BootServer object */
-	if (!initBootServerGlobal(argv[1])) {
+	if (!initBootServerGlobal(bs_conf)) {
 		fprintf(stderr, "initBootServerGlobal err:%s\n", getBSGErrmsg());
 		return 1;
 	}

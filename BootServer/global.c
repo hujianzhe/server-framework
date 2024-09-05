@@ -1,6 +1,5 @@
 #include "global.h"
 
-static Config_t s_Config;
 static BootServerGlobal_t s_BSG, *s_PtrBSG;
 
 #ifdef __cplusplus
@@ -10,27 +9,22 @@ extern "C" {
 BootServerGlobal_t* ptrBSG(void) { return s_PtrBSG; }
 const char* getBSGErrmsg(void) { return s_BSG.errmsg ? s_BSG.errmsg : ""; }
 
-BOOL initBootServerGlobal(const char* conf_path) {
-	ConfigListenOption_t* listen_opt;
+BOOL initBootServerGlobal(const BootServerConfig_t* conf) {
+	const ConfigListenOption_t* listen_opt;
 
 	if (s_PtrBSG) {
 		return TRUE;
 	}
+	s_BSG.conf = conf;
 	s_BSG.net_sche_hook = getNetScheHookStackCo();
-	/* load config */
-	if (!initConfig(conf_path, &s_Config)) {
-		s_BSG.errmsg = strFormat(NULL, "initConfig(%s) error\n", conf_path);
-		return FALSE;
-	}
-	s_BSG.conf = &s_Config;
 	/* init log */
-	s_BSG.log = logOpen(s_Config.log.maxfilesize, s_Config.log.pathname);
+	s_BSG.log = logOpen(conf->log.maxfilesize, conf->log.pathname);
 	if (!s_BSG.log) {
-		s_BSG.errmsg = strFormat(NULL, "logInit(%s) error\n", s_Config.log.pathname);
+		s_BSG.errmsg = strFormat(NULL, "logInit(%s) error\n", conf->log.pathname);
 		return FALSE;
 	}
 	/* init net thread resource */
-	if (!newNetThreadResource(s_Config.net_thread_cnt)) {
+	if (!newNetThreadResource(conf->net_thread_cnt)) {
 		s_BSG.errmsg = strFormat(NULL, "net thread resource create failure\n");
 		return FALSE;
 	}
@@ -41,13 +35,13 @@ BOOL initBootServerGlobal(const char* conf_path) {
 		return FALSE;
 	}
 	/* init task thread */
-	s_BSG.default_task_thread = newTaskThreadStackCo(s_Config.rpc_fiber_stack_size);
+	s_BSG.default_task_thread = newTaskThreadStackCo(conf->rpc_fiber_stack_size);
 	if (!s_BSG.default_task_thread) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread create failure\n");
 		return FALSE;
 	}
 	/* listen self cluster node port, if needed */
-	listen_opt = &s_Config.clsnd.listen_option;
+	listen_opt = &conf->clsnd.listen_option;
 	if (!strcmp(listen_opt->protocol, "default")) {
 		NetChannel_t* c = openNetListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, s_BSG.default_task_thread->sche);
 		if (!c) {
@@ -64,10 +58,10 @@ BOOL initBootServerGlobal(const char* conf_path) {
 }
 
 void printBootServerNodeInfo(void) {
-	ConfigListenOption_t* listen_opt = &s_Config.clsnd.listen_option;
+	const ConfigListenOption_t* listen_opt = &s_BSG.conf->clsnd.listen_option;
 
 	fprintf(stderr, "server boot, clsnd_ident:%s, socktype:%s, ip:%s, port:%u, pid:%zu\n",
-		s_Config.clsnd.ident, if_socktype2string(listen_opt->socktype),
+		s_BSG.conf->clsnd.ident, if_socktype2string(listen_opt->socktype),
 		listen_opt->ip, listen_opt->port, processId());
 }
 
@@ -144,7 +138,7 @@ void freeBootServerGlobal(void) {
 		s_BSG.log = NULL;
 	}
 	if (s_BSG.conf) {
-		resetConfig((Config_t*)s_BSG.conf);
+		freeBootServerConfig((BootServerConfig_t*)s_BSG.conf);
 		s_BSG.conf = NULL;
 	}
 	freeNetThreadResource();

@@ -67,10 +67,10 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		const ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
 		NetChannel_t* c;
 		if (!strcmp(option->protocol, "http")) {
-			c = openListenerHttp(option->ip, option->port, sche);
+			c = openNetListenerHttp(option->ip, option->port, sche);
 		}
 		else if (!strcmp(option->protocol, "websocket")) {
-			c = openListenerWebsocket(option->ip, option->port, reflect_websocket_on_recv, sche);
+			c = openNetListenerWebsocket(option->ip, option->port, reflect_websocket_on_recv, sche);
 		}
 		else {
 			continue;
@@ -87,6 +87,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 }
 
 int init(void) {
+	TaskThreadStackCo_t* default_task_thread = (TaskThreadStackCo_t*)ptrBSG()->default_task_thread;
 	// register dispatch
 	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_TEST, reqTest);
 	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_TEST_CALLBACK, reqTestCallback);
@@ -99,7 +100,7 @@ int init(void) {
 	regStringDispatch(ptrBSG()->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);
 	regStringDispatch(ptrBSG()->dispatch, "/reqTestExecQueue", reqTestExecQueue);
 
-	ptrBSG()->default_task_thread->net_dispatch = net_dispatch;
-	StackCoSche_function(ptrBSG()->default_task_thread->sche, run, NULL);
+	default_task_thread->net_dispatch = net_dispatch;
+	StackCoSche_function(default_task_thread->_.sche, run, NULL);
 	return 0;
 }

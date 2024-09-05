@@ -3,13 +3,23 @@
 #include "task_thread.h"
 #include <stdio.h>
 
-static unsigned int taskThreadEntry(void* arg) {
-	TaskThread_t* thrd = (TaskThread_t*)arg;
-
-	while (0 == StackCoSche_sche(thrd->sche, -1));
-
+static unsigned int task_thread_stack_co_entry(void* arg) {
+	TaskThread_t* t = (TaskThread_t*)arg;
+	while (0 == StackCoSche_sche(t->sche, -1));
 	return 0;
 }
+
+static void task_thread_stack_co_exit(TaskThread_t* t) {
+	StackCoSche_exit(t->sche);
+}
+
+static void task_thread_stack_co_deleter(TaskThread_t* t) {
+	TaskThreadStackCo_t* thrd = pod_container_of(t, TaskThreadStackCo_t, _);
+	StackCoSche_destroy(thrd->_.sche);
+	free(thrd);
+}
+
+/**************************************************************************************/
 
 static DynArr_t(TaskThread_t*) s_allTaskThreads;
 static Atom32_t s_allTaskThreadsSpinLock;
@@ -38,44 +48,48 @@ static void __remove_task_thread(TaskThread_t* t) {
 extern "C" {
 #endif
 
-TaskThread_t* newTaskThread(size_t co_stack_size) {
+TaskThread_t* newTaskThreadStackCo(size_t co_stack_size) {
 	int sche_ok = 0, seedval;
-	TaskThread_t* t = (TaskThread_t*)malloc(sizeof(TaskThread_t));
-	if (!t) {
+	TaskThreadStackCo_t* thrd = (TaskThreadStackCo_t*)malloc(sizeof(TaskThreadStackCo_t));
+	if (!thrd) {
 		return NULL;
 	}
 
-	t->sche = StackCoSche_new(co_stack_size, t);
-	if (!t->sche) {
+	thrd->_.sche = StackCoSche_new(co_stack_size, &thrd->_);
+	if (!thrd->_.sche) {
 		goto err;
 	}
 	sche_ok = 1;
 
-	if (!__save_task_thread(t)) {
+	if (!__save_task_thread(&thrd->_)) {
 		goto err;
 	}
+	thrd->_.entry = task_thread_stack_co_entry;
+	thrd->_.exit = task_thread_stack_co_exit;
+	thrd->_.deleter = task_thread_stack_co_deleter;
 
 	seedval = time(NULL);
-	mt19937Seed(&t->randmt19937_ctx, seedval);
-	t->net_dispatch = NULL;
-	return t;
+	mt19937Seed(&thrd->_.randmt19937_ctx, seedval);
+	thrd->net_dispatch = NULL;
+	return &thrd->_;
 err:
 	if (sche_ok) {
-		StackCoSche_destroy(t->sche);
+		StackCoSche_destroy(thrd->_.sche);
 	}
-	free(t);
+	free(thrd);
 	return NULL;
 }
 
 BOOL runTaskThread(TaskThread_t* t) {
-	return threadCreate(&t->tid, taskThreadEntry, t);
+	return threadCreate(&t->tid, t->entry, t);
 }
 
 void freeTaskThread(TaskThread_t* t) {
 	if (t) {
 		__remove_task_thread(t);
-		StackCoSche_destroy(t->sche);
-		free(t);
+		if (t->deleter) {
+			t->deleter(t);
+		}
 	}
 }
 
@@ -92,28 +106,6 @@ TaskThread_t* currentTaskThread(void) {
 	}
 	_xchg32(&s_allTaskThreadsSpinLock, 0);
 	return thrd;
-}
-
-void execNetDispatchOnTaskThread(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
-#ifndef NDEBUG
-	assert(thrd->net_dispatch);
-#endif
-	NetChannel_add_ref(net_msg->channel);
-	thrd->net_dispatch(thrd, net_msg);
-	NetChannel_close_ref(net_msg->channel);
-	net_msg->channel = NULL;
-}
-
-void execChannelDetachOnTaskThread(NetChannel_t* channel) {
-	NetSession_t* session = channel->session;
-	if (session) {
-		channel->session = NULL;
-		session->channel = NULL;
-		if (session->on_disconnect) {
-			session->on_disconnect(session);
-		}
-	}
-	NetChannel_close_ref(channel);
 }
 
 #ifdef __cplusplus

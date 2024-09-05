@@ -30,19 +30,16 @@
     <ClInclude Include="global.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="inner_msg_struct.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="net_thread.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="task_thread.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="channel_inner.h">
+    <ClInclude Include="net_channel_inner.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="channel_proc_imp.h">
+    <ClInclude Include="net_channel_proc_imp.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\component\dataqueue.h">
@@ -180,13 +177,13 @@
     <ClInclude Include="util\inc\platform_define.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="channel_redis.h">
+    <ClInclude Include="net_channel_redis.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="channel_websocket.h">
+    <ClInclude Include="net_channel_websocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="channel_http.h">
+    <ClInclude Include="net_channel_http.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\crt\protocol\hiredis_cli_protocol.h">
@@ -236,19 +233,16 @@
     <ClCompile Include="global.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="inner_msg_struct.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="net_thread.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="task_thread.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="channel_inner.c">
+    <ClCompile Include="net_channel_inner.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="channel_proc_imp.c">
+    <ClCompile Include="net_channel_proc_imp.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\component\dataqueue.c">
@@ -368,13 +362,13 @@
     <ClCompile Include="util\src\sysapi\time.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="channel_redis.c">
+    <ClCompile Include="net_channel_redis.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="channel_websocket.c">
+    <ClCompile Include="net_channel_websocket.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="channel_http.c">
+    <ClCompile Include="net_channel_http.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="util\src\crt\protocol\hiredis_cli_protocol.c">

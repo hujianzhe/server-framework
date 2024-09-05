@@ -142,17 +142,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="channel_proc_imp.h" />
-    <ClInclude Include="channel_inner.h" />
-    <ClInclude Include="channel_redis.h" />
-    <ClInclude Include="channel_http.h" />
-    <ClInclude Include="channel_websocket.h" />
+    <ClInclude Include="net_channel_proc_imp.h" />
+    <ClInclude Include="net_channel_inner.h" />
+    <ClInclude Include="net_channel_redis.h" />
+    <ClInclude Include="net_channel_http.h" />
+    <ClInclude Include="net_channel_websocket.h" />
     <ClInclude Include="cluster_node.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="dispatch.h" />
     <ClInclude Include="dispatch_msg.h" />
     <ClInclude Include="global.h" />
-    <ClInclude Include="inner_msg_struct.h" />
     <ClInclude Include="net_thread.h" />
     <ClInclude Include="task_thread.h" />
     <ClInclude Include="util\inc\all.h" />
@@ -212,17 +211,16 @@
     <ClInclude Include="util\inc\sysapi\time.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="channel_proc_imp.c" />
-    <ClCompile Include="channel_inner.c" />
-    <ClCompile Include="channel_redis.c" />
-    <ClCompile Include="channel_http.c" />
-    <ClCompile Include="channel_websocket.c" />
+    <ClCompile Include="net_channel_proc_imp.c" />
+    <ClCompile Include="net_channel_inner.c" />
+    <ClCompile Include="net_channel_redis.c" />
+    <ClCompile Include="net_channel_http.c" />
+    <ClCompile Include="net_channel_websocket.c" />
     <ClCompile Include="cluster_node.c" />
     <ClCompile Include="config.c" />
     <ClCompile Include="dispatch.c" />
     <ClCompile Include="dispatch_msg.c" />
     <ClCompile Include="global.c" />
-    <ClCompile Include="inner_msg_struct.c" />
     <ClCompile Include="net_thread.c" />
     <ClCompile Include="task_thread.c" />
     <ClCompile Include="util\src\component\net_channel_ex.c" />

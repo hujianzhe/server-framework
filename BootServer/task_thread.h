@@ -9,22 +9,26 @@ struct DispatchNetMsg_t;
 
 typedef struct TaskThread_t {
 	Thread_t tid;
-	struct StackCoSche_t* sche;
 	RandMT19937_t randmt19937_ctx;
-	void(*net_dispatch)(struct TaskThread_t* thrd, struct DispatchNetMsg_t* req_ctrl);
+	void* sche;
+	unsigned int(*entry)(void*);
+	void(*exit)(struct TaskThread_t*);
+	void(*deleter)(struct TaskThread_t*);
 } TaskThread_t;
+
+typedef struct TaskThreadStackCo_t {
+	TaskThread_t _;
+	void(*net_dispatch)(struct TaskThread_t* thrd, struct DispatchNetMsg_t* req_ctrl);
+} TaskThreadStackCo_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-__declspec_dll TaskThread_t* newTaskThread(size_t co_stack_size);
+__declspec_dll TaskThread_t* newTaskThreadStackCo(size_t co_stack_size);
 __declspec_dll BOOL runTaskThread(TaskThread_t* t);
 __declspec_dll void freeTaskThread(TaskThread_t* t);
-
 __declspec_dll TaskThread_t* currentTaskThread(void);
-__declspec_dll void execNetDispatchOnTaskThread(TaskThread_t* thrd, DispatchNetMsg_t* net_msg);
-__declspec_dll void execChannelDetachOnTaskThread(NetChannel_t* channel);
 
 #ifdef __cplusplus
 }

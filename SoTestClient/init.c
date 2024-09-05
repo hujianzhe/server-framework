@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 static int start_req_login_test(NetChannel_t* channel) {
-	InnerMsg_t msg;
+	InnerMsgPayload_t msg;
 	makeInnerMsg(&msg, CMD_REQ_LOGIN_TEST, NULL, 0);
 	NetChannel_sendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	return 1;
@@ -13,7 +13,7 @@ static int start_req_login_test(NetChannel_t* channel) {
 
 static void frpc_test_paralle(struct StackCoSche_t* sche, NetChannel_t* channel) {
 	int i;
-	InnerMsg_t msg;
+	InnerMsgPayload_t msg;
 	char test_data[] = "test paralle ^.^";
 	long long tm_msec = gmtimeMillisecond();
 	StackCoBlockGroup_t group = { 0 };
@@ -126,7 +126,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		if (strcmp(option->protocol, "default")) {
 			continue;
 		}
-		c = openChannelInnerClient(option->socktype, option->ip, option->port, sche);
+		c = openNetChannelInnerClient(option->socktype, option->ip, option->port, sche);
 		if (!c) {
 			return;
 		}
@@ -140,7 +140,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 			NetChannel_close_ref(c);
 			return;
 		}
-		channelUserData(c)->rpc_id_syn_ack = block->id;
+		NetChannel_get_userdata(c)->rpc_id_syn_ack = block->id;
 		NetChannel_reg(selectNetReactor(), c);
 		block = StackCoSche_yield(sche);
 		if (StackCoSche_has_exit(sche)) {
@@ -172,12 +172,13 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 }
 
 int init(void) {
+	TaskThreadStackCo_t* default_task_thread = (TaskThreadStackCo_t*)ptrBSG()->default_task_thread;
 	// register dispatch
 	regNumberDispatch(ptrBSG()->dispatch, CMD_NOTIFY_TEST, notifyTest);
 	regNumberDispatch(ptrBSG()->dispatch, CMD_RET_TEST, retTest);
 	regNumberDispatch(ptrBSG()->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
 
-	ptrBSG()->default_task_thread->net_dispatch = net_dispatch;
-	StackCoSche_function(ptrBSG()->default_task_thread->sche, run, NULL);
+	default_task_thread->net_dispatch = net_dispatch;
+	StackCoSche_function(default_task_thread->_.sche, run, NULL);
 	return 0;
 }

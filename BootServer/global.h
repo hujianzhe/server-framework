@@ -3,15 +3,14 @@
 
 #include "util/inc/all.h"
 #include "config.h"
-#include "channel_proc_imp.h"
-#include "channel_inner.h"
-#include "channel_http.h"
-#include "channel_websocket.h"
-#include "channel_redis.h"
+#include "net_channel_proc_imp.h"
+#include "net_channel_inner.h"
+#include "net_channel_http.h"
+#include "net_channel_websocket.h"
+#include "net_channel_redis.h"
 #include "cluster_node.h"
 #include "dispatch.h"
 #include "dispatch_msg.h"
-#include "inner_msg_struct.h"
 #include "net_thread.h"
 #include "task_thread.h"
 #include <stdlib.h>
@@ -28,6 +27,7 @@ typedef struct BootServerGlobal_t {
 	struct Dispatch_t* dispatch;
 	Thread_t sig_tid;
 	void(*sig_proc)(int);
+	const NetScheHook_t* net_sche_hook;
 } BootServerGlobal_t;
 
 #ifdef __cplusplus

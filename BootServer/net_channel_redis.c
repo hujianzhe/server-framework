@@ -1,16 +1,16 @@
 #include "global.h"
-#include "channel_redis.h"
+#include "net_channel_redis.h"
 
-typedef struct ChannelUserDataRedisClient_t {
-	ChannelUserData_t _;
+typedef struct NetChannelUserDataRedisClient_t {
+	NetChannelUserData_t _;
 	FnChannelRedisOnSubscribe_t on_subscribe;
 	RedisReplyReader_t* reader;
 	char* ping_cmd;
 	int ping_cmd_len;
 	DynArr_t(int) rpc_ids;
-} ChannelUserDataRedisClient_t;
+} NetChannelUserDataRedisClient_t;
 
-static ChannelUserData_t* init_channel_user_data_redis_cli(ChannelUserDataRedisClient_t* ud, struct StackCoSche_t* sche) {
+static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserDataRedisClient_t* ud, struct StackCoSche_t* sche) {
 	ud->ping_cmd_len = RedisCommand_format(&ud->ping_cmd, "PING");
 	if (ud->ping_cmd_len < 0) {
 		ud->ping_cmd = NULL;
@@ -37,13 +37,12 @@ static void free_user_msg(DispatchBaseMsg_t* msg) {
 }
 
 static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
-	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
+	NetChannelUserDataRedisClient_t* ud = (NetChannelUserDataRedisClient_t*)NetChannel_get_userdata(channel);
 	RedisReplyReader_feed(ud->reader, (const char*)buf, len);
 	while (1) {
 		int ret, rpc_id;
 		RedisReply_t* reply;
 		DispatchNetMsg_t* message;
-		StackCoAsyncParam_t async_param;
 
 		ret = RedisReplyReader_pop_reply(ud->reader, &reply);
 		if (ret != REDIS_OK) {
@@ -95,11 +94,7 @@ static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned
 		}
 		message->param.value = reply;
 		message->base.rpcid = rpc_id;
-
-		memset(&async_param, 0, sizeof(async_param));
-		async_param.value = message;
-		async_param.fn_value_free = (void(*)(void*))message->base.on_free;
-		StackCoSche_resume_block_by_id(ud->_.sche, rpc_id, STACK_CO_STATUS_FINISH, &async_param);
+		ptrBSG()->net_sche_hook->on_resume_msg(ud->_.sche, message);
 	}
 	return len;
 }
@@ -107,7 +102,7 @@ static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned
 static int redis_cli_on_pre_send(NetChannel_t* channel, NetPacket_t* packet, long long timestamp_msec) {
 	int rpc_id;
 	int ret_ok;
-	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
+	NetChannelUserDataRedisClient_t* ud = (NetChannelUserDataRedisClient_t*)NetChannel_get_userdata(channel);
 	if (packet->bodylen < sizeof(int)) {
 		channel->valid = 0;
 		return 0;
@@ -123,7 +118,7 @@ static int redis_cli_on_pre_send(NetChannel_t* channel, NetPacket_t* packet, lon
 }
 
 static void redis_cli_on_heartbeat(NetChannel_t* channel, int heartbeat_times) {
-	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
+	NetChannelUserDataRedisClient_t* ud = (NetChannelUserDataRedisClient_t*)NetChannel_get_userdata(channel);
 	int rpc_id = 0;
 	Iobuf_t iovs[2] = {
 		iobufStaticInit(ud->ping_cmd, (size_t)ud->ping_cmd_len),
@@ -133,7 +128,7 @@ static void redis_cli_on_heartbeat(NetChannel_t* channel, int heartbeat_times) {
 }
 
 static void redis_cli_on_free(NetChannel_t* channel) {
-	ChannelUserDataRedisClient_t* ud = (ChannelUserDataRedisClient_t*)channelUserData(channel);
+	NetChannelUserDataRedisClient_t* ud = (NetChannelUserDataRedisClient_t*)NetChannel_get_userdata(channel);
 	RedisReplyReader_free(ud->reader);
 	RedisCommand_free(ud->ping_cmd);
 	dynarrFreeMemory(&ud->rpc_ids);
@@ -156,9 +151,9 @@ static NetChannelProc_t s_redis_cli_proc = {
 extern "C" {
 #endif
 
-NetChannel_t* openChannelRedisClient(const char* ip, unsigned short port, FnChannelRedisOnSubscribe_t on_subscribe, struct StackCoSche_t* sche) {
+NetChannel_t* openNetChannelRedisClient(const char* ip, unsigned short port, FnChannelRedisOnSubscribe_t on_subscribe, void* sche) {
 	NetChannel_t* c = NULL;
-	ChannelUserDataRedisClient_t* ud = NULL;
+	NetChannelUserDataRedisClient_t* ud = NULL;
 	Sockaddr_t connect_addr;
 	socklen_t connect_addrlen;
 	int domain = ipstrFamily(ip);
@@ -167,7 +162,7 @@ NetChannel_t* openChannelRedisClient(const char* ip, unsigned short port, FnChan
 	if (connect_addrlen <= 0) {
 		goto err;
 	}
-	ud = (ChannelUserDataRedisClient_t*)malloc(sizeof(ChannelUserDataRedisClient_t));
+	ud = (NetChannelUserDataRedisClient_t*)malloc(sizeof(NetChannelUserDataRedisClient_t));
 	if (!ud) {
 		return NULL;
 	}
@@ -180,7 +175,7 @@ NetChannel_t* openChannelRedisClient(const char* ip, unsigned short port, FnChan
 	}
 	NetChannel_set_operator_sockaddr(c, &connect_addr.sa, connect_addrlen);
 	ud->on_subscribe = on_subscribe;
-	channelSetUserData(c, &ud->_);
+	NetChannel_set_userdata(c, &ud->_);
 	c->heartbeat_timeout_sec = 10;
 	c->heartbeat_maxtimes = 3;
 	return c;
@@ -190,7 +185,7 @@ err:
 	return NULL;
 }
 
-void channelRedisClientAsyncSendCommand(NetChannel_t* channel, int rpc_id, const char* format, ...) {
+void sendRedisCmdByNetChannel(NetChannel_t* channel, int rpc_id, const char* format, ...) {
 	char* cmd;
 	int cmdlen;
 	va_list ap;

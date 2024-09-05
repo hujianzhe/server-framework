@@ -1,15 +1,15 @@
 #include "global.h"
-#include "channel_websocket.h"
+#include "net_channel_websocket.h"
 
-typedef struct ChannelUserDataWebsocket_t {
-	ChannelUserData_t _;
+typedef struct NetChannelUserDataWebsocket_t {
+	NetChannelUserData_t _;
 	void(*on_recv)(NetChannel_t* channel, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr, socklen_t addrlen);
 	DynArr_t(unsigned char) fragment_recv;
 	short ws_handshake_state;
 	short ws_prev_is_fin;
-} ChannelUserDataWebsocket_t;
+} NetChannelUserDataWebsocket_t;
 
-static ChannelUserData_t* init_channel_user_data_websocket(ChannelUserDataWebsocket_t* ud, struct StackCoSche_t* sche) {
+static NetChannelUserData_t* init_channel_user_data_websocket(NetChannelUserDataWebsocket_t* ud, struct StackCoSche_t* sche) {
 	dynarrInitZero(&ud->fragment_recv);
 	ud->ws_handshake_state = 0;
 	ud->ws_prev_is_fin = 1;
@@ -19,7 +19,7 @@ static ChannelUserData_t* init_channel_user_data_websocket(ChannelUserDataWebsoc
 /********************************************************************/
 
 static unsigned int websocket_hdrsize(NetChannel_t* base, unsigned int bodylen) {
-	ChannelUserDataWebsocket_t* ud = (ChannelUserDataWebsocket_t*)channelUserData(base);
+	NetChannelUserDataWebsocket_t* ud = (NetChannelUserDataWebsocket_t*)NetChannel_get_userdata(base);
 	if (ud->ws_handshake_state > 1) {
 		return websocketframeEncodeHeadLength(bodylen);
 	}
@@ -27,7 +27,7 @@ static unsigned int websocket_hdrsize(NetChannel_t* base, unsigned int bodylen) 
 }
 
 static int websocket_on_pre_send(NetChannel_t* c, NetPacket_t* packet, long long timestamp_msec) {
-	ChannelUserDataWebsocket_t* ud = (ChannelUserDataWebsocket_t*)channelUserData(c);
+	NetChannelUserDataWebsocket_t* ud = (NetChannelUserDataWebsocket_t*)NetChannel_get_userdata(c);
 	if (ud->ws_handshake_state > 1) {
 		websocketframeEncode(packet->buf, packet->fragment_eof, ud->ws_prev_is_fin, WEBSOCKET_BINARY_FRAME, packet->bodylen);
 		ud->ws_prev_is_fin = packet->fragment_eof;
@@ -39,7 +39,7 @@ static int websocket_on_pre_send(NetChannel_t* c, NetPacket_t* packet, long long
 }
 
 static int websocket_on_read(NetChannel_t* c, unsigned char* buf, unsigned int buflen, long long timestamp_msec, const struct sockaddr* addr, socklen_t addrlen) {
-	ChannelUserDataWebsocket_t* ud = (ChannelUserDataWebsocket_t*)channelUserData(c);
+	NetChannelUserDataWebsocket_t* ud = (NetChannelUserDataWebsocket_t*)NetChannel_get_userdata(c);
 	if (ud->ws_handshake_state >= 1) {
 		unsigned char* data;
 		unsigned long long datalen;
@@ -107,7 +107,7 @@ static int websocket_on_read(NetChannel_t* c, unsigned char* buf, unsigned int b
 }
 
 static void websocket_on_free(NetChannel_t* channel) {
-	ChannelUserDataWebsocket_t* ud = (ChannelUserDataWebsocket_t*)channelUserData(channel);
+	NetChannelUserDataWebsocket_t* ud = (NetChannelUserDataWebsocket_t*)NetChannel_get_userdata(channel);
 	dynarrFreeMemory(&ud->fragment_recv);
 	free(ud);
 }
@@ -123,20 +123,20 @@ static NetChannelProc_t s_websocket_server_proc = {
 };
 
 static void websocket_accept_callback(NetChannel_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
-	ChannelUserDataWebsocket_t* listen_ud = (ChannelUserDataWebsocket_t*)channelUserData(listen_c);
+	NetChannelUserDataWebsocket_t* listen_ud = (NetChannelUserDataWebsocket_t*)NetChannel_get_userdata(listen_c);
 	NetChannel_t* c = NULL;
-	ChannelUserDataWebsocket_t* ud = NULL;
+	NetChannelUserDataWebsocket_t* ud = NULL;
 
 	c = NetChannel_open_with_fd(NET_CHANNEL_SIDE_SERVER, &s_websocket_server_proc, newfd, peer_addr->sa_family, 0);
 	if (!c) {
 		socketClose(newfd);
 		goto err;
 	}
-	ud = (ChannelUserDataWebsocket_t*)malloc(sizeof(ChannelUserDataWebsocket_t));
+	ud = (NetChannelUserDataWebsocket_t*)malloc(sizeof(NetChannelUserDataWebsocket_t));
 	if (!ud) {
 		goto err;
 	}
-	channelSetUserData(c, init_channel_user_data_websocket(ud, listen_ud->_.sche));
+	NetChannel_set_userdata(c, init_channel_user_data_websocket(ud, listen_ud->_.sche));
 	ud->on_recv = listen_ud->on_recv;
 	c->heartbeat_timeout_sec = 20;
 	NetChannel_reg(selectNetReactor(), c);
@@ -151,18 +151,18 @@ err:
 extern "C" {
 #endif
 
-NetChannel_t* openListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, struct StackCoSche_t* sche) {
+NetChannel_t* openNetListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, void* sche) {
 	Sockaddr_t listen_saddr;
 	socklen_t listen_saddrlen;
 	NetChannel_t* c = NULL;
-	ChannelUserDataWebsocket_t* ud = NULL;
+	NetChannelUserDataWebsocket_t* ud = NULL;
 	int domain = ipstrFamily(ip);
 
 	listen_saddrlen = sockaddrEncode(&listen_saddr.sa, domain, ip, port);
 	if (listen_saddrlen <= 0) {
 		return NULL;
 	}
-	ud = (ChannelUserDataWebsocket_t*)malloc(sizeof(ChannelUserDataWebsocket_t));
+	ud = (NetChannelUserDataWebsocket_t*)malloc(sizeof(NetChannelUserDataWebsocket_t));
 	if (!ud) {
 		goto err;
 	}
@@ -173,7 +173,7 @@ NetChannel_t* openListenerWebsocket(const char* ip, unsigned short port, FnChann
 	if (!NetChannel_set_operator_sockaddr(c, &listen_saddr.sa, listen_saddrlen)) {
 		goto err;
 	}
-	channelSetUserData(c, init_channel_user_data_websocket(ud, sche));
+	NetChannel_set_userdata(c, init_channel_user_data_websocket(ud, sche));
 	ud->on_recv = fn;
 	c->on_ack_halfconn = websocket_accept_callback;
 	return c;

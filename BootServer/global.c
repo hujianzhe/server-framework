@@ -19,6 +19,7 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv) {
 	}
 	s_BSG.argc = argc;
 	s_BSG.argv = argv;
+	s_BSG.net_sche_hook = getNetScheHookStackCo();
 	// load config
 	if (!initConfig(conf_path, &s_Config)) {
 		s_BSG.errmsg = strFormat(NULL, "initConfig(%s) error\n", conf_path);
@@ -43,7 +44,7 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv) {
 		return FALSE;
 	}
 	// init task thread
-	s_BSG.default_task_thread = newTaskThread(s_Config.rpc_fiber_stack_size);
+	s_BSG.default_task_thread = newTaskThreadStackCo(s_Config.rpc_fiber_stack_size);
 	if (!s_BSG.default_task_thread) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread create failure\n");
 		return FALSE;
@@ -51,7 +52,7 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv) {
 	// listen self cluster node port, if needed
 	listen_opt = &s_Config.clsnd.listen_option;
 	if (!strcmp(listen_opt->protocol, "default")) {
-		NetChannel_t* c = openListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, s_BSG.default_task_thread->sche);
+		NetChannel_t* c = openNetListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, s_BSG.default_task_thread->sche);
 		if (!c) {
 			s_BSG.errmsg = strFormat(NULL, "listen self cluster node err, ip:%s, port:%u\n", listen_opt->ip, listen_opt->port);
 			return FALSE;
@@ -127,7 +128,7 @@ void stopBootServerGlobal(void) {
 	}
 	s_BSG.valid = 0;
 	if (s_BSG.default_task_thread) {
-		StackCoSche_exit(s_BSG.default_task_thread->sche);
+		s_BSG.default_task_thread->exit(s_BSG.default_task_thread);
 	}
 	wakeupNetThreads();
 }

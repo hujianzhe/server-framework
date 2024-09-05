@@ -11,7 +11,7 @@ void frpc_req_echo(TaskThread_t* thrd, NetChannel_t* channel, size_t datalen) {
 	}
 	start_tm = gmtimeMillisecond();
 	while (1) {
-		InnerMsg_t msg;
+		InnerMsgPayload_t msg;
 		DispatchNetMsg_t* ret_ctrl;
 		long long tm_msec = gmtimeMillisecond();
 		StackCoBlock_t* co_block = StackCoSche_block_point_util(thrd->sche, tm_msec + 5000, NULL);
@@ -57,7 +57,7 @@ static void frpc_callback(struct StackCoSche_t* sche, StackCoAsyncParam_t* param
 void frpc_test_code(TaskThread_t* thrd, NetChannel_t* channel) {
 	int i;
 	char test_data[] = "this text is from client ^.^";
-	InnerMsg_t msg;
+	InnerMsgPayload_t msg;
 	long long tm_msec = gmtimeMillisecond();
 	StackCoBlock_t* sub_block_arr[2];
 	//

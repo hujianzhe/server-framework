@@ -3,7 +3,7 @@
 #include "test_handler.h"
 
 void reqEcho(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
-	InnerMsg_t msg;
+	InnerMsgPayload_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, ctrl->data, ctrl->datalen);
 	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	puts("echo");
@@ -11,14 +11,14 @@ void reqEcho(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 
 void reqTestCallback(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	char test_data[] = "your callback is from server ^.^";
-	InnerMsg_t msg;
+	InnerMsgPayload_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, test_data, sizeof(test_data));
 	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
 void reqTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	char test_data[] = "this text is from server ^.^";
-	InnerMsg_t msg;
+	InnerMsgPayload_t msg;
 
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
 
@@ -128,7 +128,7 @@ void reqParallelTest1(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 
 	printf("%s hello world !!! %s\n", __FUNCTION__, (char*)ctrl->data);
 
-	InnerMsg_t msg;
+	InnerMsgPayload_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, reply, sizeof(reply));
 	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
@@ -138,7 +138,7 @@ void reqParallelTest2(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
 
-	InnerMsg_t msg;
+	InnerMsgPayload_t msg;
 	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, reply, sizeof(reply));
 	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }

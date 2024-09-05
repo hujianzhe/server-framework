@@ -44,9 +44,7 @@ int main(int argc, char** argv) {
 		goto err;
 	}
 	signalReg(s_exit_signo);
-	if (!runBootServerSignalHandler(sig_proc)) {
-		goto err;
-	}
+	ptrBSG()->sig_proc = sig_proc;
 	/* print boot cluster node info */
 	printBootServerNodeInfo();
 	/* run BootServer and wait BootServer end */

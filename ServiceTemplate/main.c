@@ -32,19 +32,17 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "initBootServerGlobal err:%s\n", getBSGErrmsg());
 		return 1;
 	}
-	/* run your App init function */
-	ret = init();
-	if (ret) {
-		fprintf(stderr, "App call init err, ret=%d\n", ret);
-		goto err;
-	}
 	/* reg signal */
 	if (!signalThreadMaskNotify()) {
 		fprintf(stderr, "main thread signalThreadMaskNotify err:%d\n", errnoGet());
 		goto err;
 	}
 	signalReg(s_exit_signo);
-	if (!runBootServerSignalHandler(sig_proc)) {
+	ptrBSG()->sig_proc = sig_proc;
+	/* run your App init function */
+	ret = init();
+	if (ret) {
+		fprintf(stderr, "App call init err, ret=%d\n", ret);
 		goto err;
 	}
 	/* print boot cluster node info */

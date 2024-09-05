@@ -19,36 +19,36 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv) {
 	s_BSG.argc = argc;
 	s_BSG.argv = argv;
 	s_BSG.net_sche_hook = getNetScheHookStackCo();
-	// load config
+	/* load config */
 	if (!initConfig(conf_path, &s_Config)) {
 		s_BSG.errmsg = strFormat(NULL, "initConfig(%s) error\n", conf_path);
 		return FALSE;
 	}
 	s_BSG.conf = &s_Config;
-	// init log
+	/* init log */
 	s_BSG.log = logOpen(s_Config.log.maxfilesize, s_Config.log.pathname);
 	if (!s_BSG.log) {
 		s_BSG.errmsg = strFormat(NULL, "logInit(%s) error\n", s_Config.log.pathname);
 		return FALSE;
 	}
-	// init net thread resource
+	/* init net thread resource */
 	if (!newNetThreadResource(s_Config.net_thread_cnt)) {
 		s_BSG.errmsg = strFormat(NULL, "net thread resource create failure\n");
 		return FALSE;
 	}
-	// init dispatch
+	/* init dispatch */
 	s_BSG.dispatch = newDispatch();
 	if (!s_BSG.dispatch) {
 		s_BSG.errmsg = strFormat(NULL, "newDispatch error\n");
 		return FALSE;
 	}
-	// init task thread
+	/* init task thread */
 	s_BSG.default_task_thread = newTaskThreadStackCo(s_Config.rpc_fiber_stack_size);
 	if (!s_BSG.default_task_thread) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread create failure\n");
 		return FALSE;
 	}
-	// listen self cluster node port, if needed
+	/* listen self cluster node port, if needed */
 	listen_opt = &s_Config.clsnd.listen_option;
 	if (!strcmp(listen_opt->protocol, "default")) {
 		NetChannel_t* c = openNetListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, s_BSG.default_task_thread->sche);
@@ -59,7 +59,7 @@ BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv) {
 		NetChannel_reg(acceptNetReactor(), c);
 		NetChannel_close_ref(c);
 	}
-	// init ok
+	/* init ok */
 	s_BSG.valid = 1;
 	s_PtrBSG = &s_BSG;
 	return TRUE;
@@ -84,34 +84,25 @@ static unsigned int signal_thread_entry(void* arg) {
 	return 0;
 }
 
-BOOL runBootServerSignalHandler(void(*sig_proc)(int)) {
-	if (!sig_proc) {
-		s_BSG.errmsg = strFormat(NULL, "signal handle proc is null\n");
-		return FALSE;
-	}
-	if (s_BSG.sig_proc) {
-		return TRUE;
-	}
-	if (!threadCreate(&s_BSG.sig_tid, signal_thread_entry, NULL)) {
-		s_BSG.errmsg = strFormat(NULL, "signal handle thread boot failure\n");
-		return FALSE;
-	}
-	s_BSG.sig_proc = sig_proc;
-	return TRUE;
-}
-
 BOOL runBootServerGlobal(void) {
-	// run task thread
+	/* run signal thread */
+	if (s_BSG.sig_proc) {
+		if (!threadCreate(&s_BSG.sig_tid, signal_thread_entry, NULL)) {
+			s_BSG.errmsg = strFormat(NULL, "signal handle thread boot failure\n");
+			return FALSE;
+		}
+	}
+	/* run task thread */
 	if (!runTaskThread(s_BSG.default_task_thread)) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread boot failure\n");
 		return FALSE;
 	}
-	// run net thread
+	/* run net thread */
 	if (!runNetThreads()) {
 		s_BSG.errmsg = strFormat(NULL, "net thread boot failure\n");
 		return FALSE;
 	}
-	// wait thread exit
+	/* wait thread exit */
 	threadJoin(s_BSG.default_task_thread->tid, NULL);
 	s_BSG.valid = 0;
 	joinNetThreads();

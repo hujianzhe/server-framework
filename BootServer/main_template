@@ -32,6 +32,8 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "initBootServerGlobal err:%s\n", getBSGErrmsg());
 		return 1;
 	}
+	ptrBSG()->argc = argc;
+	ptrBSG()->argv = argv;
 	/* reg signal */
 	if (!signalThreadMaskNotify()) {
 		fprintf(stderr, "main thread signalThreadMaskNotify err:%d\n", errnoGet());

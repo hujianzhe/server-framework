@@ -10,14 +10,12 @@ extern "C" {
 BootServerGlobal_t* ptrBSG(void) { return s_PtrBSG; }
 const char* getBSGErrmsg(void) { return s_BSG.errmsg ? s_BSG.errmsg : ""; }
 
-BOOL initBootServerGlobal(const char* conf_path, int argc, char** argv) {
+BOOL initBootServerGlobal(const char* conf_path) {
 	ConfigListenOption_t* listen_opt;
 
 	if (s_PtrBSG) {
 		return TRUE;
 	}
-	s_BSG.argc = argc;
-	s_BSG.argv = argv;
 	s_BSG.net_sche_hook = getNetScheHookStackCo();
 	/* load config */
 	if (!initConfig(conf_path, &s_Config)) {

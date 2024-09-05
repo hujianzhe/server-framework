@@ -28,10 +28,12 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	/* init BootServer object */
-	if (!initBootServerGlobal(argv[1], argc, argv)) {
+	if (!initBootServerGlobal(argv[1])) {
 		fprintf(stderr, "initBootServerGlobal err:%s\n", getBSGErrmsg());
 		return 1;
 	}
+	ptrBSG()->argc = argc;
+	ptrBSG()->argv = argv;
 	/* run your App init function */
 	ret = init();
 	if (ret) {

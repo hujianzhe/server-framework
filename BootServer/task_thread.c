@@ -55,7 +55,6 @@ TaskThread_t* newTaskThread(size_t co_stack_size) {
 		goto err;
 	}
 
-	t->errmsg = NULL;
 	seedval = time(NULL);
 	mt19937Seed(&t->randmt19937_ctx, seedval);
 	t->net_dispatch = NULL;
@@ -76,7 +75,6 @@ void freeTaskThread(TaskThread_t* t) {
 	if (t) {
 		__remove_task_thread(t);
 		StackCoSche_destroy(t->sche);
-		free((void*)t->errmsg);
 		free(t);
 	}
 }

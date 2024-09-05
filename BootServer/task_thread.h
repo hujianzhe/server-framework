@@ -6,11 +6,15 @@
 
 struct NetChannel_t;
 struct DispatchNetMsg_t;
+struct StackCoSche_t;
 
 typedef struct TaskThread_t {
 	Thread_t tid;
 	RandMT19937_t randmt19937_ctx;
-	void* sche;
+	union {
+		struct StackCoSche_t* sche_stack_co;
+		void* sche;
+	};
 	unsigned int(*entry)(void*);
 	void(*exit)(struct TaskThread_t*);
 	void(*deleter)(struct TaskThread_t*);

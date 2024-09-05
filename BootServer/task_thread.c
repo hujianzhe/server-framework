@@ -5,17 +5,17 @@
 
 static unsigned int task_thread_stack_co_entry(void* arg) {
 	TaskThread_t* t = (TaskThread_t*)arg;
-	while (0 == StackCoSche_sche(t->sche, -1));
+	while (0 == StackCoSche_sche(t->sche_stack_co, -1));
 	return 0;
 }
 
 static void task_thread_stack_co_exit(TaskThread_t* t) {
-	StackCoSche_exit(t->sche);
+	StackCoSche_exit(t->sche_stack_co);
 }
 
 static void task_thread_stack_co_deleter(TaskThread_t* t) {
 	TaskThreadStackCo_t* thrd = pod_container_of(t, TaskThreadStackCo_t, _);
-	StackCoSche_destroy(thrd->_.sche);
+	StackCoSche_destroy(thrd->_.sche_stack_co);
 	free(thrd);
 }
 
@@ -55,8 +55,8 @@ TaskThread_t* newTaskThreadStackCo(size_t co_stack_size) {
 		return NULL;
 	}
 
-	thrd->_.sche = StackCoSche_new(co_stack_size, &thrd->_);
-	if (!thrd->_.sche) {
+	thrd->_.sche_stack_co = StackCoSche_new(co_stack_size, &thrd->_);
+	if (!thrd->_.sche_stack_co) {
 		goto err;
 	}
 	sche_ok = 1;
@@ -74,7 +74,7 @@ TaskThread_t* newTaskThreadStackCo(size_t co_stack_size) {
 	return &thrd->_;
 err:
 	if (sche_ok) {
-		StackCoSche_destroy(thrd->_.sche);
+		StackCoSche_destroy(thrd->_.sche_stack_co);
 	}
 	free(thrd);
 	return NULL;

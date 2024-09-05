@@ -11,7 +11,6 @@ typedef struct TaskThread_t {
 	Thread_t tid;
 	struct StackCoSche_t* sche;
 	const char* errmsg;
-	Rand48_t rand48_ctx;
 	RandMT19937_t randmt19937_ctx;
 	void(*net_dispatch)(struct TaskThread_t* thrd, struct DispatchNetMsg_t* req_ctrl);
 } TaskThread_t;

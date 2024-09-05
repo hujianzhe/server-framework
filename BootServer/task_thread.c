@@ -57,7 +57,6 @@ TaskThread_t* newTaskThread(size_t co_stack_size) {
 
 	t->errmsg = NULL;
 	seedval = time(NULL);
-	rand48Seed(&t->rand48_ctx, seedval);
 	mt19937Seed(&t->randmt19937_ctx, seedval);
 	t->net_dispatch = NULL;
 	return t;

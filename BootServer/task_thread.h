@@ -7,6 +7,13 @@
 struct NetChannel_t;
 struct DispatchNetMsg_t;
 struct StackCoSche_t;
+struct TaskThread_t;
+
+typedef struct TaskThreadHook_t {
+	unsigned int(*entry)(void*);
+	void(*exit)(struct TaskThread_t*);
+	void(*deleter)(struct TaskThread_t*);
+} TaskThreadHook_t;
 
 typedef struct TaskThread_t {
 	Thread_t tid;
@@ -15,9 +22,7 @@ typedef struct TaskThread_t {
 		struct StackCoSche_t* sche_stack_co;
 		void* sche;
 	};
-	unsigned int(*entry)(void*);
-	void(*exit)(struct TaskThread_t*);
-	void(*deleter)(struct TaskThread_t*);
+	const TaskThreadHook_t* hook;
 } TaskThread_t;
 
 typedef struct TaskThreadStackCo_t {

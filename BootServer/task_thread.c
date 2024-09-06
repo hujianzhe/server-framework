@@ -19,6 +19,12 @@ static void task_thread_stack_co_deleter(TaskThread_t* t) {
 	free(thrd);
 }
 
+static const TaskThreadHook_t s_TaskThreadStackCoHook = {
+	task_thread_stack_co_entry,
+	task_thread_stack_co_exit,
+	task_thread_stack_co_deleter
+};
+
 /**************************************************************************************/
 
 static DynArr_t(TaskThread_t*) s_allTaskThreads;
@@ -64,9 +70,7 @@ TaskThread_t* newTaskThreadStackCo(size_t co_stack_size) {
 	if (!__save_task_thread(&thrd->_)) {
 		goto err;
 	}
-	thrd->_.entry = task_thread_stack_co_entry;
-	thrd->_.exit = task_thread_stack_co_exit;
-	thrd->_.deleter = task_thread_stack_co_deleter;
+	thrd->_.hook = &s_TaskThreadStackCoHook;
 
 	seedval = time(NULL);
 	mt19937Seed(&thrd->_.randmt19937_ctx, seedval);
@@ -81,14 +85,14 @@ err:
 }
 
 BOOL runTaskThread(TaskThread_t* t) {
-	return threadCreate(&t->tid, t->entry, t);
+	return threadCreate(&t->tid, t->hook->entry, t);
 }
 
 void freeTaskThread(TaskThread_t* t) {
 	if (t) {
 		__remove_task_thread(t);
-		if (t->deleter) {
-			t->deleter(t);
+		if (t->hook->deleter) {
+			t->hook->deleter(t);
 		}
 	}
 }

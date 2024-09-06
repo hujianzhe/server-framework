@@ -20,7 +20,7 @@ static void free_user_msg(DispatchBaseMsg_t* msg) {
 
 static void httpframe_recv(NetChannel_t* c, HttpFrame_t* httpframe, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
 	NetChannelUserDataHttp_t* ud;
-	DispatchCallback_t callback;
+	DispatchNetCallback_t callback;
 	DispatchNetMsg_t* message;
 
 	ud = (NetChannelUserDataHttp_t*)NetChannel_get_userdata(c);

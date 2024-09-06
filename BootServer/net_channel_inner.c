@@ -79,7 +79,7 @@ static void innerchannel_recv(NetChannel_t* c, unsigned char* bodyptr, size_t bo
 		}
 		else {
 			int cmd = ntohl(*(int*)(bodyptr + 1));
-			DispatchCallback_t callback = getNumberDispatch(ptrBSG()->dispatch, cmd);
+			DispatchNetCallback_t callback = getNumberDispatch(ptrBSG()->dispatch, cmd);
 			if (!callback) {
 				return;
 			}

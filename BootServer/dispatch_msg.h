@@ -10,7 +10,7 @@ typedef struct DispatchBaseMsg_t {
 
 struct TaskThread_t;
 struct DispatchNetMsg_t;
-typedef void(*DispatchCallback_t)(struct TaskThread_t*, struct DispatchNetMsg_t*);
+typedef void(*DispatchNetCallback_t)(struct TaskThread_t*, struct DispatchNetMsg_t*);
 
 typedef struct DispatchNetMsg_t {
 	DispatchBaseMsg_t base;
@@ -19,7 +19,7 @@ typedef struct DispatchNetMsg_t {
 		const void* value; /* any value */
 	} param;
 	long long enqueue_time_msec;
-	DispatchCallback_t callback;
+	DispatchNetCallback_t callback;
 	NetChannel_t* channel;
 	Sockaddr_t peer_addr;
 	socklen_t peer_addrlen;

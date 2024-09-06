@@ -3,11 +3,11 @@
 
 typedef struct DispatchItem_t {
 	HashtableNode_t m_hashnode;
-	DispatchCallback_t func;
+	DispatchNetCallback_t func;
 } DispatchItem_t;
 
 typedef struct Dispatch_t {
-	DispatchCallback_t null_dispatch_callback;
+	DispatchNetCallback_t null_dispatch_callback;
 	Hashtable_t s_NumberDispatchTable;
 	HashtableNode_t* s_NumberDispatchBulk[1024];
 	Hashtable_t s_StringDispatchTable;
@@ -64,13 +64,13 @@ void freeDispatch(Dispatch_t* dispatch) {
 extern "C" {
 #endif
 
-DispatchCallback_t regNullDispatch(Dispatch_t* dispatch, DispatchCallback_t func) {
-	DispatchCallback_t old_func = dispatch->null_dispatch_callback;
+DispatchNetCallback_t regNullDispatch(Dispatch_t* dispatch, DispatchNetCallback_t func) {
+	DispatchNetCallback_t old_func = dispatch->null_dispatch_callback;
 	dispatch->null_dispatch_callback = func;
 	return old_func;
 }
 
-int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchCallback_t func) {
+int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchNetCallback_t func) {
 	DispatchItem_t* item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
 	if (!item) {
 		return 0;
@@ -95,7 +95,7 @@ int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchCallback_t 
 	}
 }
 
-int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchCallback_t func) {
+int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchNetCallback_t func) {
 	DispatchItem_t* item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
 	if (item) {
 		HashtableNode_t* exist_node;
@@ -111,7 +111,7 @@ int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchCallback_t func) {
 	return 0;
 }
 
-DispatchCallback_t getStringDispatch(const Dispatch_t* dispatch, const char* str) {
+DispatchNetCallback_t getStringDispatch(const Dispatch_t* dispatch, const char* str) {
 	HashtableNodeKey_t hkey;
 	HashtableNode_t* node;
 	hkey.ptr = str;
@@ -122,7 +122,7 @@ DispatchCallback_t getStringDispatch(const Dispatch_t* dispatch, const char* str
 	return dispatch->null_dispatch_callback;
 }
 
-DispatchCallback_t getNumberDispatch(const Dispatch_t* dispatch, int cmd) {
+DispatchNetCallback_t getNumberDispatch(const Dispatch_t* dispatch, int cmd) {
 	HashtableNodeKey_t hkey;
 	HashtableNode_t* node;
 	hkey.i32 = cmd;

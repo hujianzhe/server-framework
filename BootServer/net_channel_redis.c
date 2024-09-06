@@ -10,7 +10,7 @@ typedef struct NetChannelUserDataRedisClient_t {
 	DynArr_t(int) rpc_ids;
 } NetChannelUserDataRedisClient_t;
 
-static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserDataRedisClient_t* ud, struct StackCoSche_t* sche) {
+static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserDataRedisClient_t* ud, void* sche) {
 	ud->ping_cmd_len = RedisCommand_format(&ud->ping_cmd, "PING");
 	if (ud->ping_cmd_len < 0) {
 		ud->ping_cmd = NULL;

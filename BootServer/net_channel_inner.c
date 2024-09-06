@@ -122,7 +122,7 @@ static NetChannelExProc_t s_inner_data_proc = {
 	innerchannel_reply_ack
 };
 
-static NetChannelUserData_t* init_channel_user_data_inner(NetChannelUserDataInner_t* ud, NetChannel_t* channel, struct StackCoSche_t* sche) {
+static NetChannelUserData_t* init_channel_user_data_inner(NetChannelUserDataInner_t* ud, NetChannel_t* channel, void* sche) {
 	NetChannelEx_init(channel, &ud->rw, &s_inner_data_proc);
 	return initNetChannelUserData(&ud->_, sche);
 }
@@ -203,7 +203,8 @@ static void innerchannel_accept_callback(NetChannel_t* listen_c, FD_t newfd, con
 	if (!ud) {
 		goto err;
 	}
-	NetChannel_set_userdata(c, init_channel_user_data_inner(ud, c, NetChannel_get_userdata(listen_c)->sche));
+	init_channel_user_data_inner(ud, c, NetChannel_get_userdata(listen_c)->sche);
+	NetChannel_set_userdata(c, ud);
 	innerchannel_set_opt(c);
 	NetChannel_reg(selectNetReactor(), c);
 	NetChannel_close_ref(c);
@@ -237,7 +238,8 @@ NetChannel_t* openNetChannelInnerClient(int socktype, const char* ip, unsigned s
 	if (!NetChannel_set_operator_sockaddr(c, &connect_saddr.sa, connect_saddrlen)) {
 		goto err;
 	}
-	NetChannel_set_userdata(c, init_channel_user_data_inner(ud, c, sche));
+	init_channel_user_data_inner(ud, c, sche);
+	NetChannel_set_userdata(c, ud);
 	innerchannel_set_opt(c);
 	return c;
 err:
@@ -268,7 +270,8 @@ NetChannel_t* openNetListenerInner(int socktype, const char* ip, unsigned short 
 	if (!NetChannel_set_operator_sockaddr(c, &listen_saddr.sa, listen_saddrlen)) {
 		goto err;
 	}
-	NetChannel_set_userdata(c, init_channel_user_data_inner(ud, c, sche));
+	init_channel_user_data_inner(ud, c, sche);
+	NetChannel_set_userdata(c, ud);
 	innerchannel_set_opt(c);
 	c->on_ack_halfconn = innerchannel_accept_callback;
 	return c;

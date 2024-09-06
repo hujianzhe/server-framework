@@ -5,7 +5,7 @@ typedef struct NetChannelUserDataHttp_t {
 	NetChannelUserData_t _;
 } NetChannelUserDataHttp_t;
 
-static NetChannelUserData_t* init_channel_user_data_http(NetChannelUserDataHttp_t* ud, struct StackCoSche_t* sche) {
+static NetChannelUserData_t* init_channel_user_data_http(NetChannelUserDataHttp_t* ud, void* sche) {
 	return initNetChannelUserData(&ud->_, sche);
 }
 
@@ -125,7 +125,8 @@ static void http_accept_callback(NetChannel_t* listen_c, FD_t newfd, const struc
 	if (!ud) {
 		goto err;
 	}
-	NetChannel_set_userdata(c, init_channel_user_data_http(ud, NetChannel_get_userdata(listen_c)->sche));
+	init_channel_user_data_http(ud, NetChannel_get_userdata(listen_c)->sche);
+	NetChannel_set_userdata(c, ud);
 	c->heartbeat_timeout_sec = 20;
 	NetChannel_reg(selectNetReactor(), c);
 	NetChannel_close_ref(c);
@@ -161,7 +162,8 @@ NetChannel_t* openNetChannelHttpClient(const char* ip, unsigned short port, void
 	if (!NetChannel_set_operator_sockaddr(c, &connect_saddr.sa, connect_saddrlen)) {
 		goto err;
 	}
-	NetChannel_set_userdata(c, init_channel_user_data_http(ud, sche));
+	init_channel_user_data_http(ud, sche);
+	NetChannel_set_userdata(c, ud);
 	c->heartbeat_timeout_sec = 10;
 	return c;
 err:
@@ -193,7 +195,8 @@ NetChannel_t* openNetListenerHttp(const char* ip, unsigned short port, void* sch
 		goto err;
 	}
 	c->on_ack_halfconn = http_accept_callback;
-	NetChannel_set_userdata(c, init_channel_user_data_http(ud, sche));
+	init_channel_user_data_http(ud, sche);
+	NetChannel_set_userdata(c, ud);
 	return c;
 err:
 	free(ud);

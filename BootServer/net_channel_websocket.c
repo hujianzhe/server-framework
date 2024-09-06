@@ -9,7 +9,7 @@ typedef struct NetChannelUserDataWebsocket_t {
 	short ws_prev_is_fin;
 } NetChannelUserDataWebsocket_t;
 
-static NetChannelUserData_t* init_channel_user_data_websocket(NetChannelUserDataWebsocket_t* ud, struct StackCoSche_t* sche) {
+static NetChannelUserData_t* init_channel_user_data_websocket(NetChannelUserDataWebsocket_t* ud, void* sche) {
 	dynarrInitZero(&ud->fragment_recv);
 	ud->ws_handshake_state = 0;
 	ud->ws_prev_is_fin = 1;
@@ -136,7 +136,8 @@ static void websocket_accept_callback(NetChannel_t* listen_c, FD_t newfd, const 
 	if (!ud) {
 		goto err;
 	}
-	NetChannel_set_userdata(c, init_channel_user_data_websocket(ud, listen_ud->_.sche));
+	init_channel_user_data_websocket(ud, listen_ud->_.sche);
+	NetChannel_set_userdata(c, ud);
 	ud->on_recv = listen_ud->on_recv;
 	c->heartbeat_timeout_sec = 20;
 	NetChannel_reg(selectNetReactor(), c);
@@ -173,7 +174,8 @@ NetChannel_t* openNetListenerWebsocket(const char* ip, unsigned short port, FnNe
 	if (!NetChannel_set_operator_sockaddr(c, &listen_saddr.sa, listen_saddrlen)) {
 		goto err;
 	}
-	NetChannel_set_userdata(c, init_channel_user_data_websocket(ud, sche));
+	init_channel_user_data_websocket(ud, sche);
+	NetChannel_set_userdata(c, ud);
 	ud->on_recv = fn;
 	c->on_ack_halfconn = websocket_accept_callback;
 	return c;

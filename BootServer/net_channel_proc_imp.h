@@ -31,8 +31,8 @@ extern "C" {
 __declspec_dll const NetScheHook_t* getNetScheHookStackCo(void);
 
 __declspec_dll NetChannelUserData_t* initChannelUserData(NetChannelUserData_t* ud, void* sche);
-__declspec_dll void defaultRpcOnSynAck(NetChannel_t* c, long long ts_msec);
-__declspec_dll void defaultChannelOnDetach(NetChannel_t* c);
+__declspec_dll void defaultNetChannelOnSynAck(NetChannel_t* c, long long ts_msec);
+__declspec_dll void defaultNetChannelOnDetach(NetChannel_t* c);
 
 #ifdef __cplusplus
 }

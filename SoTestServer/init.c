@@ -26,7 +26,7 @@ static NetChannelProc_t s_simply_udp_proc = {
 	NULL,
 	NULL,
 	NULL,
-	defaultChannelOnDetach,
+	defaultNetChannelOnDetach,
 	NULL
 };
 

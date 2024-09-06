@@ -140,7 +140,7 @@ static NetChannelProc_t s_redis_cli_proc = {
 	NULL,
 	redis_cli_on_pre_send,
 	redis_cli_on_heartbeat,
-	defaultChannelOnDetach,
+	defaultNetChannelOnDetach,
 	redis_cli_on_free
 };
 

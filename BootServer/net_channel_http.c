@@ -108,7 +108,7 @@ static NetChannelProc_t s_http_proc = {
 	NULL,
 	NULL,
 	NULL,
-	defaultChannelOnDetach,
+	defaultNetChannelOnDetach,
 	http_channel_on_free
 };
 

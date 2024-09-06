@@ -76,7 +76,7 @@ NetChannelUserData_t* initChannelUserData(NetChannelUserData_t* ud, void* sche) 
 	return ud;
 }
 
-void defaultRpcOnSynAck(NetChannel_t* c, long long ts_msec) {
+void defaultNetChannelOnSynAck(NetChannel_t* c, long long ts_msec) {
 	NetChannelUserData_t* ud = NetChannel_get_userdata(c);
 	if (ud->rpc_id_syn_ack != 0) {
 		ptrBSG()->net_sche_hook->on_resume(ud->sche, ud->rpc_id_syn_ack, 0);
@@ -84,7 +84,7 @@ void defaultRpcOnSynAck(NetChannel_t* c, long long ts_msec) {
 	}
 }
 
-void defaultChannelOnDetach(NetChannel_t* c) {
+void defaultNetChannelOnDetach(NetChannel_t* c) {
 	NetChannelUserData_t* ud = NetChannel_get_userdata(c);
 	if (ud->rpc_id_syn_ack != 0) {
 		ptrBSG()->net_sche_hook->on_resume(ud->sche, ud->rpc_id_syn_ack, 1);

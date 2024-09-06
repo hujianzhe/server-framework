@@ -173,7 +173,7 @@ static NetChannelProc_t s_inner_proc = {
 	innerchannel_hdrsize,
 	innerchannel_on_pre_send,
 	innerchannel_on_heartbeat,
-	defaultChannelOnDetach,
+	defaultNetChannelOnDetach,
 	innerchannel_on_free
 };
 

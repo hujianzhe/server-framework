@@ -118,7 +118,7 @@ static NetChannelProc_t s_websocket_server_proc = {
 	websocket_hdrsize,
 	websocket_on_pre_send,
 	NULL,
-	defaultChannelOnDetach,
+	defaultNetChannelOnDetach,
 	websocket_on_free
 };
 

@@ -151,7 +151,7 @@ err:
 extern "C" {
 #endif
 
-NetChannel_t* openNetListenerWebsocket(const char* ip, unsigned short port, FnChannelOnRecv_t fn, void* sche) {
+NetChannel_t* openNetListenerWebsocket(const char* ip, unsigned short port, FnNetChannelOnRecv_t fn, void* sche) {
 	Sockaddr_t listen_saddr;
 	socklen_t listen_saddrlen;
 	NetChannel_t* c = NULL;

@@ -19,7 +19,7 @@ typedef struct NetScheHook_t {
 	void(*on_resume)(void* sche, int id, int canceled);
 } NetScheHook_t;
 
-typedef void(*FnChannelOnRecv_t)(NetChannel_t*, unsigned char*, size_t, const struct sockaddr*, socklen_t);
+typedef void(*FnNetChannelOnRecv_t)(NetChannel_t*, unsigned char*, size_t, const struct sockaddr*, socklen_t);
 
 #define	NetChannel_get_userdata(channel)		((NetChannelUserData_t*)((channel)->userdata))
 #define	NetChannel_set_userdata(channel, ud)	((channel)->userdata = (ud))

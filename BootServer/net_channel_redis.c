@@ -32,7 +32,6 @@ static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserData
 static void free_user_msg(DispatchNetMsg_t* net_msg) {
 	RedisReply_t* reply = (RedisReply_t*)net_msg->param.value;
 	RedisReply_free(reply);
-	freeDispatchNetMsg(net_msg);
 }
 
 static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
@@ -65,10 +64,11 @@ static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned
 				if (!ud->on_subscribe) {
 					continue;
 				}
-				message = newDispatchNetMsg(channel, 0, free_user_msg);
+				message = newDispatchNetMsg(channel, 0);
 				if (!message) {
 					return -1;
 				}
+				message->on_free = free_user_msg;
 				message->param.value = reply;
 				ud->on_subscribe(channel, message, reply);
 				continue;
@@ -86,11 +86,12 @@ static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned
 			continue;
 		}
 
-		message = newDispatchNetMsg(channel, 0, free_user_msg);
+		message = newDispatchNetMsg(channel, 0);
 		if (!message) {
 			RedisReply_free(reply);
 			return -1;
 		}
+		message->on_free = free_user_msg;
 		message->param.value = reply;
 		message->rpcid = rpc_id;
 		ptrBSG()->net_sche_hook->on_resume_msg(ud->_.sche, message);

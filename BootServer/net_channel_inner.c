@@ -71,7 +71,7 @@ static void innerchannel_recv(NetChannel_t* c, unsigned char* bodyptr, size_t bo
 		char rpc_status = *bodyptr;
 
 		if (INNER_MSG_FIELD_RPC_STATUS_RESP == rpc_status) {
-			message = newDispatchNetMsg(c, bodylen - hsz, freeDispatchNetMsg);
+			message = newDispatchNetMsg(c, bodylen - hsz);
 			if (!message) {
 				return;
 			}
@@ -83,7 +83,7 @@ static void innerchannel_recv(NetChannel_t* c, unsigned char* bodyptr, size_t bo
 			if (!callback) {
 				return;
 			}
-			message = newDispatchNetMsg(c, bodylen - hsz, freeDispatchNetMsg);
+			message = newDispatchNetMsg(c, bodylen - hsz);
 			if (!message) {
 				return;
 			}

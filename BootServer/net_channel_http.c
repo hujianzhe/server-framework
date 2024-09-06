@@ -14,7 +14,6 @@ static NetChannelUserData_t* init_channel_user_data_http(NetChannelUserDataHttp_
 static void free_user_msg(DispatchNetMsg_t* net_msg) {
 	HttpFrame_t* frame = (HttpFrame_t*)net_msg->param.value;
 	free(httpframeReset(frame));
-	freeDispatchNetMsg(net_msg);
 }
 
 static void httpframe_recv(NetChannel_t* c, HttpFrame_t* httpframe, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
@@ -30,11 +29,12 @@ static void httpframe_recv(NetChannel_t* c, HttpFrame_t* httpframe, unsigned cha
 			return;
 		}
 	}
-	message = newDispatchNetMsg(c, bodylen, free_user_msg);
+	message = newDispatchNetMsg(c, bodylen);
 	if (!message) {
 		free(httpframeReset(httpframe));
 		return;
 	}
+	message->on_free = free_user_msg;
 	message->param.value = httpframe;
 	if (message->datalen) {
 		memmove(message->data, bodyptr, message->datalen);

@@ -5,11 +5,11 @@
 extern "C" {
 #endif
 
-DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen, void(*on_free)(DispatchNetMsg_t*)) {
+DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen) {
 	DispatchNetMsg_t* msg = (DispatchNetMsg_t*)malloc(sizeof(DispatchNetMsg_t) + datalen);
 	if (msg) {
 		msg->rpcid = 0;
-		msg->on_free = on_free;
+		msg->on_free = NULL;
 
 		msg->param.type = 0;
 		msg->param.value = NULL;
@@ -26,6 +26,12 @@ DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen, void(
 }
 
 void freeDispatchNetMsg(DispatchNetMsg_t* msg) {
+	if (!msg) {
+		return;
+	}
+	if (msg->on_free) {
+		msg->on_free(msg);
+	}
 	free(msg);
 }
 

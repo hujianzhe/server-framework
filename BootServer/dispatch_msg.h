@@ -28,7 +28,7 @@ typedef struct DispatchNetMsg_t {
 extern "C" {
 #endif
 
-__declspec_dll DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen, void(*on_free)(DispatchNetMsg_t*));
+__declspec_dll DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen);
 __declspec_dll void freeDispatchNetMsg(DispatchNetMsg_t* msg);
 
 #ifdef __cplusplus

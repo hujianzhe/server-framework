@@ -24,7 +24,7 @@ static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserData
 	}
 	dynarrInitZero(&ud->rpc_ids);
 	ud->on_subscribe = NULL;
-	return initChannelUserData(&ud->_, sche);
+	return initNetChannelUserData(&ud->_, sche);
 }
 
 /********************************************************************/

@@ -6,7 +6,7 @@ typedef struct NetChannelUserDataHttp_t {
 } NetChannelUserDataHttp_t;
 
 static NetChannelUserData_t* init_channel_user_data_http(NetChannelUserDataHttp_t* ud, struct StackCoSche_t* sche) {
-	return initChannelUserData(&ud->_, sche);
+	return initNetChannelUserData(&ud->_, sche);
 }
 
 /**************************************************************************/

@@ -13,7 +13,7 @@ static NetChannelUserData_t* init_channel_user_data_websocket(NetChannelUserData
 	dynarrInitZero(&ud->fragment_recv);
 	ud->ws_handshake_state = 0;
 	ud->ws_prev_is_fin = 1;
-	return initChannelUserData(&ud->_, sche);
+	return initNetChannelUserData(&ud->_, sche);
 }
 
 /********************************************************************/

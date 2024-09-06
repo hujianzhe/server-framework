@@ -69,7 +69,7 @@ const NetScheHook_t* getNetScheHookStackCo(void) {
 	return &s_NetScheHook_StackCo;
 }
 
-NetChannelUserData_t* initChannelUserData(NetChannelUserData_t* ud, void* sche) {
+NetChannelUserData_t* initNetChannelUserData(NetChannelUserData_t* ud, void* sche) {
 	ud->sche = sche;
 	ud->rpc_id_syn_ack = 0;
 	ud->text_data_print_log = 0;

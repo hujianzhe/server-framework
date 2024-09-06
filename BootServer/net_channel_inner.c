@@ -124,7 +124,7 @@ static NetChannelExProc_t s_inner_data_proc = {
 
 static NetChannelUserData_t* init_channel_user_data_inner(NetChannelUserDataInner_t* ud, NetChannel_t* channel, struct StackCoSche_t* sche) {
 	NetChannelEx_init(channel, &ud->rw, &s_inner_data_proc);
-	return initChannelUserData(&ud->_, sche);
+	return initNetChannelUserData(&ud->_, sche);
 }
 
 /**************************************************************************/

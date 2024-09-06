@@ -3,17 +3,13 @@
 
 #include "util/inc/component/net_reactor.h"
 
-typedef struct DispatchBaseMsg_t {
-	int rpcid;
-	void(*on_free)(struct DispatchBaseMsg_t* self);
-} DispatchBaseMsg_t;
-
 struct TaskThread_t;
 struct DispatchNetMsg_t;
 typedef void(*DispatchNetCallback_t)(struct TaskThread_t*, struct DispatchNetMsg_t*);
 
 typedef struct DispatchNetMsg_t {
-	DispatchBaseMsg_t base;
+	int rpcid;
+	void(*on_free)(struct DispatchNetMsg_t* self);
 	struct {
 		short type;
 		const void* value; /* any value */
@@ -32,8 +28,8 @@ typedef struct DispatchNetMsg_t {
 extern "C" {
 #endif
 
-__declspec_dll DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen, void(*on_free)(DispatchBaseMsg_t*));
-__declspec_dll void freeDispatchNetMsg(DispatchBaseMsg_t* msg);
+__declspec_dll DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen, void(*on_free)(DispatchNetMsg_t*));
+__declspec_dll void freeDispatchNetMsg(DispatchNetMsg_t* msg);
 
 #ifdef __cplusplus
 }

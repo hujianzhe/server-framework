@@ -11,11 +11,10 @@ static NetChannelUserData_t* init_channel_user_data_http(NetChannelUserDataHttp_
 
 /**************************************************************************/
 
-static void free_user_msg(DispatchBaseMsg_t* msg) {
-	DispatchNetMsg_t* net_msg = pod_container_of(msg, DispatchNetMsg_t, base);
+static void free_user_msg(DispatchNetMsg_t* net_msg) {
 	HttpFrame_t* frame = (HttpFrame_t*)net_msg->param.value;
 	free(httpframeReset(frame));
-	freeDispatchNetMsg(msg);
+	freeDispatchNetMsg(net_msg);
 }
 
 static void httpframe_recv(NetChannel_t* c, HttpFrame_t* httpframe, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr) {
@@ -48,7 +47,7 @@ static void httpframe_recv(NetChannel_t* c, HttpFrame_t* httpframe, unsigned cha
 		ptrBSG()->net_sche_hook->on_execute_msg(NetChannel_get_userdata(c)->sche, message);
 	}
 	else {
-		message->base.rpcid = ud->_.rpc_id_syn_ack;
+		message->rpcid = ud->_.rpc_id_syn_ack;
 		ud->_.rpc_id_syn_ack = 0;
 		ptrBSG()->net_sche_hook->on_resume_msg(NetChannel_get_userdata(c)->sche, message);
 	}

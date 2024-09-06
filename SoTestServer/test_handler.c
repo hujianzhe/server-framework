@@ -4,7 +4,7 @@
 
 void reqEcho(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	InnerMsgPayload_t msg;
-	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, ctrl->data, ctrl->datalen);
+	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, ctrl->data, ctrl->datalen);
 	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	puts("echo");
 }
@@ -12,7 +12,7 @@ void reqEcho(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 void reqTestCallback(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	char test_data[] = "your callback is from server ^.^";
 	InnerMsgPayload_t msg;
-	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, test_data, sizeof(test_data));
+	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
 	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
@@ -25,7 +25,7 @@ void reqTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	makeInnerMsg(&msg, CMD_NOTIFY_TEST, NULL, 0);
 	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 
-	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, test_data, sizeof(test_data));
+	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, test_data, sizeof(test_data));
 	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
@@ -129,7 +129,7 @@ void reqParallelTest1(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	printf("%s hello world !!! %s\n", __FUNCTION__, (char*)ctrl->data);
 
 	InnerMsgPayload_t msg;
-	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, reply, sizeof(reply));
+	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
 	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 
@@ -139,7 +139,7 @@ void reqParallelTest2(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	printf("say hello world !!! %s\n", (char*)ctrl->data);
 
 	InnerMsgPayload_t msg;
-	makeInnerMsgRpcResp(&msg, ctrl->base.rpcid, 0, reply, sizeof(reply));
+	makeInnerMsgRpcResp(&msg, ctrl->rpcid, 0, reply, sizeof(reply));
 	NetChannel_sendv(ctrl->channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 }
 

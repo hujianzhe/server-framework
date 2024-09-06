@@ -39,15 +39,15 @@ static void stack_co_sche_channel_detach(void* sche, NetChannel_t* channel) {
 static void stack_co_sche_execute_msg(void* sche, DispatchNetMsg_t* msg) {
 	StackCoAsyncParam_t async_param = { 0 };
 	async_param.value = msg;
-	async_param.fn_value_free = (void(*)(void*))msg->base.on_free;
+	async_param.fn_value_free = (void(*)(void*))msg->on_free;
 	StackCoSche_function((struct StackCoSche_t*)sche, stack_co_sche_execute_msg_impl, &async_param);
 }
 
 static void stack_co_sche_resume_msg(void* sche, DispatchNetMsg_t* msg) {
 	StackCoAsyncParam_t async_param = { 0 };
 	async_param.value = msg;
-	async_param.fn_value_free = (void(*)(void*))msg->base.on_free;
-	StackCoSche_resume_block_by_id((struct StackCoSche_t*)sche, msg->base.rpcid, STACK_CO_STATUS_FINISH, &async_param);
+	async_param.fn_value_free = (void(*)(void*))msg->on_free;
+	StackCoSche_resume_block_by_id((struct StackCoSche_t*)sche, msg->rpcid, STACK_CO_STATUS_FINISH, &async_param);
 }
 
 static void stack_co_sche_resume(void* sche, int id, int canceled) {

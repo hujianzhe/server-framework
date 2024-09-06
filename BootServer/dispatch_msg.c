@@ -5,11 +5,11 @@
 extern "C" {
 #endif
 
-DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen, void(*on_free)(DispatchBaseMsg_t*)) {
+DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen, void(*on_free)(DispatchNetMsg_t*)) {
 	DispatchNetMsg_t* msg = (DispatchNetMsg_t*)malloc(sizeof(DispatchNetMsg_t) + datalen);
 	if (msg) {
-		msg->base.rpcid = 0;
-		msg->base.on_free = on_free;
+		msg->rpcid = 0;
+		msg->on_free = on_free;
 
 		msg->param.type = 0;
 		msg->param.value = NULL;
@@ -25,13 +25,8 @@ DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen, void(
 	return msg;
 }
 
-void freeDispatchNetMsg(DispatchBaseMsg_t* msg) {
-	DispatchNetMsg_t* net_msg;
-	if (!msg) {
-		return;
-	}
-	net_msg = pod_container_of(msg, DispatchNetMsg_t, base);
-	free(net_msg);
+void freeDispatchNetMsg(DispatchNetMsg_t* msg) {
+	free(msg);
 }
 
 #ifdef __cplusplus

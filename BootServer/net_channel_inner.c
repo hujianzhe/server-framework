@@ -94,7 +94,7 @@ static void innerchannel_recv(NetChannel_t* c, unsigned char* bodyptr, size_t bo
 			memmove(&message->peer_addr, addr, addrlen);
 			message->peer_addrlen = addrlen;
 		}
-		message->base.rpcid = ntohl(*(int*)(bodyptr + 5));
+		message->rpcid = ntohl(*(int*)(bodyptr + 5));
 		if (message->datalen) {
 			memmove(message->data, bodyptr + hsz, message->datalen);
 		}

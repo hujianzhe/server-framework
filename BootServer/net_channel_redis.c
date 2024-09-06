@@ -29,11 +29,10 @@ static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserData
 
 /********************************************************************/
 
-static void free_user_msg(DispatchBaseMsg_t* msg) {
-	DispatchNetMsg_t* net_msg = pod_container_of(msg, DispatchNetMsg_t, base);
+static void free_user_msg(DispatchNetMsg_t* net_msg) {
 	RedisReply_t* reply = (RedisReply_t*)net_msg->param.value;
 	RedisReply_free(reply);
-	freeDispatchNetMsg(msg);
+	freeDispatchNetMsg(net_msg);
 }
 
 static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned int len, long long timestamp_msec, const struct sockaddr* from_addr, socklen_t addrlen) {
@@ -93,7 +92,7 @@ static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned
 			return -1;
 		}
 		message->param.value = reply;
-		message->base.rpcid = rpc_id;
+		message->rpcid = rpc_id;
 		ptrBSG()->net_sche_hook->on_resume_msg(ud->_.sche, message);
 	}
 	return len;

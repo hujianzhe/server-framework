@@ -9,14 +9,17 @@ extern "C" {
 BootServerGlobal_t* ptrBSG(void) { return s_PtrBSG; }
 const char* getBSGErrmsg(void) { return s_BSG.errmsg ? s_BSG.errmsg : ""; }
 
-BOOL initBootServerGlobal(const BootServerConfig_t* conf) {
+BOOL initBootServerGlobal(const BootServerConfig_t* conf, TaskThread_t* def_task_thrd, const NetScheHook_t* nsh) {
 	const ConfigListenOption_t* listen_opt;
 
 	if (s_PtrBSG) {
 		return TRUE;
 	}
 	s_BSG.conf = conf;
-	s_BSG.net_sche_hook = getNetScheHookStackCo();
+	if (!nsh) {
+		nsh = getNetScheHookStackCo();
+	}
+	s_BSG.net_sche_hook = nsh;
 	/* init log */
 	s_BSG.log = logOpen(conf->log.maxfilesize, conf->log.pathname);
 	if (!s_BSG.log) {
@@ -35,7 +38,10 @@ BOOL initBootServerGlobal(const BootServerConfig_t* conf) {
 		return FALSE;
 	}
 	/* init task thread */
-	s_BSG.default_task_thread = newTaskThreadStackCo(conf->rpc_fiber_stack_size);
+	if (!def_task_thrd) {
+		def_task_thrd = newTaskThreadStackCo(conf->rpc_fiber_stack_size);
+	}
+	s_BSG.default_task_thread = def_task_thrd;
 	if (!s_BSG.default_task_thread) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread create failure\n");
 		return FALSE;

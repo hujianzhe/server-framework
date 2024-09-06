@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	/* init BootServer object */
-	if (!initBootServerGlobal(bs_conf)) {
+	if (!initBootServerGlobal(bs_conf, NULL, NULL)) {
 		fprintf(stderr, "initBootServerGlobal err:%s\n", getBSGErrmsg());
 		return 1;
 	}

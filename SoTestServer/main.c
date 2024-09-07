@@ -41,12 +41,6 @@ int main(int argc, char** argv) {
 	}
 	ptrBSG()->argc = argc;
 	ptrBSG()->argv = argv;
-	/* run your App init function */
-	ret = init();
-	if (ret) {
-		fprintf(stderr, "App call init err, ret=%d\n", ret);
-		goto err;
-	}
 	/* reg signal */
 	if (!signalThreadMaskNotify()) {
 		fprintf(stderr, "main thread signalThreadMaskNotify err:%d\n", errnoGet());
@@ -54,6 +48,12 @@ int main(int argc, char** argv) {
 	}
 	signalReg(s_exit_signo);
 	ptrBSG()->sig_proc = sig_proc;
+	/* run your App init function */
+	ret = init();
+	if (ret) {
+		fprintf(stderr, "App call init err, ret=%d\n", ret);
+		goto err;
+	}
 	/* print boot cluster node info */
 	printBootServerNodeInfo();
 	/* run BootServer and wait BootServer end */

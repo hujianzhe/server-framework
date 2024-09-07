@@ -8,13 +8,15 @@
 #include "util/cpp_inc/std_any_pointer_guard.h"
 #include <memory>
 
+typedef util::CoroutinePromise<void>(*CppCoroutineDispatchNetCallback)(TaskThread_t*, DispatchNetMsg_t*);
+
 class TaskThreadCppCoroutine : public TaskThread_t {
 public:
 	static TaskThread_t* newInstance() {
 		return new TaskThreadCppCoroutine();
 	}
 
-	util::CoroutinePromise<void>(*net_dispatch)(TaskThread_t*, DispatchNetMsg_t*);
+	CppCoroutineDispatchNetCallback net_dispatch;
 
 private:
 	util::CoroutineDefaultSche m_sche;

@@ -6,6 +6,7 @@
 #include "dispatch_msg.h"
 #include "util/cpp_inc/coroutine_default_sche.h"
 #include "util/cpp_inc/std_any_pointer_guard.h"
+#include <cassert>
 #include <memory>
 
 typedef util::CoroutinePromise<void>(*CppCoroutineDispatchNetCallback)(TaskThread_t*, DispatchNetMsg_t*);

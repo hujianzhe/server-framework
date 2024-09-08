@@ -1,6 +1,7 @@
 #ifndef BOOT_SERVER_TASK_THREAD_H
 #define	BOOT_SERVER_TASK_THREAD_H
 
+#include "util/inc/sysapi/process.h"
 #include "util/inc/component/stack_co_sche.h"
 #include "util/inc/datastruct/random.h"
 

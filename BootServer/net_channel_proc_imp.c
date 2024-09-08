@@ -3,6 +3,7 @@
 #include "net_channel_proc_imp.h"
 #include "task_thread.h"
 #include <stdio.h>
+#include <assert.h>
 
 static void stack_co_sche_channel_detach_impl(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	NetChannel_t* channel = (NetChannel_t*)param->value;

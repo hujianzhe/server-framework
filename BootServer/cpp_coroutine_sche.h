@@ -14,7 +14,12 @@ typedef util::CoroutinePromise<void>(*CppCoroutineDispatchNetCallback)(TaskThrea
 class TaskThreadCppCoroutine : public TaskThread_t {
 public:
 	static TaskThread_t* newInstance() {
-		return new TaskThreadCppCoroutine();
+		auto t = new TaskThreadCppCoroutine();
+		if (!saveTaskThread(t)) {
+			delete t;
+			return nullptr;
+		}
+		return t;
 	}
 
 	CppCoroutineDispatchNetCallback net_dispatch;

@@ -30,14 +30,6 @@ static const TaskThreadHook_t s_TaskThreadStackCoHook = {
 static DynArr_t(TaskThread_t*) s_allTaskThreads;
 static Atom32_t s_allTaskThreadsSpinLock;
 
-static int __save_task_thread(TaskThread_t* t) {
-	int save_ok;
-	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
-	dynarrInsert(&s_allTaskThreads, s_allTaskThreads.len, t, save_ok);
-	_xchg32(&s_allTaskThreadsSpinLock, 0);
-	return save_ok;
-}
-
 static void __remove_task_thread(TaskThread_t* t) {
 	size_t idx;
 	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
@@ -54,6 +46,18 @@ static void __remove_task_thread(TaskThread_t* t) {
 extern "C" {
 #endif
 
+int saveTaskThread(TaskThread_t* t) {
+	size_t idx;
+	int save_ok;
+	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
+	dynarrFindValue(&s_allTaskThreads, t, idx);
+	if (-1 == idx) {
+		dynarrInsert(&s_allTaskThreads, s_allTaskThreads.len, t, save_ok);
+	}
+	_xchg32(&s_allTaskThreadsSpinLock, 0);
+	return save_ok;
+}
+
 TaskThread_t* newTaskThreadStackCo(size_t co_stack_size) {
 	int sche_ok = 0, seedval;
 	TaskThreadStackCo_t* thrd = (TaskThreadStackCo_t*)malloc(sizeof(TaskThreadStackCo_t));
@@ -67,7 +71,7 @@ TaskThread_t* newTaskThreadStackCo(size_t co_stack_size) {
 	}
 	sche_ok = 1;
 
-	if (!__save_task_thread(&thrd->_)) {
+	if (!saveTaskThread(&thrd->_)) {
 		goto err;
 	}
 	thrd->_.hook = &s_TaskThreadStackCoHook;

@@ -81,18 +81,18 @@ private:
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;
 		sche->readyExec([](const std::any& arg)->util::CoroutinePromise<void> {
 			auto thrd = (TaskThreadCppCoroutine*)currentTaskThread();
-			auto net_msg = util::StdAnyPointerGuard<DispatchNetMsg_t>::transfer_unique_ptr(arg);
+			auto net_msg = util::StdAnyPointerGuard::transfer_unique_ptr<DispatchNetMsg_t>(arg);
 		#ifndef NDEBUG
 			assert(thrd->net_dispatch);
 		#endif
 			std::unique_ptr<NetChannel_t, void(*)(NetChannel_t*)> ch(NetChannel_add_ref(net_msg->channel), NetChannel_close_ref);
 			co_await thrd->net_dispatch(thrd, net_msg.get());
 			co_return;
-		}, util::StdAnyPointerGuard<DispatchNetMsg_t>::to_any(msg, freeDispatchNetMsg));
+		}, util::StdAnyPointerGuard::to_any(msg, freeDispatchNetMsg));
 	}
 	static void on_resume_msg(void* sche_obj, DispatchNetMsg_t* msg) {
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;
-		sche->readyResume(msg->rpcid, util::StdAnyPointerGuard<DispatchNetMsg_t>::to_any(msg, freeDispatchNetMsg));
+		sche->readyResume(msg->rpcid, util::StdAnyPointerGuard::to_any(msg, freeDispatchNetMsg));
 	}
 	static void on_resume(void* sche_obj, int id, int canceled) {
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;

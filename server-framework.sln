@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BootServer", "BootServer\BootServer.vcxproj", "{8E45FE68-58EB-473F-874E-427DF9477854}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoTestClient", "SoTestClient\SoTestClient.vcxproj", "{60E4861D-FF9D-47A2-9F27-22EA115C3887}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServiceTemplate", "ServiceTemplate\ServiceTemplate.vcxproj", "{AFB2EB60-969B-48E7-B1FD-F92B5112D64F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cpp20-SoTestServer", "Cpp20-SoTestServer\Cpp20-SoTestServer.vcxproj", "{8923F2CA-2B09-4301-926F-1E9E83E59EE1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,14 @@ Global
 		{AFB2EB60-969B-48E7-B1FD-F92B5112D64F}.Release|x64.Build.0 = Release|x64
 		{AFB2EB60-969B-48E7-B1FD-F92B5112D64F}.Release|x86.ActiveCfg = Release|Win32
 		{AFB2EB60-969B-48E7-B1FD-F92B5112D64F}.Release|x86.Build.0 = Release|Win32
+		{8923F2CA-2B09-4301-926F-1E9E83E59EE1}.Debug|x64.ActiveCfg = Debug|x64
+		{8923F2CA-2B09-4301-926F-1E9E83E59EE1}.Debug|x64.Build.0 = Debug|x64
+		{8923F2CA-2B09-4301-926F-1E9E83E59EE1}.Debug|x86.ActiveCfg = Debug|Win32
+		{8923F2CA-2B09-4301-926F-1E9E83E59EE1}.Debug|x86.Build.0 = Debug|Win32
+		{8923F2CA-2B09-4301-926F-1E9E83E59EE1}.Release|x64.ActiveCfg = Release|x64
+		{8923F2CA-2B09-4301-926F-1E9E83E59EE1}.Release|x64.Build.0 = Release|x64
+		{8923F2CA-2B09-4301-926F-1E9E83E59EE1}.Release|x86.ActiveCfg = Release|Win32
+		{8923F2CA-2B09-4301-926F-1E9E83E59EE1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

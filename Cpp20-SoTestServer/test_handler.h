@@ -8,6 +8,7 @@ namespace TestHandler {
 void reg_dispatch(Dispatch_t* dispatch);
 
 util::CoroutinePromise<void> reqSoTest(TaskThread_t* thrd, DispatchNetMsg_t* req_ctrl);
+util::CoroutinePromise<void> reqSoTestEx(TaskThread_t* thrd, DispatchNetMsg_t* req_ctrl);
 }
 
 #endif

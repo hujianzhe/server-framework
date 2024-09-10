@@ -12,7 +12,6 @@ void freeDispatch(struct Dispatch_t* dispatch);
 extern "C" {
 #endif
 
-__declspec_dll DispatchNetCallback_t regNullDispatch(struct Dispatch_t* dispatch, DispatchNetCallback_t func);
 __declspec_dll int regStringDispatch(struct Dispatch_t* dispatch, const char* str, DispatchNetCallback_t func);
 __declspec_dll int regNumberDispatch(struct Dispatch_t* dispatch, int cmd, DispatchNetCallback_t func);
 __declspec_dll DispatchNetCallback_t getStringDispatch(const struct Dispatch_t* dispatch, const char* str);

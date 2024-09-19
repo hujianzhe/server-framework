@@ -71,7 +71,7 @@ private:
 			channel->session = NULL;
 			session->channel = NULL;
 			auto fn = (util::CoroutineDefaultSche::EntryFuncPtr)session->on_disconnect_fn_ptr;
-			if (!fn) {
+			if (fn) {
 				co_await fn(session);
 			}
 			co_return;

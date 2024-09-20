@@ -12,7 +12,7 @@
 class TaskThreadCppCoroutine : public TaskThread_t {
 public:
 	typedef util::CoroutinePromise<void>(*FnNetCallback)(TaskThread_t*, DispatchNetMsg_t*);
-	typedef util::CoroutinePromise<void>(*FnNetDetach)(TaskThread_t* thrd, NetChannel_t* channel);
+	typedef util::CoroutinePromise<void>(*FnNetDetach)(TaskThread_t*, NetChannel_t*);
 
 	static TaskThread_t* newInstance() {
 		auto t = new TaskThreadCppCoroutine();
@@ -69,17 +69,18 @@ private:
 	static void on_detach(void* sche_obj, NetChannel_t* channel) {
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;
 		sche->readyExec([](const std::any& arg)->util::CoroutinePromise<void> {
-			auto channel = std::any_cast<NetChannel_t*>(arg);
-			std::unique_ptr<NetChannel_t, void(*)(NetChannel_t*)> ch(channel, NetChannel_close_ref);
+			auto thrd = (TaskThreadCppCoroutine*)currentTaskThread();
+			std::unique_ptr<NetChannel_t, void(*)(NetChannel_t*)> channel(std::any_cast<NetChannel_t*>(arg), NetChannel_close_ref);
+
+			co_await thrd->net_detach(thrd, channel.get());
 			NetSession_t* session = channel->session;
-			if (!session) {
-				co_return;
-			}
-			channel->session = NULL;
-			session->channel = NULL;
-			auto fn = (util::CoroutineDefaultSche::EntryFuncPtr)session->on_disconnect_fn_ptr;
-			if (fn) {
-				co_await fn(session);
+			if (session) {
+				channel->session = NULL;
+				session->channel = NULL;
+				auto fn = (util::CoroutineDefaultSche::EntryFuncPtr)session->on_disconnect_fn_ptr;
+				if (fn) {
+					co_await fn(session);
+				}
 			}
 			co_return;
 		}, channel);
@@ -89,9 +90,6 @@ private:
 		sche->readyExec([](const std::any& arg)->util::CoroutinePromise<void> {
 			auto thrd = (TaskThreadCppCoroutine*)currentTaskThread();
 			auto net_msg = util::StdAnyPointerGuard::transfer_unique_ptr<DispatchNetMsg_t>(arg);
-		#ifndef NDEBUG
-			assert(thrd->net_dispatch);
-		#endif
 			std::unique_ptr<NetChannel_t, void(*)(NetChannel_t*)> ch(NetChannel_add_ref(net_msg->channel), NetChannel_close_ref);
 			co_await thrd->net_dispatch(thrd, net_msg.get());
 			co_return;

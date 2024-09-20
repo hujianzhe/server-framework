@@ -8,7 +8,6 @@
 #include "net_channel_http.h"
 #include "net_channel_websocket.h"
 #include "net_channel_redis.h"
-#include "cluster_node.h"
 #include "dispatch.h"
 #include "dispatch_msg.h"
 #include "net_thread.h"

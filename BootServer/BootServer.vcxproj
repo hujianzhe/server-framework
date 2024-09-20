@@ -147,7 +147,6 @@
     <ClInclude Include="net_channel_redis.h" />
     <ClInclude Include="net_channel_http.h" />
     <ClInclude Include="net_channel_websocket.h" />
-    <ClInclude Include="cluster_node.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="dispatch.h" />
     <ClInclude Include="dispatch_msg.h" />
@@ -216,7 +215,6 @@
     <ClCompile Include="net_channel_redis.c" />
     <ClCompile Include="net_channel_http.c" />
     <ClCompile Include="net_channel_websocket.c" />
-    <ClCompile Include="cluster_node.c" />
     <ClCompile Include="config.c" />
     <ClCompile Include="dispatch.c" />
     <ClCompile Include="dispatch_msg.c" />

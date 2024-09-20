@@ -71,17 +71,7 @@ private:
 		sche->readyExec([](const std::any& arg)->util::CoroutinePromise<void> {
 			auto thrd = (TaskThreadCppCoroutine*)currentTaskThread();
 			auto channel = util::StdAnyPointerGuard::transfer_unique_ptr<NetChannel_t>(arg);
-
 			co_await thrd->net_detach(thrd, channel.get());
-			NetSession_t* session = channel->session;
-			if (session) {
-				channel->session = NULL;
-				session->channel = NULL;
-				auto fn = (util::CoroutineDefaultSche::EntryFuncPtr)session->on_disconnect_fn_ptr;
-				if (fn) {
-					co_await fn(session);
-				}
-			}
 			co_return;
 		}, util::StdAnyPointerGuard::to_any(channel, NetChannel_close_ref));
 	}

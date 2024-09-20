@@ -9,10 +9,11 @@
 #include <cassert>
 #include <memory>
 
-typedef util::CoroutinePromise<void>(*CppCoroutineDispatchNetCallback)(TaskThread_t*, DispatchNetMsg_t*);
-
 class TaskThreadCppCoroutine : public TaskThread_t {
 public:
+	typedef util::CoroutinePromise<void>(*FnNetCallback)(TaskThread_t*, DispatchNetMsg_t*);
+	typedef util::CoroutinePromise<void>(*FnNetDetach)(TaskThread_t* thrd, NetChannel_t* channel);
+
 	static TaskThread_t* newInstance() {
 		auto t = new TaskThreadCppCoroutine();
 		if (!saveTaskThread(t)) {
@@ -22,13 +23,19 @@ public:
 		return t;
 	}
 
-	CppCoroutineDispatchNetCallback net_dispatch;
+	FnNetCallback net_dispatch;
+	FnNetDetach net_detach;
 
 private:
 	util::CoroutineDefaultSche m_sche;
 
 	TaskThreadCppCoroutine() {
-		net_dispatch = nullptr;
+		net_dispatch = [](TaskThread_t* t, DispatchNetMsg_t* net_msg)->util::CoroutinePromise<void> {
+			FnNetCallback fn = (FnNetCallback)net_msg->callback;
+			co_await fn(t, net_msg);
+			co_return;
+		};
+		net_detach = [](TaskThread_t*, NetChannel_t*)->util::CoroutinePromise<void> { co_return; };
 		sche = &m_sche;
 		mt19937Seed(&randmt19937_ctx, time(NULL));
 		hook = &TaskThreadCppCoroutine::default_hook;

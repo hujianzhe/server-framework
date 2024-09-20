@@ -28,7 +28,8 @@ typedef struct TaskThread_t {
 
 typedef struct TaskThreadStackCo_t {
 	TaskThread_t _;
-	void(*net_dispatch)(TaskThread_t* thrd, struct DispatchNetMsg_t* req_ctrl);
+	void(*net_dispatch)(TaskThread_t* thrd, struct DispatchNetMsg_t* net_msg);
+	void(*net_detach)(TaskThread_t* thrd, struct NetChannel_t* channel);
 } TaskThreadStackCo_t;
 
 #ifdef __cplusplus

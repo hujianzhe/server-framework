@@ -106,10 +106,6 @@ void test_simply_udp_client(unsigned short port) {
 	NetChannel_send(c, data, sizeof(data), 0, &saddr.sa, saddrlen);
 }
 
-static void net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
-	net_msg->callback(thrd, net_msg);
-}
-
 void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	int i;
 	StackCoBlock_t* block;
@@ -172,13 +168,11 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 }
 
 int init(void) {
-	TaskThreadStackCo_t* default_task_thread = (TaskThreadStackCo_t*)ptrBSG()->default_task_thread;
 	// register dispatch
 	regNumberDispatch(ptrBSG()->dispatch, CMD_NOTIFY_TEST, notifyTest);
 	regNumberDispatch(ptrBSG()->dispatch, CMD_RET_TEST, retTest);
 	regNumberDispatch(ptrBSG()->dispatch, CMD_RET_LOGIN_TEST, retLoginTest);
 
-	default_task_thread->net_dispatch = net_dispatch;
-	StackCoSche_function(default_task_thread->_.sche, run, NULL);
+	StackCoSche_function(ptrBSG()->default_task_thread->sche_stack_co, run, NULL);
 	return 0;
 }

@@ -25,6 +25,11 @@ static const TaskThreadHook_t s_TaskThreadStackCoHook = {
 	task_thread_stack_co_deleter
 };
 
+static void default_net_dispatch(TaskThread_t* thrd, struct DispatchNetMsg_t* net_msg) {
+	net_msg->callback(thrd, net_msg);
+}
+static void ignore_net_detach(TaskThread_t* thrd, struct NetChannel_t* channel) {}
+
 /**************************************************************************************/
 
 static DynArr_t(TaskThread_t*) s_allTaskThreads;
@@ -78,7 +83,8 @@ TaskThread_t* newTaskThreadStackCo(size_t co_stack_size) {
 
 	seedval = time(NULL);
 	mt19937Seed(&thrd->_.randmt19937_ctx, seedval);
-	thrd->net_dispatch = NULL;
+	thrd->net_dispatch = default_net_dispatch;
+	thrd->net_detach = ignore_net_detach;
 	return &thrd->_;
 err:
 	if (sche_ok) {

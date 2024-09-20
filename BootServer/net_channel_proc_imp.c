@@ -3,11 +3,14 @@
 #include "net_channel_proc_imp.h"
 #include "task_thread.h"
 #include <stdio.h>
-#include <assert.h>
 
 static void stack_co_sche_channel_detach_impl(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
+	TaskThread_t* t = (TaskThread_t*)StackCoSche_userdata(sche);
+	TaskThreadStackCo_t* thrd = pod_container_of(t, TaskThreadStackCo_t, _);
 	NetChannel_t* channel = (NetChannel_t*)param->value;
 	NetSession_t* session = channel->session;
+
+	thrd->net_detach(t, channel);
 	if (session) {
 		channel->session = NULL;
 		session->channel = NULL;
@@ -22,9 +25,7 @@ static void stack_co_sche_execute_msg_impl(struct StackCoSche_t* sche, StackCoAs
 	TaskThread_t* t = (TaskThread_t*)StackCoSche_userdata(sche);
 	DispatchNetMsg_t* net_msg = (DispatchNetMsg_t*)param->value;
 	TaskThreadStackCo_t* thrd = pod_container_of(t, TaskThreadStackCo_t, _);
-#ifndef NDEBUG
-	assert(thrd->net_dispatch);
-#endif
+
 	NetChannel_add_ref(net_msg->channel);
 	thrd->net_dispatch(t, net_msg);
 	NetChannel_close_ref(net_msg->channel);

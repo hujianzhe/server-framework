@@ -73,19 +73,11 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 	co_return;
 }
 
-static util::CoroutinePromise<void> net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
-	CppCoroutineDispatchNetCallback fn = (CppCoroutineDispatchNetCallback)net_msg->callback;
-	co_await fn(thrd, net_msg);
-	co_return;
-}
-
 int init(void) {
-	TaskThreadCppCoroutine* default_task_thread = (TaskThreadCppCoroutine*)ptrBSG()->default_task_thread;
+	auto sc = (util::CoroutineDefaultSche*)ptrBSG()->default_task_thread->sche;
 	// register dispatch
 	TestHandler::reg_dispatch(ptrBSG()->dispatch);
 
-	default_task_thread->net_dispatch = net_dispatch;
-	auto sc = (util::CoroutineDefaultSche*)default_task_thread->sche;
 	sc->readyExec(run);
 	return 0;
 }

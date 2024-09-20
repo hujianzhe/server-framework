@@ -55,10 +55,6 @@ void test_simply_udp_server(unsigned short port) {
 	NetChannel_close_ref(c);
 }
 
-static void net_dispatch(TaskThread_t* thrd, DispatchNetMsg_t* net_msg) {
-	net_msg->callback(thrd, net_msg);
-}
-
 void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	TaskThread_t* thrd = currentTaskThread();
 	int i;
@@ -87,7 +83,6 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 }
 
 int init(void) {
-	TaskThreadStackCo_t* default_task_thread = (TaskThreadStackCo_t*)ptrBSG()->default_task_thread;
 	// register dispatch
 	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_TEST, reqTest);
 	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_TEST_CALLBACK, reqTestCallback);
@@ -100,7 +95,6 @@ int init(void) {
 	regStringDispatch(ptrBSG()->dispatch, "/reqHttpUploadFile", reqHttpUploadFile);
 	regStringDispatch(ptrBSG()->dispatch, "/reqTestExecQueue", reqTestExecQueue);
 
-	default_task_thread->net_dispatch = net_dispatch;
-	StackCoSche_function(default_task_thread->_.sche, run, NULL);
+	StackCoSche_function(ptrBSG()->default_task_thread->sche_stack_co, run, NULL);
 	return 0;
 }

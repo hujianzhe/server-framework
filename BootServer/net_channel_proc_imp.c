@@ -9,6 +9,7 @@ static void stack_co_sche_channel_detach_impl(struct StackCoSche_t* sche, StackC
 	TaskThreadStackCo_t* thrd = pod_container_of(t, TaskThreadStackCo_t, _);
 	NetChannel_t* channel = (NetChannel_t*)param->value;
 	NetSession_t* session = channel->session;
+	param->fn_value_free = NULL;
 
 	thrd->net_detach(t, channel);
 	if (session) {
@@ -35,6 +36,7 @@ static void stack_co_sche_execute_msg_impl(struct StackCoSche_t* sche, StackCoAs
 static void stack_co_sche_channel_detach(void* sche, NetChannel_t* channel) {
 	StackCoAsyncParam_t async_param = { 0 };
 	async_param.value = channel;
+	async_param.fn_value_free = (void(*)(void*))NetChannel_close_ref;
 	StackCoSche_function((struct StackCoSche_t*)sche, stack_co_sche_channel_detach_impl, &async_param);
 }
 

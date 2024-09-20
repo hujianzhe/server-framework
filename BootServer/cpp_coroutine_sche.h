@@ -70,7 +70,7 @@ private:
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;
 		sche->readyExec([](const std::any& arg)->util::CoroutinePromise<void> {
 			auto thrd = (TaskThreadCppCoroutine*)currentTaskThread();
-			std::unique_ptr<NetChannel_t, void(*)(NetChannel_t*)> channel(std::any_cast<NetChannel_t*>(arg), NetChannel_close_ref);
+			auto channel = util::StdAnyPointerGuard::transfer_unique_ptr<NetChannel_t>(arg);
 
 			co_await thrd->net_detach(thrd, channel.get());
 			NetSession_t* session = channel->session;
@@ -83,7 +83,7 @@ private:
 				}
 			}
 			co_return;
-		}, channel);
+		}, util::StdAnyPointerGuard::to_any(channel, NetChannel_close_ref));
 	}
 	static void on_execute_msg(void* sche_obj, DispatchNetMsg_t* msg) {
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;

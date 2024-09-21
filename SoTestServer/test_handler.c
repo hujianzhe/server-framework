@@ -88,14 +88,14 @@ void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 		puts("assert: lock owner alloc is null !!!");
 		return;
 	}
-	lock = StackCoSche_lock(thrd->sche, lock_owner, "test_lock");
+	lock = StackCoSche_lock(thrd->sche_stack_co, lock_owner, "test_lock");
 
 	puts("start test exec queue");
 	now_msec = gmtimeMillisecond();
-	StackCoSche_sleep_util(thrd->sche, now_msec + 5000, NULL);
-	StackCoSche_yield(thrd->sche);
-	if (StackCoSche_has_exit(thrd->sche)) {
-		StackCoSche_unlock(thrd->sche, lock);
+	StackCoSche_sleep_util(thrd->sche_stack_co, now_msec + 5000, NULL);
+	StackCoSche_yield(thrd->sche_stack_co);
+	if (StackCoSche_has_exit(thrd->sche_stack_co)) {
+		StackCoSche_unlock(thrd->sche_stack_co, lock);
 		StackCoSche_free_lock_owner(lock_owner);
 		return;
 	}
@@ -111,7 +111,7 @@ void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 		200, httpframeStatusDesc(200), sizeof(test_data) - 1, test_data
 	);
 	if (!reply) {
-		StackCoSche_unlock(thrd->sche, lock);
+		StackCoSche_unlock(thrd->sche_stack_co, lock);
 		StackCoSche_free_lock_owner(lock_owner);
 		return;
 	}
@@ -119,7 +119,7 @@ void reqTestExecQueue(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	NetChannel_send_fin(ctrl->channel);
 	free(reply);
 
-	StackCoSche_unlock(thrd->sche, lock);
+	StackCoSche_unlock(thrd->sche_stack_co, lock);
 	StackCoSche_free_lock_owner(lock_owner);
 }
 

@@ -14,14 +14,14 @@ void frpc_req_echo(TaskThread_t* thrd, NetChannel_t* channel, size_t datalen) {
 		InnerMsgPayload_t msg;
 		DispatchNetMsg_t* ret_ctrl;
 		long long tm_msec = gmtimeMillisecond();
-		StackCoBlock_t* co_block = StackCoSche_block_point_util(thrd->sche, tm_msec + 5000, NULL);
+		StackCoBlock_t* co_block = StackCoSche_block_point_util(thrd->sche_stack_co, tm_msec + 5000, NULL);
 		if (!co_block) {
 			break;
 		}
 		makeInnerMsgRpcReq(&msg, co_block->id, CMD_REQ_ECHO, data, datalen);
 		NetChannel_sendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
-		co_block = StackCoSche_yield(thrd->sche);
-		if (StackCoSche_has_exit(thrd->sche)) {
+		co_block = StackCoSche_yield(thrd->sche_stack_co);
+		if (StackCoSche_has_exit(thrd->sche_stack_co)) {
 			long long tlen = gmtimeMillisecond() - start_tm;
 			size_t cnt_per_sec = (double)cnt / tlen * 1000.0;
 			printf("thread coroutine sche has exit, cnt = %zu, cost %lld msec, cnt_per_sec = %zu\n",
@@ -44,7 +44,7 @@ void frpc_req_echo(TaskThread_t* thrd, NetChannel_t* channel, size_t datalen) {
 			puts("echo data error");
 			break;
 		}
-		StackCoSche_reuse_block(thrd->sche, co_block);
+		StackCoSche_reuse_block(thrd->sche_stack_co, co_block);
 		++cnt;
 	}
 	free(data);
@@ -61,14 +61,14 @@ void frpc_test_code(TaskThread_t* thrd, NetChannel_t* channel) {
 	long long tm_msec = gmtimeMillisecond();
 	StackCoBlock_t* sub_block_arr[2];
 	//
-	sub_block_arr[0] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000, NULL);
+	sub_block_arr[0] = StackCoSche_block_point_util(thrd->sche_stack_co, tm_msec + 1000, NULL);
 	if (!sub_block_arr[0]) {
 		return;
 	}
 	makeInnerMsgRpcReq(&msg, sub_block_arr[0]->id, CMD_REQ_TEST_CALLBACK, test_data, sizeof(test_data));
 	NetChannel_sendv(channel, msg.iov, sizeof(msg.iov) / sizeof(msg.iov[0]), NETPACKET_FRAGMENT, NULL, 0);
 	//
-	sub_block_arr[1] = StackCoSche_block_point_util(thrd->sche, tm_msec + 1000, NULL);
+	sub_block_arr[1] = StackCoSche_block_point_util(thrd->sche_stack_co, tm_msec + 1000, NULL);
 	if (!sub_block_arr[1]) {
 		return;
 	}
@@ -77,8 +77,8 @@ void frpc_test_code(TaskThread_t* thrd, NetChannel_t* channel) {
 	//
 	for (i = 0; i < sizeof(sub_block_arr) / sizeof(sub_block_arr[0]); ++i) {
 		DispatchNetMsg_t* ret_msg;
-		StackCoBlock_t* ret_block = StackCoSche_yield(thrd->sche);
-		if (StackCoSche_has_exit(thrd->sche)) {
+		StackCoBlock_t* ret_block = StackCoSche_yield(thrd->sche_stack_co);
+		if (StackCoSche_has_exit(thrd->sche_stack_co)) {
 			puts("thread coroutine sche has exit");
 			return;
 		}
@@ -90,7 +90,7 @@ void frpc_test_code(TaskThread_t* thrd, NetChannel_t* channel) {
 		if (ret_block->id == sub_block_arr[0]->id) {
 			StackCoAsyncParam_t async_param = { 0 };
 			async_param.value = (void*)"abcdefg";
-			StackCoSche_function(thrd->sche, frpc_callback, &async_param);
+			StackCoSche_function(thrd->sche_stack_co, frpc_callback, &async_param);
 		}
 		else if (ret_block->id == sub_block_arr[1]->id) {
 			long long cost_msec = gmtimeMillisecond() - tm_msec;
@@ -116,9 +116,9 @@ void retLoginTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	logInfo(ptrBSG()->log, "recv: %s", (char*)ctrl->data);
 
 	// test code
-	StackCoSche_sleep_util(thrd->sche, gmtimeMillisecond() + 5000, NULL);
-	block = StackCoSche_yield(thrd->sche);
-	if (StackCoSche_has_exit(thrd->sche)) {
+	StackCoSche_sleep_util(thrd->sche_stack_co, gmtimeMillisecond() + 5000, NULL);
+	block = StackCoSche_yield(thrd->sche_stack_co);
+	if (StackCoSche_has_exit(thrd->sche_stack_co)) {
 		puts("thread coroutine sche has exit");
 		return;
 	}

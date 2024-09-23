@@ -32,28 +32,34 @@ static void ignore_net_detach(TaskThread_t* thrd, struct NetChannel_t* channel) 
 
 /**************************************************************************************/
 
-static DynArr_t(TaskThread_t*) s_allTaskThreads;
-static Atom32_t s_allTaskThreadsSpinLock;
+static DynArr_t(TaskThread_t*) s_TaskThreads;
+static Atom32_t s_SpinLock;
+
+int reserveTaskThreadMaxCnt(unsigned int cnt) {
+	return dynarrReserve(&s_TaskThreads, cnt) != NULL;
+}
 
 static void __remove_task_thread(TaskThread_t* t) {
-	size_t idx;
-	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
-	dynarrFindValue(&s_allTaskThreads, t, idx);
-	if (idx != -1) {
-		dynarrRemoveIdx(&s_allTaskThreads, idx);
+	size_t i;
+	while (_xchg32(&s_SpinLock, 1));
+	for (i = 0; i < s_TaskThreads.len; ++i) {
+		if (s_TaskThreads.buf[i] == t) {
+			s_TaskThreads.buf[i] = s_TaskThreads.buf[--s_TaskThreads.len];
+			break;
+		}
 	}
-	_xchg32(&s_allTaskThreadsSpinLock, 0);
+	_xchg32(&s_SpinLock, 0);
 }
 
 void freeAllTaskThreads(void) {
-	size_t idx;
-	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
-	for (idx = 0; idx < s_allTaskThreads.len; ++idx) {
-		TaskThread_t* t = s_allTaskThreads.buf[idx];
+	size_t i;
+	while (_xchg32(&s_SpinLock, 1));
+	for (i = 0; i < s_TaskThreads.len; ++i) {
+		TaskThread_t* t = s_TaskThreads.buf[i];
 		t->hook->deleter(t);
 	}
-	dynarrFreeMemory(&s_allTaskThreads);
-	_xchg32(&s_allTaskThreadsSpinLock, 0);
+	dynarrFreeMemory(&s_TaskThreads);
+	_xchg32(&s_SpinLock, 0);
 }
 
 /**************************************************************************************/
@@ -63,14 +69,30 @@ extern "C" {
 #endif
 
 int saveTaskThread(TaskThread_t* t) {
-	size_t idx;
-	int save_ok = 0;
-	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
-	dynarrFindValue(&s_allTaskThreads, t, idx);
-	if (-1 == idx) {
-		dynarrInsert(&s_allTaskThreads, s_allTaskThreads.len, t, save_ok);
+	int save_ok;
+	if (!t) {
+		return 0;
 	}
-	_xchg32(&s_allTaskThreadsSpinLock, 0);
+	save_ok = 0;
+	while (_xchg32(&s_SpinLock, 1));
+	if (s_TaskThreads.len <= 0) {
+		dynarrReserve(&s_TaskThreads, 1);
+	}
+	if (s_TaskThreads.len < s_TaskThreads.capacity) {
+		size_t i;
+		for (i = 0; i < s_TaskThreads.len; ++i) {
+			TaskThread_t* t = s_TaskThreads.buf[i];
+			if (s_TaskThreads.buf[i] == t) {
+				save_ok = 1;
+				break;
+			}
+		}
+		if (!save_ok) {
+			s_TaskThreads.buf[s_TaskThreads.len++] = t;
+			save_ok = 1;
+		}
+	}
+	_xchg32(&s_SpinLock, 0);
 	return save_ok;
 }
 
@@ -120,14 +142,17 @@ TaskThread_t* currentTaskThread(void) {
 	Thread_t tid = threadSelf();
 	TaskThread_t* thrd = NULL;
 	size_t i;
-	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
-	for (i = 0; i < s_allTaskThreads.len; ++i) {
-		thrd = s_allTaskThreads.buf[i];
+	while (_xchg32(&s_SpinLock, 1));
+	for (i = 0; i < s_TaskThreads.len; ++i) {
+		thrd = s_TaskThreads.buf[i];
+		if (!thrd) {
+			break;
+		}
 		if (threadEqual(tid, thrd->tid)) {
 			break;
 		}
 	}
-	_xchg32(&s_allTaskThreadsSpinLock, 0);
+	_xchg32(&s_SpinLock, 0);
 	return thrd;
 }
 

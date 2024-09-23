@@ -32,6 +32,7 @@ typedef struct TaskThreadStackCo_t {
 	void(*net_detach)(TaskThread_t* thrd, struct NetChannel_t* channel);
 } TaskThreadStackCo_t;
 
+int reserveTaskThreadMaxCnt(unsigned int cnt);
 void freeAllTaskThreads(void);
 
 #ifdef __cplusplus

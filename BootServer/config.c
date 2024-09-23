@@ -137,6 +137,18 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 		conf->net_thread_cnt = 1;
 	}
 
+	cjson = cJSON_GetField(root, "task_thread_max_cnt");
+	if (cjson) {
+		int task_thread_max_cnt = cJSON_GetInteger(cjson);
+		if (task_thread_max_cnt <= 0) {
+			task_thread_max_cnt = processorCount();
+		}
+		conf->task_thread_max_cnt = task_thread_max_cnt;
+	}
+	else {
+		conf->task_thread_max_cnt = 1;
+	}
+
 	cjson = cJSON_GetField(root, "cluster_table_path");
 	if (cjson) {
 		conf->cluster_table_path = strdup(cJSON_GetStringPtr(cjson));

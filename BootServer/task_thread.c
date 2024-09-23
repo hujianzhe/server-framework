@@ -50,11 +50,9 @@ void freeAllTaskThreads(void) {
 	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
 	for (idx = 0; idx < s_allTaskThreads.len; ++idx) {
 		TaskThread_t* t = s_allTaskThreads.buf[idx];
-		if (t->hook->deleter) {
-			t->hook->deleter(t);
-		}
+		t->hook->deleter(t);
 	}
-	dynarrClearData(&s_allTaskThreads);
+	dynarrFreeMemory(&s_allTaskThreads);
 	_xchg32(&s_allTaskThreadsSpinLock, 0);
 }
 
@@ -66,7 +64,7 @@ extern "C" {
 
 int saveTaskThread(TaskThread_t* t) {
 	size_t idx;
-	int save_ok;
+	int save_ok = 0;
 	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
 	dynarrFindValue(&s_allTaskThreads, t, idx);
 	if (-1 == idx) {
@@ -114,9 +112,7 @@ BOOL runTaskThread(TaskThread_t* t) {
 void freeTaskThread(TaskThread_t* t) {
 	if (t) {
 		__remove_task_thread(t);
-		if (t->hook->deleter) {
-			t->hook->deleter(t);
-		}
+		t->hook->deleter(t);
 	}
 }
 

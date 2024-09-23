@@ -139,8 +139,11 @@ void freeBootServerGlobal(void) {
 		return;
 	}
 	s_PtrBSG = NULL;
-	freeAllTaskThreads();
-	s_BSG.default_task_thread = NULL;
+	if (s_BSG.default_task_thread) {
+		freeTaskThread(s_BSG.default_task_thread);
+		s_BSG.default_task_thread = NULL;
+	}
+	waitFreeAllTaskThreads();
 	if (s_BSG.log) {
 		logDestroy(s_BSG.log);
 		s_BSG.log = NULL;

@@ -51,15 +51,21 @@ static void __remove_task_thread(TaskThread_t* t) {
 	_xchg32(&s_SpinLock, 0);
 }
 
-void freeAllTaskThreads(void) {
-	size_t i;
-	while (_xchg32(&s_SpinLock, 1));
-	for (i = 0; i < s_TaskThreads.len; ++i) {
-		TaskThread_t* t = s_TaskThreads.buf[i];
-		t->hook->deleter(t);
+void waitFreeAllTaskThreads(void) {
+	while (1) {
+		while (_xchg32(&s_SpinLock, 1)) {
+			threadSleepMillsecond(40);
+		}
+		if (s_TaskThreads.len > 0) {
+			_xchg32(&s_SpinLock, 0);
+			threadSleepMillsecond(40);
+		}
+		else {
+			_xchg32(&s_SpinLock, 0);
+			break;
+		}
 	}
 	dynarrFreeMemory(&s_TaskThreads);
-	_xchg32(&s_SpinLock, 0);
 }
 
 /**************************************************************************************/

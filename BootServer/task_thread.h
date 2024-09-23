@@ -33,7 +33,7 @@ typedef struct TaskThreadStackCo_t {
 } TaskThreadStackCo_t;
 
 BOOL reserveTaskThreadMaxCnt(unsigned int cnt);
-void freeAllTaskThreads(void);
+void waitFreeAllTaskThreads();
 
 #ifdef __cplusplus
 extern "C" {

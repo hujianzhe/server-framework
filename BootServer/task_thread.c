@@ -131,6 +131,10 @@ BOOL runTaskThread(TaskThread_t* t) {
 	return threadCreate(&t->tid, t->hook->entry, t);
 }
 
+void stopTaskThread(TaskThread_t* t) {
+	t->hook->exit(t);
+}
+
 void freeTaskThread(TaskThread_t* t) {
 	if (t) {
 		__remove_task_thread(t);

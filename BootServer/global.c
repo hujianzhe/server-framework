@@ -129,7 +129,7 @@ void stopBootServerGlobal(void) {
 	}
 	s_BSG.valid = 0;
 	if (s_BSG.default_task_thread) {
-		s_BSG.default_task_thread->hook->exit(s_BSG.default_task_thread);
+		stopTaskThread(s_BSG.default_task_thread);
 	}
 	wakeupNetThreads();
 }

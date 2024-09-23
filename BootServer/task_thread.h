@@ -42,6 +42,7 @@ extern "C" {
 __declspec_dll TaskThread_t* newTaskThreadStackCo(size_t co_stack_size);
 __declspec_dll int saveTaskThread(TaskThread_t* t);
 __declspec_dll BOOL runTaskThread(TaskThread_t* t);
+__declspec_dll void stopTaskThread(TaskThread_t* t);
 __declspec_dll void freeTaskThread(TaskThread_t* t);
 __declspec_dll TaskThread_t* currentTaskThread(void);
 

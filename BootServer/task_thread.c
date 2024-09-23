@@ -149,9 +149,6 @@ TaskThread_t* currentTaskThread(void) {
 	while (_xchg32(&s_SpinLock, 1));
 	for (i = 0; i < s_TaskThreads.len; ++i) {
 		thrd = s_TaskThreads.buf[i];
-		if (!thrd) {
-			break;
-		}
 		if (threadEqual(tid, thrd->tid)) {
 			break;
 		}

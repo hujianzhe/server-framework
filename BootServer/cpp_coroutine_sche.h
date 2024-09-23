@@ -42,11 +42,15 @@ private:
 	}
 
 	static unsigned int entry(void* arg) {
-		auto& sche = ((TaskThreadCppCoroutine*)arg)->m_sche;
+		auto t = ((TaskThreadCppCoroutine*)arg);
+		auto& sche = t->m_sche;
 		while (!sche.check_exit()) {
 			sche.doSche(-1);
 		}
 		sche.scheDestroy();
+		if (t->detached) {
+			freeTaskThread(t);
+		}
 		return 0;
 	}
 	static void exit(TaskThread_t* t) {

@@ -6,6 +6,9 @@
 static unsigned int task_thread_stack_co_entry(void* arg) {
 	TaskThread_t* t = (TaskThread_t*)arg;
 	while (0 == StackCoSche_sche(t->sche_stack_co, -1));
+	if (t->detached) {
+		freeTaskThread(t);
+	}
 	return 0;
 }
 
@@ -106,6 +109,7 @@ BOOL saveTaskThread(TaskThread_t* t) {
 	if (detached) {
 		threadDetach(t->tid);
 	}
+	t->detached = detached;
 	return save_ok;
 }
 

@@ -126,7 +126,6 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		if (!c) {
 			return;
 		}
-		c->on_syn_ack = defaultNetChannelOnSynAck;
 		c->connect_timeout_sec = 5;
 
 		logInfo(ptrBSG()->log, "channel(%p) connecting......", c);

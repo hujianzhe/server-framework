@@ -165,6 +165,7 @@ NetChannel_t* openNetChannelHttpClient(const char* ip, unsigned short port, void
 	init_channel_user_data_http(ud, sche);
 	NetChannel_set_userdata(c, ud);
 	c->heartbeat_timeout_sec = 10;
+	c->on_syn_ack = defaultNetChannelOnSynAck;
 	return c;
 err:
 	free(ud);

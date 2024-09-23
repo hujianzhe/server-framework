@@ -38,7 +38,6 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 		co_return;
 	}
 
-	c->on_syn_ack = defaultNetChannelOnSynAck;
 	c->connect_timeout_sec = 5;
 	auto awaiter1 = sc->blockPointTimeout(5000);
 	NetChannel_get_userdata(c.get())->rpc_id_syn_ack = awaiter1.id();

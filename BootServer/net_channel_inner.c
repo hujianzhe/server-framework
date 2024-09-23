@@ -241,6 +241,7 @@ NetChannel_t* openNetChannelInnerClient(int socktype, const char* ip, unsigned s
 	init_channel_user_data_inner(ud, c, sche);
 	NetChannel_set_userdata(c, ud);
 	innerchannel_set_opt(c);
+	c->on_syn_ack = defaultNetChannelOnSynAck;
 	return c;
 err:
 	free(ud);

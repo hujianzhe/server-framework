@@ -45,6 +45,19 @@ static void __remove_task_thread(TaskThread_t* t) {
 	_xchg32(&s_allTaskThreadsSpinLock, 0);
 }
 
+void freeAllTaskThreads(void) {
+	size_t idx;
+	while (_xchg32(&s_allTaskThreadsSpinLock, 1));
+	for (idx = 0; idx < s_allTaskThreads.len; ++idx) {
+		TaskThread_t* t = s_allTaskThreads.buf[idx];
+		if (t->hook->deleter) {
+			t->hook->deleter(t);
+		}
+	}
+	dynarrClearData(&s_allTaskThreads);
+	_xchg32(&s_allTaskThreadsSpinLock, 0);
+}
+
 /**************************************************************************************/
 
 #ifdef __cplusplus

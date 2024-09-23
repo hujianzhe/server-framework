@@ -32,7 +32,7 @@ typedef struct TaskThreadStackCo_t {
 	void(*net_detach)(TaskThread_t* thrd, struct NetChannel_t* channel);
 } TaskThreadStackCo_t;
 
-int reserveTaskThreadMaxCnt(unsigned int cnt);
+BOOL reserveTaskThreadMaxCnt(unsigned int cnt);
 void freeAllTaskThreads(void);
 
 #ifdef __cplusplus
@@ -40,7 +40,7 @@ extern "C" {
 #endif
 
 __declspec_dll TaskThread_t* newTaskThreadStackCo(size_t co_stack_size);
-__declspec_dll int saveTaskThread(TaskThread_t* t);
+__declspec_dll BOOL saveTaskThread(TaskThread_t* t);
 __declspec_dll BOOL runTaskThread(TaskThread_t* t);
 __declspec_dll void stopTaskThread(TaskThread_t* t);
 __declspec_dll void freeTaskThread(TaskThread_t* t);

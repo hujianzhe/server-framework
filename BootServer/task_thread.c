@@ -35,7 +35,7 @@ static void ignore_net_detach(TaskThread_t* thrd, struct NetChannel_t* channel) 
 static DynArr_t(TaskThread_t*) s_TaskThreads;
 static Atom32_t s_SpinLock;
 
-int reserveTaskThreadMaxCnt(unsigned int cnt) {
+BOOL reserveTaskThreadMaxCnt(unsigned int cnt) {
 	return dynarrReserve(&s_TaskThreads, cnt) != NULL;
 }
 
@@ -68,7 +68,7 @@ void freeAllTaskThreads(void) {
 extern "C" {
 #endif
 
-int saveTaskThread(TaskThread_t* t) {
+BOOL saveTaskThread(TaskThread_t* t) {
 	int save_ok;
 	if (!t) {
 		return 0;

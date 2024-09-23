@@ -69,11 +69,12 @@ extern "C" {
 #endif
 
 BOOL saveTaskThread(TaskThread_t* t) {
-	int save_ok;
+	int save_ok, detached;
 	if (!t) {
 		return 0;
 	}
 	save_ok = 0;
+	detached = 0;
 	while (_xchg32(&s_SpinLock, 1));
 	if (s_TaskThreads.len <= 0) {
 		dynarrReserve(&s_TaskThreads, 1);
@@ -90,9 +91,15 @@ BOOL saveTaskThread(TaskThread_t* t) {
 		if (!save_ok) {
 			s_TaskThreads.buf[s_TaskThreads.len++] = t;
 			save_ok = 1;
+			if (s_TaskThreads.len > 1) {
+				detached = 1;
+			}
 		}
 	}
 	_xchg32(&s_SpinLock, 0);
+	if (detached) {
+		threadDetach(t->tid);
+	}
 	return save_ok;
 }
 

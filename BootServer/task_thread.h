@@ -18,7 +18,6 @@ typedef struct TaskThreadHook_t {
 
 typedef struct TaskThread_t {
 	Thread_t tid;
-	int detached;
 	RandMT19937_t randmt19937_ctx;
 	union {
 		struct StackCoSche_t* sche_stack_co;

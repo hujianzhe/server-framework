@@ -45,9 +45,6 @@ private:
 		auto t = ((TaskThreadCppCoroutine*)arg);
 		auto& sche = t->m_sche;
 		while (util::CoroutineDefaultSche::ST_RUN == sche.doSche(-1));
-		if (t->detached) {
-			freeTaskThread(t);
-		}
 		return 0;
 	}
 	static void exit(TaskThread_t* t) {

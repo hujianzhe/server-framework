@@ -44,10 +44,7 @@ private:
 	static unsigned int entry(void* arg) {
 		auto t = ((TaskThreadCppCoroutine*)arg);
 		auto& sche = t->m_sche;
-		while (!sche.check_exit()) {
-			sche.doSche(-1);
-		}
-		sche.scheDestroy();
+		while (util::CoroutineDefaultSche::ST_RUN == sche.doSche(-1));
 		if (t->detached) {
 			freeTaskThread(t);
 		}

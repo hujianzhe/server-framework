@@ -51,7 +51,12 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 
 	auto awaiter2 = sc->blockPointTimeout(1000);
 	sendRedisCmdByNetChannel(c.get(), awaiter2.id(), "AUTH %s", "123456");
-	auto resume_msg2 = util::StdAnyPointerGuard::transfer_unique_ptr<DispatchNetMsg_t>(co_await awaiter2);
+	co_await awaiter2;
+	if (awaiter2.status() != util::CoroutineAwaiter::STATUS_FINISH) {
+		std::cout << "connect redis timeout" << std::endl;
+		co_return;
+	}
+	auto resume_msg2 = util::StdAnyPointerGuard::transfer_unique_ptr<DispatchNetMsg_t>(awaiter2.getAny());
 	RedisReply_t* redis_reply2 = (RedisReply_t*)resume_msg2->param.value;
 	if (REDIS_REPLY_ERROR == redis_reply2->type) {
 		std::cout << std::string(redis_reply2->str, redis_reply2->len) << std::endl;
@@ -61,7 +66,12 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 
 	auto awaiter3 = sc->blockPointTimeout(1000);
 	sendRedisCmdByNetChannel(c.get(), awaiter3.id(), "SUBSCRIBE %s", "cnm");
-	auto resume_msg3 = util::StdAnyPointerGuard::transfer_unique_ptr<DispatchNetMsg_t>(co_await awaiter3);
+	co_await awaiter3;
+	if (awaiter3.status() != util::CoroutineAwaiter::STATUS_FINISH) {
+		std::cout << "connect redis timeout" << std::endl;
+		co_return;
+	}
+	auto resume_msg3 = util::StdAnyPointerGuard::transfer_unique_ptr<DispatchNetMsg_t>(awaiter3.getAny());
 	RedisReply_t* redis_reply3 = (RedisReply_t*)resume_msg3->param.value;
 	if (REDIS_REPLY_ERROR == redis_reply3->type) {
 		std::cout << std::string(redis_reply3->str, redis_reply3->len) << std::endl;

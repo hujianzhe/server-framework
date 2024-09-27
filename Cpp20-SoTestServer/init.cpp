@@ -53,7 +53,7 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 	sendRedisCmdByNetChannel(c.get(), awaiter2.id(), "AUTH %s", "123456");
 	co_await awaiter2;
 	if (awaiter2.status() != util::CoroutineAwaiter::STATUS_FINISH) {
-		std::cout << "connect redis timeout" << std::endl;
+		std::cout << "auth redis timeout" << std::endl;
 		co_return;
 	}
 	auto resume_msg2 = util::StdAnyPointerGuard::transfer_unique_ptr<DispatchNetMsg_t>(awaiter2.getAny());
@@ -68,7 +68,7 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 	sendRedisCmdByNetChannel(c.get(), awaiter3.id(), "SUBSCRIBE %s", "cnm");
 	co_await awaiter3;
 	if (awaiter3.status() != util::CoroutineAwaiter::STATUS_FINISH) {
-		std::cout << "connect redis timeout" << std::endl;
+		std::cout << "subscribe redis timeout" << std::endl;
 		co_return;
 	}
 	auto resume_msg3 = util::StdAnyPointerGuard::transfer_unique_ptr<DispatchNetMsg_t>(awaiter3.getAny());

@@ -10,7 +10,7 @@ typedef struct InnerMsgPayload_t {
 		int htonl_cmdid;
 		int htonl_retcode;
 	};
-	int htonl_rpcid;
+	int64_t htonl_rpcid;
 	Iobuf_t iov[4];
 } InnerMsgPayload_t;
 
@@ -38,8 +38,8 @@ __declspec_dll NetChannel_t* openNetListenerInner(int socktype, const char* ip, 
 
 __declspec_dll InnerMsgPayload_t* makeInnerMsgEmpty(InnerMsgPayload_t* msg);
 __declspec_dll InnerMsgPayload_t* makeInnerMsg(InnerMsgPayload_t* msg, int cmdid, const void* data, unsigned int len);
-__declspec_dll InnerMsgPayload_t* makeInnerMsgRpcReq(InnerMsgPayload_t* msg, int rpcid, int cmdid, const void* data, unsigned int len);
-__declspec_dll InnerMsgPayload_t* makeInnerMsgRpcResp(InnerMsgPayload_t* msg, int rpcid, int retcode, const void* data, unsigned int len);
+__declspec_dll InnerMsgPayload_t* makeInnerMsgRpcReq(InnerMsgPayload_t* msg, int64_t rpcid, int cmdid, const void* data, unsigned int len);
+__declspec_dll InnerMsgPayload_t* makeInnerMsgRpcResp(InnerMsgPayload_t* msg, int64_t rpcid, int retcode, const void* data, unsigned int len);
 
 #ifdef __cplusplus
 }

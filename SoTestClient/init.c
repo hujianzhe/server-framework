@@ -44,11 +44,11 @@ static void frpc_test_paralle(struct StackCoSche_t* sche, NetChannel_t* channel)
 			break;
 		}
 		if (block->status != STACK_CO_STATUS_FINISH) {
-			printf("rpc identity(%d) call failure timeout or cancel\n", block->id);
+			printf("rpc identity(%lld) call failure timeout or cancel\n", block->id);
 			continue;
 		}
 		ret_msg = (DispatchNetMsg_t*)block->resume_param.value;
-		printf("rpc identity(%d) return: %s ...\n", block->id, ret_msg->data);
+		printf("rpc identity(%lld) return: %s ...\n", block->id, ret_msg->data);
 	}
 	StackCoSche_reuse_block_group(sche, &group);
 }

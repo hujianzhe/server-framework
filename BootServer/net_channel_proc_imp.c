@@ -43,7 +43,7 @@ static void stack_co_sche_resume_msg(void* sche, DispatchNetMsg_t* msg) {
 	StackCoSche_resume_block_by_id((struct StackCoSche_t*)sche, msg->rpcid, STACK_CO_STATUS_FINISH, &async_param);
 }
 
-static void stack_co_sche_resume(void* sche, int id, int canceled) {
+static void stack_co_sche_resume(void* sche, int64_t id, int canceled) {
 	int status = canceled ? STACK_CO_STATUS_ERROR : STACK_CO_STATUS_FINISH;
 	StackCoSche_resume_block_by_id((struct StackCoSche_t*)sche, id, status, NULL);
 }

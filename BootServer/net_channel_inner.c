@@ -65,7 +65,7 @@ static void innerchannel_reply_ack(NetChannel_t* c, unsigned int seq, const stru
 }
 
 static void innerchannel_recv(NetChannel_t* c, unsigned char* bodyptr, size_t bodylen, const struct sockaddr* addr, socklen_t addrlen) {
-	unsigned int hsz = 9;
+	unsigned int hsz = 13;
 	if (bodylen >= hsz) {
 		DispatchNetMsg_t* message;
 		char rpc_status = *bodyptr;
@@ -94,7 +94,7 @@ static void innerchannel_recv(NetChannel_t* c, unsigned char* bodyptr, size_t bo
 			memmove(&message->peer_addr, addr, addrlen);
 			message->peer_addrlen = addrlen;
 		}
-		message->rpcid = ntohl(*(int*)(bodyptr + 5));
+		message->rpcid = ntohll(*(int64_t*)(bodyptr + 5));
 		if (message->datalen) {
 			memmove(message->data, bodyptr + hsz, message->datalen);
 		}
@@ -312,17 +312,17 @@ InnerMsgPayload_t* makeInnerMsg(InnerMsgPayload_t* msg, int cmdid, const void* d
 	return msg;
 }
 
-InnerMsgPayload_t* makeInnerMsgRpcReq(InnerMsgPayload_t* msg, int rpcid, int cmdid, const void* data, unsigned int len) {
+InnerMsgPayload_t* makeInnerMsgRpcReq(InnerMsgPayload_t* msg, int64_t rpcid, int cmdid, const void* data, unsigned int len) {
 	makeInnerMsg(msg, cmdid, data, len);
 	msg->rpc_status = INNER_MSG_FIELD_RPC_STATUS_REQ;
-	msg->htonl_rpcid = htonl(rpcid);
+	msg->htonl_rpcid = htonll(rpcid);
 	return msg;
 }
 
-InnerMsgPayload_t* makeInnerMsgRpcResp(InnerMsgPayload_t* msg, int rpcid, int retcode, const void* data, unsigned int len) {
+InnerMsgPayload_t* makeInnerMsgRpcResp(InnerMsgPayload_t* msg, int64_t rpcid, int retcode, const void* data, unsigned int len) {
 	makeInnerMsg(msg, retcode, data, len);
 	msg->rpc_status = INNER_MSG_FIELD_RPC_STATUS_RESP;
-	msg->htonl_rpcid = htonl(rpcid);
+	msg->htonl_rpcid = htonll(rpcid);
 	return msg;
 }
 

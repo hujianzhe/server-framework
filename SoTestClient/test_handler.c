@@ -83,7 +83,7 @@ void frpc_test_code(TaskThread_t* thrd, NetChannel_t* channel) {
 			return;
 		}
 		if (ret_block->status != STACK_CO_STATUS_FINISH) {
-			printf("rpc(%d) call failure timeout or cancel\n", ret_block->id);
+			printf("rpc(%lld) call failure timeout or cancel\n", ret_block->id);
 			return;
 		}
 		ret_msg = (DispatchNetMsg_t*)ret_block->resume_param.value;
@@ -94,8 +94,8 @@ void frpc_test_code(TaskThread_t* thrd, NetChannel_t* channel) {
 		}
 		else if (ret_block->id == sub_block_arr[1]->id) {
 			long long cost_msec = gmtimeMillisecond() - tm_msec;
-			printf("rpc(%d) send msec=%lld time cost(%lld msec)\n", ret_block->id, tm_msec, cost_msec);
-			printf("rpc(%d) say hello world ... %s\n", ret_block->id, ret_msg->data);
+			printf("rpc(%lld) send msec=%lld time cost(%lld msec)\n", ret_block->id, tm_msec, cost_msec);
+			printf("rpc(%lld) say hello world ... %s\n", ret_block->id, ret_msg->data);
 		}
 		else {
 			puts("Exception ret_co");

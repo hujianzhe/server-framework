@@ -7,7 +7,7 @@ typedef struct NetChannelUserDataRedisClient_t {
 	RedisReplyReader_t* reader;
 	char* ping_cmd;
 	int ping_cmd_len;
-	DynArr_t(int) rpc_ids;
+	DynArr_t(int64_t) rpc_ids;
 } NetChannelUserDataRedisClient_t;
 
 static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserDataRedisClient_t* ud, void* sche) {
@@ -38,7 +38,8 @@ static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned
 	NetChannelUserDataRedisClient_t* ud = (NetChannelUserDataRedisClient_t*)NetChannel_get_userdata(channel);
 	RedisReplyReader_feed(ud->reader, (const char*)buf, len);
 	while (1) {
-		int ret, rpc_id;
+		int ret;
+		int64_t rpc_id;
 		RedisReply_t* reply;
 		DispatchNetMsg_t* message;
 
@@ -100,7 +101,7 @@ static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned
 }
 
 static int redis_cli_on_pre_send(NetChannel_t* channel, NetPacket_t* packet, long long timestamp_msec) {
-	int rpc_id;
+	int64_t rpc_id;
 	int ret_ok;
 	NetChannelUserDataRedisClient_t* ud = (NetChannelUserDataRedisClient_t*)NetChannel_get_userdata(channel);
 	if (packet->bodylen < sizeof(int)) {
@@ -108,7 +109,7 @@ static int redis_cli_on_pre_send(NetChannel_t* channel, NetPacket_t* packet, lon
 		return 0;
 	}
 
-	rpc_id = *(int*)(packet->buf + packet->bodylen - sizeof(int));
+	rpc_id = *(int64_t*)(packet->buf + packet->bodylen - sizeof(int64_t));
 	dynarrInsert(&ud->rpc_ids, ud->rpc_ids.len, rpc_id, ret_ok);
 	if (!ret_ok) {
 		return 0;
@@ -119,7 +120,7 @@ static int redis_cli_on_pre_send(NetChannel_t* channel, NetPacket_t* packet, lon
 
 static void redis_cli_on_heartbeat(NetChannel_t* channel, int heartbeat_times) {
 	NetChannelUserDataRedisClient_t* ud = (NetChannelUserDataRedisClient_t*)NetChannel_get_userdata(channel);
-	int rpc_id = 0;
+	int64_t rpc_id = 0;
 	Iobuf_t iovs[2] = {
 		iobufStaticInit(ud->ping_cmd, (size_t)ud->ping_cmd_len),
 		iobufStaticInit(&rpc_id, sizeof(rpc_id))
@@ -186,7 +187,7 @@ err:
 	return NULL;
 }
 
-void sendRedisCmdByNetChannel(NetChannel_t* channel, int rpc_id, const char* format, ...) {
+void sendRedisCmdByNetChannel(NetChannel_t* channel, int64_t rpc_id, const char* format, ...) {
 	char* cmd;
 	int cmdlen;
 	va_list ap;

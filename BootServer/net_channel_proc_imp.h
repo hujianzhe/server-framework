@@ -3,12 +3,13 @@
 
 #include "util/inc/component/net_reactor.h"
 #include "util/inc/component/net_channel_ex.h"
+#include <stdint.h>
 
 struct DispatchNetMsg_t;
 
 typedef struct NetChannelUserData_t {
 	void* sche;
-	int rpc_id_syn_ack;
+	int64_t rpc_id_syn_ack;
 	int text_data_print_log;
 } NetChannelUserData_t;
 
@@ -16,7 +17,7 @@ typedef struct NetScheHook_t {
 	void(*on_detach)(void* sche, NetChannel_t* channel);
 	void(*on_execute_msg)(void* sche, struct DispatchNetMsg_t* msg);
 	void(*on_resume_msg)(void* sche, struct DispatchNetMsg_t* msg);
-	void(*on_resume)(void* sche, int id, int canceled);
+	void(*on_resume)(void* sche, int64_t id, int canceled);
 } NetScheHook_t;
 
 typedef void(*FnNetChannelOnRecv_t)(NetChannel_t*, unsigned char*, size_t, const struct sockaddr*, socklen_t);

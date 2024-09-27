@@ -2,13 +2,14 @@
 #define BOOT_SERVER_DISPATCH_MSG_H
 
 #include "util/inc/component/net_reactor.h"
+#include <stdint.h>
 
 struct TaskThread_t;
 struct DispatchNetMsg_t;
 typedef void(*DispatchNetCallback_t)(struct TaskThread_t*, struct DispatchNetMsg_t*);
 
 typedef struct DispatchNetMsg_t {
-	int rpcid;
+	int64_t rpcid;
 	void(*on_free)(struct DispatchNetMsg_t* self);
 	struct {
 		short type;

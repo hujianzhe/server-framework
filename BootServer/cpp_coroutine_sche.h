@@ -42,8 +42,7 @@ private:
 	}
 
 	static unsigned int entry(void* arg) {
-		auto t = ((TaskThreadCppCoroutine*)arg);
-		auto& sche = t->m_sche;
+		auto& sche = ((TaskThreadCppCoroutine*)arg)->m_sche;
 		while (util::CoroutineDefaultSche::ST_RUN == sche.doSche(-1));
 		return 0;
 	}
@@ -87,7 +86,7 @@ private:
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;
 		sche->readyResume(msg->rpcid, util::StdAnyPointerGuard::to_any(msg, freeDispatchNetMsg));
 	}
-	static void on_resume(void* sche_obj, int id, int canceled) {
+	static void on_resume(void* sche_obj, int64_t id, int canceled) {
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;
 		if (canceled) {
 			sche->readyCancel(id);

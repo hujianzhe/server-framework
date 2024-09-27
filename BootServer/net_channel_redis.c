@@ -104,7 +104,7 @@ static int redis_cli_on_pre_send(NetChannel_t* channel, NetPacket_t* packet, lon
 	int64_t rpc_id;
 	int ret_ok;
 	NetChannelUserDataRedisClient_t* ud = (NetChannelUserDataRedisClient_t*)NetChannel_get_userdata(channel);
-	if (packet->bodylen < sizeof(int)) {
+	if (packet->bodylen < sizeof(int64_t)) {
 		channel->valid = 0;
 		return 0;
 	}
@@ -114,7 +114,7 @@ static int redis_cli_on_pre_send(NetChannel_t* channel, NetPacket_t* packet, lon
 	if (!ret_ok) {
 		return 0;
 	}
-	packet->bodylen -= sizeof(int);
+	packet->bodylen -= sizeof(int64_t);
 	return 1;
 }
 

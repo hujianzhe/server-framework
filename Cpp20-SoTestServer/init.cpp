@@ -25,7 +25,7 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 		NetChannel_reg(acceptNetReactor(), c.get());
 	}
 	// connect redis
-
+	/*
 	std::unique_ptr<NetChannel_t, void(*)(NetChannel_t*)> c(nullptr, NetChannel_close_ref);
 	c.reset(openNetChannelRedisClient("10.1.1.186", 6379, [](NetChannel_t* ch, DispatchNetMsg_t* msg, RedisReply_t* reply)-> void {
 		std::string channel_name(reply->element[1]->str, reply->element[1]->len);
@@ -80,7 +80,7 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 		co_return;
 	}
 	std::cout << "subscribe redis success" << std::endl;
-
+	*/
 	co_return;
 }
 

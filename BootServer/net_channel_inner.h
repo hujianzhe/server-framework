@@ -10,7 +10,7 @@ typedef struct InnerMsgPayload_t {
 		int htonl_cmdid;
 		int htonl_retcode;
 	};
-	int64_t htonl_rpcid;
+	int64_t htonll_rpcid;
 	Iobuf_t iov[4];
 } InnerMsgPayload_t;
 

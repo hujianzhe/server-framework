@@ -294,13 +294,13 @@ InnerMsgPayload_t* makeInnerMsgEmpty(InnerMsgPayload_t* msg) {
 InnerMsgPayload_t* makeInnerMsg(InnerMsgPayload_t* msg, int cmdid, const void* data, unsigned int len) {
 	msg->htonl_cmdid = htonl(cmdid);
 	msg->rpc_status = 0;
-	msg->htonl_rpcid = 0;
+	msg->htonll_rpcid = 0;
 	iobufPtr(msg->iov + 0) = (char*)&msg->rpc_status;
 	iobufLen(msg->iov + 0) = sizeof(msg->rpc_status);
 	iobufPtr(msg->iov + 1) = (char*)&msg->htonl_cmdid;
 	iobufLen(msg->iov + 1) = sizeof(msg->htonl_cmdid);
-	iobufPtr(msg->iov + 2) = (char*)&msg->htonl_rpcid;
-	iobufLen(msg->iov + 2) = sizeof(msg->htonl_rpcid);
+	iobufPtr(msg->iov + 2) = (char*)&msg->htonll_rpcid;
+	iobufLen(msg->iov + 2) = sizeof(msg->htonll_rpcid);
 	if (data && len) {
 		iobufPtr(msg->iov + 3) = (char*)data;
 		iobufLen(msg->iov + 3) = len;
@@ -315,14 +315,14 @@ InnerMsgPayload_t* makeInnerMsg(InnerMsgPayload_t* msg, int cmdid, const void* d
 InnerMsgPayload_t* makeInnerMsgRpcReq(InnerMsgPayload_t* msg, int64_t rpcid, int cmdid, const void* data, unsigned int len) {
 	makeInnerMsg(msg, cmdid, data, len);
 	msg->rpc_status = INNER_MSG_FIELD_RPC_STATUS_REQ;
-	msg->htonl_rpcid = htonll(rpcid);
+	msg->htonll_rpcid = htonll(rpcid);
 	return msg;
 }
 
 InnerMsgPayload_t* makeInnerMsgRpcResp(InnerMsgPayload_t* msg, int64_t rpcid, int retcode, const void* data, unsigned int len) {
 	makeInnerMsg(msg, retcode, data, len);
 	msg->rpc_status = INNER_MSG_FIELD_RPC_STATUS_RESP;
-	msg->htonl_rpcid = htonll(rpcid);
+	msg->htonll_rpcid = htonll(rpcid);
 	return msg;
 }
 

@@ -58,9 +58,11 @@ static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned
 			}
 			if (0 == strncmp("message", reply->element[0]->str, reply->element[0]->len)) {
 				if (reply->elements < 3) {
+					RedisReply_free(reply);
 					continue;
 				}
 				if (!ud->on_subscribe) {
+					RedisReply_free(reply);
 					continue;
 				}
 				/*
@@ -68,6 +70,7 @@ static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned
 				   app_data = reply->element[2]
 				 */
 				ud->on_subscribe(channel, reply->element[1]->str, reply->element[1]->len, (unsigned char*)reply->element[2]->str, reply->element[2]->len, timestamp_msec);
+				RedisReply_free(reply);
 				continue;
 			}
 		}

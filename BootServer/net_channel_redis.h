@@ -4,8 +4,7 @@
 #include "net_channel_proc_imp.h"
 #include "util/inc/crt/protocol/hiredis_cli_protocol.h"
 
-struct DispatchNetMsg_t;
-typedef void(*FnChannelRedisOnSubscribe_t)(NetChannel_t*, struct DispatchNetMsg_t*, RedisReply_t*);
+typedef void(*FnChannelRedisOnSubscribe_t)(NetChannel_t*, const char*, size_t, const unsigned char*, size_t, long long);
 
 #ifdef __cplusplus
 extern "C" {

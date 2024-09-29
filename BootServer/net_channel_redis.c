@@ -57,21 +57,17 @@ static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned
 				continue;
 			}
 			if (0 == strncmp("message", reply->element[0]->str, reply->element[0]->len)) {
-				//std::string channel(reply->element[1]->str, reply->element[1]->len);
-				//reply->element[2]->str, reply->element[2]->len
 				if (reply->elements < 3) {
 					continue;
 				}
 				if (!ud->on_subscribe) {
 					continue;
 				}
-				message = newDispatchNetMsg(channel, 0);
-				if (!message) {
-					return -1;
-				}
-				message->on_free = free_user_msg;
-				message->param.value = reply;
-				ud->on_subscribe(channel, message, reply);
+				/*
+				   subscribe_channel_name = reply->element[1];
+				   app_data = reply->element[2]
+				 */
+				ud->on_subscribe(channel, reply->element[1]->str, reply->element[1]->len, (unsigned char*)reply->element[2]->str, reply->element[2]->len, timestamp_msec);
 				continue;
 			}
 		}

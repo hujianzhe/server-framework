@@ -190,7 +190,6 @@ void sendRedisCmdByNetChannel(NetChannel_t* channel, int64_t rpc_id, const char*
 	char* cmd;
 	int cmdlen;
 	va_list ap;
-	Iobuf_t iovs[2];
 
 	va_start(ap, format);
 	cmdlen = RedisCommand_vformat(&cmd, format, ap);
@@ -198,12 +197,17 @@ void sendRedisCmdByNetChannel(NetChannel_t* channel, int64_t rpc_id, const char*
 	if (cmdlen <= 0) {
 		return;
 	}
-	iobufPtr(iovs + 0) = cmd;
-	iobufLen(iovs + 0) = cmdlen;
+	sendRedisFormatCmdByNetChannel(channel, rpc_id, cmd, cmdlen);
+	RedisCommand_free(cmd);
+}
+
+void sendRedisFormatCmdByNetChannel(NetChannel_t* channel, int64_t rpc_id, const char* fmt_cmd, size_t fmt_cmd_len) {
+	Iobuf_t iovs[2];
+	iobufPtr(iovs + 0) = (char*)fmt_cmd;
+	iobufLen(iovs + 0) = fmt_cmd_len;
 	iobufPtr(iovs + 1) = (char*)&rpc_id;
 	iobufLen(iovs + 1) = sizeof(rpc_id);
 	NetChannel_sendv(channel, iovs, 2, NETPACKET_FRAGMENT, NULL, 0);
-	RedisCommand_free(cmd);
 }
 
 #ifdef __cplusplus

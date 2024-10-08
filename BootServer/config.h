@@ -9,7 +9,19 @@ typedef struct {
 	IPString_t ip;
 	unsigned short port;
 	int readcache_max_size;
-} ConfigListenOption_t, ConfigConnectOption_t;
+} ConfigListenOption_t;
+
+typedef struct {
+	const char* protocol;
+	int socktype;
+	IPString_t ip;
+	unsigned short port;
+	int readcache_max_size;
+	const char* user;
+	size_t user_strlen;
+	const char* password;
+	size_t password_strlen;
+} ConfigConnectOption_t;
 
 struct cJSON;
 typedef struct BootServerConfig_t {
@@ -20,7 +32,7 @@ typedef struct BootServerConfig_t {
 	IPString_t outer_ip;
 	struct {
 		const char* ident;
-		ConfigListenOption_t listen_option;
+		size_t ident_strlen;
 	} clsnd;
 	struct {
 		const char* pathname;

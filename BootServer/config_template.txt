@@ -1,13 +1,7 @@
 {
 	"cluster" : {
-		"ident" : "test200",
-		"protocol" : "default",
-		"socktype" : "SOCK_STREAM",
-		"ip" : "127.0.0.1",
-		"port" : 40001,
-		"readcache_max_size" : 65535
+		"ident" : "test200"
 	},
-	"outer_ip" : "127.0.0.1",
 	"listen_options" : [
 		{
 			"protocol" : "http",
@@ -33,6 +27,7 @@
 			"readcache_max_size" : 65535
 		}
 	],
+	"outer_ip" : "127.0.0.1",
 	"log" : {
 		"pathname" : "./test200",
 		"maxfilesize_mb" : 10

@@ -20,7 +20,6 @@ static ConfigListenOption_t* parse_listen_option(cJSON* cjson, ConfigListenOptio
 	if (!protocol || !ipnode || !portnode) {
 		return NULL;
 	}
-	memset(option_ptr, 0, sizeof(*option_ptr));
 	option_ptr->protocol = strdup(cJSON_GetStringPtr(protocol));
 	if (!option_ptr->protocol) {
 		return NULL;
@@ -46,7 +45,53 @@ static ConfigListenOption_t* parse_listen_option(cJSON* cjson, ConfigListenOptio
 }
 
 static ConfigConnectOption_t* parse_connect_option(cJSON* cjson, ConfigConnectOption_t* option_ptr) {
-	return parse_listen_option(cjson, option_ptr);
+	cJSON* protocol = cJSON_GetField(cjson, "protocol");
+	cJSON* ipnode = cJSON_GetField(cjson, "ip");
+	cJSON* portnode = cJSON_GetField(cjson, "port");
+	cJSON* socktype = cJSON_GetField(cjson, "socktype");
+	cJSON* readcache_max_size = cJSON_GetField(cjson, "readcache_max_size");
+	cJSON* user = cJSON_GetField(cjson, "user");
+	cJSON* password = cJSON_GetField(cjson, "password");
+
+	if (!protocol || !ipnode || !portnode) {
+		return NULL;
+	}
+	option_ptr->protocol = strdup(cJSON_GetStringPtr(protocol));
+	if (!option_ptr->protocol) {
+		return NULL;
+	}
+	strcpy(option_ptr->ip, cJSON_GetStringPtr(ipnode));
+	option_ptr->port = cJSON_GetInteger(portnode);
+	if (!socktype) {
+		option_ptr->socktype = SOCK_STREAM;
+	}
+	else {
+		option_ptr->socktype = if_string2socktype(cJSON_GetStringPtr(socktype));
+		if (0 == option_ptr->socktype) {
+			return NULL;
+		}
+	}
+	if (readcache_max_size && cJSON_GetInteger(readcache_max_size) > 0) {
+		option_ptr->readcache_max_size = cJSON_GetInteger(readcache_max_size);
+	}
+	else {
+		option_ptr->readcache_max_size = 0;
+	}
+	if (user) {
+		option_ptr->user = strdup(cJSON_GetStringPtr(user));
+		if (!option_ptr->user) {
+			return NULL;
+		}
+		option_ptr->user_strlen = cJSON_GetStringLength(user);
+	}
+	if (password) {
+		option_ptr->password = strdup(cJSON_GetStringPtr(password));
+		if (!option_ptr->password) {
+			return NULL;
+		}
+		option_ptr->password_strlen = cJSON_GetStringLength(password);
+	}
+	return option_ptr;
 }
 
 BootServerConfig_t* parseBootServerConfig(const char* path) {
@@ -76,8 +121,11 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 	if (!conf->clsnd.ident) {
 		goto err;
 	}
-	if (!parse_listen_option(cjson, &conf->clsnd.listen_option)) {
-		goto err;
+	conf->clsnd.ident_strlen = cJSON_GetStringLength(ident);
+
+	cjson = cJSON_GetField(root, "outer_ip");
+	if (cjson) {
+		strcpy(conf->outer_ip, cJSON_GetStringPtr(cjson));
 	}
 
 	cjson = cJSON_GetField(root, "listen_options");
@@ -94,15 +142,11 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 		conf->listen_options_cnt = 0;
 		for (childnode = cjson->child; childnode; childnode = childnode->next) {
 			ConfigListenOption_t* option_ptr = &listen_options[conf->listen_options_cnt++];
+			memset(option_ptr, 0, sizeof(*option_ptr));
 			if (!parse_listen_option(childnode, option_ptr)) {
 				goto err;
 			}
 		}
-	}
-
-	cjson = cJSON_GetField(root, "outer_ip");
-	if (cjson) {
-		strcpy(conf->outer_ip, cJSON_GetStringPtr(cjson));
 	}
 
 	cjson = cJSON_GetField(root, "connect_options");
@@ -119,6 +163,7 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 		conf->connect_options_cnt = 0;
 		for (childnode = cjson->child; childnode; childnode = childnode->next) {
 			ConfigConnectOption_t* option_ptr = &connect_options[conf->connect_options_cnt++];
+			memset(option_ptr, 0, sizeof(*option_ptr));
 			if (!parse_connect_option(childnode, option_ptr)) {
 				goto err;
 			}
@@ -243,10 +288,12 @@ void freeBootServerConfig(BootServerConfig_t* conf) {
 	}
 	free((void*)conf->listen_options);
 	for (i = 0; i < conf->connect_options_cnt; ++i) {
-		free((char*)conf->connect_options[i].protocol);
+		const ConfigConnectOption_t* option_ptr = conf->connect_options + i;
+		free((char*)option_ptr->protocol);
+		free((char*)option_ptr->user);
+		free((char*)option_ptr->password);
 	}
 	free((void*)conf->connect_options);
-	free((char*)conf->clsnd.listen_option.protocol);
 	free((char*)conf->clsnd.ident);
 	free((char*)conf->log.pathname);
 	free((char*)conf->cluster_table_path);

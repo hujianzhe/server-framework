@@ -10,8 +10,6 @@ BootServerGlobal_t* ptrBSG(void) { return s_PtrBSG; }
 const char* getBSGErrmsg(void) { return s_BSG.errmsg ? s_BSG.errmsg : ""; }
 
 BOOL initBootServerGlobal(const BootServerConfig_t* conf, TaskThread_t* def_task_thrd, const NetScheHook_t* nsh) {
-	const ConfigListenOption_t* listen_opt;
-
 	if (s_PtrBSG) {
 		return TRUE;
 	}
@@ -50,17 +48,6 @@ BOOL initBootServerGlobal(const BootServerConfig_t* conf, TaskThread_t* def_task
 		s_BSG.errmsg = strFormat(NULL, "default task thread create failure\n");
 		return FALSE;
 	}
-	/* listen self cluster node port, if needed */
-	listen_opt = &conf->clsnd.listen_option;
-	if (!strcmp(listen_opt->protocol, "default")) {
-		NetChannel_t* c = openNetListenerInner(listen_opt->socktype, listen_opt->ip, listen_opt->port, s_BSG.default_task_thread->sche);
-		if (!c) {
-			s_BSG.errmsg = strFormat(NULL, "listen self cluster node err, ip:%s, port:%u\n", listen_opt->ip, listen_opt->port);
-			return FALSE;
-		}
-		NetChannel_reg(acceptNetReactor(), c);
-		NetChannel_close_ref(c);
-	}
 	/* init ok */
 	s_BSG.valid = 1;
 	s_PtrBSG = &s_BSG;
@@ -68,11 +55,7 @@ BOOL initBootServerGlobal(const BootServerConfig_t* conf, TaskThread_t* def_task
 }
 
 void printBootServerNodeInfo(void) {
-	const ConfigListenOption_t* listen_opt = &s_BSG.conf->clsnd.listen_option;
-
-	fprintf(stderr, "server boot, clsnd_ident:%s, socktype:%s, ip:%s, port:%u, pid:%zu\n",
-		s_BSG.conf->clsnd.ident, if_socktype2string(listen_opt->socktype),
-		listen_opt->ip, listen_opt->port, processId());
+	fprintf(stderr, "server boot, clsnd_ident:%s, pid:%zu\n", s_BSG.conf->clsnd.ident, processId());
 }
 
 static unsigned int signal_thread_entry(void* arg) {

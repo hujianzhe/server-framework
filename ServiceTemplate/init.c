@@ -2,10 +2,8 @@
 #include "../BootServer/global.h"
 
 void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
-	ConfigConnectOption_t* option = NULL;
 	unsigned int i;
-
-	// listen extra port
+	// listen port
 	for (i = 0; i < ptrBSG()->conf->listen_options_cnt; ++i) {
 		const ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
 		NetChannel_t* c;

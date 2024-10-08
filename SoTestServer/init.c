@@ -68,6 +68,9 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		else if (!strcmp(option->protocol, "websocket")) {
 			c = openNetListenerWebsocket(option->ip, option->port, reflect_websocket_on_recv, sche);
 		}
+		else if (!strcmp(option->protocol, "inner")) {
+			c = openNetListenerInner(option->socktype, option->ip, option->port, sche);
+		}
 		else {
 			continue;
 		}

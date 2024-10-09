@@ -122,6 +122,7 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 		goto err;
 	}
 	conf->clsnd.ident_strlen = cJSON_GetStringLength(ident);
+	conf->clsnd.cjson_node = cjson;
 
 	cjson = cJSON_GetField(root, "outer_ip");
 	if (cjson) {
@@ -146,6 +147,7 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 			if (!parse_listen_option(childnode, option_ptr)) {
 				goto err;
 			}
+			option_ptr->cjson_node = childnode;
 		}
 	}
 
@@ -167,6 +169,7 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 			if (!parse_connect_option(childnode, option_ptr)) {
 				goto err;
 			}
+			option_ptr->cjson_node = childnode;
 		}
 	}
 
@@ -221,6 +224,7 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 			conf->log.maxfilesize = ~0;
 		}
 	}
+	conf->log.cjson_node = cjson;
 
 	cjson = cJSON_GetField(root, "rpc_fiber_stack_size_kb");
 	if (cjson) {

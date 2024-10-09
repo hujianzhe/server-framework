@@ -9,6 +9,7 @@ typedef struct {
 	IPString_t ip;
 	unsigned short port;
 	int readcache_max_size;
+	struct cJSON* cjson_node;
 } ConfigListenOption_t;
 
 typedef struct {
@@ -17,6 +18,7 @@ typedef struct {
 	IPString_t ip;
 	unsigned short port;
 	int readcache_max_size;
+	struct cJSON* cjson_node;
 	const char* user;
 	size_t user_strlen;
 	const char* password;
@@ -33,10 +35,12 @@ typedef struct BootServerConfig_t {
 	struct {
 		const char* ident;
 		size_t ident_strlen;
+		struct cJSON* cjson_node;
 	} clsnd;
 	struct {
 		const char* pathname;
 		unsigned int maxfilesize;
+		struct cJSON* cjson_node;
 	} log;
 	int net_thread_cnt;
 	int task_thread_max_cnt;

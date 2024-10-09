@@ -42,8 +42,13 @@ private:
 	}
 
 	static unsigned int entry(void* arg) {
+		TaskThread_t* t = (TaskThread_t*)arg;
 		auto& sche = ((TaskThreadCppCoroutine*)arg)->m_sche;
+		if (t->detached) {
+			threadDetach(threadSelf());
+		}
 		while (util::CoroutineDefaultSche::ST_RUN == sche.doSche(-1));
+		t->exited = 1;
 		return 0;
 	}
 	static void exit(TaskThread_t* t) {

@@ -5,7 +5,11 @@
 
 static unsigned int task_thread_stack_co_entry(void* arg) {
 	TaskThread_t* t = (TaskThread_t*)arg;
+	if (t->detached) {
+		threadDetach(threadSelf());
+	}
 	while (0 == StackCoSche_sche(t->sche_stack_co, -1));
+	t->exited = 1;
 	return 0;
 }
 
@@ -39,33 +43,40 @@ BOOL reserveTaskThreadMaxCnt(unsigned int cnt) {
 	return dynarrReserve(&s_TaskThreads, cnt) != NULL;
 }
 
-static void __remove_task_thread(TaskThread_t* t) {
+void stopAllTaskThreads(void) {
 	size_t i;
 	while (_xchg32(&s_SpinLock, 1));
 	for (i = 0; i < s_TaskThreads.len; ++i) {
-		if (s_TaskThreads.buf[i] == t) {
-			s_TaskThreads.buf[i] = s_TaskThreads.buf[--s_TaskThreads.len];
-			break;
-		}
+		TaskThread_t* t = s_TaskThreads.buf[i];
+		t->hook->exit(t);
 	}
 	_xchg32(&s_SpinLock, 0);
 }
 
 void waitFreeAllTaskThreads(void) {
+	size_t i = 0;
 	while (1) {
 		while (_xchg32(&s_SpinLock, 1)) {
 			threadSleepMillsecond(40);
 		}
-		if (s_TaskThreads.len > 0) {
-			_xchg32(&s_SpinLock, 0);
-			threadSleepMillsecond(40);
+		for (; i < s_TaskThreads.len; ++i) {
+			TaskThread_t* t = s_TaskThreads.buf[i];
+			if (!t->exited) {
+				break;
+			}
 		}
-		else {
-			_xchg32(&s_SpinLock, 0);
+		if (i >= s_TaskThreads.len) {
 			break;
 		}
+		_xchg32(&s_SpinLock, 0);
+		threadSleepMillsecond(40);
+	}
+	for (i = 0; i < s_TaskThreads.len; ++i) {
+		TaskThread_t* t = s_TaskThreads.buf[i];
+		t->hook->deleter(t);
 	}
 	dynarrFreeMemory(&s_TaskThreads);
+	_xchg32(&s_SpinLock, 0);
 }
 
 /**************************************************************************************/
@@ -75,12 +86,11 @@ extern "C" {
 #endif
 
 BOOL saveTaskThread(TaskThread_t* t) {
-	int save_ok, detached;
+	int save_ok;
 	if (!t) {
 		return 0;
 	}
 	save_ok = 0;
-	detached = 0;
 	while (_xchg32(&s_SpinLock, 1));
 	if (s_TaskThreads.len <= 0) {
 		dynarrReserve(&s_TaskThreads, 1);
@@ -97,20 +107,14 @@ BOOL saveTaskThread(TaskThread_t* t) {
 		if (!save_ok) {
 			s_TaskThreads.buf[s_TaskThreads.len++] = t;
 			save_ok = 1;
-			if (s_TaskThreads.len > 1) {
-				detached = 1;
-			}
 		}
 	}
 	_xchg32(&s_SpinLock, 0);
-	if (detached) {
-		threadDetach(t->tid);
-	}
 	return save_ok;
 }
 
 TaskThread_t* newTaskThreadStackCo(size_t co_stack_size) {
-	int sche_ok = 0, seedval;
+	int sche_ok = 0;
 	TaskThreadStackCo_t* thrd = (TaskThreadStackCo_t*)malloc(sizeof(TaskThreadStackCo_t));
 	if (!thrd) {
 		return NULL;
@@ -126,9 +130,9 @@ TaskThread_t* newTaskThreadStackCo(size_t co_stack_size) {
 		goto err;
 	}
 	thrd->_.hook = &s_TaskThreadStackCoHook;
-
-	seedval = time(NULL);
-	mt19937Seed(&thrd->_.randmt19937_ctx, seedval);
+	thrd->_.detached = 1;
+	thrd->_.exited = 0;
+	mt19937Seed(&thrd->_.randmt19937_ctx, time(NULL));
 	thrd->net_dispatch = default_net_dispatch;
 	thrd->net_detach = ignore_net_detach;
 	return &thrd->_;
@@ -150,7 +154,6 @@ void stopTaskThread(TaskThread_t* t) {
 
 void freeTaskThread(TaskThread_t* t) {
 	if (t) {
-		__remove_task_thread(t);
 		t->hook->deleter(t);
 	}
 }

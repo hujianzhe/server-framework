@@ -19,6 +19,8 @@ typedef struct TaskThreadHook_t {
 typedef struct TaskThread_t {
 	Thread_t tid;
 	RandMT19937_t randmt19937_ctx;
+	int detached;
+	int exited;
 	union {
 		struct StackCoSche_t* sche_stack_co;
 		void* sche;
@@ -33,7 +35,8 @@ typedef struct TaskThreadStackCo_t {
 } TaskThreadStackCo_t;
 
 BOOL reserveTaskThreadMaxCnt(unsigned int cnt);
-void waitFreeAllTaskThreads();
+void stopAllTaskThreads(void);
+void waitFreeAllTaskThreads(void);
 
 #ifdef __cplusplus
 extern "C" {

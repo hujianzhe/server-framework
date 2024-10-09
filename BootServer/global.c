@@ -43,6 +43,7 @@ BOOL initBootServerGlobal(const BootServerConfig_t* conf, TaskThread_t* def_task
 	if (!def_task_thrd) {
 		def_task_thrd = newTaskThreadStackCo(conf->rpc_fiber_stack_size);
 	}
+	def_task_thrd->detached = 0;
 	s_BSG.default_task_thread = def_task_thrd;
 	if (!s_BSG.default_task_thread) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread create failure\n");
@@ -59,6 +60,7 @@ void printBootServerNodeInfo(void) {
 }
 
 static unsigned int signal_thread_entry(void* arg) {
+	threadDetach(threadSelf());
 	while (s_BSG.valid) {
 		int sig = signalWait();
 		if (sig < 0) {
@@ -71,25 +73,26 @@ static unsigned int signal_thread_entry(void* arg) {
 
 BOOL runBootServerGlobal(void) {
 	BOOL retbool = FALSE;
-	int sig_ok = 0;
 	int task_ok = 0;
 	/* run signal thread */
 	if (s_BSG.sig_proc) {
 		if (!threadCreate(&s_BSG.sig_tid, signal_thread_entry, NULL)) {
 			s_BSG.errmsg = strFormat(NULL, "signal handle thread boot failure\n");
+			s_BSG.valid = 0;
 			goto end;
 		}
-		sig_ok = 1;
 	}
 	/* run task thread */
 	if (!runTaskThread(s_BSG.default_task_thread)) {
 		s_BSG.errmsg = strFormat(NULL, "default task thread boot failure\n");
+		s_BSG.valid = 0;
 		goto end;
 	}
 	task_ok = 1;
 	/* run net thread */
 	if (!runNetThreads()) {
 		s_BSG.errmsg = strFormat(NULL, "net thread boot failure\n");
+		s_BSG.valid = 0;
 		goto end;
 	}
 	/* wait thread exit */
@@ -98,11 +101,7 @@ end:
 	if (task_ok) {
 		threadJoin(s_BSG.default_task_thread->tid, NULL);
 	}
-	s_BSG.valid = 0;
 	joinNetThreads();
-	if (sig_ok) {
-		threadJoin(s_BSG.sig_tid, NULL);
-	}
 	return retbool;
 }
 
@@ -111,9 +110,7 @@ void stopBootServerGlobal(void) {
 		return;
 	}
 	s_BSG.valid = 0;
-	if (s_BSG.default_task_thread) {
-		stopTaskThread(s_BSG.default_task_thread);
-	}
+	stopAllTaskThreads();
 	wakeupNetThreads();
 }
 
@@ -121,12 +118,9 @@ void freeBootServerGlobal(void) {
 	if (!s_PtrBSG) {
 		return;
 	}
-	s_PtrBSG = NULL;
-	if (s_BSG.default_task_thread) {
-		freeTaskThread(s_BSG.default_task_thread);
-		s_BSG.default_task_thread = NULL;
-	}
 	waitFreeAllTaskThreads();
+	s_PtrBSG = NULL;
+	s_BSG.default_task_thread = NULL;
 	if (s_BSG.log) {
 		logDestroy(s_BSG.log);
 		s_BSG.log = NULL;

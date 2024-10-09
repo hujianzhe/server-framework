@@ -36,10 +36,6 @@ BOOL initBootServerGlobal(const BootServerConfig_t* conf, TaskThread_t* def_task
 		return FALSE;
 	}
 	/* init task thread */
-	if (!reserveTaskThreadMaxCnt(conf->task_thread_max_cnt)) {
-		s_BSG.errmsg = strFormat(NULL, "reserve task thread failure\n");
-		return FALSE;
-	}
 	if (!def_task_thrd) {
 		def_task_thrd = newTaskThreadStackCo(conf->rpc_fiber_stack_size);
 	}

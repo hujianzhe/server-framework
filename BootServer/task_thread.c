@@ -37,14 +37,24 @@ static void ignore_net_detach(TaskThread_t* thrd, struct NetChannel_t* channel) 
 /**************************************************************************************/
 
 static DynArr_t(TaskThread_t*) s_TaskThreads;
+static volatile int s_AllowNewTaskThread = 1;
 static Atom32_t s_SpinLock;
 
-BOOL reserveTaskThreadMaxCnt(unsigned int cnt) {
-	return dynarrReserve(&s_TaskThreads, cnt) != NULL;
+static void remove_task_thread__(TaskThread_t* t) {
+	size_t i;
+	while (_xchg32(&s_SpinLock, 1));
+	for (i = 0; i < s_TaskThreads.len; ++i) {
+		if (s_TaskThreads.buf[i] == t) {
+			s_TaskThreads.buf[i] = s_TaskThreads.buf[--s_TaskThreads.len];
+			break;
+		}
+	}
+	_xchg32(&s_SpinLock, 0);
 }
 
 void stopAllTaskThreads(void) {
 	size_t i;
+	s_AllowNewTaskThread = 0;
 	while (_xchg32(&s_SpinLock, 1));
 	for (i = 0; i < s_TaskThreads.len; ++i) {
 		TaskThread_t* t = s_TaskThreads.buf[i];
@@ -54,12 +64,12 @@ void stopAllTaskThreads(void) {
 }
 
 void waitFreeAllTaskThreads(void) {
-	size_t i = 0;
+	size_t i;
 	while (1) {
 		while (_xchg32(&s_SpinLock, 1)) {
 			threadSleepMillsecond(40);
 		}
-		for (; i < s_TaskThreads.len; ++i) {
+		for (i = 0; i < s_TaskThreads.len; ++i) {
 			TaskThread_t* t = s_TaskThreads.buf[i];
 			if (!t->exited) {
 				break;
@@ -86,31 +96,22 @@ extern "C" {
 #endif
 
 BOOL saveTaskThread(TaskThread_t* t) {
-	int save_ok;
-	if (!t) {
-		return 0;
-	}
-	save_ok = 0;
+	int save_ok = 0;
 	while (_xchg32(&s_SpinLock, 1));
-	if (s_TaskThreads.len <= 0) {
-		dynarrReserve(&s_TaskThreads, 1);
-	}
-	if (s_TaskThreads.len < s_TaskThreads.capacity) {
-		size_t i;
-		for (i = 0; i < s_TaskThreads.len; ++i) {
-			TaskThread_t* t = s_TaskThreads.buf[i];
-			if (s_TaskThreads.buf[i] == t) {
-				save_ok = 1;
-				break;
-			}
-		}
-		if (!save_ok) {
-			s_TaskThreads.buf[s_TaskThreads.len++] = t;
-			save_ok = 1;
-		}
+	if (s_AllowNewTaskThread) {
+		dynarrReserve(&s_TaskThreads, s_TaskThreads.len * 2);
+		dynarrInsert(&s_TaskThreads, s_TaskThreads.len, t, save_ok);
 	}
 	_xchg32(&s_SpinLock, 0);
-	return save_ok;
+	if (!save_ok) {
+		return 0;
+	}
+	t->refcnt = 1;
+	t->already_boot = 0;
+	t->detached = 1;
+	t->exited = 0;
+	mt19937Seed(&t->randmt19937_ctx, time(NULL));
+	return 1;
 }
 
 TaskThread_t* newTaskThreadStackCo(size_t co_stack_size) {
@@ -130,9 +131,6 @@ TaskThread_t* newTaskThreadStackCo(size_t co_stack_size) {
 		goto err;
 	}
 	thrd->_.hook = &s_TaskThreadStackCoHook;
-	thrd->_.detached = 1;
-	thrd->_.exited = 0;
-	mt19937Seed(&thrd->_.randmt19937_ctx, time(NULL));
 	thrd->net_dispatch = default_net_dispatch;
 	thrd->net_detach = ignore_net_detach;
 	return &thrd->_;
@@ -145,6 +143,9 @@ err:
 }
 
 BOOL runTaskThread(TaskThread_t* t) {
+	if (_xchg8(&t->already_boot, 1)) {
+		return TRUE;
+	}
 	return threadCreate(&t->tid, t->hook->entry, t);
 }
 
@@ -153,9 +154,14 @@ void stopTaskThread(TaskThread_t* t) {
 }
 
 void freeTaskThread(TaskThread_t* t) {
-	if (t) {
-		t->hook->deleter(t);
+	if (!t) {
+		return;
 	}
+	if (_xadd32(&t->refcnt, -1) > 1) {
+		return;
+	}
+	remove_task_thread__(t);
+	t->hook->deleter(t);
 }
 
 TaskThread_t* currentTaskThread(void) {

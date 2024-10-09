@@ -37,7 +37,6 @@ private:
 		};
 		net_detach = [](TaskThread_t*, NetChannel_t*)->util::CoroutinePromise<void> { co_return; };
 		sche = &m_sche;
-		mt19937Seed(&randmt19937_ctx, time(NULL));
 		hook = &TaskThreadCppCoroutine::default_hook;
 	}
 

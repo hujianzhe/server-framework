@@ -43,7 +43,6 @@ typedef struct BootServerConfig_t {
 		struct cJSON* cjson_node;
 	} log;
 	int net_thread_cnt;
-	int task_thread_max_cnt;
 	const char* cluster_table_path;
 	unsigned int rpc_fiber_stack_size;
 	int once_rpc_timeout_items_maxcnt;

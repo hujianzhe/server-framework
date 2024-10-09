@@ -19,8 +19,10 @@ typedef struct TaskThreadHook_t {
 typedef struct TaskThread_t {
 	Thread_t tid;
 	RandMT19937_t randmt19937_ctx;
-	int detached;
-	int exited;
+	Atom32_t refcnt;
+	Atom8_t already_boot;
+	char detached;
+	char exited;
 	union {
 		struct StackCoSche_t* sche_stack_co;
 		void* sche;
@@ -34,7 +36,6 @@ typedef struct TaskThreadStackCo_t {
 	void(*net_detach)(TaskThread_t* thrd, struct NetChannel_t* channel);
 } TaskThreadStackCo_t;
 
-BOOL reserveTaskThreadMaxCnt(unsigned int cnt);
 void stopAllTaskThreads(void);
 void waitFreeAllTaskThreads(void);
 

@@ -25,7 +25,7 @@ BOOL initBootServerGlobal(const BootServerConfig_t* conf, TaskThread_t* def_task
 		return FALSE;
 	}
 	/* init net thread resource */
-	if (!newNetThreadResource(conf->net_thread_cnt)) {
+	if (!newNetThreadResource(conf->sche.net_thread_cnt)) {
 		s_BSG.errmsg = strFormat(NULL, "net thread resource create failure\n");
 		return FALSE;
 	}
@@ -37,7 +37,7 @@ BOOL initBootServerGlobal(const BootServerConfig_t* conf, TaskThread_t* def_task
 	}
 	/* init task thread */
 	if (!def_task_thrd) {
-		def_task_thrd = newTaskThreadStackCo(conf->rpc_fiber_stack_size);
+		def_task_thrd = newTaskThreadStackCo(&conf->sche);
 	}
 	def_task_thrd->detached = 0;
 	s_BSG.default_task_thread = def_task_thrd;

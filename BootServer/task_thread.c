@@ -118,17 +118,18 @@ BOOL saveTaskThread(TaskThread_t* t) {
 	return 1;
 }
 
-TaskThread_t* newTaskThreadStackCo(size_t co_stack_size) {
+TaskThread_t* newTaskThreadStackCo(const BootServerConfigSchedulerOption_t* conf_option) {
 	int sche_ok = 0;
 	TaskThreadStackCo_t* thrd = (TaskThreadStackCo_t*)malloc(sizeof(TaskThreadStackCo_t));
 	if (!thrd) {
 		return NULL;
 	}
 
-	thrd->_.sche_stack_co = StackCoSche_new(co_stack_size, &thrd->_);
+	thrd->_.sche_stack_co = StackCoSche_new(conf_option->fiber_stack_size, &thrd->_);
 	if (!thrd->_.sche_stack_co) {
 		goto err;
 	}
+	StackCoSche_set_handle_cnt(thrd->_.sche_stack_co, conf_option->once_handle_cnt);
 	sche_ok = 1;
 
 	if (!saveTaskThread(&thrd->_)) {

@@ -10,7 +10,7 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 	TaskThread_t* thrd = currentTaskThread();
 	// listen extra port
 	for (int i = 0; i < ptrBSG()->conf->listen_options_cnt; ++i) {
-		const ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
+		const BootServerConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
 		std::unique_ptr<NetChannel_t, void(*)(NetChannel_t*)> c(nullptr, NetChannel_close_ref);
 		if (!strcmp(option->protocol, "http")) {
 			c.reset(openNetListenerHttp(option->ip, option->port, thrd->sche));

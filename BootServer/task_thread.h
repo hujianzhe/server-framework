@@ -9,6 +9,7 @@ struct NetChannel_t;
 struct DispatchNetMsg_t;
 struct StackCoSche_t;
 struct TaskThread_t;
+struct BootServerConfigSchedulerOption_t;
 
 typedef struct TaskThreadHook_t {
 	unsigned int(*entry)(void*);
@@ -43,7 +44,7 @@ void waitFreeAllTaskThreads(void);
 extern "C" {
 #endif
 
-__declspec_dll TaskThread_t* newTaskThreadStackCo(size_t co_stack_size);
+__declspec_dll TaskThread_t* newTaskThreadStackCo(const struct BootServerConfigSchedulerOption_t* conf_option);
 __declspec_dll BOOL saveTaskThread(TaskThread_t* t);
 __declspec_dll BOOL runTaskThread(TaskThread_t* t);
 __declspec_dll void stopTaskThread(TaskThread_t* t);

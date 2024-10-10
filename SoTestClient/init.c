@@ -116,7 +116,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 
 	NetChannel_t* def_c = NULL;
 	for (i = 0; i < ptrBSG()->conf->connect_options_cnt; ++i) {
-		const ConfigConnectOption_t* option = ptrBSG()->conf->connect_options + i;
+		const BootServerConfigConnectOption_t* option = ptrBSG()->conf->connect_options + i;
 		NetChannel_t* c;
 
 		if (strcmp(option->protocol, "inner")) {

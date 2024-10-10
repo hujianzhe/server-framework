@@ -27,15 +27,17 @@
 			"readcache_max_size" : 65535
 		}
 	],
-	"outer_ip" : "127.0.0.1",
 	"log" : {
 		"pathname" : "./test200",
 		"maxfilesize_mb" : 10
 	},
-	"net_thread_cnt" : 0,
-	"rpc_fiber_stack_size_kb" : 64,
+	"sche" : {
+		"net_thread_cnt" : 0,
+		"fiber_stack_size_kb" : 16,
+		"once_handle_cnt" : 0
+	},
+	"outer_ip" : "127.0.0.1",
 	"tcp_nodelay" : 1,
 	"udp_cwndsize" : 40,
-	"enqueue_timeout_msec" : 0,
-	"extra_data" : ""
+	"enqueue_timeout_msec" : 0
 }

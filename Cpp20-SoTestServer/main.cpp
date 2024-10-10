@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	/* use cpp-20 stackless coroutine */
-	TaskThread_t* default_task_thread = TaskThreadCppCoroutine::newInstance();
+	TaskThread_t* default_task_thread = TaskThreadCppCoroutine::newInstance(&bs_conf->sche);
 	/* init BootServer object */
 	if (!initBootServerGlobal(bs_conf, default_task_thread, &NetScheHookCppCoroutine::hook)) {
 		fprintf(stderr, "initBootServerGlobal err:%s\n", getBSGErrmsg());

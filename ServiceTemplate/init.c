@@ -5,7 +5,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	unsigned int i;
 	// listen port
 	for (i = 0; i < ptrBSG()->conf->listen_options_cnt; ++i) {
-		const ConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
+		const BootServerConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
 		NetChannel_t* c;
 		if (!strcmp(option->protocol, "http")) {
 			c = openNetListenerHttp(option->ip, option->port, sche);

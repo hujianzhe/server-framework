@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-static ConfigListenOption_t* parse_listen_option(cJSON* cjson, ConfigListenOption_t* option_ptr) {
+static BootServerConfigListenOption_t* parse_listen_option(cJSON* cjson, BootServerConfigListenOption_t* option_ptr) {
 	cJSON* protocol = cJSON_GetField(cjson, "protocol");
 	cJSON* ipnode = cJSON_GetField(cjson, "ip");
 	cJSON* portnode = cJSON_GetField(cjson, "port");
@@ -44,7 +44,7 @@ static ConfigListenOption_t* parse_listen_option(cJSON* cjson, ConfigListenOptio
 	return option_ptr;
 }
 
-static ConfigConnectOption_t* parse_connect_option(cJSON* cjson, ConfigConnectOption_t* option_ptr) {
+static BootServerConfigConnectOption_t* parse_connect_option(cJSON* cjson, BootServerConfigConnectOption_t* option_ptr) {
 	cJSON* protocol = cJSON_GetField(cjson, "protocol");
 	cJSON* ipnode = cJSON_GetField(cjson, "ip");
 	cJSON* portnode = cJSON_GetField(cjson, "port");
@@ -133,16 +133,16 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 	if (cjson) {
 		cJSON* childnode;
 		size_t n = cJSON_ChildNum(cjson);
-		ConfigListenOption_t* listen_options;
+		BootServerConfigListenOption_t* listen_options;
 
-		listen_options = (ConfigListenOption_t*)malloc(sizeof(ConfigListenOption_t) * n);
+		listen_options = (BootServerConfigListenOption_t*)malloc(sizeof(BootServerConfigListenOption_t) * n);
 		if (!listen_options) {
 			goto err;
 		}
 		conf->listen_options = listen_options;
 		conf->listen_options_cnt = 0;
 		for (childnode = cjson->child; childnode; childnode = childnode->next) {
-			ConfigListenOption_t* option_ptr = &listen_options[conf->listen_options_cnt++];
+			BootServerConfigListenOption_t* option_ptr = &listen_options[conf->listen_options_cnt++];
 			memset(option_ptr, 0, sizeof(*option_ptr));
 			if (!parse_listen_option(childnode, option_ptr)) {
 				goto err;
@@ -154,35 +154,23 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 	cjson = cJSON_GetField(root, "connect_options");
 	if (cjson) {
 		cJSON* childnode;
-		ConfigConnectOption_t* connect_options;
+		BootServerConfigConnectOption_t* connect_options;
 		size_t n = cJSON_ChildNum(cjson);
 
-		connect_options = (ConfigConnectOption_t*)malloc(sizeof(ConfigConnectOption_t) * n);
+		connect_options = (BootServerConfigConnectOption_t*)malloc(sizeof(BootServerConfigConnectOption_t) * n);
 		if (!connect_options) {
 			goto err;
 		}
 		conf->connect_options = connect_options;
 		conf->connect_options_cnt = 0;
 		for (childnode = cjson->child; childnode; childnode = childnode->next) {
-			ConfigConnectOption_t* option_ptr = &connect_options[conf->connect_options_cnt++];
+			BootServerConfigConnectOption_t* option_ptr = &connect_options[conf->connect_options_cnt++];
 			memset(option_ptr, 0, sizeof(*option_ptr));
 			if (!parse_connect_option(childnode, option_ptr)) {
 				goto err;
 			}
 			option_ptr->cjson_node = childnode;
 		}
-	}
-
-	cjson = cJSON_GetField(root, "net_thread_cnt");
-	if (cjson) {
-		int net_thread_cnt = cJSON_GetInteger(cjson);
-		if (net_thread_cnt <= 0) {
-			net_thread_cnt = processorCount();
-		}
-		conf->net_thread_cnt = net_thread_cnt;
-	}
-	else {
-		conf->net_thread_cnt = 1;
 	}
 
 	cjson = cJSON_GetField(root, "cluster_table_path");
@@ -211,42 +199,38 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 		else {
 			conf->log.maxfilesize = ~0;
 		}
-	}
-	conf->log.cjson_node = cjson;
-
-	cjson = cJSON_GetField(root, "rpc_fiber_stack_size_kb");
-	if (cjson) {
-		conf->rpc_fiber_stack_size = cJSON_GetInteger(cjson) * 1024;
-	}
-	else {
-		conf->rpc_fiber_stack_size = 0x4000;
+		conf->log.cjson_node = cjson;
 	}
 
-	conf->once_rpc_timeout_items_maxcnt = 32;
-	cjson = cJSON_GetField(root, "once_rpc_timeout_items_maxcnt");
+	cjson = cJSON_GetField(root, "sche");
 	if (cjson) {
-		int val = cJSON_GetInteger(cjson);
-		if (val > 0) {
-			conf->once_rpc_timeout_items_maxcnt = val;
+		cJSON* sub_node;
+		sub_node = cJSON_GetField(cjson, "net_thread_cnt");
+		if (sub_node) {
+			int net_thread_cnt = cJSON_GetInteger(sub_node);
+			if (net_thread_cnt <= 0) {
+				net_thread_cnt = processorCount();
+			}
+			conf->sche.net_thread_cnt = net_thread_cnt;
 		}
-	}
-
-	conf->once_timeout_events_maxcnt = 32;
-	cjson = cJSON_GetField(root, "once_timeout_events_maxcnt");
-	if (cjson) {
-		int val = cJSON_GetInteger(cjson);
-		if (val > 0) {
-			conf->once_timeout_events_maxcnt = val;
+		else {
+			conf->sche.net_thread_cnt = 1;
 		}
-	}
-
-	conf->once_handle_msg_maxcnt = -1;
-	cjson = cJSON_GetField(root, "once_handle_msg_maxcnt");
-	if (cjson) {
-		int val = cJSON_GetInteger(cjson);
-		if (val > 0) {
-			conf->once_handle_msg_maxcnt = val;
+		sub_node = cJSON_GetField(cjson, "fiber_stack_size_kb");
+		if (sub_node) {
+			conf->sche.fiber_stack_size = cJSON_GetInteger(sub_node) * 1024;
 		}
+		else {
+			conf->sche.fiber_stack_size = 0x4000;
+		}
+		sub_node = cJSON_GetField(cjson, "once_handle_cnt");
+		if (sub_node) {
+			int val = cJSON_GetInteger(sub_node);
+			if (val > 0) {
+				conf->sche.once_handle_cnt = val;
+			}
+		}
+		conf->sche.cjson_node = cjson;
 	}
 
 	cjson = cJSON_GetField(root, "tcp_nodelay");
@@ -280,7 +264,7 @@ void freeBootServerConfig(BootServerConfig_t* conf) {
 	}
 	free((void*)conf->listen_options);
 	for (i = 0; i < conf->connect_options_cnt; ++i) {
-		const ConfigConnectOption_t* option_ptr = conf->connect_options + i;
+		const BootServerConfigConnectOption_t* option_ptr = conf->connect_options + i;
 		free((char*)option_ptr->protocol);
 		free((char*)option_ptr->user);
 		free((char*)option_ptr->password);

@@ -1,6 +1,7 @@
 #ifndef BOOT_SERVER_CPP_COROUTINE_SCHE_H
 #define	BOOT_SERVER_CPP_COROUTINE_SCHE_H
 
+#include "config.h"
 #include "task_thread.h"
 #include "net_channel_proc_imp.h"
 #include "dispatch_msg.h"
@@ -14,12 +15,13 @@ public:
 	typedef util::CoroutinePromise<void>(*FnNetCallback)(TaskThread_t*, DispatchNetMsg_t*);
 	typedef util::CoroutinePromise<void>(*FnNetDetach)(TaskThread_t*, NetChannel_t*);
 
-	static TaskThread_t* newInstance() {
+	static TaskThread_t* newInstance(const BootServerConfigSchedulerOption_t* conf_option) {
 		auto t = new TaskThreadCppCoroutine();
 		if (!saveTaskThread(t)) {
 			delete t;
 			return nullptr;
 		}
+		t->m_sche.set_handle_cnt(conf_option->once_handle_cnt);
 		return t;
 	}
 

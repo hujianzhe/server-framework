@@ -58,6 +58,10 @@ void stopAllTaskThreads(void) {
 	while (_xchg32(&s_SpinLock, 1));
 	for (i = 0; i < s_TaskThreads.len; ++i) {
 		TaskThread_t* t = s_TaskThreads.buf[i];
+		if (!_xchg8(&t->already_boot, 1)) {
+			t->exited = 1;
+			continue;
+		}
 		t->hook->exit(t);
 	}
 	_xchg32(&s_SpinLock, 0);

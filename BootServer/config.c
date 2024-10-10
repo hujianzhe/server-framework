@@ -232,6 +232,10 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 		}
 		conf->sche.cjson_node = cjson;
 	}
+	else {
+		conf->sche.net_thread_cnt = processorCount();
+		conf->sche.fiber_stack_size = 0x4000;
+	}
 
 	cjson = cJSON_GetField(root, "tcp_nodelay");
 	if (cjson) {

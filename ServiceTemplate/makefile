@@ -2,7 +2,7 @@ SOURCE_C_FILE += $(shell find . -name "*.c")
 SOURCE_CPP_FILE += $(shell find . -name "*.cpp" && find . -name "*.cc")
 TARGET_PATH += .
 
-COMPILE_OPTION := -Wno-deprecated -Wno-parentheses -Wno-unused-result
+COMPILE_OPTION := -Wno-deprecated -Wno-parentheses -Wno-unused-result -Wreturn-type
 MACRO := -D_REENTRANT
 LIB_PATH := $(PWD)/..
 RELEASE_BOOTSERVER_FILE := $(LIB_PATH)/BootServer/libBootServerDynamic.so

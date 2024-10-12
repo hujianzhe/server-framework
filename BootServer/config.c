@@ -16,6 +16,7 @@ static BootServerConfigListenOption_t* parse_listen_option(cJSON* cjson, BootSer
 	cJSON* portnode = cJSON_GetField(cjson, "port");
 	cJSON* socktype = cJSON_GetField(cjson, "socktype");
 	cJSON* readcache_max_size = cJSON_GetField(cjson, "readcache_max_size");
+	size_t len;
 
 	if (!protocol || !ipnode || !portnode) {
 		return NULL;
@@ -24,7 +25,14 @@ static BootServerConfigListenOption_t* parse_listen_option(cJSON* cjson, BootSer
 	if (!option_ptr->protocol) {
 		return NULL;
 	}
-	strcpy(option_ptr->ip, cJSON_GetStringPtr(ipnode));
+	len = cJSON_GetStringLength(ipnode);
+	if (len >= sizeof(IPString_t)) {
+		return NULL;
+	}
+	else {
+		memcpy(option_ptr->ip, cJSON_GetStringPtr(ipnode), len);
+		option_ptr->ip[len] = '\0';
+	}
 	option_ptr->port = cJSON_GetInteger(portnode);
 	if (!socktype) {
 		option_ptr->socktype = SOCK_STREAM;
@@ -52,6 +60,7 @@ static BootServerConfigConnectOption_t* parse_connect_option(cJSON* cjson, BootS
 	cJSON* readcache_max_size = cJSON_GetField(cjson, "readcache_max_size");
 	cJSON* user = cJSON_GetField(cjson, "user");
 	cJSON* password = cJSON_GetField(cjson, "password");
+	size_t len;
 
 	if (!protocol || !ipnode || !portnode) {
 		return NULL;
@@ -60,7 +69,14 @@ static BootServerConfigConnectOption_t* parse_connect_option(cJSON* cjson, BootS
 	if (!option_ptr->protocol) {
 		return NULL;
 	}
-	strcpy(option_ptr->ip, cJSON_GetStringPtr(ipnode));
+	len = cJSON_GetStringLength(ipnode);
+	if (len >= sizeof(IPString_t)) {
+		return NULL;
+	}
+	else {
+		memcpy(option_ptr->ip, cJSON_GetStringPtr(ipnode), len);
+		option_ptr->ip[len] = '\0';
+	}
 	option_ptr->port = cJSON_GetInteger(portnode);
 	if (!socktype) {
 		option_ptr->socktype = SOCK_STREAM;
@@ -126,7 +142,14 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 
 	cjson = cJSON_GetField(root, "outer_ip");
 	if (cjson) {
-		strcpy(conf->outer_ip, cJSON_GetStringPtr(cjson));
+		size_t len = cJSON_GetStringLength(cjson);
+		if (len >= sizeof(IPString_t)) {
+			return NULL;
+		}
+		else {
+			memcpy(conf->outer_ip, cJSON_GetStringPtr(cjson), len);
+			conf->outer_ip[len] = '\0';
+		}
 	}
 
 	cjson = cJSON_GetField(root, "listen_options");

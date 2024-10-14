@@ -126,7 +126,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		if (!c) {
 			return;
 		}
-		c->connect_timeout_sec = 5;
+		c->connect_timeout_msec = 5000;
 
 		logInfo(ptrBSG()->log, "channel(%p) connecting......", c);
 

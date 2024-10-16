@@ -179,11 +179,11 @@ static NetChannelProc_t s_inner_proc = {
 
 static void innerchannel_set_opt(NetChannel_t* c) {
 	if (NET_CHANNEL_SIDE_CLIENT == c->side) {
-		c->heartbeat_timeout_sec = 10;
+		c->heartbeat_timeout_msec = 10000;
 		c->heartbeat_maxtimes = 3;
 	}
 	else if (NET_CHANNEL_SIDE_SERVER == c->side) {
-		c->heartbeat_timeout_sec = 20;
+		c->heartbeat_timeout_msec = 20000;
 	}
 	if (SOCK_DGRAM == c->socktype) {
 		c->dgram_ctx.cwndsize = ptrBSG()->conf->udp_cwndsize;

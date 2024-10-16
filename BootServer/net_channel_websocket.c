@@ -139,7 +139,7 @@ static void websocket_accept_callback(NetChannel_t* listen_c, FD_t newfd, const 
 	init_channel_user_data_websocket(ud, listen_ud->_.sche);
 	NetChannel_set_userdata(c, ud);
 	ud->on_recv = listen_ud->on_recv;
-	c->heartbeat_timeout_sec = 20;
+	c->heartbeat_timeout_msec = 20000;
 	NetChannel_reg(selectNetReactor(), c);
 	NetChannel_close_ref(c);
 	return;

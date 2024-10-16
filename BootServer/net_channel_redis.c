@@ -176,7 +176,7 @@ NetChannel_t* openNetChannelRedisClient(const char* ip, unsigned short port, FnC
 	NetChannel_set_operator_sockaddr(c, &connect_addr.sa, connect_addrlen);
 	ud->on_subscribe = on_subscribe;
 	NetChannel_set_userdata(c, &ud->_);
-	c->heartbeat_timeout_sec = 10;
+	c->heartbeat_timeout_msec = 10000;
 	c->heartbeat_maxtimes = 3;
 	c->on_syn_ack = defaultNetChannelOnSynAck;
 	return c;

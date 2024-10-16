@@ -127,7 +127,7 @@ static void http_accept_callback(NetChannel_t* listen_c, FD_t newfd, const struc
 	}
 	init_channel_user_data_http(ud, NetChannel_get_userdata(listen_c)->sche);
 	NetChannel_set_userdata(c, ud);
-	c->heartbeat_timeout_sec = 20;
+	c->heartbeat_timeout_msec = 20000;
 	NetChannel_reg(selectNetReactor(), c);
 	NetChannel_close_ref(c);
 	return;
@@ -164,7 +164,7 @@ NetChannel_t* openNetChannelHttpClient(const char* ip, unsigned short port, void
 	}
 	init_channel_user_data_http(ud, sche);
 	NetChannel_set_userdata(c, ud);
-	c->heartbeat_timeout_sec = 10;
+	c->heartbeat_timeout_msec = 10000;
 	c->on_syn_ack = defaultNetChannelOnSynAck;
 	return c;
 err:

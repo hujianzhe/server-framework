@@ -108,7 +108,7 @@ static void innerchannel_recv(NetChannel_t* c, unsigned char* bodyptr, size_t bo
 			ptrBSG()->net_sche_hook->on_execute_msg(NetChannel_get_userdata(c)->sche, message);
 		}
 	}
-	else if (NET_CHANNEL_SIDE_SERVER == c->side) {
+	else if (!c->heartbeat_sender) {
 		InnerMsgPayload_t packet;
 		makeInnerMsgEmpty(&packet);
 		NetChannel_sendv(c, packet.iov, sizeof(packet.iov) / sizeof(packet.iov[0]), NETPACKET_NO_ACK_FRAGMENT, addr, addrlen);

@@ -85,7 +85,12 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	test_simply_udp_server(45678);
 }
 
+static const char* log_gen_path(const char* ident, const struct tm* dt) { return ident; }
+static void log_free_path(char* path) {}
+
 int init(void) {
+	// init log
+	logEnableFile(ptrBSG()->log, ptrBSG()->conf->log.rotate_timelen_sec, log_gen_path, log_free_path);
 	// register dispatch
 	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_TEST, reqTest);
 	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_TEST_CALLBACK, reqTestCallback);

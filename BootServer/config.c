@@ -206,21 +206,18 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 
 	cjson = cJSON_GetField(root, "log");
 	if (cjson) {
-		cJSON* pathname, *maxfilesize_mb;
-		pathname = cJSON_GetField(cjson, "pathname");
-		if (!pathname) {
+		cJSON* ident, *rotate_timelen_sec;
+		ident = cJSON_GetField(cjson, "ident");
+		if (!ident) {
 			goto err;
 		}
-		conf->log.pathname = strdup(cJSON_GetStringPtr(pathname));
-		if (!conf->log.pathname) {
+		conf->log.ident = strdup(cJSON_GetStringPtr(ident));
+		if (!conf->log.ident) {
 			goto err;
 		}
-		maxfilesize_mb = cJSON_GetField(cjson, "maxfilesize_mb");
-		if (maxfilesize_mb && cJSON_GetInteger(maxfilesize_mb) > 0) {
-			conf->log.maxfilesize = cJSON_GetInteger(maxfilesize_mb) * 1024 * 1024;
-		}
-		else {
-			conf->log.maxfilesize = ~0;
+		rotate_timelen_sec = cJSON_GetField(cjson, "rotate_timelen_sec");
+		if (rotate_timelen_sec) {
+			conf->log.rotate_timelen_sec = cJSON_GetInteger(rotate_timelen_sec);
 		}
 		conf->log.cjson_node = cjson;
 	}
@@ -298,7 +295,7 @@ void freeBootServerConfig(BootServerConfig_t* conf) {
 	}
 	free((void*)conf->connect_options);
 	free((char*)conf->clsnd.ident);
-	free((char*)conf->log.pathname);
+	free((char*)conf->log.ident);
 	free((char*)conf->cluster_table_path);
 	cJSON_Delete(conf->cjson_root);
 	free(conf);

@@ -33,8 +33,8 @@ typedef struct BootServerConfigSchedulerOption_t {
 } BootServerConfigSchedulerOption_t;
 
 typedef struct BootServerConfigLoggerOption_t {
-	const char* pathname;
-	unsigned int maxfilesize;
+	const char* ident;
+	int rotate_timelen_sec;
 	struct cJSON* cjson_node;
 } BootServerConfigLoggerOption_t;
 

@@ -178,7 +178,7 @@ void reqHttpUploadFile(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 
 		fd = fdOpen(path, FILE_CREAT_BIT | FILE_WRITE_BIT | FILE_APPEND_BIT);
 		if (fd == INVALID_FD_HANDLE) {
-			logErr(ptrBSG()->log, "", "%s open failure", path);
+			logError(ptrBSG()->log, "", "%s open failure", path);
 			free(path);
 			break;
 		}
@@ -186,7 +186,7 @@ void reqHttpUploadFile(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 		
 		wrbytes = fdWrite(fd, form_data->data, form_data->datalen);
 		if (wrbytes != form_data->datalen) {
-			logErr(ptrBSG()->log, "", "%s write error", path);
+			logError(ptrBSG()->log, "", "%s write error", path);
 			free(path);
 			fdClose(fd);
 			break;

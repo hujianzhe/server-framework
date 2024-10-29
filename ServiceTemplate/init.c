@@ -14,7 +14,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 			continue;
 		}
 		if (!c) {
-			logErr(ptrBSG()->log, "", "listen failure, ip:%s, port:%u ......", option->ip, option->port);
+			logError(ptrBSG()->log, "", "listen failure, ip:%s, port:%u ......", option->ip, option->port);
 			return;
 		}
 		NetChannel_reg(acceptNetReactor(), c);
@@ -29,7 +29,7 @@ int init(void) {
 	unsigned int i;
 	for (i = 0; i < ptrBSG()->conf->log_options_cnt; ++i) {
 		const BootServerConfigLoggerOption_t* opt = ptrBSG()->conf->log_options + i;
-		logEnableFile(ptrBSG()->log, opt->key, logFileOptionDefaultHour(), opt->base_path);
+		logEnableFile(ptrBSG()->log, opt->key, opt->base_path, NULL, logFileRotateOptionDefaultHour());
 	}
 
 	StackCoSche_function(ptrBSG()->default_task_thread->sche_stack_co, run, NULL);

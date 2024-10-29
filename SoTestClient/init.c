@@ -139,12 +139,12 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		NetChannel_reg(selectNetReactor(), c);
 		block = StackCoSche_yield(sche);
 		if (StackCoSche_has_exit(sche)) {
-			logErr(ptrBSG()->log, "", "task coroutine sche has exit...");
+			logError(ptrBSG()->log, "", "task coroutine sche has exit...");
 			NetChannel_close_ref(c);
 			return;
 		}
 		if (block->status != STACK_CO_STATUS_FINISH) {
-			logErr(ptrBSG()->log, "", "channel(%p) connect %s:%u failure", c, option->ip, option->port);
+			logError(ptrBSG()->log, "", "channel(%p) connect %s:%u failure", c, option->ip, option->port);
 			NetChannel_close_ref(c);
 			return;
 		}
@@ -171,7 +171,7 @@ int init(void) {
 	unsigned int i;
 	for (i = 0; i < ptrBSG()->conf->log_options_cnt; ++i) {
 		const BootServerConfigLoggerOption_t* opt = ptrBSG()->conf->log_options + i;
-		logEnableFile(ptrBSG()->log, opt->key, logFileOptionDefaultHour(), opt->base_path);
+		logEnableFile(ptrBSG()->log, opt->key, opt->base_path, NULL, logFileRotateOptionDefaultHour());
 	}
 	// register dispatch
 	regNumberDispatch(ptrBSG()->dispatch, CMD_NOTIFY_TEST, notifyTest);

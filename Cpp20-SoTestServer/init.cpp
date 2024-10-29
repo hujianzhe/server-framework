@@ -19,7 +19,7 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 			continue;
 		}
 		if (!c) {
-			logErr(ptrBSG()->log, "", "listen failure, ip:%s, port:%u ......", option->ip, option->port);
+			logError(ptrBSG()->log, "", "listen failure, ip:%s, port:%u ......", option->ip, option->port);
 			co_return;
 		}
 		NetChannel_reg(acceptNetReactor(), c.get());
@@ -88,7 +88,7 @@ int init(void) {
 	// init log
 	for (unsigned int i = 0; i < ptrBSG()->conf->log_options_cnt; ++i) {
 		const BootServerConfigLoggerOption_t* opt = ptrBSG()->conf->log_options + i;
-		logEnableFile(ptrBSG()->log, opt->key, logFileOptionDefaultHour(), opt->base_path);
+		logEnableFile(ptrBSG()->log, opt->key, opt->base_path, NULL, logFileRotateOptionDefaultHour());
 	}
 	auto sc = (util::CoroutineDefaultSche*)ptrBSG()->default_task_thread->sche;
 	// register dispatch

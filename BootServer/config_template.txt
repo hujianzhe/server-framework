@@ -30,7 +30,7 @@
 	"log_options" : [
 		{
 			"key" : "",
-			"base_path" : "."
+			"base_path" : "./"
 		}
 	],
 	"sche" : {

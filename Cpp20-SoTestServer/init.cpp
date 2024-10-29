@@ -88,7 +88,7 @@ int init(void) {
 	// init log
 	for (unsigned int i = 0; i < ptrBSG()->conf->log_options_cnt; ++i) {
 		const BootServerConfigLoggerOption_t* opt = ptrBSG()->conf->log_options + i;
-		logEnableFile(ptrBSG()->log, opt->key, opt->base_path, NULL, logFileRotateOptionDefaultHour());
+		logEnableFile(ptrBSG()->log, opt->key, opt->base_path, logFileOutputOptionDefault(), logFileRotateOptionDefaultHour());
 	}
 	auto sc = (util::CoroutineDefaultSche*)ptrBSG()->default_task_thread->sche;
 	// register dispatch

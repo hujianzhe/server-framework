@@ -29,7 +29,7 @@ int init(void) {
 	unsigned int i;
 	for (i = 0; i < ptrBSG()->conf->log_options_cnt; ++i) {
 		const BootServerConfigLoggerOption_t* opt = ptrBSG()->conf->log_options + i;
-		logEnableFile(ptrBSG()->log, opt->key, opt->base_path, NULL, logFileRotateOptionDefaultHour());
+		logEnableFile(ptrBSG()->log, opt->key, opt->base_path, logFileOutputOptionDefault(), logFileRotateOptionDefaultHour());
 	}
 
 	StackCoSche_function(ptrBSG()->default_task_thread->sche_stack_co, run, NULL);

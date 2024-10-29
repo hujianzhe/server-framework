@@ -113,7 +113,7 @@ void notifyTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 void retLoginTest(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 	StackCoBlock_t* block;
 
-	logInfo(ptrBSG()->log, "recv: %s", (char*)ctrl->data);
+	logInfo(ptrBSG()->log, "", "recv: %s", (char*)ctrl->data);
 
 	// test code
 	StackCoSche_sleep_util(thrd->sche_stack_co, gmtimeMillisecond() + 5000, NULL);

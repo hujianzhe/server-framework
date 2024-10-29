@@ -75,7 +75,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 			continue;
 		}
 		if (!c) {
-			logErr(ptrBSG()->log, "listen failure, ip:%s, port:%u ......", option->ip, option->port);
+			logErr(ptrBSG()->log, "", "listen failure, ip:%s, port:%u ......", option->ip, option->port);
 			return;
 		}
 		NetChannel_reg(acceptNetReactor(), c);
@@ -85,12 +85,13 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	test_simply_udp_server(45678);
 }
 
-static const char* log_gen_path(const char* ident, const struct tm* dt) { return ident; }
-static void log_free_path(char* path) {}
-
 int init(void) {
 	// init log
-	logEnableFile(ptrBSG()->log, ptrBSG()->conf->log.rotate_timelen_sec, log_gen_path, log_free_path);
+	unsigned int i;
+	for (i = 0; i < ptrBSG()->conf->log_options_cnt; ++i) {
+		const BootServerConfigLoggerOption_t* opt = ptrBSG()->conf->log_options + i;
+		logEnableFile(ptrBSG()->log, opt->key, logFileOptionDefaultHour(), opt->base_path);
+	}
 	// register dispatch
 	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_TEST, reqTest);
 	regNumberDispatch(ptrBSG()->dispatch, CMD_REQ_TEST_CALLBACK, reqTestCallback);

@@ -19,7 +19,7 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 			continue;
 		}
 		if (!c) {
-			logErr(ptrBSG()->log, "listen failure, ip:%s, port:%u ......", option->ip, option->port);
+			logErr(ptrBSG()->log, "", "listen failure, ip:%s, port:%u ......", option->ip, option->port);
 			co_return;
 		}
 		NetChannel_reg(acceptNetReactor(), c.get());
@@ -34,7 +34,7 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 		freeDispatchNetMsg(msg);
 	}, thrd->sche));
 	if (!c) {
-		logErr(ptrBSG()->log, "connect redis failure, ip:%s, port:%u ......", "10.1.1.186", 6379);
+		logErr(ptrBSG()->log, "", "connect redis failure, ip:%s, port:%u ......", "10.1.1.186", 6379);
 		co_return;
 	}
 
@@ -85,6 +85,11 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 }
 
 int init(void) {
+	// init log
+	for (unsigned int i = 0; i < ptrBSG()->conf->log_options_cnt; ++i) {
+		const BootServerConfigLoggerOption_t* opt = ptrBSG()->conf->log_options + i;
+		logEnableFile(ptrBSG()->log, opt->key, logFileOptionDefaultHour(), opt->base_path);
+	}
 	auto sc = (util::CoroutineDefaultSche*)ptrBSG()->default_task_thread->sche;
 	// register dispatch
 	TestHandler::reg_dispatch(ptrBSG()->dispatch);

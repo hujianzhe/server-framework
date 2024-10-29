@@ -33,8 +33,8 @@ typedef struct BootServerConfigSchedulerOption_t {
 } BootServerConfigSchedulerOption_t;
 
 typedef struct BootServerConfigLoggerOption_t {
-	const char* ident;
-	int rotate_timelen_sec;
+	const char* key;
+	const char* base_path;
 	struct cJSON* cjson_node;
 } BootServerConfigLoggerOption_t;
 
@@ -51,7 +51,8 @@ typedef struct BootServerConfig_t {
 	const BootServerConfigConnectOption_t* connect_options;
 	unsigned int connect_options_cnt;
 	BootServerConfigClusterNodeOption_t clsnd;
-	BootServerConfigLoggerOption_t log;
+	BootServerConfigLoggerOption_t* log_options;
+	unsigned int log_options_cnt;
 	BootServerConfigSchedulerOption_t sche;
 	IPString_t outer_ip;
 	const char* cluster_table_path;

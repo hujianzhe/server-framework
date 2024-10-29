@@ -19,9 +19,9 @@ BOOL initBootServerGlobal(const BootServerConfig_t* conf, TaskThread_t* def_task
 	}
 	s_BSG.net_sche_hook = nsh;
 	/* init log */
-	s_BSG.log = logOpen(conf->log.ident);
+	s_BSG.log = logOpen();
 	if (!s_BSG.log) {
-		s_BSG.errmsg = strFormat(NULL, "logOpen(%s) error\n", conf->log.ident);
+		s_BSG.errmsg = strFormat(NULL, "logOpen error\n");
 		return FALSE;
 	}
 	/* init net thread resource */

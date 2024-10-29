@@ -66,7 +66,6 @@ int main(int argc, char** argv) {
 	goto ret;
 err:
 	fputs(getBSGErrmsg(), stderr);
-	logErr(ptrBSG()->log, "%s", getBSGErrmsg());
 ret:
 	/* free BootServer object */
 	freeBootServerGlobal();

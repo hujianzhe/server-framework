@@ -56,7 +56,7 @@ static void frpc_test_paralle(struct StackCoSche_t* sche, NetChannel_t* channel)
 static void test_timer(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	StackCoBlock_t* block;
 	while (1) {
-		logInfo(ptrBSG()->log, "test_timer============================================");
+		logInfo(ptrBSG()->log, "", "test_timer============================================");
 		StackCoSche_sleep_util(sche, gmtimeMillisecond() + 1000, NULL);
 		block = StackCoSche_yield(sche);
 		if (StackCoSche_has_exit(sche)) {
@@ -128,7 +128,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		}
 		c->connect_timeout_msec = 5000;
 
-		logInfo(ptrBSG()->log, "channel(%p) connecting......", c);
+		logInfo(ptrBSG()->log, "", "channel(%p) connecting......", c);
 
 		block = StackCoSche_block_point_util(sche, gmtimeMillisecond() + 5000, NULL);
 		if (!block) {
@@ -139,17 +139,17 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		NetChannel_reg(selectNetReactor(), c);
 		block = StackCoSche_yield(sche);
 		if (StackCoSche_has_exit(sche)) {
-			logErr(ptrBSG()->log, "task coroutine sche has exit...");
+			logErr(ptrBSG()->log, "", "task coroutine sche has exit...");
 			NetChannel_close_ref(c);
 			return;
 		}
 		if (block->status != STACK_CO_STATUS_FINISH) {
-			logErr(ptrBSG()->log, "channel(%p) connect %s:%u failure", c, option->ip, option->port);
+			logErr(ptrBSG()->log, "", "channel(%p) connect %s:%u failure", c, option->ip, option->port);
 			NetChannel_close_ref(c);
 			return;
 		}
 
-		logInfo(ptrBSG()->log, "channel(%p) connect success......", c);
+		logInfo(ptrBSG()->log, "", "channel(%p) connect success......", c);
 		//def_c = c;
 		frpc_test_paralle(sche, c);
 		if (!start_req_login_test(c)) {
@@ -166,12 +166,13 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	test_simply_udp_client(45678);
 }
 
-static const char* log_gen_path(const char* ident, const struct tm* dt) { return ident; }
-static void log_free_path(char* path) {}
-
 int init(void) {
 	// init log
-	logEnableFile(ptrBSG()->log, ptrBSG()->conf->log.rotate_timelen_sec, log_gen_path, log_free_path);
+	unsigned int i;
+	for (i = 0; i < ptrBSG()->conf->log_options_cnt; ++i) {
+		const BootServerConfigLoggerOption_t* opt = ptrBSG()->conf->log_options + i;
+		logEnableFile(ptrBSG()->log, opt->key, logFileOptionDefaultHour(), opt->base_path);
+	}
 	// register dispatch
 	regNumberDispatch(ptrBSG()->dispatch, CMD_NOTIFY_TEST, notifyTest);
 	regNumberDispatch(ptrBSG()->dispatch, CMD_RET_TEST, retTest);

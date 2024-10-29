@@ -27,10 +27,12 @@
 			"readcache_max_size" : 65535
 		}
 	],
-	"log" : {
-		"pathname" : "./test200",
-		"maxfilesize_mb" : 10
-	},
+	"log_options" : [
+		{
+			"key" : "",
+			"base_path" : "."
+		}
+	],
 	"sche" : {
 		"net_thread_cnt" : 0,
 		"fiber_stack_size_kb" : 16,

@@ -6,10 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 static BootServerConfigListenOption_t* parse_listen_option(cJSON* cjson, BootServerConfigListenOption_t* option_ptr) {
 	cJSON* protocol = cJSON_GetField(cjson, "protocol");
 	cJSON* ipnode = cJSON_GetField(cjson, "ip");
@@ -110,6 +106,30 @@ static BootServerConfigConnectOption_t* parse_connect_option(cJSON* cjson, BootS
 	return option_ptr;
 }
 
+static BootServerConfigLoggerOption_t* parse_log_option(cJSON* cjson, BootServerConfigLoggerOption_t* option_ptr) {
+	cJSON* base_path = cJSON_GetField(cjson, "base_path");
+	cJSON* key = cJSON_GetField(cjson, "key");
+
+	if (!key) {
+		return NULL;
+	}
+	option_ptr->key = strdup(cJSON_GetStringPtr(key));
+	if (!option_ptr->key) {
+		return NULL;
+	}
+	if (base_path) {
+		option_ptr->base_path = strdup(cJSON_GetStringPtr(base_path));
+		if (!option_ptr->base_path) {
+			return NULL;
+		}
+	}
+	return option_ptr;
+}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 BootServerConfig_t* parseBootServerConfig(const char* path) {
 	BootServerConfig_t* conf;
 	cJSON* cjson;
@@ -196,30 +216,34 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 		}
 	}
 
+	cjson = cJSON_GetField(root, "log_options");
+	if (cjson) {
+		cJSON* childnode;
+		BootServerConfigLoggerOption_t* log_options;
+		size_t n = cJSON_ChildNum(cjson);
+
+		log_options = (BootServerConfigLoggerOption_t*)malloc(sizeof(BootServerConfigLoggerOption_t) * n);
+		if (!log_options) {
+			goto err;
+		}
+		conf->log_options = log_options;
+		conf->log_options_cnt = 0;
+		for (childnode = cjson->child; childnode; childnode = childnode->next) {
+			BootServerConfigLoggerOption_t* option_ptr = &log_options[conf->log_options_cnt++];
+			memset(option_ptr, 0, sizeof(*option_ptr));
+			if (!parse_log_option(childnode, option_ptr)) {
+				goto err;
+			}
+			option_ptr->cjson_node = childnode;
+		}
+	}
+
 	cjson = cJSON_GetField(root, "cluster_table_path");
 	if (cjson) {
 		conf->cluster_table_path = strdup(cJSON_GetStringPtr(cjson));
 		if (!conf->cluster_table_path) {
 			goto err;
 		}
-	}
-
-	cjson = cJSON_GetField(root, "log");
-	if (cjson) {
-		cJSON* ident, *rotate_timelen_sec;
-		ident = cJSON_GetField(cjson, "ident");
-		if (!ident) {
-			goto err;
-		}
-		conf->log.ident = strdup(cJSON_GetStringPtr(ident));
-		if (!conf->log.ident) {
-			goto err;
-		}
-		rotate_timelen_sec = cJSON_GetField(cjson, "rotate_timelen_sec");
-		if (rotate_timelen_sec) {
-			conf->log.rotate_timelen_sec = cJSON_GetInteger(rotate_timelen_sec);
-		}
-		conf->log.cjson_node = cjson;
 	}
 
 	cjson = cJSON_GetField(root, "sche");
@@ -283,10 +307,12 @@ void freeBootServerConfig(BootServerConfig_t* conf) {
 	if (!conf) {
 		return;
 	}
+
 	for (i = 0; i < conf->listen_options_cnt; ++i) {
 		free((char*)conf->listen_options[i].protocol);
 	}
 	free((void*)conf->listen_options);
+
 	for (i = 0; i < conf->connect_options_cnt; ++i) {
 		const BootServerConfigConnectOption_t* option_ptr = conf->connect_options + i;
 		free((char*)option_ptr->protocol);
@@ -294,8 +320,15 @@ void freeBootServerConfig(BootServerConfig_t* conf) {
 		free((char*)option_ptr->password);
 	}
 	free((void*)conf->connect_options);
+
+	for (i = 0; i < conf->log_options_cnt; ++i) {
+		const BootServerConfigLoggerOption_t* option_ptr = conf->log_options + i;
+		free((char*)option_ptr->key);
+		free((char*)option_ptr->base_path);
+	}
+	free((void*)conf->log_options);
+
 	free((char*)conf->clsnd.ident);
-	free((char*)conf->log.ident);
 	free((char*)conf->cluster_table_path);
 	cJSON_Delete(conf->cjson_root);
 	free(conf);

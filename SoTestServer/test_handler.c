@@ -154,7 +154,7 @@ void reqHttpUploadFile(TaskThread_t* thrd, DispatchNetMsg_t* ctrl) {
 		const char* s, *e;
 		char* path;
 		FD_t fd;
-		int wrbytes;
+		ssize_t wrbytes;
 		HttpMultipartFormData_t* form_data = pod_container_of(cur, HttpMultipartFormData_t, listnode);
 		next = cur->next;
 

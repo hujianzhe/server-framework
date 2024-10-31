@@ -107,7 +107,8 @@ static BootServerConfigConnectOption_t* parse_connect_option(cJSON* cjson, BootS
 }
 
 static BootServerConfigLoggerOption_t* parse_log_option(cJSON* cjson, BootServerConfigLoggerOption_t* option_ptr) {
-	cJSON* base_path = cJSON_GetField(cjson, "base_path");
+	cJSON* base_path;
+	cJSON* async_output;
 	cJSON* key = cJSON_GetField(cjson, "key");
 
 	if (!key) {
@@ -117,12 +118,20 @@ static BootServerConfigLoggerOption_t* parse_log_option(cJSON* cjson, BootServer
 	if (!option_ptr->key) {
 		return NULL;
 	}
+
+	base_path = cJSON_GetField(cjson, "base_path");
 	if (base_path) {
 		option_ptr->base_path = strdup(cJSON_GetStringPtr(base_path));
 		if (!option_ptr->base_path) {
 			return NULL;
 		}
 	}
+
+	async_output = cJSON_GetField("async_output");
+	if (async_output) {
+		option_ptr->async_output = cJSON_GetInteger(async_output);
+	}
+
 	return option_ptr;
 }
 

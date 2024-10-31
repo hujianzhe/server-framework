@@ -35,6 +35,7 @@ typedef struct BootServerConfigSchedulerOption_t {
 typedef struct BootServerConfigLoggerOption_t {
 	const char* key;
 	const char* base_path;
+	int async_output;
 	struct cJSON* cjson_node;
 } BootServerConfigLoggerOption_t;
 

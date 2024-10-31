@@ -127,7 +127,7 @@ static BootServerConfigLoggerOption_t* parse_log_option(cJSON* cjson, BootServer
 		}
 	}
 
-	async_output = cJSON_GetField("async_output");
+	async_output = cJSON_GetField(cjson, "async_output");
 	if (async_output) {
 		option_ptr->async_output = cJSON_GetInteger(async_output);
 	}

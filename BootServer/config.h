@@ -27,6 +27,7 @@ typedef struct BootServerConfigConnectOption_t {
 
 typedef struct BootServerConfigSchedulerOption_t {
 	int net_thread_cnt;
+	unsigned int task_thread_stack_size;
 	unsigned int fiber_stack_size;
 	int once_handle_cnt;
 	struct cJSON* cjson_node;

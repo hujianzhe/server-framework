@@ -21,6 +21,7 @@ public:
 			delete t;
 			return nullptr;
 		}
+		t->stack_size = conf_option->task_thread_stack_size;
 		t->m_sche.set_handle_cnt(conf_option->once_handle_cnt);
 		return t;
 	}

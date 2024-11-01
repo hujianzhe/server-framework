@@ -269,12 +269,20 @@ BootServerConfig_t* parseBootServerConfig(const char* path) {
 		else {
 			conf->sche.net_thread_cnt = 1;
 		}
+		sub_node = cJSON_GetField(cjson, "task_thread_stack_size_kb");
+		if (sub_node) {
+			int kb = cJSON_GetInteger(sub_node);
+			if (kb > 0 && kb * 1024 > 0) {
+				conf->sche.task_thread_stack_size = kb * 1024;
+			}
+		}
+		conf->sche.fiber_stack_size = 0x4000;
 		sub_node = cJSON_GetField(cjson, "fiber_stack_size_kb");
 		if (sub_node) {
-			conf->sche.fiber_stack_size = cJSON_GetInteger(sub_node) * 1024;
-		}
-		else {
-			conf->sche.fiber_stack_size = 0x4000;
+			int kb = cJSON_GetInteger(sub_node);
+			if (kb > 0 && kb * 1024 > 0) {
+				conf->sche.fiber_stack_size = kb * 1024;
+			}
 		}
 		sub_node = cJSON_GetField(cjson, "once_handle_cnt");
 		if (sub_node) {

@@ -75,7 +75,7 @@ BOOL runNetThreads(void) {
 		return FALSE;
 	}
 	for (i = 0; i < s_NetReactorCnt + 1; ++i) {
-		if (!threadCreate(s_NetThreads + i, net_thread_entry, s_NetReactors[i])) {
+		if (!threadCreate(s_NetThreads + i, 0, net_thread_entry, s_NetReactors[i])) {
 			break;
 		}
 	}

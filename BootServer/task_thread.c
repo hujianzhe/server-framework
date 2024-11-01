@@ -129,12 +129,12 @@ TaskThread_t* newTaskThreadStackCo(const BootServerConfigSchedulerOption_t* conf
 	if (!thrd->_.sche_stack_co) {
 		goto err;
 	}
-	StackCoSche_set_handle_cnt(thrd->_.sche_stack_co, conf_option->once_handle_cnt);
 	sche_ok = 1;
-
 	if (!saveTaskThread(&thrd->_)) {
 		goto err;
 	}
+	StackCoSche_set_handle_cnt(thrd->_.sche_stack_co, conf_option->once_handle_cnt);
+	thrd->_.stack_size = conf_option->task_thread_stack_size;
 	thrd->_.hook = &s_TaskThreadStackCoHook;
 	thrd->net_dispatch = default_net_dispatch;
 	thrd->net_detach = ignore_net_detach;
@@ -151,7 +151,7 @@ BOOL runTaskThread(TaskThread_t* t) {
 	if (_xchg8(&t->already_boot, 1)) {
 		return TRUE;
 	}
-	return threadCreate(&t->tid, t->hook->entry, t);
+	return threadCreate(&t->tid, t->stack_size, t->hook->entry, t);
 }
 
 void stopTaskThread(TaskThread_t* t) {

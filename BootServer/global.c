@@ -72,7 +72,7 @@ BOOL runBootServerGlobal(void) {
 	int task_ok = 0;
 	/* run signal thread */
 	if (s_BSG.sig_proc) {
-		if (!threadCreate(&s_BSG.sig_tid, signal_thread_entry, NULL)) {
+		if (!threadCreate(&s_BSG.sig_tid, 0, signal_thread_entry, NULL)) {
 			s_BSG.errmsg = strFormat(NULL, "signal handle thread boot failure\n");
 			s_BSG.valid = 0;
 			goto end;

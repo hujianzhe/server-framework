@@ -23,6 +23,7 @@ typedef struct TaskThread_t {
 	RandMT19937_t randmt19937_ctx;
 	Atom32_t refcnt;
 	Atom8_t already_boot;
+	unsigned int stack_size;
 	char detached;
 	char exited;
 	union {

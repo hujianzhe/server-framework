@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-__declspec_dll NetChannel_t* openNetListenerWebsocket(const char* ip, unsigned short port, FnNetChannelOnRecv_t fn, void* sche);
+__declspec_dll NetChannel_t* openNetListenerWebsocket(const BootServerConfigListenOption_t* opt, FnNetChannelOnRecv_t fn, void* sche);
 
 #ifdef __cplusplus
 }

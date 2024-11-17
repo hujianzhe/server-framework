@@ -63,13 +63,13 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		const BootServerConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
 		NetChannel_t* c;
 		if (!strcmp(option->protocol, "http")) {
-			c = openNetListenerHttp(option->ip, option->port, sche);
+			c = openNetListenerHttp(option, sche);
 		}
 		else if (!strcmp(option->protocol, "websocket")) {
-			c = openNetListenerWebsocket(option->ip, option->port, reflect_websocket_on_recv, sche);
+			c = openNetListenerWebsocket(option, reflect_websocket_on_recv, sche);
 		}
 		else if (!strcmp(option->protocol, "inner")) {
-			c = openNetListenerInner(option->socktype, option->ip, option->port, sche);
+			c = openNetListenerInner(option, sche);
 		}
 		else {
 			continue;

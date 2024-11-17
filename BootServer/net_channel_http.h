@@ -7,8 +7,8 @@
 extern "C" {
 #endif
 
-__declspec_dll NetChannel_t* openNetChannelHttpClient(const char* ip, unsigned short port, void* sche);
-__declspec_dll NetChannel_t* openNetListenerHttp(const char* ip, unsigned short port, void* sche);
+__declspec_dll NetChannel_t* openNetChannelHttpClient(const BootServerConfigConnectOption_t* opt, void* sche);
+__declspec_dll NetChannel_t* openNetListenerHttp(const BootServerConfigListenOption_t* opt, void* sche);
 
 #ifdef __cplusplus
 }

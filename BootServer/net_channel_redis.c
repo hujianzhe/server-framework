@@ -10,7 +10,7 @@ typedef struct NetChannelUserDataRedisClient_t {
 	DynArr_t(int64_t) rpc_ids;
 } NetChannelUserDataRedisClient_t;
 
-static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserDataRedisClient_t* ud, void* sche) {
+static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserDataRedisClient_t* ud, const BootServerConfigConnectOption_t* config_opt, void* sche) {
 	ud->ping_cmd_len = RedisCommand_format(&ud->ping_cmd, "PING");
 	if (ud->ping_cmd_len < 0) {
 		ud->ping_cmd = NULL;
@@ -24,7 +24,7 @@ static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserData
 	}
 	dynarrInitZero(&ud->rpc_ids);
 	ud->on_subscribe = NULL;
-	return initNetChannelUserData(&ud->_, sche);
+	return initNetChannelUserData(&ud->_, config_opt, sche);
 }
 
 /********************************************************************/
@@ -151,14 +151,14 @@ static NetChannelProc_t s_redis_cli_proc = {
 extern "C" {
 #endif
 
-NetChannel_t* openNetChannelRedisClient(const char* ip, unsigned short port, FnChannelRedisOnSubscribe_t on_subscribe, void* sche) {
+NetChannel_t* openNetChannelRedisClient(const BootServerConfigConnectOption_t* opt, FnChannelRedisOnSubscribe_t on_subscribe, void* sche) {
 	NetChannel_t* c = NULL;
 	NetChannelUserDataRedisClient_t* ud = NULL;
 	Sockaddr_t connect_addr;
 	socklen_t connect_addrlen;
-	int domain = ipstrFamily(ip);
+	int domain = ipstrFamily(opt->ip);
 
-	connect_addrlen = sockaddrEncode(&connect_addr.sa, domain, ip, port);
+	connect_addrlen = sockaddrEncode(&connect_addr.sa, domain, opt->ip, opt->port);
 	if (connect_addrlen <= 0) {
 		goto err;
 	}
@@ -166,7 +166,7 @@ NetChannel_t* openNetChannelRedisClient(const char* ip, unsigned short port, FnC
 	if (!ud) {
 		return NULL;
 	}
-	if (!init_channel_user_data_redis_cli(ud, sche)) {
+	if (!init_channel_user_data_redis_cli(ud, opt, sche)) {
 		goto err;
 	}
 	c = NetChannel_open(NET_CHANNEL_SIDE_CLIENT, &s_redis_cli_proc, domain, SOCK_STREAM, 0);

@@ -8,7 +8,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		const BootServerConfigListenOption_t* option = ptrBSG()->conf->listen_options + i;
 		NetChannel_t* c;
 		if (!strcmp(option->protocol, "http")) {
-			c = openNetListenerHttp(option->ip, option->port, sche);
+			c = openNetListenerHttp(option, sche);
 		}
 		else {
 			continue;

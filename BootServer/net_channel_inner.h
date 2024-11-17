@@ -33,8 +33,8 @@ enum {
 extern "C" {
 #endif
 
-__declspec_dll NetChannel_t* openNetChannelInnerClient(int socktype, const char* ip, unsigned short port, void* sche);
-__declspec_dll NetChannel_t* openNetListenerInner(int socktype, const char* ip, unsigned short port, void* sche);
+__declspec_dll NetChannel_t* openNetChannelInnerClient(const BootServerConfigConnectOption_t* opt, void* sche);
+__declspec_dll NetChannel_t* openNetListenerInner(const BootServerConfigListenOption_t* opt, void* sche);
 
 __declspec_dll InnerMsgPayload_t* makeInnerMsgEmpty(InnerMsgPayload_t* msg);
 __declspec_dll InnerMsgPayload_t* makeInnerMsg(InnerMsgPayload_t* msg, int cmdid, const void* data, unsigned int len);

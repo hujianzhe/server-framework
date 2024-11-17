@@ -3,12 +3,18 @@
 
 #include "util/inc/component/net_reactor.h"
 #include "util/inc/component/net_channel_ex.h"
+#include "config.h"
 #include <stdint.h>
 
 struct DispatchNetMsg_t;
 
 typedef struct NetChannelUserData_t {
 	void* sche;
+	union {
+		const void* config_opt;
+		const BootServerConfigListenOption_t* listen_opt;
+		const BootServerConfigConnectOption_t* connect_opt;
+	};
 	int64_t rpc_id_syn_ack;
 	int text_data_print_log;
 } NetChannelUserData_t;
@@ -31,7 +37,7 @@ extern "C" {
 
 __declspec_dll const NetScheHook_t* getNetScheHookStackCo(void);
 
-__declspec_dll NetChannelUserData_t* initNetChannelUserData(NetChannelUserData_t* ud, void* sche);
+__declspec_dll NetChannelUserData_t* initNetChannelUserData(NetChannelUserData_t* ud, const void* config_opt, void* sche);
 __declspec_dll void defaultNetChannelOnSynAck(NetChannel_t* c, long long ts_msec);
 __declspec_dll void defaultNetChannelOnDetach(NetChannel_t* c);
 

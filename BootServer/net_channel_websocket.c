@@ -9,11 +9,11 @@ typedef struct NetChannelUserDataWebsocket_t {
 	short ws_prev_is_fin;
 } NetChannelUserDataWebsocket_t;
 
-static NetChannelUserData_t* init_channel_user_data_websocket(NetChannelUserDataWebsocket_t* ud, void* sche) {
+static NetChannelUserData_t* init_channel_user_data_websocket(NetChannelUserDataWebsocket_t* ud, const void* config_opt, void* sche) {
 	dynarrInitZero(&ud->fragment_recv);
 	ud->ws_handshake_state = 0;
 	ud->ws_prev_is_fin = 1;
-	return initNetChannelUserData(&ud->_, sche);
+	return initNetChannelUserData(&ud->_, config_opt, sche);
 }
 
 /********************************************************************/
@@ -123,28 +123,29 @@ static NetChannelProc_t s_websocket_server_proc = {
 };
 
 static void websocket_accept_callback(NetChannel_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
-	NetChannelUserDataWebsocket_t* listen_ud = (NetChannelUserDataWebsocket_t*)NetChannel_get_userdata(listen_c);
+	NetChannelUserDataWebsocket_t* listen_ud;
 	NetChannel_t* c = NULL;
-	NetChannelUserDataWebsocket_t* ud = NULL;
+	NetChannelUserDataWebsocket_t* conn_ud = NULL;
 
 	c = NetChannel_open_with_fd(NET_CHANNEL_SIDE_SERVER, &s_websocket_server_proc, newfd, peer_addr->sa_family, 0);
 	if (!c) {
 		socketClose(newfd);
 		goto err;
 	}
-	ud = (NetChannelUserDataWebsocket_t*)malloc(sizeof(NetChannelUserDataWebsocket_t));
-	if (!ud) {
+	conn_ud = (NetChannelUserDataWebsocket_t*)malloc(sizeof(NetChannelUserDataWebsocket_t));
+	if (!conn_ud) {
 		goto err;
 	}
-	init_channel_user_data_websocket(ud, listen_ud->_.sche);
-	NetChannel_set_userdata(c, ud);
-	ud->on_recv = listen_ud->on_recv;
+	listen_ud = (NetChannelUserDataWebsocket_t*)NetChannel_get_userdata(listen_c);
+	init_channel_user_data_websocket(conn_ud, listen_ud->_.config_opt, listen_ud->_.sche);
+	NetChannel_set_userdata(c, conn_ud);
+	conn_ud->on_recv = listen_ud->on_recv;
 	c->heartbeat_timeout_msec = 20000;
 	NetChannel_reg(selectNetReactor(), c);
 	NetChannel_close_ref(c);
 	return;
 err:
-	free(ud);
+	free(conn_ud);
 	NetChannel_close_ref(c);
 }
 
@@ -152,14 +153,14 @@ err:
 extern "C" {
 #endif
 
-NetChannel_t* openNetListenerWebsocket(const char* ip, unsigned short port, FnNetChannelOnRecv_t fn, void* sche) {
+NetChannel_t* openNetListenerWebsocket(const BootServerConfigListenOption_t* opt, FnNetChannelOnRecv_t fn, void* sche) {
 	Sockaddr_t listen_saddr;
 	socklen_t listen_saddrlen;
 	NetChannel_t* c = NULL;
 	NetChannelUserDataWebsocket_t* ud = NULL;
-	int domain = ipstrFamily(ip);
+	int domain = ipstrFamily(opt->ip);
 
-	listen_saddrlen = sockaddrEncode(&listen_saddr.sa, domain, ip, port);
+	listen_saddrlen = sockaddrEncode(&listen_saddr.sa, domain, opt->ip, opt->port);
 	if (listen_saddrlen <= 0) {
 		return NULL;
 	}
@@ -171,10 +172,11 @@ NetChannel_t* openNetListenerWebsocket(const char* ip, unsigned short port, FnNe
 	if (!c) {
 		goto err;
 	}
+	c->listen_backlog = opt->backlog;
 	if (!NetChannel_set_operator_sockaddr(c, &listen_saddr.sa, listen_saddrlen)) {
 		goto err;
 	}
-	init_channel_user_data_websocket(ud, sche);
+	init_channel_user_data_websocket(ud, opt, sche);
 	NetChannel_set_userdata(c, ud);
 	ud->on_recv = fn;
 	c->on_ack_halfconn = websocket_accept_callback;

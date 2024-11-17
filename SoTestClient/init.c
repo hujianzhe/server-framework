@@ -122,7 +122,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 		if (strcmp(option->protocol, "inner")) {
 			continue;
 		}
-		c = openNetChannelInnerClient(option->socktype, option->ip, option->port, sche);
+		c = openNetChannelInnerClient(option, sche);
 		if (!c) {
 			return;
 		}

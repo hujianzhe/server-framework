@@ -122,9 +122,9 @@ static NetChannelExProc_t s_inner_data_proc = {
 	innerchannel_reply_ack
 };
 
-static NetChannelUserData_t* init_channel_user_data_inner(NetChannelUserDataInner_t* ud, NetChannel_t* channel, void* sche) {
+static NetChannelUserData_t* init_channel_user_data_inner(NetChannelUserDataInner_t* ud, NetChannel_t* channel, const void* config_opt, void* sche) {
 	NetChannelEx_init(channel, &ud->rw, &s_inner_data_proc);
-	return initNetChannelUserData(&ud->_, sche);
+	return initNetChannelUserData(&ud->_, config_opt, sche);
 }
 
 /**************************************************************************/
@@ -192,38 +192,40 @@ static void innerchannel_set_opt(NetChannel_t* c) {
 
 static void innerchannel_accept_callback(NetChannel_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
 	NetChannel_t* c = NULL;
-	NetChannelUserDataInner_t* ud = NULL;
+	NetChannelUserDataInner_t* conn_ud = NULL;
+	const NetChannelUserData_t* listen_ud;
 
 	c = NetChannel_open_with_fd(NET_CHANNEL_SIDE_SERVER, &s_inner_proc, newfd, peer_addr->sa_family, 0);
 	if (!c) {
 		socketClose(newfd);
 		goto err;
 	}
-	ud = (NetChannelUserDataInner_t*)malloc(sizeof(NetChannelUserDataInner_t));
-	if (!ud) {
+	conn_ud = (NetChannelUserDataInner_t*)malloc(sizeof(NetChannelUserDataInner_t));
+	if (!conn_ud) {
 		goto err;
 	}
-	init_channel_user_data_inner(ud, c, NetChannel_get_userdata(listen_c)->sche);
-	NetChannel_set_userdata(c, ud);
+	listen_ud = NetChannel_get_userdata(listen_c);
+	init_channel_user_data_inner(conn_ud, c, listen_ud->config_opt, listen_ud->sche);
+	NetChannel_set_userdata(c, conn_ud);
 	innerchannel_set_opt(c);
 	NetChannel_reg(selectNetReactor(), c);
 	NetChannel_close_ref(c);
 	return;
 err:
-	free(ud);
+	free(conn_ud);
 	NetChannel_close_ref(c);
 }
 
 /**************************************************************************/
 
-NetChannel_t* openNetChannelInnerClient(int socktype, const char* ip, unsigned short port, void* sche) {
+NetChannel_t* openNetChannelInnerClient(const BootServerConfigConnectOption_t* opt, void* sche) {
 	Sockaddr_t connect_saddr;
 	socklen_t connect_saddrlen;
 	NetChannel_t* c = NULL;
 	NetChannelUserDataInner_t* ud = NULL;
-	int domain = ipstrFamily(ip);
+	int domain = ipstrFamily(opt->ip);
 
-	connect_saddrlen = sockaddrEncode(&connect_saddr.sa, domain, ip, port);
+	connect_saddrlen = sockaddrEncode(&connect_saddr.sa, domain, opt->ip, opt->port);
 	if (connect_saddrlen <= 0) {
 		goto err;
 	}
@@ -231,14 +233,14 @@ NetChannel_t* openNetChannelInnerClient(int socktype, const char* ip, unsigned s
 	if (!ud) {
 		goto err;
 	}
-	c = NetChannel_open(NET_CHANNEL_SIDE_CLIENT, &s_inner_proc, domain, socktype, 0);
+	c = NetChannel_open(NET_CHANNEL_SIDE_CLIENT, &s_inner_proc, domain, opt->socktype, 0);
 	if (!c) {
 		goto err;
 	}
 	if (!NetChannel_set_operator_sockaddr(c, &connect_saddr.sa, connect_saddrlen)) {
 		goto err;
 	}
-	init_channel_user_data_inner(ud, c, sche);
+	init_channel_user_data_inner(ud, c, opt, sche);
 	NetChannel_set_userdata(c, ud);
 	innerchannel_set_opt(c);
 	c->on_syn_ack = defaultNetChannelOnSynAck;
@@ -249,14 +251,14 @@ err:
 	return NULL;
 }
 
-NetChannel_t* openNetListenerInner(int socktype, const char* ip, unsigned short port, void* sche) {
+NetChannel_t* openNetListenerInner(const BootServerConfigListenOption_t* opt, void* sche) {
 	Sockaddr_t listen_saddr;
 	socklen_t listen_saddrlen;
 	NetChannel_t* c = NULL;
 	NetChannelUserDataInner_t* ud = NULL;
-	int domain = ipstrFamily(ip);
+	int domain = ipstrFamily(opt->ip);
 
-	listen_saddrlen = sockaddrEncode(&listen_saddr.sa, domain, ip, port);
+	listen_saddrlen = sockaddrEncode(&listen_saddr.sa, domain, opt->ip, opt->port);
 	if (listen_saddrlen <= 0) {
 		goto err;
 	}
@@ -264,14 +266,15 @@ NetChannel_t* openNetListenerInner(int socktype, const char* ip, unsigned short 
 	if (!ud) {
 		goto err;
 	}
-	c = NetChannel_open(NET_CHANNEL_SIDE_LISTEN, &s_inner_proc, domain, socktype, 0);
+	c = NetChannel_open(NET_CHANNEL_SIDE_LISTEN, &s_inner_proc, domain, opt->socktype, 0);
 	if (!c) {
 		goto err;
 	}
+	c->listen_backlog = opt->backlog;
 	if (!NetChannel_set_operator_sockaddr(c, &listen_saddr.sa, listen_saddrlen)) {
 		goto err;
 	}
-	init_channel_user_data_inner(ud, c, sche);
+	init_channel_user_data_inner(ud, c, opt, sche);
 	NetChannel_set_userdata(c, ud);
 	innerchannel_set_opt(c);
 	c->on_ack_halfconn = innerchannel_accept_callback;

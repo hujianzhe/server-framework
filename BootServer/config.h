@@ -9,6 +9,7 @@ typedef struct BootServerConfigListenOption_t {
 	IPString_t ip;
 	unsigned short port;
 	int readcache_max_size;
+	int backlog;
 	struct cJSON* cjson_node;
 } BootServerConfigListenOption_t;
 

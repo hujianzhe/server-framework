@@ -12,6 +12,7 @@ static BootServerConfigListenOption_t* parse_listen_option(cJSON* cjson, BootSer
 	cJSON* portnode = cJSON_GetField(cjson, "port");
 	cJSON* socktype = cJSON_GetField(cjson, "socktype");
 	cJSON* readcache_max_size = cJSON_GetField(cjson, "readcache_max_size");
+	cJSON* backlog = cJSON_GetField(cjson, "backlog");
 	size_t len;
 
 	if (!protocol || !ipnode || !portnode) {
@@ -44,6 +45,12 @@ static BootServerConfigListenOption_t* parse_listen_option(cJSON* cjson, BootSer
 	}
 	else {
 		option_ptr->readcache_max_size = 0;
+	}
+	if (backlog && cJSON_GetInteger(backlog) > 0) {
+		option_ptr->backlog = cJSON_GetInteger(backlog);
+	}
+	else {
+		option_ptr->backlog = 4096;
 	}
 	return option_ptr;
 }

@@ -180,7 +180,7 @@ static NetChannelProc_t s_inner_proc = {
 static void innerchannel_set_opt(NetChannel_t* c, const BootServerConfigNetChannelOption_t* opt) {
 	if (NET_CHANNEL_SIDE_CLIENT == c->side) {
 		c->heartbeat_timeout_msec = opt->heartbeat_timeout_msec > 0 ? opt->heartbeat_timeout_msec : 10000;
-		c->heartbeat_maxtimes = opt->readcache_max_size > 0 ? opt->readcache_max_size : 3;
+		c->heartbeat_max_times = opt->readcache_max_size > 0 ? opt->readcache_max_size : 3;
 		c->readcache_max_size = opt->readcache_max_size;
 		c->sendcache_max_size = opt->sendcache_max_size;
 	}

@@ -178,7 +178,7 @@ NetChannel_t* openNetChannelRedisClient(const BootServerConfigConnectOption_t* o
 	ud->on_subscribe = on_subscribe;
 	NetChannel_set_userdata(c, &ud->_);
 	c->heartbeat_timeout_msec = channel_conf_opt->heartbeat_timeout_msec > 0 ? channel_conf_opt->heartbeat_timeout_msec : 10000;
-	c->heartbeat_maxtimes = channel_conf_opt->heartbeat_max_times > 0 ? channel_conf_opt->heartbeat_max_times : 3;
+	c->heartbeat_max_times = channel_conf_opt->heartbeat_max_times > 0 ? channel_conf_opt->heartbeat_max_times : 3;
 	c->connect_timeout_msec = opt->connect_timeout_msec;
 	c->on_syn_ack = defaultNetChannelOnSynAck;
 	return c;

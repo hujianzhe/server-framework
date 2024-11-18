@@ -19,7 +19,7 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 			continue;
 		}
 		if (!c) {
-			logError(ptrBSG()->log, "", "listen failure, ip:%s, port:%u ......", option->ip, option->port);
+			logError(ptrBSG()->log, "", "listen failure, ip:%s, port:%u ......", option->channel_opt.ip, option->channel_opt.port);
 			co_return;
 		}
 		NetChannel_reg(acceptNetReactor(), c.get());

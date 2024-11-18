@@ -10,7 +10,7 @@ typedef struct NetChannelUserDataRedisClient_t {
 	DynArr_t(int64_t) rpc_ids;
 } NetChannelUserDataRedisClient_t;
 
-static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserDataRedisClient_t* ud, const BootServerConfigConnectOption_t* config_opt, void* sche) {
+static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserDataRedisClient_t* ud, const BootServerConfigNetChannelOption_t* channel_opt, void* sche) {
 	ud->ping_cmd_len = RedisCommand_format(&ud->ping_cmd, "PING");
 	if (ud->ping_cmd_len < 0) {
 		ud->ping_cmd = NULL;
@@ -24,7 +24,7 @@ static NetChannelUserData_t* init_channel_user_data_redis_cli(NetChannelUserData
 	}
 	dynarrInitZero(&ud->rpc_ids);
 	ud->on_subscribe = NULL;
-	return initNetChannelUserData(&ud->_, config_opt, sche);
+	return initNetChannelUserData(&ud->_, channel_opt, sche);
 }
 
 /********************************************************************/
@@ -156,9 +156,10 @@ NetChannel_t* openNetChannelRedisClient(const BootServerConfigConnectOption_t* o
 	NetChannelUserDataRedisClient_t* ud = NULL;
 	Sockaddr_t connect_addr;
 	socklen_t connect_addrlen;
-	int domain = ipstrFamily(opt->ip);
+	const BootServerConfigNetChannelOption_t* channel_conf_opt = &opt->channel_opt;
+	int domain = ipstrFamily(channel_conf_opt->ip);
 
-	connect_addrlen = sockaddrEncode(&connect_addr.sa, domain, opt->ip, opt->port);
+	connect_addrlen = sockaddrEncode(&connect_addr.sa, domain, channel_conf_opt->ip, channel_conf_opt->port);
 	if (connect_addrlen <= 0) {
 		goto err;
 	}
@@ -166,7 +167,7 @@ NetChannel_t* openNetChannelRedisClient(const BootServerConfigConnectOption_t* o
 	if (!ud) {
 		return NULL;
 	}
-	if (!init_channel_user_data_redis_cli(ud, opt, sche)) {
+	if (!init_channel_user_data_redis_cli(ud, channel_conf_opt, sche)) {
 		goto err;
 	}
 	c = NetChannel_open(NET_CHANNEL_SIDE_CLIENT, &s_redis_cli_proc, domain, SOCK_STREAM, 0);
@@ -176,8 +177,9 @@ NetChannel_t* openNetChannelRedisClient(const BootServerConfigConnectOption_t* o
 	NetChannel_set_operator_sockaddr(c, &connect_addr.sa, connect_addrlen);
 	ud->on_subscribe = on_subscribe;
 	NetChannel_set_userdata(c, &ud->_);
-	c->heartbeat_timeout_msec = 10000;
-	c->heartbeat_maxtimes = 3;
+	c->heartbeat_timeout_msec = channel_conf_opt->heartbeat_timeout_msec > 0 ? channel_conf_opt->heartbeat_timeout_msec : 10000;
+	c->heartbeat_maxtimes = channel_conf_opt->heartbeat_max_times > 0 ? channel_conf_opt->heartbeat_max_times : 3;
+	c->connect_timeout_msec = opt->connect_timeout_msec;
 	c->on_syn_ack = defaultNetChannelOnSynAck;
 	return c;
 err:

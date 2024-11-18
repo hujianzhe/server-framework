@@ -5,8 +5,8 @@ typedef struct NetChannelUserDataHttp_t {
 	NetChannelUserData_t _;
 } NetChannelUserDataHttp_t;
 
-static NetChannelUserData_t* init_channel_user_data_http(NetChannelUserDataHttp_t* ud, const void* config_opt, void* sche) {
-	return initNetChannelUserData(&ud->_, config_opt, sche);
+static NetChannelUserData_t* init_channel_user_data_http(NetChannelUserDataHttp_t* ud, const BootServerConfigNetChannelOption_t* channel_opt, void* sche) {
+	return initNetChannelUserData(&ud->_, channel_opt, sche);
 }
 
 /**************************************************************************/
@@ -115,6 +115,7 @@ static NetChannelProc_t s_http_proc = {
 static void http_accept_callback(NetChannel_t* listen_c, FD_t newfd, const struct sockaddr* peer_addr, socklen_t addrlen, long long ts_msec) {
 	NetChannel_t* c = NULL;
 	NetChannelUserDataHttp_t* conn_ud = NULL;
+	const BootServerConfigNetChannelOption_t* channel_opt;
 	NetChannelUserData_t* listen_ud;
 
 	c = NetChannel_open_with_fd(NET_CHANNEL_SIDE_SERVER, &s_http_proc, newfd, peer_addr->sa_family, 0);
@@ -127,9 +128,10 @@ static void http_accept_callback(NetChannel_t* listen_c, FD_t newfd, const struc
 		goto err;
 	}
 	listen_ud = NetChannel_get_userdata(listen_c);
-	init_channel_user_data_http(conn_ud, listen_ud->config_opt, listen_ud->sche);
+	channel_opt = &listen_ud->channel_opt;
+	init_channel_user_data_http(conn_ud, channel_opt, listen_ud->sche);
 	NetChannel_set_userdata(c, conn_ud);
-	c->heartbeat_timeout_msec = 20000;
+	c->heartbeat_timeout_msec = channel_opt->heartbeat_timeout_msec > 0 ? channel_opt->heartbeat_timeout_msec : 20000;
 	NetChannel_reg(selectNetReactor(), c);
 	NetChannel_close_ref(c);
 	return;
@@ -147,9 +149,10 @@ NetChannel_t* openNetChannelHttpClient(const BootServerConfigConnectOption_t* op
 	socklen_t connect_saddrlen;
 	NetChannelUserDataHttp_t* ud = NULL;
 	NetChannel_t* c = NULL;
-	int domain = ipstrFamily(opt->ip);
+	const BootServerConfigNetChannelOption_t* channel_conf_opt = &opt->channel_opt;
+	int domain = ipstrFamily(channel_conf_opt->ip);
 
-	connect_saddrlen = sockaddrEncode(&connect_saddr.sa, domain, opt->ip, opt->port);
+	connect_saddrlen = sockaddrEncode(&connect_saddr.sa, domain, channel_conf_opt->ip, channel_conf_opt->port);
 	if (connect_saddrlen <= 0) {
 		return NULL;
 	}
@@ -164,9 +167,9 @@ NetChannel_t* openNetChannelHttpClient(const BootServerConfigConnectOption_t* op
 	if (!NetChannel_set_operator_sockaddr(c, &connect_saddr.sa, connect_saddrlen)) {
 		goto err;
 	}
-	init_channel_user_data_http(ud, opt, sche);
+	init_channel_user_data_http(ud, channel_conf_opt, sche);
 	NetChannel_set_userdata(c, ud);
-	c->heartbeat_timeout_msec = 10000;
+	c->heartbeat_timeout_msec = channel_conf_opt->heartbeat_timeout_msec ? channel_conf_opt->heartbeat_timeout_msec : 10000;
 	c->on_syn_ack = defaultNetChannelOnSynAck;
 	return c;
 err:
@@ -180,9 +183,10 @@ NetChannel_t* openNetListenerHttp(const BootServerConfigListenOption_t* opt, voi
 	socklen_t listen_saddrlen;
 	NetChannel_t* c = NULL;
 	NetChannelUserDataHttp_t* ud = NULL;
-	int domain = ipstrFamily(opt->ip);
+	const BootServerConfigNetChannelOption_t* channel_conf_opt = &opt->channel_opt;
+	int domain = ipstrFamily(channel_conf_opt->ip);
 
-	listen_saddrlen = sockaddrEncode(&listen_saddr.sa, domain, opt->ip, opt->port);
+	listen_saddrlen = sockaddrEncode(&listen_saddr.sa, domain, channel_conf_opt->ip, channel_conf_opt->port);
 	if (listen_saddrlen <= 0) {
 		return NULL;
 	}
@@ -199,7 +203,7 @@ NetChannel_t* openNetListenerHttp(const BootServerConfigListenOption_t* opt, voi
 		goto err;
 	}
 	c->on_ack_halfconn = http_accept_callback;
-	init_channel_user_data_http(ud, opt, sche);
+	init_channel_user_data_http(ud, channel_conf_opt, sche);
 	NetChannel_set_userdata(c, ud);
 	return c;
 err:

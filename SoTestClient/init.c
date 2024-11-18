@@ -144,7 +144,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 			return;
 		}
 		if (block->status != STACK_CO_STATUS_FINISH) {
-			logError(ptrBSG()->log, "", "channel(%p) connect %s:%u failure", c, option->ip, option->port);
+			logError(ptrBSG()->log, "", "channel(%p) connect %s:%u failure", c, option->channel_opt.ip, option->channel_opt.port);
 			NetChannel_close_ref(c);
 			return;
 		}

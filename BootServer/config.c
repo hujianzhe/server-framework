@@ -6,31 +6,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-static BootServerConfigListenOption_t* parse_listen_option(cJSON* cjson, BootServerConfigListenOption_t* option_ptr) {
-	cJSON* protocol = cJSON_GetField(cjson, "protocol");
-	cJSON* ipnode = cJSON_GetField(cjson, "ip");
-	cJSON* portnode = cJSON_GetField(cjson, "port");
-	cJSON* socktype = cJSON_GetField(cjson, "socktype");
-	cJSON* readcache_max_size = cJSON_GetField(cjson, "readcache_max_size");
-	cJSON* backlog = cJSON_GetField(cjson, "backlog");
+static BootServerConfigNetChannelOption_t* parse_net_channel_option(cJSON* cjson, BootServerConfigNetChannelOption_t* option_ptr) {
+	cJSON* ip, *port, *socktype, *readcache_max_size, *sendcache_max_size, *heartbeat_timeout_msec, *heartbeat_max_times, *command_timeout_msec;
 	size_t len;
 
-	if (!protocol || !ipnode || !portnode) {
+	ip = cJSON_GetField(cjson, "ip");
+	if (!ip) {
 		return NULL;
 	}
-	option_ptr->protocol = strdup(cJSON_GetStringPtr(protocol));
-	if (!option_ptr->protocol) {
-		return NULL;
-	}
-	len = cJSON_GetStringLength(ipnode);
+	len = cJSON_GetStringLength(ip);
 	if (len >= sizeof(IPString_t)) {
 		return NULL;
 	}
 	else {
-		memcpy(option_ptr->ip, cJSON_GetStringPtr(ipnode), len);
+		memcpy(option_ptr->ip, cJSON_GetStringPtr(ip), len);
 		option_ptr->ip[len] = '\0';
 	}
-	option_ptr->port = cJSON_GetInteger(portnode);
+
+	port = cJSON_GetField(cjson, "port");
+	if (!port) {
+		return NULL;
+	}
+	option_ptr->port = cJSON_GetInteger(port);
+
+	socktype = cJSON_GetField(cjson, "socktype");
 	if (!socktype) {
 		option_ptr->socktype = SOCK_STREAM;
 	}
@@ -40,62 +39,74 @@ static BootServerConfigListenOption_t* parse_listen_option(cJSON* cjson, BootSer
 			return NULL;
 		}
 	}
+
+	readcache_max_size = cJSON_GetField(cjson, "readcache_max_size");
 	if (readcache_max_size && cJSON_GetInteger(readcache_max_size) > 0) {
 		option_ptr->readcache_max_size = cJSON_GetInteger(readcache_max_size);
 	}
-	else {
-		option_ptr->readcache_max_size = 0;
+
+	sendcache_max_size = cJSON_GetField(cjson, "sendcache_max_size");
+	if (sendcache_max_size && cJSON_GetInteger(sendcache_max_size) > 0) {
+		option_ptr->sendcache_max_size = cJSON_GetInteger(sendcache_max_size);
 	}
+
+	heartbeat_timeout_msec = cJSON_GetField(cjson, "heartbeat_timeout_msec");
+	if (heartbeat_timeout_msec && cJSON_GetInteger(heartbeat_timeout_msec) > 0) {
+		option_ptr->heartbeat_timeout_msec = cJSON_GetInteger(heartbeat_timeout_msec);
+	}
+
+	heartbeat_max_times = cJSON_GetField(cjson, "heartbeat_max_times");
+	if (heartbeat_max_times && cJSON_GetInteger(heartbeat_max_times) > 0) {
+		option_ptr->heartbeat_max_times = cJSON_GetInteger(heartbeat_max_times);
+	}
+
+	command_timeout_msec = cJSON_GetField(cjson, "command_timeout_msec");
+	if (command_timeout_msec && cJSON_GetInteger(command_timeout_msec) > 0) {
+		option_ptr->command_timeout_msec = cJSON_GetInteger(command_timeout_msec);
+	}
+
+	return option_ptr;
+}
+
+static BootServerConfigListenOption_t* parse_listen_option(cJSON* cjson, BootServerConfigListenOption_t* option_ptr) {
+	cJSON* protocol = cJSON_GetField(cjson, "protocol");
+	cJSON* backlog = cJSON_GetField(cjson, "backlog");
+
+	if (!protocol) {
+		return NULL;
+	}
+	option_ptr->protocol = strdup(cJSON_GetStringPtr(protocol));
+	if (!option_ptr->protocol) {
+		return NULL;
+	}
+
 	if (backlog && cJSON_GetInteger(backlog) > 0) {
 		option_ptr->backlog = cJSON_GetInteger(backlog);
 	}
 	else {
 		option_ptr->backlog = 4096;
 	}
+
+	if (!parse_net_channel_option(cjson, &option_ptr->channel_opt)) {
+		return NULL;
+	}
 	return option_ptr;
 }
 
 static BootServerConfigConnectOption_t* parse_connect_option(cJSON* cjson, BootServerConfigConnectOption_t* option_ptr) {
 	cJSON* protocol = cJSON_GetField(cjson, "protocol");
-	cJSON* ipnode = cJSON_GetField(cjson, "ip");
-	cJSON* portnode = cJSON_GetField(cjson, "port");
-	cJSON* socktype = cJSON_GetField(cjson, "socktype");
-	cJSON* readcache_max_size = cJSON_GetField(cjson, "readcache_max_size");
 	cJSON* user = cJSON_GetField(cjson, "user");
 	cJSON* password = cJSON_GetField(cjson, "password");
-	size_t len;
+	cJSON* connect_timeout_msec = cJSON_GetField(cjson, "connect_timeout_msec");
 
-	if (!protocol || !ipnode || !portnode) {
+	if (!protocol) {
 		return NULL;
 	}
 	option_ptr->protocol = strdup(cJSON_GetStringPtr(protocol));
 	if (!option_ptr->protocol) {
 		return NULL;
 	}
-	len = cJSON_GetStringLength(ipnode);
-	if (len >= sizeof(IPString_t)) {
-		return NULL;
-	}
-	else {
-		memcpy(option_ptr->ip, cJSON_GetStringPtr(ipnode), len);
-		option_ptr->ip[len] = '\0';
-	}
-	option_ptr->port = cJSON_GetInteger(portnode);
-	if (!socktype) {
-		option_ptr->socktype = SOCK_STREAM;
-	}
-	else {
-		option_ptr->socktype = if_string2socktype(cJSON_GetStringPtr(socktype));
-		if (0 == option_ptr->socktype) {
-			return NULL;
-		}
-	}
-	if (readcache_max_size && cJSON_GetInteger(readcache_max_size) > 0) {
-		option_ptr->readcache_max_size = cJSON_GetInteger(readcache_max_size);
-	}
-	else {
-		option_ptr->readcache_max_size = 0;
-	}
+
 	if (user) {
 		option_ptr->user = strdup(cJSON_GetStringPtr(user));
 		if (!option_ptr->user) {
@@ -103,12 +114,24 @@ static BootServerConfigConnectOption_t* parse_connect_option(cJSON* cjson, BootS
 		}
 		option_ptr->user_strlen = cJSON_GetStringLength(user);
 	}
+
 	if (password) {
 		option_ptr->password = strdup(cJSON_GetStringPtr(password));
 		if (!option_ptr->password) {
 			return NULL;
 		}
 		option_ptr->password_strlen = cJSON_GetStringLength(password);
+	}
+
+	if (connect_timeout_msec && cJSON_GetInteger(connect_timeout_msec) > 0) {
+		option_ptr->connect_timeout_msec = cJSON_GetInteger(connect_timeout_msec);
+	}
+	else {
+		option_ptr->connect_timeout_msec = 0;
+	}
+
+	if (!parse_net_channel_option(cjson, &option_ptr->channel_opt)) {
+		return NULL;
 	}
 	return option_ptr;
 }

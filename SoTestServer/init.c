@@ -75,7 +75,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 			continue;
 		}
 		if (!c) {
-			logError(ptrBSG()->log, "", "listen failure, ip:%s, port:%u ......", option->ip, option->port);
+			logError(ptrBSG()->log, "", "listen failure, ip:%s, port:%u ......", option->channel_opt.ip, option->channel_opt.port);
 			return;
 		}
 		NetChannel_reg(acceptNetReactor(), c);

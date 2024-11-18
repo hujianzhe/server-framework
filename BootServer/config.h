@@ -3,27 +3,33 @@
 
 #include "util/inc/sysapi/socket.h"
 
-typedef struct BootServerConfigListenOption_t {
-	const char* protocol;
+typedef struct BootServerConfigNetChannelOption_t {
 	int socktype;
 	IPString_t ip;
 	unsigned short port;
 	int readcache_max_size;
+	int sendcache_max_size;
+	int command_timeout_msec;
+	int heartbeat_timeout_msec;
+	unsigned short heartbeat_max_times;
+} BootServerConfigNetChannelOption_t;
+
+typedef struct BootServerConfigListenOption_t {
+	const char* protocol;
 	int backlog;
+	BootServerConfigNetChannelOption_t channel_opt;
 	struct cJSON* cjson_node;
 } BootServerConfigListenOption_t;
 
 typedef struct BootServerConfigConnectOption_t {
 	const char* protocol;
-	int socktype;
-	IPString_t ip;
-	unsigned short port;
-	int readcache_max_size;
-	struct cJSON* cjson_node;
+	int connect_timeout_msec;
 	const char* user;
 	size_t user_strlen;
 	const char* password;
 	size_t password_strlen;
+	BootServerConfigNetChannelOption_t channel_opt;
+	struct cJSON* cjson_node;
 } BootServerConfigConnectOption_t;
 
 typedef struct BootServerConfigSchedulerOption_t {

@@ -169,7 +169,8 @@ NetChannel_t* openNetChannelHttpClient(const BootServerConfigConnectOption_t* op
 	}
 	init_channel_user_data_http(ud, channel_conf_opt, sche);
 	NetChannel_set_userdata(c, ud);
-	c->heartbeat_timeout_msec = channel_conf_opt->heartbeat_timeout_msec ? channel_conf_opt->heartbeat_timeout_msec : 10000;
+	c->heartbeat_timeout_msec = channel_conf_opt->heartbeat_timeout_msec > 0 ? channel_conf_opt->heartbeat_timeout_msec : 10000;
+	c->connect_timeout_msec = opt->connect_timeout_msec;
 	c->on_syn_ack = defaultNetChannelOnSynAck;
 	return c;
 err:

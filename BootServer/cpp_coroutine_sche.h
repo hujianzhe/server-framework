@@ -33,12 +33,8 @@ private:
 	util::CoroutineDefaultSche m_sche;
 
 	TaskThreadCppCoroutine() {
-		net_dispatch = [](TaskThread_t* t, DispatchNetMsg_t* net_msg)->util::CoroutinePromise<void> {
-			FnNetCallback fn = (FnNetCallback)net_msg->callback;
-			co_await fn(t, net_msg);
-			co_return;
-		};
-		net_detach = [](TaskThread_t*, NetChannel_t*)->util::CoroutinePromise<void> { co_return; };
+		net_dispatch = nullptr;
+		net_detach = nullptr;
 		sche = &m_sche;
 		hook = &TaskThreadCppCoroutine::default_hook;
 	}
@@ -75,7 +71,9 @@ private:
 		sche->readyExec([](const std::any& arg)->util::CoroutinePromise<void> {
 			auto thrd = (TaskThreadCppCoroutine*)currentTaskThread();
 			auto channel = util::StdAnyPointerGuard::transfer_unique_ptr<NetChannel_t>(arg);
-			co_await thrd->net_detach(thrd, channel.get());
+			if (thrd->net_detach) {
+				co_await thrd->net_detach(thrd, channel.get());
+			}
 			co_return;
 		}, util::StdAnyPointerGuard::to_any(channel, NetChannel_close_ref));
 	}
@@ -85,7 +83,13 @@ private:
 			auto thrd = (TaskThreadCppCoroutine*)currentTaskThread();
 			auto net_msg = util::StdAnyPointerGuard::transfer_unique_ptr<DispatchNetMsg_t>(arg);
 			std::unique_ptr<NetChannel_t, void(*)(NetChannel_t*)> ch(NetChannel_add_ref(net_msg->channel), NetChannel_close_ref);
-			co_await thrd->net_dispatch(thrd, net_msg.get());
+			if (thrd->net_dispatch) {
+				co_await thrd->net_dispatch(thrd, net_msg.get());
+			}
+			else {
+				auto fn = (TaskThreadCppCoroutine::FnNetCallback)net_msg->callback;
+				co_await fn(thrd, net_msg.get());
+			}
 			co_return;
 		}, util::StdAnyPointerGuard::to_any(msg, freeDispatchNetMsg));
 	}

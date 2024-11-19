@@ -186,7 +186,6 @@
     <ClInclude Include="util\inc\datastruct\memheap.h" />
     <ClInclude Include="util\inc\datastruct\random.h" />
     <ClInclude Include="util\inc\datastruct\rbtree.h" />
-    <ClInclude Include="util\inc\datastruct\serial_exec.h" />
     <ClInclude Include="util\inc\datastruct\sha1.h" />
     <ClInclude Include="util\inc\datastruct\transport_ctx.h" />
     <ClInclude Include="util\inc\datastruct\tree.h" />
@@ -251,7 +250,6 @@
     <ClCompile Include="util\src\datastruct\memheap.c" />
     <ClCompile Include="util\src\datastruct\random.c" />
     <ClCompile Include="util\src\datastruct\rbtree.c" />
-    <ClCompile Include="util\src\datastruct\serial_exec.c" />
     <ClCompile Include="util\src\datastruct\sha1.c" />
     <ClCompile Include="util\src\datastruct\transport_ctx.c" />
     <ClCompile Include="util\src\datastruct\tree.c" />

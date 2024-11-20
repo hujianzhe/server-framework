@@ -86,11 +86,12 @@ static int redis_cli_on_read(NetChannel_t* channel, unsigned char* buf, unsigned
 			continue;
 		}
 
-		message = newDispatchNetMsg(channel, 0);
+		message = newDispatchNetMsg(0, 0);
 		if (!message) {
 			RedisReply_free(reply);
 			return -1;
 		}
+		message->channel = channel;
 		message->on_free = free_user_msg;
 		message->param.value = reply;
 		message->rpcid = rpc_id;

@@ -69,9 +69,8 @@ static void innerchannel_recv(NetChannel_t* c, unsigned char* bodyptr, size_t bo
 	if (bodylen >= hsz) {
 		DispatchNetMsg_t* message;
 		char rpc_status = *bodyptr;
-
 		if (INNER_MSG_FIELD_RPC_STATUS_RESP == rpc_status) {
-			message = newDispatchNetMsg(c, bodylen - hsz);
+			message = newDispatchNetMsg(bodylen - hsz, c->socktype != SOCK_STREAM ? addrlen : 0);
 			if (!message) {
 				return;
 			}
@@ -83,18 +82,18 @@ static void innerchannel_recv(NetChannel_t* c, unsigned char* bodyptr, size_t bo
 			if (!callback) {
 				return;
 			}
-			message = newDispatchNetMsg(c, bodylen - hsz);
+			message = newDispatchNetMsg(bodylen - hsz, c->socktype != SOCK_STREAM ? addrlen : 0);
 			if (!message) {
 				return;
 			}
+			message->cmd = cmd;
 			message->callback = callback;
 		}
-
-		if (SOCK_STREAM != c->socktype) {
-			memmove(&message->peer_addr, addr, addrlen);
-			message->peer_addrlen = addrlen;
-		}
+		message->channel = c;
 		message->rpcid = ntohll(*(int64_t*)(bodyptr + 5));
+		if (SOCK_STREAM != c->socktype) {
+			memmove(message->peer_addr, addr, addrlen);
+		}
 		if (message->datalen) {
 			memmove(message->data, bodyptr + hsz, message->datalen);
 		}

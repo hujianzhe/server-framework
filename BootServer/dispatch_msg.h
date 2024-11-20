@@ -18,9 +18,10 @@ typedef struct DispatchNetMsg_t {
 	long long enqueue_time_msec;
 	DispatchNetCallback_t callback;
 	NetChannel_t* channel;
-	Sockaddr_t peer_addr;
+	struct sockaddr* peer_addr;
 	socklen_t peer_addrlen;
 	int retcode;
+	int cmd;
 	size_t datalen;
 	unsigned char data[1];
 } DispatchNetMsg_t;
@@ -29,7 +30,7 @@ typedef struct DispatchNetMsg_t {
 extern "C" {
 #endif
 
-__declspec_dll DispatchNetMsg_t* newDispatchNetMsg(NetChannel_t* channel, size_t datalen);
+__declspec_dll DispatchNetMsg_t* newDispatchNetMsg(size_t datalen, socklen_t saddrlen);
 __declspec_dll void freeDispatchNetMsg(DispatchNetMsg_t* msg);
 
 #ifdef __cplusplus

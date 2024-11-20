@@ -29,11 +29,12 @@ static void httpframe_recv(NetChannel_t* c, HttpFrame_t* httpframe, unsigned cha
 			return;
 		}
 	}
-	message = newDispatchNetMsg(c, bodylen);
+	message = newDispatchNetMsg(bodylen, 0);
 	if (!message) {
 		free(httpframeReset(httpframe));
 		return;
 	}
+	message->channel = c;
 	message->on_free = free_user_msg;
 	message->param.value = httpframe;
 	if (message->datalen) {

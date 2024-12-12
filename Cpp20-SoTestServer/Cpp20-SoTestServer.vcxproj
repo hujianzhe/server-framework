@@ -135,11 +135,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cmd_handler.cpp" />
     <ClCompile Include="init.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="test_handler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cmd.h" />
+    <ClInclude Include="cmd_handler.h" />
     <ClInclude Include="test_handler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

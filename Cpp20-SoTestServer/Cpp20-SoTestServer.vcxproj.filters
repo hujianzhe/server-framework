@@ -24,9 +24,18 @@
     <ClCompile Include="test_handler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="cmd_handler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test_handler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd_handler.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

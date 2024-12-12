@@ -1,11 +1,12 @@
 #include "../BootServer/config.h"
 #include "../BootServer/global.h"
 #include "../BootServer/cpp_coroutine_sche.h"
+#include "cmd_handler.h"
 #include "test_handler.h"
 #include <iostream>
 #include <memory>
 
-static util::CoroutinePromise<void> run(const std::any& param) {
+static util::CoroutinePromise<void> run() {
 	auto sc = util::CoroutineDefaultSche::get();
 	TaskThread_t* thrd = currentTaskThread();
 	// listen extra port
@@ -14,6 +15,9 @@ static util::CoroutinePromise<void> run(const std::any& param) {
 		std::unique_ptr<NetChannel_t, void(*)(NetChannel_t*)> c(nullptr, NetChannel_close_ref);
 		if (!strcmp(option->protocol, "http")) {
 			c.reset(openNetListenerHttp(option, thrd->sche));
+		}
+		else if (!strcmp(option->protocol, "inner")) {
+			c.reset(openNetListenerInner(option, thrd->sche));
 		}
 		else {
 			continue;
@@ -92,6 +96,7 @@ int init(void) {
 	}
 	auto sc = (util::CoroutineDefaultSche*)ptrBSG()->default_task_thread->sche;
 	// register dispatch
+	CmdHandler::reg_dispatch(ptrBSG()->dispatch);
 	TestHandler::reg_dispatch(ptrBSG()->dispatch);
 
 	sc->readyExec(run);

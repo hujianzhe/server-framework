@@ -68,18 +68,18 @@ class NetScheHookCppCoroutine {
 private:
 	static void on_detach(void* sche_obj, NetChannel_t* channel) {
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;
-		sche->readyExec([](const std::any& arg)->util::CoroutinePromise<void> {
+		sche->readyExec(std::bind([](const std::any& arg)->util::CoroutinePromise<void> {
 			auto thrd = (TaskThreadCppCoroutine*)currentTaskThread();
 			auto channel = util::StdAnyPointerGuard::transfer_unique_ptr<NetChannel_t>(arg);
 			if (thrd->net_detach) {
 				co_await thrd->net_detach(thrd, channel.get());
 			}
 			co_return;
-		}, util::StdAnyPointerGuard::to_any(channel, NetChannel_close_ref));
+		}, util::StdAnyPointerGuard::to_any(channel, NetChannel_close_ref)));
 	}
 	static void on_execute_msg(void* sche_obj, DispatchNetMsg_t* msg) {
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;
-		sche->readyExec([](const std::any& arg)->util::CoroutinePromise<void> {
+		sche->readyExec(std::bind([](const std::any& arg)->util::CoroutinePromise<void> {
 			auto thrd = (TaskThreadCppCoroutine*)currentTaskThread();
 			auto net_msg = util::StdAnyPointerGuard::transfer_unique_ptr<DispatchNetMsg_t>(arg);
 			std::unique_ptr<NetChannel_t, void(*)(NetChannel_t*)> ch(NetChannel_add_ref(net_msg->channel), NetChannel_close_ref);
@@ -91,7 +91,7 @@ private:
 				co_await fn(thrd, net_msg.get());
 			}
 			co_return;
-		}, util::StdAnyPointerGuard::to_any(msg, freeDispatchNetMsg));
+		}, util::StdAnyPointerGuard::to_any(msg, freeDispatchNetMsg)));
 	}
 	static void on_resume_msg(void* sche_obj, DispatchNetMsg_t* msg) {
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;

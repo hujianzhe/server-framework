@@ -92,7 +92,7 @@ static int websocket_on_read(NetChannel_t* c, unsigned char* buf, unsigned int b
 				return -1;
 			}
 			NetChannel_send(c, txt, strlen(txt), NETPACKET_NO_ACK_FRAGMENT, NULL, 0);
-			utilExportFree(txt);
+			websocketframeFreeString(txt);
 		}
 		else {
 			char txt[162];

@@ -166,9 +166,7 @@
     <ClInclude Include="util\inc\component\switch_co_sche.h" />
     <ClInclude Include="util\inc\crt\cXML.h" />
     <ClInclude Include="util\inc\crt\dynarr.h" />
-    <ClInclude Include="util\inc\crt\export_free.h" />
     <ClInclude Include="util\inc\crt\json.h" />
-    <ClInclude Include="util\inc\crt\math.h" />
     <ClInclude Include="util\inc\crt\protocol\hiredis_cli_protocol.h" />
     <ClInclude Include="util\inc\crt\protocol\httpframe.h" />
     <ClInclude Include="util\inc\crt\protocol\websocketframe.h" />
@@ -231,9 +229,7 @@
     <ClCompile Include="util\src\component\switch_co_sche.c" />
     <ClCompile Include="util\src\crt\cXML.c" />
     <ClCompile Include="util\src\crt\dynarr.c" />
-    <ClCompile Include="util\src\crt\export_free.c" />
     <ClCompile Include="util\src\crt\json.c" />
-    <ClCompile Include="util\src\crt\math.c" />
     <ClCompile Include="util\src\crt\protocol\hiredis_cli_protocol.c" />
     <ClCompile Include="util\src\crt\protocol\httpframe.c" />
     <ClCompile Include="util\src\crt\protocol\websocketframe.c" />

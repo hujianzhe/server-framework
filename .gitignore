@@ -26,6 +26,8 @@ core.*
 *.ilk
 *.o
 *.obj
+/*.json
+/*.log
 *.log
 *.tlog
 *.idb

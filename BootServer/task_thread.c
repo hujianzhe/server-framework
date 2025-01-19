@@ -101,21 +101,18 @@ extern "C" {
 
 BOOL saveTaskThread(TaskThread_t* t) {
 	int save_ok = 0;
+	t->already_boot = 0;
+	t->refcnt = 1;
+	t->detached = 1;
+	t->exited = 0;
+	mt19937Seed(&t->randmt19937_ctx, time(NULL));
 	while (_xchg32(&s_SpinLock, 1));
 	if (s_AllowNewTaskThread) {
 		dynarrReserve(&s_TaskThreads, s_TaskThreads.len * 2);
 		dynarrInsert(&s_TaskThreads, s_TaskThreads.len, t, save_ok);
 	}
 	_xchg32(&s_SpinLock, 0);
-	if (!save_ok) {
-		return 0;
-	}
-	t->refcnt = 1;
-	t->already_boot = 0;
-	t->detached = 1;
-	t->exited = 0;
-	mt19937Seed(&t->randmt19937_ctx, time(NULL));
-	return 1;
+	return save_ok;
 }
 
 TaskThread_t* newTaskThreadStackCo(const BootServerConfigSchedulerOption_t* conf_option) {

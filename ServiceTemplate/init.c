@@ -24,7 +24,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	logInfo(ptrBSG()->log, "", "init ok ......");
 }
 
-int init(void) {
+void init(void) {
 	// init log
 	unsigned int i;
 	for (i = 0; i < ptrBSG()->conf->log_options_cnt; ++i) {
@@ -33,5 +33,4 @@ int init(void) {
 	}
 
 	StackCoSche_function(ptrBSG()->default_task_thread->sche_stack_co, run, NULL);
-	return 0;
 }

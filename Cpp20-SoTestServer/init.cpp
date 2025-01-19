@@ -88,7 +88,7 @@ static util::CoroutinePromise<void> run() {
 	co_return;
 }
 
-int init(void) {
+void init(void) {
 	// init log
 	for (unsigned int i = 0; i < ptrBSG()->conf->log_options_cnt; ++i) {
 		const BootServerConfigLoggerOption_t* opt = ptrBSG()->conf->log_options + i;
@@ -100,5 +100,4 @@ int init(void) {
 	TestHandler::reg_dispatch(ptrBSG()->dispatch);
 
 	sc->readyExec(run);
-	return 0;
 }

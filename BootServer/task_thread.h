@@ -23,9 +23,9 @@ typedef struct TaskThread_t {
 	RandMT19937_t randmt19937_ctx;
 	Atom32_t refcnt;
 	Atom8_t already_boot;
-	unsigned int stack_size;
 	char detached;
-	char exited;
+	volatile char exited;
+	unsigned int stack_size;
 	union {
 		struct StackCoSche_t* sche_stack_co;
 		void* sche;

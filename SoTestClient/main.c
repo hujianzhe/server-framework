@@ -8,7 +8,7 @@ static int s_exit_signo = SIGINT;
 static int s_exit_signo = SIGTERM;
 #endif
 
-extern int init(void);
+extern void init(void);
 
 static void sig_proc(int signo) {
 	if (s_exit_signo == signo) {
@@ -22,7 +22,6 @@ static void sig_proc(int signo) {
 }
 
 int main(int argc, char** argv) {
-	int ret;
 	BootServerConfig_t* bs_conf;
 	if (argc < 2) {
 		fputs("need a config file to boot ...", stderr);
@@ -49,13 +48,7 @@ int main(int argc, char** argv) {
 	signalReg(s_exit_signo);
 	ptrBSG()->sig_proc = sig_proc;
 	/* run your App init function */
-	ret = init();
-	if (ret) {
-		fprintf(stderr, "App call init err, ret=%d\n", ret);
-		goto err;
-	}
-	/* print boot cluster node info */
-	printBootServerNodeInfo();
+	init();
 	/* run BootServer and wait BootServer end */
 	if (!runBootServerGlobal()) {
 		goto err;

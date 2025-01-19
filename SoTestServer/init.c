@@ -85,7 +85,7 @@ void run(struct StackCoSche_t* sche, StackCoAsyncParam_t* param) {
 	test_simply_udp_server(45678);
 }
 
-int init(void) {
+void init(void) {
 	// init log
 	unsigned int i;
 	for (i = 0; i < ptrBSG()->conf->log_options_cnt; ++i) {
@@ -105,5 +105,4 @@ int init(void) {
 	regStringDispatch(ptrBSG()->dispatch, "/reqTestExecQueue", reqTestExecQueue);
 
 	StackCoSche_function(ptrBSG()->default_task_thread->sche_stack_co, run, NULL);
-	return 0;
 }

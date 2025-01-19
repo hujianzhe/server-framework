@@ -1,6 +1,7 @@
 #include "global.h"
 
 static BootServerGlobal_t s_BSG, *s_PtrBSG;
+static Atom32_t s_Run;
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,6 +71,13 @@ static unsigned int signal_thread_entry(void* arg) {
 BOOL runBootServerGlobal(void) {
 	BOOL retbool = FALSE;
 	int task_ok = 0;
+	int run = _cmpxchg32(&s_Run, 1, 0);
+	if (1 == run) {
+		return TRUE;
+	}
+	if (2 == run) {
+		return FALSE;
+	}
 	/* run signal thread */
 	if (s_BSG.sig_proc) {
 		if (!threadCreate(&s_BSG.sig_tid, 0, signal_thread_entry, NULL)) {
@@ -105,6 +113,9 @@ void stopBootServerGlobal(void) {
 	if (!s_PtrBSG) {
 		return;
 	}
+	if (_xchg32(&s_Run, 2) != 1) {
+		return;
+	}
 	s_BSG.valid = 0;
 	stopAllTaskThreads();
 	wakeupNetThreads();
@@ -134,6 +145,7 @@ void freeBootServerGlobal(void) {
 		free((void*)s_BSG.errmsg);
 		s_BSG.errmsg = NULL;
 	}
+	s_Run = 0;
 	s_BSG.valid = 0;
 	s_BSG.argc = 0;
 	s_BSG.argv = NULL;

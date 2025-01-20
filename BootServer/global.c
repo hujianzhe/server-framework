@@ -113,7 +113,7 @@ void stopBootServerGlobal(void) {
 	if (!s_PtrBSG) {
 		return;
 	}
-	if (_xchg32(&s_Run, 2) != 1) {
+	if (_xchg32(&s_Run, 2) == 2) {
 		return;
 	}
 	s_BSG.valid = 0;

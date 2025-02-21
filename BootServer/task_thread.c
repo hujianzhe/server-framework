@@ -67,7 +67,7 @@ void stopAllTaskThreads(void) {
 	_xchg32(&s_SpinLock, 0);
 }
 
-void waitFreeAllTaskThreads(void) {
+void waitAllTaskThreads(void) {
 	size_t i;
 	while (1) {
 		while (_xchg32(&s_SpinLock, 1)) {
@@ -85,12 +85,16 @@ void waitFreeAllTaskThreads(void) {
 		_xchg32(&s_SpinLock, 0);
 		threadSleepMillsecond(40);
 	}
+	_xchg32(&s_SpinLock, 0);
+}
+
+void freeAllTaskThreads(void) {
+	size_t i;
 	for (i = 0; i < s_TaskThreads.len; ++i) {
 		TaskThread_t* t = s_TaskThreads.buf[i];
 		t->hook->deleter(t);
 	}
 	dynarrFreeMemory(&s_TaskThreads);
-	_xchg32(&s_SpinLock, 0);
 }
 
 /**************************************************************************************/

@@ -40,7 +40,8 @@ typedef struct TaskThreadStackCo_t {
 } TaskThreadStackCo_t;
 
 void stopAllTaskThreads(void);
-void waitFreeAllTaskThreads(void);
+void waitAllTaskThreads(void);
+void freeAllTaskThreads(void);
 
 #ifdef __cplusplus
 extern "C" {

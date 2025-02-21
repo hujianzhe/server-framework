@@ -105,6 +105,7 @@ end:
 	if (task_ok) {
 		threadJoin(s_BSG.default_task_thread->tid, NULL);
 	}
+	waitAllTaskThreads();
 	joinNetThreads();
 	return retbool;
 }
@@ -125,9 +126,9 @@ void freeBootServerGlobal(void) {
 	if (!s_PtrBSG) {
 		return;
 	}
-	waitFreeAllTaskThreads();
 	s_PtrBSG = NULL;
 	s_BSG.default_task_thread = NULL;
+	freeAllTaskThreads();
 	if (s_BSG.log) {
 		logDestroy(s_BSG.log);
 		s_BSG.log = NULL;

@@ -19,7 +19,7 @@ DEBUG_TARGET := $(TARGET_PATH)/libBootServerDynamicDebug.so
 ASAN_TARGET := $(TARGET_PATH)/libBootServerDynamicAsan.so
 RELEASE_TARGET := $(TARGET_PATH)/libBootServerDynamic.so
 
-all:
+all: debug release asan
 
 debug:
 	$(COMPILER) $(MACRO) -D_DEBUG -g $(COMPILE_OPTION) $(SOURCE_C_FILE) $(SOURCE_CPP_FILE) -o $(DEBUG_TARGET) $(DEFAULT_LINK)

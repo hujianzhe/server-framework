@@ -118,6 +118,7 @@ void stopBootServerGlobal(void) {
 		return;
 	}
 	s_BSG.valid = 0;
+	_memoryBarrier();
 	stopAllTaskThreads();
 	wakeupNetThreads();
 }

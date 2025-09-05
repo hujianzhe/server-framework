@@ -10,6 +10,7 @@ static unsigned int task_thread_stack_co_entry(void* arg) {
 	}
 	while (0 == StackCoSche_sche(t->sche_stack_co, -1));
 	t->exited = 1;
+	_memoryBarrier();
 	return 0;
 }
 
@@ -60,6 +61,7 @@ void stopAllTaskThreads(void) {
 		TaskThread_t* t = s_TaskThreads.buf[i];
 		if (!_xchg8(&t->already_boot, 1)) {
 			t->exited = 1;
+			_memoryBarrier();
 			continue;
 		}
 		t->hook->exit(t);
@@ -71,7 +73,7 @@ void waitAllTaskThreads(void) {
 	size_t i;
 	while (1) {
 		while (_xchg32(&s_SpinLock, 1)) {
-			threadSleepMillsecond(40);
+			threadSleepMillsecond(4);
 		}
 		for (i = 0; i < s_TaskThreads.len; ++i) {
 			TaskThread_t* t = s_TaskThreads.buf[i];
@@ -83,7 +85,7 @@ void waitAllTaskThreads(void) {
 			break;
 		}
 		_xchg32(&s_SpinLock, 0);
-		threadSleepMillsecond(40);
+		threadSleepMillsecond(4);
 	}
 	_xchg32(&s_SpinLock, 0);
 }

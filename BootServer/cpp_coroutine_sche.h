@@ -47,6 +47,7 @@ private:
 		}
 		while (util::CoroutineDefaultSche::ST_RUN == sche.doSche(-1));
 		t->exited = 1;
+		memoryBarrierRelease();
 		return 0;
 	}
 	static void exit(TaskThread_t* t) {

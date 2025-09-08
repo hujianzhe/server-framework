@@ -58,7 +58,11 @@ void printBootServerNodeInfo(void) {
 
 static unsigned int signal_thread_entry(void* arg) {
 	threadDetach(threadSelf());
-	while (s_BSG.valid) {
+	while (1) {
+		memoryBarrierAcquire();
+		if (!s_BSG.valid) {
+			break;
+		}
 		int sig = signalWait();
 		if (sig < 0) {
 			continue;
@@ -71,7 +75,7 @@ static unsigned int signal_thread_entry(void* arg) {
 BOOL runBootServerGlobal(void) {
 	BOOL retbool = FALSE;
 	int task_ok = 0;
-	int run = _cmpxchg32(&s_Run, 1, 0);
+	int run = cmpxchg32(&s_Run, 1, 0);
 	if (1 == run) {
 		return TRUE;
 	}
@@ -114,11 +118,11 @@ void stopBootServerGlobal(void) {
 	if (!s_PtrBSG) {
 		return;
 	}
-	if (_xchg32(&s_Run, 2) == 2) {
+	if (xchg32(&s_Run, 2) == 2) {
 		return;
 	}
 	s_BSG.valid = 0;
-	_memoryBarrier();
+	memoryBarrierRelease();
 	stopAllTaskThreads();
 	wakeupNetThreads();
 }

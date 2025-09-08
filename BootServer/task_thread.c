@@ -10,7 +10,7 @@ static unsigned int task_thread_stack_co_entry(void* arg) {
 	}
 	while (0 == StackCoSche_sche(t->sche_stack_co, -1));
 	t->exited = 1;
-	_memoryBarrier();
+	memoryBarrierRelease();
 	return 0;
 }
 
@@ -43,36 +43,40 @@ static Atom32_t s_SpinLock;
 
 static void remove_task_thread__(TaskThread_t* t) {
 	size_t i;
-	while (_xchg32(&s_SpinLock, 1));
+	memoryBarrierAcquire();
+	while (xchg32(&s_SpinLock, 1));
 	for (i = 0; i < s_TaskThreads.len; ++i) {
 		if (s_TaskThreads.buf[i] == t) {
 			s_TaskThreads.buf[i] = s_TaskThreads.buf[--s_TaskThreads.len];
 			break;
 		}
 	}
-	_xchg32(&s_SpinLock, 0);
+	memoryBarrierRelease();
+	xchg32(&s_SpinLock, 0);
 }
 
 void stopAllTaskThreads(void) {
 	size_t i;
 	s_AllowNewTaskThread = 0;
-	while (_xchg32(&s_SpinLock, 1));
+	memoryBarrierAcquire();
+	while (xchg32(&s_SpinLock, 1));
 	for (i = 0; i < s_TaskThreads.len; ++i) {
 		TaskThread_t* t = s_TaskThreads.buf[i];
-		if (!_xchg8(&t->already_boot, 1)) {
+		if (!xchg8(&t->already_boot, 1)) {
 			t->exited = 1;
 			continue;
 		}
 		t->hook->exit(t);
 	}
-	_memoryBarrier();
-	_xchg32(&s_SpinLock, 0);
+	memoryBarrierRelease();
+	xchg32(&s_SpinLock, 0);
 }
 
 void waitAllTaskThreads(void) {
 	size_t i;
 	while (1) {
-		while (_xchg32(&s_SpinLock, 1)) {
+		memoryBarrierAcquire();
+		while (xchg32(&s_SpinLock, 1)) {
 			threadSleepMillsecond(4);
 		}
 		for (i = 0; i < s_TaskThreads.len; ++i) {
@@ -84,10 +88,11 @@ void waitAllTaskThreads(void) {
 		if (i >= s_TaskThreads.len) {
 			break;
 		}
-		_xchg32(&s_SpinLock, 0);
+		memoryBarrierRelease();
+		xchg32(&s_SpinLock, 0);
 		threadSleepMillsecond(4);
 	}
-	_xchg32(&s_SpinLock, 0);
+	xchg32(&s_SpinLock, 0);
 }
 
 void freeAllTaskThreads(void) {
@@ -112,12 +117,14 @@ BOOL saveTaskThread(TaskThread_t* t) {
 	t->detached = 1;
 	t->exited = 0;
 	mt19937Seed(&t->randmt19937_ctx, time(NULL));
-	while (_xchg32(&s_SpinLock, 1));
+	memoryBarrierAcquire();
+	while (xchg32(&s_SpinLock, 1));
 	if (s_AllowNewTaskThread) {
 		dynarrReserve(&s_TaskThreads, s_TaskThreads.len * 2);
 		dynarrInsert(&s_TaskThreads, s_TaskThreads.len, t, save_ok);
 	}
-	_xchg32(&s_SpinLock, 0);
+	memoryBarrierRelease();
+	xchg32(&s_SpinLock, 0);
 	return save_ok;
 }
 
@@ -151,7 +158,7 @@ err:
 }
 
 BOOL runTaskThread(TaskThread_t* t) {
-	if (_xchg8(&t->already_boot, 1)) {
+	if (xchg8(&t->already_boot, 1)) {
 		return TRUE;
 	}
 	return threadCreate(&t->tid, t->stack_size, t->hook->entry, t);
@@ -165,7 +172,7 @@ void freeTaskThread(TaskThread_t* t) {
 	if (!t) {
 		return;
 	}
-	if (_xadd32(&t->refcnt, -1) > 1) {
+	if (xadd32(&t->refcnt, -1) > 1) {
 		return;
 	}
 	remove_task_thread__(t);
@@ -176,14 +183,16 @@ TaskThread_t* currentTaskThread(void) {
 	Thread_t tid = threadSelf();
 	TaskThread_t* thrd = NULL;
 	size_t i;
-	while (_xchg32(&s_SpinLock, 1));
+	memoryBarrierAcquire();
+	while (xchg32(&s_SpinLock, 1));
 	for (i = 0; i < s_TaskThreads.len; ++i) {
 		thrd = s_TaskThreads.buf[i];
 		if (threadEqual(tid, thrd->tid)) {
 			break;
 		}
 	}
-	_xchg32(&s_SpinLock, 0);
+	memoryBarrierRelease();
+	xchg32(&s_SpinLock, 0);
 	return thrd;
 }
 

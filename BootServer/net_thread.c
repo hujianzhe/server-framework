@@ -58,7 +58,11 @@ static unsigned int net_thread_entry(void* arg) {
 	}
 	reactor = (struct NetReactor_t*)arg;
 
-	while (ptrBSG()->valid) {
+	while (1) {
+		memoryBarrierAcquire();
+		if (!ptrBSG()->valid) {
+			break;
+		}
 		res = NetReactor_handle(reactor, ev, ev_cnt, -1);
 		if (res < 0) {
 			break;
@@ -109,7 +113,7 @@ struct NetReactor_t* acceptNetReactor(void) { return s_NetReactors[s_NetReactorC
 struct NetReactor_t* targetNetReactor(size_t key) { return s_NetReactors[key % s_NetReactorCnt]; }
 struct NetReactor_t* selectNetReactor(void) {
 	static Atom32_t num = 0;
-	unsigned int i = _xadd32(&num, 1);
+	unsigned int i = xadd32(&num, 1);
 	return s_NetReactors[i % s_NetReactorCnt];
 }
 

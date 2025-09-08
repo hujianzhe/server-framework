@@ -61,11 +61,11 @@ void stopAllTaskThreads(void) {
 		TaskThread_t* t = s_TaskThreads.buf[i];
 		if (!_xchg8(&t->already_boot, 1)) {
 			t->exited = 1;
-			_memoryBarrier();
 			continue;
 		}
 		t->hook->exit(t);
 	}
+	_memoryBarrier();
 	_xchg32(&s_SpinLock, 0);
 }
 

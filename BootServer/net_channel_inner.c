@@ -29,7 +29,7 @@ static void innerchannel_decode(NetChannel_t* c, unsigned char* buf, size_t bufl
 		}
 		decode_result->pktype = data[0];
 		decode_result->fragment_eof = data[1];
-		decode_result->pkseq = ntohl(*(unsigned int*)&data[2]);
+		decode_result->pkseq = memReadBE32(&data[2]);
 		data += INNER_MSG_FORMAT_EXTHDRSIZE;
 		datalen -= INNER_MSG_FORMAT_EXTHDRSIZE;
 
@@ -43,7 +43,7 @@ static void innerchannel_encode(NetChannel_t* c, NetPacket_t* packet) {
 	unsigned char* exthdr = packet->buf + INNER_MSG_FORMAT_BASEHDRSIZE;
 	exthdr[0] = packet->type;
 	exthdr[1] = packet->fragment_eof;
-	*(unsigned int*)&exthdr[2] = htonl(packet->seq);
+	memWriteBE32(&exthdr[2], packet->seq);
 	lengthfieldframeEncode(packet->buf, INNER_MSG_FORMAT_BASEHDRSIZE, packet->bodylen + INNER_MSG_FORMAT_EXTHDRSIZE);
 }
 
@@ -74,10 +74,10 @@ static void innerchannel_recv(NetChannel_t* c, unsigned char* bodyptr, size_t bo
 			if (!message) {
 				return;
 			}
-			message->retcode = ntohl(*(int*)(bodyptr + 1));
+			message->retcode = memReadBE32(bodyptr + 1);
 		}
 		else {
-			int cmd = ntohl(*(int*)(bodyptr + 1));
+			int cmd = memReadBE32(bodyptr + 1);
 			DispatchNetCallback_t callback = getNumberDispatch(ptrBSG()->dispatch, cmd);
 			if (!callback) {
 				return;
@@ -90,7 +90,7 @@ static void innerchannel_recv(NetChannel_t* c, unsigned char* bodyptr, size_t bo
 			message->callback = callback;
 		}
 		message->channel = c;
-		message->rpcid = ntohll(*(int64_t*)(bodyptr + 5));
+		message->rpcid = memReadBE64(bodyptr + 5);
 		if (SOCK_STREAM != c->socktype) {
 			memmove(message->peer_addr, addr, addrlen);
 		}

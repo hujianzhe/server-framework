@@ -67,23 +67,26 @@ private:
 
 class NetScheHookCppCoroutine {
 private:
+	typedef util::StdUniquePtrCopyMove<NetChannel_t, void(*)(NetChannel_t*)> channel_copy_move;
+	typedef util::StdUniquePtrCopyMove<DispatchNetMsg_t, void(*)(DispatchNetMsg_t*)> dispatch_net_msg_copy_move;
+
 	static void on_detach(void* sche_obj, NetChannel_t* channel) {
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;
-		sche->readyExec(std::bind([](const std::any& arg)->util::CoroutinePromise<void> {
+		sche->readyExec(std::bind([](channel_copy_move channel_cm)->util::CoroutinePromise<void> {
 			auto thrd = (TaskThreadCppCoroutine*)currentTaskThread();
-			auto channel = util::StdAnyPointerGuard::transfer_unique_ptr<NetChannel_t>(arg);
+			auto channel = channel_cm.to_unique_ptr();
 			if (thrd->net_detach) {
 				co_await thrd->net_detach(thrd, channel.get());
 			}
 			co_return;
-		}, util::StdAnyPointerGuard::to_any(channel, NetChannel_close_ref)));
+		}, channel_copy_move{channel, NetChannel_close_ref}));
 	}
 	static void on_execute_msg(void* sche_obj, DispatchNetMsg_t* msg) {
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;
-		sche->readyExec(std::bind([](const std::any& arg)->util::CoroutinePromise<void> {
+		sche->readyExec(std::bind([](dispatch_net_msg_copy_move net_msg_cm)->util::CoroutinePromise<void> {
 			auto thrd = (TaskThreadCppCoroutine*)currentTaskThread();
-			auto net_msg = util::StdAnyPointerGuard::transfer_unique_ptr<DispatchNetMsg_t>(arg);
-			std::unique_ptr<NetChannel_t, void(*)(NetChannel_t*)> ch(NetChannel_add_ref(net_msg->channel), NetChannel_close_ref);
+			auto net_msg = net_msg_cm.to_unique_ptr();
+			std::unique_ptr<NetChannel_t, void(*)(NetChannel_t*)> ch{NetChannel_add_ref(net_msg->channel), NetChannel_close_ref};
 			if (thrd->net_dispatch) {
 				co_await thrd->net_dispatch(thrd, net_msg.get());
 			}
@@ -92,11 +95,11 @@ private:
 				co_await fn(thrd, net_msg.get());
 			}
 			co_return;
-		}, util::StdAnyPointerGuard::to_any(msg, freeDispatchNetMsg)));
+		}, dispatch_net_msg_copy_move{msg, freeDispatchNetMsg}));
 	}
 	static void on_resume_msg(void* sche_obj, DispatchNetMsg_t* msg) {
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;
-		sche->readyResume(msg->rpcid, util::StdAnyPointerGuard::to_any(msg, freeDispatchNetMsg));
+		sche->readyResume(msg->rpcid, dispatch_net_msg_copy_move{msg, freeDispatchNetMsg});
 	}
 	static void on_resume(void* sche_obj, int64_t id, int canceled) {
 		auto sche = (util::CoroutineDefaultSche*)sche_obj;

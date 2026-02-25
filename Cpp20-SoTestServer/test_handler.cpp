@@ -83,13 +83,14 @@ util::CoroutinePromise<void> reqSoTestEntry(TaskThread_t* thrd, DispatchNetMsg_t
 	std::cout << "input " << s << " sleep\n";
 	co_await sc->sleepTimeout(1000);
 
-	util::CoroutineAwaiterAnyone awaiter_any;
+	util::CoroutineAwaitAnyone awaiter_any;
 	util::CoroutinePromise<std::string> test_promise = nothing(1000);
-	awaiter_any.addWithIdentity(test_promise, 0);
-	awaiter_any.addWithIdentity(nothing(100), 1);
+	awaiter_any.add(test_promise, 0);
+	awaiter_any.add(nothing(100), 1);
 	while (!awaiter_any.allDone()) {
-		util::CoroutineNode* co_node = co_await awaiter_any;
-		std::cout << co_node->ident() << " finished co_node: " << co_node << " ret: " << co_node->ident() << std::endl;
+		co_await awaiter_any;
+		auto [co_node, ident] = awaiter_any.pop_result();
+		std::cout << ident << " finished co_node: " << co_node << " ret: " << ident << std::endl;
 	}
 
 	std::cout << sc->current_co_node() << " entry exit..." << std::endl;

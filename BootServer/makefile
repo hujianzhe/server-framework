@@ -1,4 +1,4 @@
-SOURCE_C_FILE += $(shell find . -name "*.c") $(shell find -L util -name "*.c")
+SOURCE_C_FILE += $(shell find -L . -name "*.c")
 SOURCE_CPP_FILE += $(shell find . -name "*.cpp")
 
 TARGET_PATH += .

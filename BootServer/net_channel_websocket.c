@@ -41,8 +41,8 @@ static int websocket_on_pre_send(NetChannel_t* c, NetPacket_t* packet, long long
 static int websocket_on_read(NetChannel_t* c, unsigned char* buf, unsigned int buflen, long long timestamp_msec, const struct sockaddr* addr, socklen_t addrlen) {
 	NetChannelUserDataWebsocket_t* ud = (NetChannelUserDataWebsocket_t*)NetChannel_get_userdata(c);
 	if (ud->ws_handshake_state >= 1) {
-		unsigned char* data;
-		unsigned long long datalen;
+		unsigned char* data = NULL;
+		unsigned long long datalen = 0;
 		int is_fin, type;
 		int res = websocketframeDecode(buf, buflen, &data, &datalen, &is_fin, &type);
 		if (res < 0) {

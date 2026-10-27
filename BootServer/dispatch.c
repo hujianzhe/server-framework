@@ -7,11 +7,18 @@ typedef struct DispatchItem_t {
 	DispatchNetCallback_t func;
 } DispatchItem_t;
 
+typedef struct DispatchItemBlock_t {
+	ListNode_t m_listnode;
+	DispatchItem_t m_items[146];
+} DispatchItemBlock_t;
+
 typedef struct Dispatch_t {
 	Hashtable_t number_table;
 	HashtableNode_t* number_table_bulks[1024];
 	Hashtable_t string_table;
 	HashtableNode_t* string_table_bulks[1024];
+	size_t items_pop_idx;
+	List_t item_block_list;
 } Dispatch_t;
 
 Dispatch_t* newDispatch(void) {
@@ -32,27 +39,50 @@ Dispatch_t* newDispatch(void) {
 			hashtableDefaultKeyCmpStr,
 			hashtableDefaultKeyHashStr
 		);
+
+		dispatch->items_pop_idx = 0;
+		listInit(&dispatch->item_block_list);
 	}
 	return dispatch;
 }
 
 void freeDispatch(Dispatch_t* dispatch) {
 	if (dispatch) {
-		HashtableNode_t* cur;
-		cur = hashtableFirstNode(&dispatch->number_table);
-		while (cur) {
-			HashtableNode_t* next = hashtableNextNode(cur);
-			free(pod_container_of(cur, DispatchItem_t, m_hashnode));
-			cur = next;
+		ListNode_t* lcur;
+		HashtableNode_t* hcur;
+
+		hcur = hashtableFirstNode(&dispatch->string_table);
+		while (hcur) {
+			HashtableNode_t* next = hashtableNextNode(hcur);
+			free(pod_container_of(hcur, DispatchItem_t, m_hashnode));
+			hcur = next;
 		}
-		cur = hashtableFirstNode(&dispatch->string_table);
-		while (cur) {
-			HashtableNode_t* next = hashtableNextNode(cur);
-			free(pod_container_of(cur, DispatchItem_t, m_hashnode));
-			cur = next;
+
+		lcur = dispatch->item_block_list.head;
+		while (lcur) {
+			ListNode_t* next = lcur->next;
+			free(pod_container_of(lcur, DispatchItemBlock_t, m_listnode));
+			lcur = next;
 		}
 		free(dispatch);
 	}
+}
+
+static DispatchItem_t* pop_new_item(Dispatch_t* dispatch) {
+	DispatchItemBlock_t* block;
+	if (dispatch->item_block_list.tail) {
+		block = pod_container_of(dispatch->item_block_list.tail, DispatchItemBlock_t, m_listnode);
+		if (dispatch->items_pop_idx < sizeof(block->m_items) / sizeof(block->m_items[0])) {
+			return &block->m_items[dispatch->items_pop_idx++];
+		}
+	}
+	block = (DispatchItemBlock_t*)malloc(sizeof(DispatchItemBlock_t));
+	if (!block) {
+		return NULL;
+	}
+	listPushNodeBack(&dispatch->item_block_list, &block->m_listnode);
+	dispatch->items_pop_idx = 1;
+	return &block->m_items[0];
 }
 
 /**************************************************************************************/
@@ -95,14 +125,14 @@ int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchNetCallback_t func)
 		pod_container_of(exist_node, DispatchItem_t, m_hashnode)->func = func;
 		return 1;
 	}
-	item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
+	item = pop_new_item(dispatch);
 	if (!item) {
 		return 0;
 	}
 	item->m_hashnode.key.i32 = cmd;
 	item->func = func;
 	if (hashtableInsertNode(&dispatch->number_table, &item->m_hashnode) != &item->m_hashnode) {
-		free(item);
+		--dispatch->items_pop_idx;
 		return 0;
 	}
 	return 1;

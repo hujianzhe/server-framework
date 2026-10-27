@@ -1,5 +1,6 @@
 #include "global.h"
 #include "dispatch.h"
+#include <string.h>
 
 typedef struct DispatchItem_t {
 	HashtableNode_t m_hashnode;
@@ -47,7 +48,6 @@ void freeDispatch(Dispatch_t* dispatch) {
 		cur = hashtableFirstNode(&dispatch->string_table);
 		while (cur) {
 			HashtableNode_t* next = hashtableNextNode(cur);
-			free((void*)(cur->key.ptr));
 			free(pod_container_of(cur, DispatchItem_t, m_hashnode));
 			cur = next;
 		}
@@ -62,44 +62,50 @@ extern "C" {
 #endif
 
 int regStringDispatch(Dispatch_t* dispatch, const char* str, DispatchNetCallback_t func) {
-	DispatchItem_t* item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
+	HashtableNodeKey_t hkey;
+	DispatchItem_t* item;
+	HashtableNode_t* exist_node;
+	hkey.ptr = str;
+	exist_node = hashtableSearchKey(&dispatch->string_table, hkey);
+	if (exist_node) {
+		pod_container_of(exist_node, DispatchItem_t, m_hashnode)->func = func;
+		return 1;
+	}
+	item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t) + strlen(str) + 1);
 	if (!item) {
 		return 0;
 	}
-	str = strdup(str);
-	if (!str) {
+	item->m_hashnode.key.ptr = (void*)(item + 1);
+	item->func = func;
+	strcpy((char*)item->m_hashnode.key.ptr, str);
+	if (hashtableInsertNode(&dispatch->string_table, &item->m_hashnode) != &item->m_hashnode) {
 		free(item);
 		return 0;
 	}
-	else {
-		HashtableNode_t* exist_node;
-		item->m_hashnode.key.ptr = str;
-		item->func = func;
-		exist_node = hashtableInsertNode(&dispatch->string_table, &item->m_hashnode);
-		if (exist_node != &item->m_hashnode) {
-			DispatchItem_t* exist_item = pod_container_of(exist_node, DispatchItem_t, m_hashnode);
-			hashtableReplaceNode(&dispatch->string_table, exist_node, &item->m_hashnode);
-			free((void*)(exist_node->key.ptr));
-			free(exist_item);
-		}
-		return 1;
-	}
+	return 1;
 }
 
 int regNumberDispatch(Dispatch_t* dispatch, int cmd, DispatchNetCallback_t func) {
-	DispatchItem_t* item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
-	if (item) {
-		HashtableNode_t* exist_node;
-		item->m_hashnode.key.i32 = cmd;
-		item->func = func;
-		exist_node = hashtableInsertNode(&dispatch->number_table, &item->m_hashnode);
-		if (exist_node != &item->m_hashnode) {
-			hashtableReplaceNode(&dispatch->number_table, exist_node, &item->m_hashnode);
-			free(pod_container_of(exist_node, DispatchItem_t, m_hashnode));
-		}
+	HashtableNodeKey_t hkey;
+	DispatchItem_t* item;
+	HashtableNode_t* exist_node;
+	hkey.i32 = cmd;
+	exist_node = hashtableSearchKey(&dispatch->number_table, hkey);
+	if (exist_node) {
+		pod_container_of(exist_node, DispatchItem_t, m_hashnode)->func = func;
 		return 1;
 	}
-	return 0;
+	item = (DispatchItem_t*)malloc(sizeof(DispatchItem_t));
+	if (!item) {
+		return 0;
+	}
+	item->m_hashnode.key.i32 = cmd;
+	item->func = func;
+	if (hashtableInsertNode(&dispatch->number_table, &item->m_hashnode) != &item->m_hashnode) {
+		free(item);
+		return 0;
+	}
+	return 1;
 }
 
 DispatchNetCallback_t getStringDispatch(const Dispatch_t* dispatch, const char* str) {
